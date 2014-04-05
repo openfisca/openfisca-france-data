@@ -1,3 +1,9 @@
+# Ignore temporalrely h5 files
+*.h5
+
+# Ignore local config file
+*_local.ini
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -51,4 +57,3 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
-
