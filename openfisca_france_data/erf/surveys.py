@@ -11,51 +11,47 @@ import os
 import pkg_resources
 import sys
 
-
 from ConfigParser import SafeConfigParser
-from pandas import HDFStore
+import logging
+from pandas import HDFStore, DataFrame
+
 from openfisca_france.utils import check_consistency
 #    Uses rpy2.
 #    On MS Windows, The environment variable R_HOME and R_USER should be set
-
-## try:
 import pandas.rpy.common as com
 import rpy2.rpy_classic as rpy
+
+
 rpy.set_default_mode(rpy.NO_CONVERSION)
-## except:
-##     pass
-
-
-#from openfisca_france.data.sources.config import DATA_DIR
-
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
 CONFIG_DIR = os.path.join(openfisca_france_location)
-
-#ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data', 'erf')
 
 
 class Survey(object):
     label = None
     name = None
-    store = None
     tables = None
-
+    hdf5_filename = None
     """
     An object to describe survey data
     """
-    def __init__(self, name = None, label = None, store = None, **kwargs):
+    def __init__(self, name = None, label = None, hdf5_filename = None, **kwargs):
 
         assert name is not None, "A survey should have a name"
         self.name = name
         self.tables = dict()
 
-        if store is not None:
-            self.store = store
-
         if label is not None:
             self.label = label
         else:
             self.label = self.name
+
+
+        if hdf5_filename is not None:
+            self.hdf5_filename = hdf5_filename
+        else:
+            self.hdf5_filename = "{}{}".format(self.name, ".h5")
+
         self.informations = kwargs
 
 
@@ -67,59 +63,44 @@ class Survey(object):
             self.tables[name] = dict()
 
         for key, val in kwargs.iteritems():
-#            if key in ["Rdata_filename", "variables"]:
+        ##    if key in ["Rdata_filename", "variables"]:
             self.tables[name][key] = val
 
-
-    def hdf_store_init(hdf5_filename):
-        self.store = HDFStore(self.hdf5_filename)
-
-
     def fill_hdf_from_Rdata(self, table, verbose = False):
-
-
-        store = self.store
 
         assert table in self.tables, "Table {} is not a repertorid table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
         Rdata_file = self.tables[table]["Rdata_file"]
 
-        print Rdata_table
-        print Rdata_file
-        print type(Rdata_file)
-        ## if not os.path.isfile(Rdata_file):
-        ##     raise Exception("filename do  not exists")
+        if not os.path.isfile(Rdata_file):
+             raise Exception("filename do  not exists")
 
         rpy.r.load(Rdata_file)
         stored_table = com.load_data(Rdata_table)
-        store_path = self.name
+        store_path = Rdata_table
+        store = HDFStore(self.hdf5_filename)
 
-        RESTART HERE
-        force_recreation = False
-        if store_path in store:
-            if force_recreation is not True:
-                print store_path + "already exists, do not re-create and exit"
-                store.close()
-                return
+        print 'store : ', store
+        print 'store_path : ', store_path
 
-        variable = None
+        ## force_recreation = True
+        ## if store_path in store:
+        ##     if force_recreation is not True:
+        ##         print store_path + "already exists, do not re-create and exit"
+        ##         store.close()
+        ##         return
+
+        variables = self.tables[table]['variables']
         if variables is not None:
-
-            print store
-            print store_path
-            print variables
+            print 'variables : ', variables
             variables_stored = list(set(variables).intersection(set(stored_table.columns)))
             print list(set(variables).difference((set(stored_table.columns))))
-            store[store_path] = stored_table[variables_stored]
+            store.append(store_path, stored_table[variables_stored], format = 'table', data_columns = stored_table.columns)
         else:
-            store[store_path] = stored_table
+             store.append(store_path, stored_table, format = 'table', data_columns = stored_table.columns)
+
         store.close()
-        del stored_table
         gc.collect()
-
-
-
-
 
 
 class SurveyCollection(object):
@@ -130,7 +111,6 @@ class SurveyCollection(object):
 
         super(SurveyCollection, self).__init__()
         self.surveys = dict()
-        self.hdf5_filename = None
 
 
 def build_erfs_survey_collection():
@@ -142,7 +122,7 @@ def build_erfs_survey_collection():
     data_directory = parser.get('data', 'input_directory')
 
     erfs_survey_collection = SurveyCollection()
-    for year in range(2006, 2010):
+    for year in range(2008, 2010):
         surveys = erfs_survey_collection.surveys
         yr = str(year)[2:]
         yr1 = str(year+1)[2:]
@@ -211,15 +191,15 @@ def build_erfs_survey_collection():
                                                    table["Rdata_table"] + str(".Rdata"),
                                                    )
         survey_name = 'erfs_' + str(year)
-        survey = surveys[survey_name] = Survey(name = survey_name)
+        hdf5_filename = os.path.join(os.path.dirname(data_directory),
+                                     'test',
+                                     "{}{}".format(survey_name, ".h5")
+                                     )
+        survey = Survey(name = survey_name, hdf5_filename = hdf5_filename)
+        surveys[survey_name] = survey
         for table_name, table_args in erf_tables.iteritems():
             survey.insert_table(name = table_name, **table_args)
             survey.fill_hdf_from_Rdata(table_name)
-        ## print surveys
-        ## for survey, val in surveys.iteritems():
-        ##     print survey
-        ##     print val
-
 
 
 if __name__ == '__main__':

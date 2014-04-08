@@ -1,6 +1,9 @@
 # Ignore temporalrely h5 files
 *.h5
 
+# Ignore emacs saves
+*~
+
 # Ignore local config file
 *_local.ini
 
