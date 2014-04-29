@@ -28,10 +28,8 @@ def create_totals(year=2006):
 
     assert indivim.duplicated(['noindiv']).any() == False, "Présence de doublons"
 
-
     # Deals individuals with imputed income : some individuals are in 'erf individu table' but
     # not in the 'foyer' table. We need to create a foyer for them.
-
 
     selection = Series()
     for var in ["zsali", "zchoi", "zrsti", "zalri", "zrtoi", "zragi", "zrici", "zrnci"]:
@@ -54,8 +52,6 @@ def create_totals(year=2006):
 
     indivi_i["quifoy"] = where(indivi_i["quifoy"].isnull(), "vous", indivi_i["quifoy"])
     indivi_i["quelfic"] = "FIP_IMP"
-
-
 
 ## We merge them with the other individuals
 #indivim <- rename(indivim, c(ident = "idmen",

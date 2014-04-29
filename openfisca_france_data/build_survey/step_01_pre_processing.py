@@ -8,7 +8,7 @@
 ## OpenFisca
 ## Merge individu and menage tables from eec and erf, keeping all observations
 ## erf tables are a subset of eec tables (no observation in erf not in eec)
-## and adding some variables at the menage table that may be useful later on (ddip,lpr)
+## and adding some variables at the menage table that may be useful later on (ddip, lpr)
 #
 ## Prepare the some useful merged tables
 #
@@ -16,7 +16,7 @@
 #
 ## Menages et Individus
 #
-from openfisca_france.data.erf.datatable import DataCollection
+from ..surveys import SurveyCollection
 
 from numpy import where
 import gc
@@ -30,7 +30,10 @@ def create_indivim(year=2006):
     '''
     '''
     # load
-    data = DataCollection(year=year)
+    erfs_survey_collection = SurveyCollection(year=year)
+
+
+    boum
     erfmen = data.get_values(table="erf_menage")
     eecmen = data.get_values(table="eec_menage")
     print sorted(eecmen.columns)
