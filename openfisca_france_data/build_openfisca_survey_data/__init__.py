@@ -6,14 +6,13 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
-
-import os
-from pandas import HDFStore
 import gc
-from openfisca_core import SRC_PATH
+import os
 
-country = "france"
-ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH, 'countries', country, 'data', 'erf')
+
+from ConfigParser import SafeConfigParser
+from pandas import HDFStore
+
 
 def save_temp(dataframe, name=None, year=None):
     """
@@ -31,7 +30,15 @@ def save_temp(dataframe, name=None, year=None):
     if year is None:
         raise Exception("year is needed")
     if name is None:
-        raise Exception("year is needed")
+        raise Exception("name is needed")
+
+    parser = SafeConfigParser()
+    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+    config_ini = os.path.join(config_files_directory, 'config.ini')
+    found = parser.read([config_local_ini, config_ini])
+    input_data_directory = parser.get('data', 'input_directory')
+
+
     store = HDFStore(os.path.join(ERF_HDF5_DATA_DIR,'temp.h5'))
     if str(year)+"/"+name in store.keys():
         del store[str(year)+"/"+name]
@@ -53,7 +60,7 @@ def load_temp(name=None, year=None):
     if year is None:
         raise Exception("year is needed")
     if name is None:
-        raise Exception("year is needed")
+        raise Exception("name is needed")
     store = HDFStore(os.path.join(ERF_HDF5_DATA_DIR,'temp.h5'))
     dataframe = store[str(year)+"/"+name]
     store.close()

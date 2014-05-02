@@ -1,38 +1,51 @@
-# -*- coding:utf-8 -*-
-# Created on 16 mai 2013
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
 # This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright ©2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
-## OpenFisca
-## Merge individu and menage tables from eec and erf, keeping all observations
-## erf tables are a subset of eec tables (no observation in erf not in eec)
-## and adding some variables at the menage table that may be useful later on (ddip, lpr)
 #
-## Prepare the some useful merged tables
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#
-## Menages et Individus
-#
-from ..surveys import SurveyCollection
 
-from numpy import where
+# Prepare the some useful merged tables
+
+
+# Menages et Individus
+
 import gc
-
-from numpy import nan
-
-from openfisca_france.data.erf.build_survey import save_temp, load_temp
+from numpy import where, nan
 import pdb
+
+
+from openfisca_france_data.surveys import SurveyCollection
+from openfisca_france_data.build_openfisca_survey_data import save_temp, load_temp
+
+TODO: test configuration and dump load of Surveys/SurveyCollections
+
 
 def create_indivim(year=2006):
     '''
     '''
     # load
-    erfs_survey_collection = SurveyCollection(year=year)
-
-
+    erfs_survey_collection = SurveyCollection.load()
     boum
     erfmen = data.get_values(table="erf_menage")
     eecmen = data.get_values(table="eec_menage")

@@ -1,21 +1,40 @@
-# -*- coding:utf-8 -*-
-# Created on 7 avr. 2013
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
 # This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright © #2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+TODO: test configuration and dump load of Surveys/SurveyCollections
 
 import collections
 import gc
 import json
 import os
 import pkg_resources
-import sys
 
 from ConfigParser import SafeConfigParser
 import logging
-from pandas import HDFStore, DataFrame
+from pandas import HDFStore
 
 from openfisca_france.utils import check_consistency
 #    Uses rpy2.
@@ -27,10 +46,9 @@ import rpy2.rpy_classic as rpy
 rpy.set_default_mode(rpy.NO_CONVERSION)
 
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
-config_files_directory = os.path.join(openfisca_france_location)
+default_config_files_directory = os.path.join(openfisca_france_location)
 
 log = logging.getLogger(__name__)
-
 
 
 class Survey(object):
@@ -67,9 +85,11 @@ class Survey(object):
             hdf5_file_path = survey_json.get('hdf5_file_path')
             )
         self.tables = survey_json.get('tables')
-        for table in self.tables:
-            print self.tables
         return self
+
+    def dump(self, file_path):
+        with open(file_path, 'w') as _file:
+            json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
 
     def fill_hdf_from_Rdata(self, table, verbose = False):
 
@@ -84,17 +104,12 @@ class Survey(object):
         stored_table = com.load_data(Rdata_table)
         store_path = Rdata_table
         store = HDFStore(self.hdf5_file_path)
-
-        print 'store : ', store
-        print 'store_path : ', store_path
-
         ## force_recreation = True
         ## if store_path in store:
         ##     if force_recreation is not True:
         ##         print store_path + "already exists, do not re-create and exit"
         ##         store.close()
         ##         return
-
         variables = self.tables[table]['variables']
         if variables is not None:
             log.info('variables asked by the user: {}'.format(variables))
@@ -106,15 +121,6 @@ class Survey(object):
 
         store.close()
         gc.collect()
-
-    def insert_table(self, name = None, **kwargs):
-        """
-        Insert a table in the Survey
-        """
-        if name not in self.tables:
-            self.tables[name] = dict()
-        for key, val in kwargs.iteritems():
-            self.tables[name][key] = val
 
     def get_value(self, variable, table=None):
         """
@@ -163,6 +169,23 @@ class Survey(object):
             df = df[variables]
             return df
 
+    def insert_table(self, name = None, **kwargs):
+        """
+        Insert a table in the Survey
+        """
+        if name not in self.tables:
+            self.tables[name] = dict()
+        for key, val in kwargs.iteritems():
+            self.tables[name][key] = val
+
+    @classmethod
+    def load(cls, file_path):
+        with open(file_path, 'r') as _file:
+            self_json = json.load(_file)
+        log.info("Creating survey: {}".format(self_json.get('name')))
+        self =  cls.create_from_json(self_json)
+        return self
+
     def to_json(self):
         self_json = collections.OrderedDict((
             ))
@@ -171,9 +194,6 @@ class Survey(object):
         self_json['name'] = self.name
         self_json['tables'] = collections.OrderedDict(sorted(self.tables.iteritems()))
         return self_json
-
-    def dump(self, file_path):
-        json.dump(self.to_json(), file_path)
 
 
 class SurveyCollection(object):
@@ -191,7 +211,10 @@ class SurveyCollection(object):
             self.name = name
         self.surveys = dict()
 
-    def dump(self, file_path):
+    def dump(self, file_path = None):
+        if file_path is None:
+            file_path = self.config.get("collections", "default_collection")
+
         with open(file_path, 'w') as _file:
             json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
 
@@ -202,10 +225,13 @@ class SurveyCollection(object):
 
     @classmethod
     def load(cls, file_path):
+        if file_path is None:
+            file_path = self.config.get("collections", "default_collection")
+
         with open(file_path, 'r') as _file:
             self_json = json.load(_file)
         surveys = self_json.get('surveys')
-        self = cls()
+        self = cls(name=self_json.get('name'), label=self_json.get('label'))
         for survey_name, survey_json in surveys.iteritems():
             print """
             {}
@@ -227,17 +253,27 @@ class SurveyCollection(object):
         return self_json
 
 
-def build_empty_erfs_survey_collection():
+    def set_config_files_directory(config_files_directory = None)
+        if config_files_directory is None:
+            config_files_directory = default_config_files_directory
 
-    parser = SafeConfigParser()
-    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
-    config_ini = os.path.join(config_files_directory, 'config.ini')
-    found = parser.read([config_local_ini, config_ini])
-    input_data_directory = parser.get('data', 'input_directory')
-    output_data_directory = parser.get('data', 'output_directory')
+        parser = SafeConfigParser()
+        self.config = parser
+        config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+        config_ini = os.path.join(config_files_directory, 'config.ini')
+        found = parser.read([config_local_ini, config_ini])
+
+
+def build_empty_erfs_survey_collection(years= None):
+    if years is None:
+        log.error("A list of years to process is needed")
 
     erfs_survey_collection = SurveyCollection(name = "erfs")
-    for year in range(2006, 2007):
+    erfs_survey_collection.set_config_files_directory()
+    input_data_directory = erfs_survey_collection.config.get('data', 'input_directory')
+    output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
+
+    for year in years:
         surveys = erfs_survey_collection.surveys
         yr = str(year)[2:]
         yr1 = str(year+1)[2:]
@@ -252,45 +288,45 @@ def build_empty_erfs_survey_collection():
         eec_variables += eec_rsa_variables + eec_aah_variables
 
         erf_tables = {
-            "erf_menage" : {  # Enquête revenu fiscaux, table ménage
+            "erf_menage": {  # Enquête revenu fiscaux, table ménage
                 "Rdata_table" : "menage" + yr,
                 "year" : year,
                 "variables" : None,
                 },
-            "eec_menage" : {  # Enquête emploi en continu, table ménage
+            "eec_menage": {  # Enquête emploi en continu, table ménage
                 "Rdata_table" : "mrf" + yr + "e" + yr + "t4",
                 "year" : year,
                 "variables" : None,
                 },
-            "foyer" : {      # Enquête revenu fiscaux, table foyer
+            "foyer": {      # Enquête revenu fiscaux, table foyer
                 "Rdata_table" : "foyer" + yr,
-                "year" : year,
+                "year": year,
                 "variables" : None,
                 },
-            "erf_indivi" : {  # Enquête revenu fiscaux, table individu
+            "erf_indivi": {  # Enquête revenu fiscaux, table individu
                 "Rdata_table" : "indivi" + yr,
-                "year" : year,
+                "year": year,
                 "variables" : ['noi','noindiv','ident','declar1','quelfic','persfip','declar2','persfipd','wprm',
                      "zsali","zchoi","ztsai","zreti","zperi","zrsti","zalri","zrtoi","zragi","zrici","zrnci",
                      "zsalo","zchoo","ztsao","zreto","zpero","zrsto","zalro","zrtoo","zrago","zrico","zrnco",
                      ],
                 },
-            "eec_indivi" : {  # Enquête emploi en continue, table individu
+            "eec_indivi": {  # Enquête emploi en continue, table individu
                 "Rdata_table" : "irf" + yr + "e" + yr + "t4",
                 "year" : year,
                 "variables" : eec_variables,
                 },
-            "eec_cmp_1" : {  # Enquête emploi en continue, table complémentaire 1
+            "eec_cmp_1": {  # Enquête emploi en continue, table complémentaire 1
                 "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t1",
                 "year" : year,
                 "variables" : eec_variables,
                 },
-            "eec_cmp_2" : {
+            "eec_cmp_2": {
                 "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t2",
                 "year" : year,
                 "variables" : eec_variables,
                 },
-            "eec_cmp_3" : {
+            "eec_cmp_3": {
                 "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t3",
                 "year" : year,
                 "variables" : eec_variables,
@@ -318,27 +354,10 @@ def build_empty_erfs_survey_collection():
         surveys[survey_name] = survey
         for table, table_args in erf_tables.iteritems():
             survey.insert_table(name = table, **table_args)
-#            survey.fill_hdf_from_Rdata(table)
     return erfs_survey_collection
-
-def fill_erfs_survey_collection(erfs_survey_collection):
-    survey_collection.fill_hdf_from_Rdata()
 
 
 if __name__ == '__main__':
 
-    erfs_survey_collection = build_empty_erfs_survey_collection()
-#    print erfs_survey_collection.surveys['erfs_2006'].to_json()
-#    print erfs_survey_collection.to_json()
-    erfs_survey_collection.dump("toto")
-    erfs2 = SurveyCollection()
-    erfs2 = erfs2.load("toto")
-
-
-    #    fill_erfs_survey_collection()
-
-#
-#     hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf_old.h5')
-#     print hdf5_filename
-#     store = HDFStore(hdf5_filename)
-#     print store
+    erfs_survey_collection = build_empty_erfs_survey_collection(years = [2006])
+    erfs_survey_collection.fill_hdf_from_Rdata()
