@@ -12,9 +12,44 @@ import os
 
 from ConfigParser import SafeConfigParser
 from pandas import HDFStore
+import pkg_resources
+
+openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
+default_config_files_directory = os.path.join(openfisca_france_location)
+
+def get_tmp_file_path(config_files_directory = default_config_files_directory):
+    parser = SafeConfigParser()
+    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+    config_ini = os.path.join(config_files_directory, 'config.ini')
+    found = parser.read([config_ini, config_local_ini])
+    tmp_directory = parser.get('data', 'tmp_directory')
+    hdf_file_path = os.path.join(tmp_directory,'temp.h5')
+    return hdf_file_path
+
+def load_temp(name = None, year = None):
+    """
+    Load a temporary saved table
+
+    Parameters
+    ----------
+    name : string, default None
+
+    year : integer, default None
+           year of the data
+    """
+    if year is None:
+        raise Exception("year is needed")
+    if name is None:
+        raise Exception("name is needed")
+    hdf_file_path = get_tmp_file_path()
+    print hdf_file_path
+    store = HDFStore(hdf_file_path)
+    dataframe = store[str(year)+"/"+name]
+    store.close()
+    return dataframe
 
 
-def save_temp(dataframe, name=None, year=None):
+def save_temp(dataframe, name = None, year = None, config_files_directory = default_config_files_directory):
     """
     Save a temporary table
 
@@ -31,40 +66,18 @@ def save_temp(dataframe, name=None, year=None):
         raise Exception("year is needed")
     if name is None:
         raise Exception("name is needed")
+    hdf_file_path = get_tmp_file_path()
+    store = HDFStore(hdf_file_path)
+    print store
+    store_path = "{}/{}".format(year, name)
 
-    parser = SafeConfigParser()
-    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
-    config_ini = os.path.join(config_files_directory, 'config.ini')
-    found = parser.read([config_local_ini, config_ini])
-    input_data_directory = parser.get('data', 'input_directory')
-
-
-    store = HDFStore(os.path.join(ERF_HDF5_DATA_DIR,'temp.h5'))
-    if str(year)+"/"+name in store.keys():
+    if store_path in store.keys():
         del store[str(year)+"/"+name]
-    store[str(year)+"/"+name] = dataframe
+
+    dataframe.to_hdf(hdf_file_path, store_path)
+
     store.close()
     return True
-
-def load_temp(name=None, year=None):
-    """
-    Load a temporary saved table
-
-    Parameters
-    ----------
-    name : string, default None
-
-    year : integer, default None
-           year of the data
-    """
-    if year is None:
-        raise Exception("year is needed")
-    if name is None:
-        raise Exception("name is needed")
-    store = HDFStore(os.path.join(ERF_HDF5_DATA_DIR,'temp.h5'))
-    dataframe = store[str(year)+"/"+name]
-    store.close()
-    return dataframe
 
 
 def show_temp():

@@ -1,18 +1,44 @@
-# -*- coding:utf-8 -*-
-# Created on 21 mai 2013
-# This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright ©2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from pandas import Series, concat, DataFrame
-from numpy import ( sum, nan, where)
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 import gc
 
-from openfisca_france.data.erf.datatable import DataCollection
+
+from pandas import Series, concat, DataFrame
+from numpy import sum, nan, where
+
+
 from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
 from openfisca_france.data.erf.build_survey.utilitaries import print_id, control
+
+
+from openfisca_france_data.surveys import SurveyCollection
+from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
+
+from openfisca_france_data.build_openfisca_survey_data.utilitaries import print_id, control
 
 ## On part de la table individu de l'ERFS
 ## on renomme les variables
@@ -22,6 +48,9 @@ def create_totals(year=2006):
 
     print "Creating Totals"
     print "Etape 1 : Chargement des données"
+
+    erfs_survey_collection = SurveyCollection.load(collection='erfs')
+    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     data = DataCollection(year=year)
     indivim = load_temp(name="indivim", year=year)

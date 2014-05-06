@@ -22,7 +22,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 
 # Prepare the some useful merged tables
@@ -38,15 +37,14 @@ import pdb
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import save_temp, load_temp
 
-TODO: test configuration and dump load of Surveys/SurveyCollections
-
 
 def create_indivim(year=2006):
     '''
     '''
     # load
     erfs_survey_collection = SurveyCollection.load()
-    boum
+    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+
     erfmen = data.get_values(table="erf_menage")
     eecmen = data.get_values(table="eec_menage")
     print sorted(eecmen.columns)
@@ -156,12 +154,15 @@ def create_enfnn(year=2006):
     '''
     '''
     #load
-    data = DataCollection(year=year)
+
+    erfs_survey_collection = SurveyCollection.load()
+    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+
     ### Enfant à naître (NN pour nouveaux nés)
     individual_vars = ['noi', 'noicon', 'noindiv', 'noiper', 'noimer', 'ident', 'naia', 'naim', 'lien',
                'acteu','stc','contra','titc','mrec','forter','rstg','retrai','lpr','cohab','sexe',
                'agepr','rga']
-    data = DataCollection(year=year)
+
     eeccmp1 = data.get_values(table="eec_cmp_1", variables=individual_vars)
     eeccmp2 = data.get_values(table="eec_cmp_2", variables=individual_vars)
     eeccmp3 = data.get_values(table="eec_cmp_3", variables=individual_vars)

@@ -1,14 +1,43 @@
-# -*- coding:utf-8 -*-
-# OpenFisca
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from openfisca_france.data.erf.datatable import DataCollection
-from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
-from openfisca_france.data.erf.build_survey.utilitaries import control, check_structure, print_id
-from pandas import DataFrame, MultiIndex
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+from __future__ import division
+
+
+import gc
+
+
+from pandas import DataFrame, MultiIndex, concat
 from numpy import array, where, NaN
 from numpy.random import randn
-from pandas import concat
-import gc
+
+
+from openfisca_france_data.surveys import SurveyCollection
+from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
+from openfisca_france_data.build_openfisca_survey_data.utilitaries import control, check_structure, print_id
 
 
 # Some individuals are declared as 'personne à charge' (pac) on 'tax forms'
@@ -20,7 +49,8 @@ def create_fip(year = 2006): # message('03_fip')
     Creates a 'fipDat' table containing all these 'fip individuals'
     """
 
-    df = DataCollection(year=year)
+    erfs_survey_collection = SurveyCollection.load()
+    df = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     print 'Démarrer 03_fip'
 # # anaisenf: année de naissance des PAC
@@ -31,9 +61,8 @@ def create_fip(year = 2006): # message('03_fip')
     # anaisenf is a string containing letter code of pac (F,G,H,I,J,N,R) and year of birth (example: 'F1990H1992')
     # when a child is invalid, he appears twice in anaisenf (example: F1900G1900 is a single invalid child born in 1990)
     erfFoyVar = ['declar', 'anaisenf']
-    foyer = df.get_values(table="foyer", variables=erfFoyVar)
-    print_id(foyer)
-#    control(foyer, verbose=True, verbose_length=10, debug=True)
+    foyer = df.get_values(table = "foyer", variables = erfFoyVar)
+    foyer.replace({'anaisenf': {'NA' : NaN}}, inplace = True )
 
 
 # #***********************************************************************************************************
@@ -67,6 +96,8 @@ def create_fip(year = 2006): # message('03_fip')
 
     # Creating the multi_index for the columns
     multi_index_columns = []
+    assert int(nb_pac_max) == nb_pac_max, "nb_pac_max = {} which is not an integer".format(nb_pac_max)
+    nb_pac_max = int(nb_pac_max)
     for i in range(1, nb_pac_max + 1):
         pac_tuples_list = [(i, 'declaration'), (i, 'type_pac'), (i, 'naia')]
         multi_index_columns += pac_tuples_list
@@ -74,13 +105,17 @@ def create_fip(year = 2006): # message('03_fip')
     columns = MultiIndex.from_tuples(multi_index_columns, names=['pac_number', 'variable'])
     fip = DataFrame(randn(len(foyer), 3*nb_pac_max), columns=columns)
     fip.fillna(NaN, inplace=True) # inutile a cause de la ligne précédente, to remove
-    for i in range(1,nb_pac_max+1):
+
+    print fip.describe()
+    print fip.info()
+
+    for i in range(1, nb_pac_max + 1):  # TODO: using values to deal with mismatching indexes
         fip[(i, 'declaration')] = foyer['declar'].values
-        fip[(i,'type_pac')] = foyer['anaisenf'].str[5*(i-1)]
-        fip[(i,'naia')] = foyer['anaisenf'].str[5*(i-1)+1:5*(i)]
+        fip[(i, 'type_pac')] = foyer['anaisenf'].str[5*(i-1)].values
+        fip[(i, 'naia')] = foyer['anaisenf'].str[5*(i-1)+1:5*(i)].values
 
     fip = fip.stack("pac_number")
-    fip.reset_index(inplace=True)
+    fip.reset_index(inplace = True)
     del fip["level_0"]
 
 #     print fip.describe()
@@ -101,7 +136,7 @@ def create_fip(year = 2006): # message('03_fip')
 
     tyFG['same_pair'] = tyFG.duplicated(cols=['declaration', 'naia'], take_last=True)
     tyFG['is_twin'] = tyFG.duplicated(cols=['declaration', 'naia', 'type_pac'])
-    tyFG['to_keep'] = (~(tyFG['same_pair']) | (tyFG['is_twin']))
+    tyFG['to_keep'] =  ~(tyFG['same_pair']) | tyFG['is_twin']
     #Note : On conserve ceux qui ont des couples déclar/naia différents et les jumeaux
     #puis on retire les autres (à la fois F et G)
     print len(tyFG),'/', len(tyFG[tyFG['to_keep']])
@@ -115,14 +150,15 @@ def create_fip(year = 2006): # message('03_fip')
     tyHI = fip[fip.type_pac.isin(['H', 'I'])]
     tyHI['same_pair'] = tyHI.duplicated(cols=['declaration', 'naia'], take_last=True)
     tyHI['is_twin'] = tyHI.duplicated(cols=['declaration', 'naia', 'type_pac'])
-    tyHI['to_keep'] = ~(tyHI['same_pair']) | (tyHI['is_twin'])
+    tyHI['to_keep'] = (~(tyHI['same_pair']) | (tyHI['is_twin'])).values
 
     fip.update(tyHI)
     fip['to_keep'] = fip['to_keep'].fillna(True)
     print 'nb lines to keep/nb initial lines'
     print len(fip[fip['to_keep']]), '/', len(fip)
-
-    indivifip = fip[fip['to_keep']]; del indivifip['to_keep'], fip, tyFG, tyHI
+    print fip.info()
+    indivifip = fip[fip['to_keep']]
+    del indivifip['to_keep'], fip, tyFG, tyHI
 
 #    control(indivifip, debug=True)
 
@@ -132,7 +168,7 @@ def create_fip(year = 2006): # message('03_fip')
     print 'Step 2 : matching indivifip with eec file'
 # #************************************************************************************************************/
 
-    indivi = load_temp(name="indivim", year=year) #TODO: USE THIS INSTEAD OF PREVIOUS LINES
+    indivi = load_temp(name="indivim", year=year)
 
 
 # pac <- indivi[!is.na(indivi$persfip) & indivi$persfip == 'pac',]
@@ -141,15 +177,19 @@ def create_fip(year = 2006): # message('03_fip')
 # indivifip$key <- paste(indivifip$naia,indivifip$declar)
 
     #TODO: replace Indivi['persfip'] is not NaN by indivi['persfip'].notnull()
-    import pdb
-    pdb.set_trace()
-    pac = indivi[(indivi['persfip'] is not NaN) & (indivi['persfip']=='pac')]
+
+    pac = indivi[(indivi['persfip'].notnull()) & (indivi['persfip']=='pac')]
+    # print pac.info()
+    print indivifip['naia'].dtype
+    print indivifip['naia']
+    print indivifip['naia'].describe()
+    print "not null : ", indivifip['naia'].notnull().all()
 
     pac['naia'] = pac['naia'].astype('int32') # TODO: was float in pac fix upstream
     indivifip['naia'] = indivifip['naia'].astype('int32')
     pac['key1'] = zip(pac['naia'], pac['declar1'].str[:29])
     pac['key2'] = zip(pac['naia'], pac['declar2'].str[:29])
-    indivifip['key'] = zip(indivifip['naia'], indivifip['declaration'].str[:29])
+    indivifip['key'] = zip(indivifip['naia'].values, indivifip['declaration'].str[:29].values)
     assert pac.naia.dtype == indivifip.naia.dtype, 'types %s , %s are different' %(pac.naia.dtype, indivifip.naia.dtype)
 
 # fip <- indivifip[!indivifip$key %in% pac$key1,]
@@ -238,7 +278,9 @@ def create_fip(year = 2006): # message('03_fip')
 # individec1 <- upData(individec1,rename=c(declar1="declar"))
 # fip1       <- merge(fip,individec1)
     # indivi$noidec <- as.numeric(substr(indivi$declar1,1,2))
+    print indivi['declar1'].str[0:2]
     indivi['noidec'] = indivi['declar1'].str[0:2].astype('float16') # To be used later to set idfoy
+
     individec1 = indivi[(indivi.declar1.isin(fip.declaration.values)) & (indivi['persfip']=="vous")]
     individec1 = individec1.loc[:, ["declar1","noidec","ident","rga","ztsai","ztsao"]]
     individec1 = individec1.rename(columns={'declar1':'declaration'})

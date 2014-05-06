@@ -8,12 +8,10 @@
 # # # OpenFisca
 
 from numpy import where, array, NaN
-from openfisca_france.data.erf.datatable import DataCollection
-from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
-from openfisca_france.data.erf.build_survey.utilitaries import control
-from pandas import concat, DataFrame
-from openfisca_france.data.erf.build_survey.utilitaries import print_id
 
+from openfisca_france_data.surveys import SurveyCollection
+from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
+from openfisca_france_data.build_openfisca_survey_data.utilitaries import control, print_id
 
 
 # #

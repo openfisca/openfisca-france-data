@@ -1,0 +1,130 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+import os
+
+
+from openfisca_france_data.surveys import Survey, SurveyCollection
+
+
+def build_empty_erfs_survey_collection(years= None):
+    if years is None:
+        log.error("A list of years to process is needed")
+
+    erfs_survey_collection = SurveyCollection(name = "erfs")
+    erfs_survey_collection.set_config_files_directory()
+    input_data_directory = erfs_survey_collection.config.get('data', 'input_directory')
+    output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
+
+    for year in years:
+        surveys = erfs_survey_collection.surveys
+        yr = str(year)[2:]
+        yr1 = str(year+1)[2:]
+
+        eec_variables = ['noi','noicon','noindiv','noiper','noimer','ident','naia','naim','lien',
+                       'acteu','stc','contra','titc','mrec','forter','rstg','retrai','lpr','cohab','sexe',
+                       'agepr','rga','statut', 'txtppb', 'encadr', 'prosa', 'nbsala',  'chpub', 'dip11']
+        eec_rsa_variables = [ "sp0" + str(i) for i in range(0,10)] + ["sp10", "sp11"] + ['sitant', 'adeben',
+                            'datant', 'raistp', 'amois', 'adfdap' , 'ancentr', 'ancchom', 'dimtyp', 'rabsp', 'raistp',
+                             'rdem', 'ancinatm']
+        eec_aah_variables = ["rc1rev", "maahe"]
+        eec_variables += eec_rsa_variables + eec_aah_variables
+
+        erf_tables = {
+            "erf_menage": {  # Enquête revenu fiscaux, table ménage
+                "Rdata_table" : "menage" + yr,
+                "year" : year,
+                "variables" : None,
+                },
+            "eec_menage": {  # Enquête emploi en continu, table ménage
+                "Rdata_table" : "mrf" + yr + "e" + yr + "t4",
+                "year" : year,
+                "variables" : None,
+                },
+            "foyer": {      # Enquête revenu fiscaux, table foyer
+                "Rdata_table" : "foyer" + yr,
+                "year": year,
+                "variables" : None,
+                },
+            "erf_indivi": {  # Enquête revenu fiscaux, table individu
+                "Rdata_table" : "indivi" + yr,
+                "year": year,
+                "variables" : ['noi','noindiv','ident','declar1','quelfic','persfip','declar2','persfipd','wprm',
+                     "zsali","zchoi","ztsai","zreti","zperi","zrsti","zalri","zrtoi","zragi","zrici","zrnci",
+                     "zsalo","zchoo","ztsao","zreto","zpero","zrsto","zalro","zrtoo","zrago","zrico","zrnco",
+                     ],
+                },
+            "eec_indivi": {  # Enquête emploi en continue, table individu
+                "Rdata_table" : "irf" + yr + "e" + yr + "t4",
+                "year" : year,
+                "variables" : eec_variables,
+                },
+            "eec_cmp_1": {  # Enquête emploi en continue, table complémentaire 1
+                "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t1",
+                "year" : year,
+                "variables" : eec_variables,
+                },
+            "eec_cmp_2": {
+                "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t2",
+                "year" : year,
+                "variables" : eec_variables,
+                },
+            "eec_cmp_3": {
+                "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t3",
+                "year" : year,
+                "variables" : eec_variables,
+                },
+        }
+
+        # Build absolute path for Rdata_file
+        for table in erf_tables.values():
+            table["Rdata_file"] = os.path.join(
+                os.path.dirname(input_data_directory),
+                'R',
+                'erf',
+                str(year),
+                table["Rdata_table"] + str(".Rdata"),
+                )
+        survey_name = 'erfs_{}'.format(year)
+        hdf5_file_path = os.path.join(
+            os.path.dirname(output_data_directory),
+            "{}{}".format(survey_name, ".h5")
+            )
+        survey = Survey(
+            name = survey_name,
+            hdf5_file_path = hdf5_file_path
+            )
+        surveys[survey_name] = survey
+        for table, table_args in erf_tables.iteritems():
+            survey.insert_table(name = table, **table_args)
+    return erfs_survey_collection
+
+
+if __name__ == '__main__':
+
+    erfs_survey_collection = build_empty_erfs_survey_collection(years = [2006])
+#    erfs_survey_collection.fill_hdf_from_Rdata()
+    erfs_survey_collection.dump(collection = "erfs")

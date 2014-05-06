@@ -1,39 +1,64 @@
-# -*- coding:utf-8 -*-
-# Created on 17 juin 2013
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
 # This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright ©2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 from __future__ import division
-from openfisca_france.data.erf.datatable import DataCollection
-from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
-from openfisca_france.data.erf.build_survey.utilitaries import control, assert_variable_inrange, count_NA
-import pandas as pd
-from pandas import DataFrame
-from numpy import array, where, NaN, arange
-from pandas import concat
+
+
 import gc
 import math
-import numpy as np
-from numpy import maximum as max_
-from openfisca_core.utils import mark_weighted_percentiles
 
-# TODO:
-# - Garder le code R, c'est plus facile pour débugguer <------------- OK
-# - Ne pas garder les camelCase et mettre des espaces autour des " = " et après les ", ". <------- Fait pour les =, à moitié pour les ,
-# - En général essayer de se conformer au coding style rules énoncées ici: http://www.python.org/dev/peps/pep-0008/ <------ OK
-# - Mettre des espaces pour aérer ton code <------ OK
-# - Rajouter des assert pour vérifier certaiens étapes (demander à Jérôme) <----- Rajouté des "control" après les "merge"
+
+from numpy import arange, array, float64, int64, maximum as max_, NaN, where, zeros
+from pandas import concat, DataFrame
+
+
+from rpy2.robjects.packages import importr
+import rpy2.robjects.pandas2ri
+import rpy2.robjects.vectors as vectors
+import pandas.rpy.common as com
+
+
+from openfisca_france.model.common import mark_weighted_percentiles
+from openfisca_france_data.surveys import SurveyCollection
+from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
+
+from openfisca_france_data.build_openfisca_survey_data.utilitaries import control, assert_variable_inrange, count_NA
+
+
 def create_imput_loyer(year):
     '''
     Impute les loyers à partir de ???
     '''
 
     #Variables used for imputation
-    df = DataCollection(year=year)
+
+    logement_survey_collection = SurveyCollection.load(collection='logement')
+    logement_survey = logement_survey_collection.surveys['logement_{}'.format(year)]
+
+
     print 'Démarrer 02_imput_loyer'
 
     menm_vars = ["ztsam","zperm","zragm","zricm","zrncm","zracm","nb_uci","wprm",
@@ -62,9 +87,9 @@ def create_imput_loyer(year):
 #     erfmenm = df.get_values(table="erf_menage",variables=menm_vars)
     erfmenm['revtot'] = (erfmenm['ztsam'] + erfmenm['zperm'] + erfmenm['zragm'] +
                          erfmenm['zricm'] + erfmenm['zrncm'] + erfmenm['zracm'])
-    erfmenm['nvpr'] = erfmenm['revtot'].astype(np.float64) / erfmenm['nb_uci'].astype(np.float64)
+    erfmenm['nvpr'] = erfmenm['revtot'].astype(float64) / erfmenm['nb_uci'].astype(float64)
     # On donne la valeur 0 aux nvpr négatifs
-    tmp = np.zeros(erfmenm['nvpr'].shape, dtype = int)
+    tmp = zeros(erfmenm['nvpr'].shape, dtype = int)
     erfmenm['nvpr'] = max_(tmp, erfmenm['nvpr'])
     for v in erfmenm['nvpr']: # On vérifie qu'il n'y a plus de nvpr négatifs
         assert v >= 0, Exception('Some nvpr are negatives')
@@ -77,7 +102,7 @@ def create_imput_loyer(year):
 
     # TODO: clean this later
     erfindm['dip11'] = 0
-    count_NA('dip11', erfindm)
+    count_NA('dip11', erfindm) == 0
 #     erfindm['dip11'] = 99
     erfindm = erfindm[['ident', 'dip11']][erfindm['lpr'] == 1]
 # erf <- merge(erfmenm, erfindm, by ="ident")
@@ -87,8 +112,9 @@ def create_imput_loyer(year):
 
     # control(erf) La colonne existe mais est vide,
     # on a du confondre cette colonne avec dip11 ?
-
-    dec, values = mark_weighted_percentiles(erf['nvpr'], arange(1,11), erf['wprm'], 2, return_quantiles=True)
+    print erf['nvpr'].describe()
+    print erf['wprm'].describe()
+    dec, values = mark_weighted_percentiles(erf['nvpr'].values, arange(1,11), erf['wprm'].values, 2, return_quantiles=True)
     values.sort()
     erf['deci'] = (1 + (erf['nvpr']>values[1]) + (erf['nvpr']>values[2]) + (erf['nvpr']>values[3])
                    + (erf['nvpr']>values[4]) + (erf['nvpr']>values[5]) + (erf['nvpr']>values[6])
@@ -227,7 +253,7 @@ def create_imput_loyer(year):
     print "preparing logement menage table"
 
 #     Lgtmen = load_temp(name = "indivim",year = year) # Je rajoute une étape bidon
-    Lgtmen = df.get_values(table = "lgt_menage", variables = LgtMenVars)
+    Lgtmen = logement_survey.get_values(table = "lgt_menage", variables = LgtMenVars)
     Lgtmen.rename(columns = {'idlog':'ident'}, inplace = True)
 
     count_NA('mrcho', Lgtmen)
@@ -241,11 +267,22 @@ def create_imput_loyer(year):
     Lgtmen['nvpr']=10.0*Lgtmen['revtot']/Lgtmen['muc1']
 
     count_NA('qex', Lgtmen)
-    dec, values = mark_weighted_percentiles(Lgtmen['nvpr'],arange(1,11), Lgtmen['qex'],2,return_quantiles=True)
+    dec, values = mark_weighted_percentiles(Lgtmen['nvpr'].values,
+                                            arange(1,11),
+                                            Lgtmen['qex'].values,
+                                            2,
+                                            return_quantiles = True)
     values.sort()
-    Lgtmen['deci'] = (1+(Lgtmen['nvpr']>values[1])+(Lgtmen['nvpr']>values[2])+(Lgtmen['nvpr']>values[3])
-                      +(Lgtmen['nvpr']>values[4])+(Lgtmen['nvpr']>values[5])+(Lgtmen['nvpr']>values[6])
-                      +(Lgtmen['nvpr']>values[7])+(Lgtmen['nvpr']>values[8])+(Lgtmen['nvpr']>values[9]))
+    Lgtmen['deci'] = (1 +
+                      (Lgtmen['nvpr']>values[1]) +
+                      (Lgtmen['nvpr']>values[2]) +
+                      (Lgtmen['nvpr']>values[3]) +
+                      (Lgtmen['nvpr']>values[4]) +
+                      (Lgtmen['nvpr']>values[5]) +
+                      (Lgtmen['nvpr']>values[6]) +
+                      (Lgtmen['nvpr']>values[7]) +
+                      (Lgtmen['nvpr']>values[8]) +
+                      (Lgtmen['nvpr']>values[9]) )
     del dec, values
     print Lgtmen['deci'].describe()
     gc.collect()
@@ -260,7 +297,7 @@ def create_imput_loyer(year):
 
     if year_lgt == 2006:
         print 'preparing logement logement table'
-        lgtlgt = df.get_values(table = "lgt_logt", variables = LgtLgtVars)
+        lgtlgt = logement_survey.get_values(table = "lgt_logt", variables = LgtLgtVars)
         lgtlgt.rename(columns = {'idlog':'ident'}, inplace = True)
         Lgtmen = Lgtmen.merge(lgtlgt, left_on = 'ident', right_on = 'ident', how = 'inner')
         del lgtlgt
@@ -274,7 +311,7 @@ def create_imput_loyer(year):
 
     data = (data[data['mnatior'].notnull()])
     data = (data[data['sec1'].notnull()])
-    data['tmp'] = data['sec1'].astype(np.int64)
+    data['tmp'] = data['sec1'].astype(int64)
     data['tmp'][data['sec1'].isin([21,22,23])] = 3
     data['tmp'][data['sec1'] == 24] = 4
     data['tmp'][data['sec1'] == 30] = 5
@@ -288,7 +325,7 @@ def create_imput_loyer(year):
 # lgtadr <- LoadIn(lgtAdrFil,lgtAdrVars)
 # lgtadr <- upData(lgtadr, rename=renameidlgt)
     # Je rajoute une étae bidon
-    Lgtadr = df.get_values(table = "adresse", variables = LgtAdrVars)
+    Lgtadr = logement_survey.get_values(table = "adresse", variables = LgtAdrVars)
     Lgtadr.rename(columns = {'idlog':'ident'}, inplace = True)
 
     print('Merging logement and menage tables')
@@ -420,7 +457,7 @@ def create_imput_loyer(year):
 
 # erf1 <- na.omit(erf)
 # logt <- na.omit(logt)
-    from pandas import DataFrame
+
     erf = erf.dropna(how = 'any') # Si j'ai bien compris ce que l'on fait en R : dropper les lignes avec des NA
     #erf1 = erf # A-t-on toujours besoin de changer le nom du coup ?
     Logt = Logt.dropna(how = 'any')
@@ -434,27 +471,31 @@ def create_imput_loyer(year):
     erf['mcs8'] = erf['mcs8'].astype(int)
 # out.nnd <- NND.hotdeck(data.rec=erf1,data.don=logt,match.vars=matchvars,don.class=classes,gdist.fun="Gower")
 # fill.erf.nnd <- create.fused(data.rec=erf1, data.don=logt,mtc.ids=out.nnd$mtc.ids, z.vars="lmlm")
-    from rpy2.robjects.packages import importr
-    import rpy2.robjects.pandas2ri
-    import rpy2.robjects.vectors as vectors
+
     rpy2.robjects.pandas2ri.activate() # Permet à rpy2 de convertir les dataframes
-    sm = importr("StatMatch")#, lib_loc = "C:\Program Files\R\R-2.15.2\library")
+    try:
+        sm = importr("StatMatch")
+    except:
+        import os
+        sm = importr("StatMatch", lib_loc = "/home/benjello/R/x86_64-pc-linux-gnu-library/3.1/StatMatch/")
     print 'TEST 2'
     out_nnd = sm.NND_hotdeck(data_rec = erf,
-                              data_don = Logt,
-                               match_vars = vectors.StrVector(matchvars),
-                                don_class = vectors.StrVector(classes),
-                                 dist_fun = "Gower")
+                             data_don = Logt,
+                             match_vars = vectors.StrVector(matchvars),
+                             don_class = vectors.StrVector(classes),
+                             dist_fun = "Gower",
+                             )
     print 'TEST 3'
     fill_erf_nnd = sm.create_fused(data_rec = erf,
-                                    data_don = Logt,
-                                     mtc_ids = out_nnd[0],
-                                      z_vars = vectors.StrVector(["lmlm"]))
+                                   data_don = Logt,
+                                   mtc_ids = out_nnd[0],
+                                   z_vars = vectors.StrVector(["lmlm"]),
+                                   )
     del allvars, matchvars, classes, out_nnd
     gc.collect()
 
 # fill.erf.nnd <- upData(fill.erf.nnd, rename=c(lmlm='loym'))
-    import pandas.rpy.common as com
+
     fill_erf_nnd = com.convert_robj(fill_erf_nnd)
     fill_erf_nnd = DataFrame(fill_erf_nnd)
     (fill_erf_nnd).rename(columns={'lmlm':'loym'}, inplace = True)
@@ -473,6 +514,7 @@ def create_imput_loyer(year):
     erfmenm = erfmenm.merge(loy_imput,on='ident',how='left')
     assert 'loym' in erfmenm.columns, 'No loym in erfmenm columns'
     save_temp(erfmenm, name = "menagem", year=year)
+
 
 if __name__ == '__main__':
     year = 2006
