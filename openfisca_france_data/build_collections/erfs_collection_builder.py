@@ -124,7 +124,9 @@ def build_empty_erfs_survey_collection(years= None):
 
 
 if __name__ == '__main__':
-
-    erfs_survey_collection = build_empty_erfs_survey_collection(years = [2006])
-#    erfs_survey_collection.fill_hdf_from_Rdata()
+    import logging
+    import sys
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    erfs_survey_collection = build_empty_erfs_survey_collection(years=[2008])
+    erfs_survey_collection.fill_hdf_from_Rdata()
     erfs_survey_collection.dump(collection = "erfs")

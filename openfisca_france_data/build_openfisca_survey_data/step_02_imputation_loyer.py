@@ -335,7 +335,7 @@ def create_imput_loyer(year):
     Logement['hnph2'][Logement['hnph2'] >= 6] = 6
     Logement['hnph2'][Logement['hnph2'] < 1] = 1
     count_NA('hnph2', Logement)
-    assert not Logement['hnph2'].isnull().any(), "Some hnph2 are null"
+    assert Logement['hnph2'].notnull().all(), "Some hnph2 are null"
 #     Logement=(Logement[Logement['hnph2'].notnull()]) # Mis en comment car 0 NA pour hnph2
 
     # On est dans la même étape within ici et par la suite ( cf code R )

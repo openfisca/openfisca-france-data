@@ -90,24 +90,35 @@ class Survey(object):
         assert table in self.tables, "Table {} is not a filed table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
         Rdata_file = self.tables[table]["Rdata_file"]
+        try:
+            variables = self.tables[table]['variables']
+        except:
+            variables = None
+
         if not os.path.isfile(Rdata_file):
              raise Exception("file_path do  not exists")
 
         rpy.r.load(Rdata_file)
-        stored_table = com.load_data(Rdata_table)
+        stored_dataframe = com.load_data(Rdata_table)
         store_path = table
-        store = HDFStore(self.hdf5_file_path)
 
-        if 'variables' in self.tables[table]:
-            variables = self.tables[table]['variables']
+        log.info("Inserting {} in HDF file {} at point {}".format(
+            Rdata_table,
+            self.hdf5_file_path,
+            table,
+            )
+        )
+
+        if variables is not None:
+
             log.info('variables asked by the user: {}'.format(variables))
-            variables_stored = list(set(variables).intersection(set(stored_table.columns)))
+            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
             log.info('variables stored: {}'.format(variables_stored))
-            store.append(store_path, stored_table[variables_stored], format = 'table', data_columns = stored_table.columns)
-        else:
-             store.append(store_path, stored_table, format = 'table', data_columns = stored_table.columns)
 
-        store.close()
+            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
+        else:
+             stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
+
         gc.collect()
 
     def get_value(self, variable, table=None):

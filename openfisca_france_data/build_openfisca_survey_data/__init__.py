@@ -26,7 +26,7 @@ def get_tmp_file_path(config_files_directory = default_config_files_directory):
     hdf_file_path = os.path.join(tmp_directory,'temp.h5')
     return hdf_file_path
 
-def load_temp(name = None, year = None):
+def load_temp(name = None, year = None, config_files_directory = default_config_files_directory):
     """
     Load a temporary saved table
 
@@ -41,8 +41,8 @@ def load_temp(name = None, year = None):
         raise Exception("year is needed")
     if name is None:
         raise Exception("name is needed")
-    hdf_file_path = get_tmp_file_path()
-    print hdf_file_path
+    hdf_file_path = get_tmp_file_path(config_files_directory = config_files_directory)
+    print(hdf_file_path)
     store = HDFStore(hdf_file_path)
     dataframe = store[str(year)+"/"+name]
     store.close()
@@ -66,7 +66,7 @@ def save_temp(dataframe, name = None, year = None, config_files_directory = defa
         raise Exception("year is needed")
     if name is None:
         raise Exception("name is needed")
-    hdf_file_path = get_tmp_file_path()
+    hdf_file_path = get_tmp_file_path(config_files_directory = config_files_directory)
     store = HDFStore(hdf_file_path)
     print store
     store_path = "{}/{}".format(year, name)
@@ -80,7 +80,10 @@ def save_temp(dataframe, name = None, year = None, config_files_directory = defa
     return True
 
 
-def show_temp():
-    store = HDFStore(os.path.join(ERF_HDF5_DATA_DIR,'temp.h5'))
+def show_temp(config_files_directory = default_config_files_directory):
+
+    hdf_file_path = get_tmp_file_path(config_files_directory = config_files_directory)
+    store = HDFStore(hdf_file_path)
+
     print store
     store.close()

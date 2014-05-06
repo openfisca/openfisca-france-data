@@ -278,8 +278,13 @@ def create_fip(year = 2006): # message('03_fip')
 # individec1 <- upData(individec1,rename=c(declar1="declar"))
 # fip1       <- merge(fip,individec1)
     # indivi$noidec <- as.numeric(substr(indivi$declar1,1,2))
-    print indivi['declar1'].str[0:2]
-    indivi['noidec'] = indivi['declar1'].str[0:2].astype('float16') # To be used later to set idfoy
+    print indivi['declar1'].str[0:2].value_counts()
+    boum
+    Deal with the blank values
+    print indivi['declar1'].str[0:2].describe()
+    print indivi['declar1'].str[0:2].notnull().all()
+
+    indivi['noidec'] = indivi['declar1'].str[0:2].astype('float') # To be used later to set idfoy
 
     individec1 = indivi[(indivi.declar1.isin(fip.declaration.values)) & (indivi['persfip']=="vous")]
     individec1 = individec1.loc[:, ["declar1","noidec","ident","rga","ztsai","ztsao"]]

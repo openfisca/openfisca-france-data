@@ -47,12 +47,12 @@ def create_indivim(year=2006):
 
     erfmen = data.get_values(table="erf_menage")
     eecmen = data.get_values(table="eec_menage")
-    print sorted(eecmen.columns)
+    print erfmen.info()
 
     erfind = data.get_values(table="erf_indivi")
     eecind = data.get_values(table="eec_indivi")
-    print eecind.columns
-    print erfind.columns
+    print eecind.info()
+    print erfind.info()
 
     # travail sur la cohérence entre les bases
     noappar_m = eecmen[ ~(eecmen.ident.isin( erfmen.ident.values))]
