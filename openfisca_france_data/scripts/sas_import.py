@@ -6,7 +6,7 @@ Created on Tue May  6 15:13:59 2014
 """
 
 from sas7bdat import SAS7BDAT
-
+import pandas as pd
 
 def extract_from_sas(file_to_import):
 #if options.debug:
@@ -26,6 +26,8 @@ def extract_from_sas(file_to_import):
 #assert len(inFiles) == len(outFiles)
 #for i in xrange(len(inFiles)):
     f = SAS7BDAT(file_to_import)
+
+#pd.DataFrame(chiffres_des_donnees,columns=list('ABCD'))
 #    if options.header:
 #        f.logger.info(str(f.header))
 #        continue
@@ -36,10 +38,12 @@ def extract_from_sas(file_to_import):
 
 if __name__ == '__main__':
 
-
     extract = extract_from_sas("/Users/pacificoadrien/Downloads/help.sas7bdat")
-    print(extract.__dict__)
-
+    banane = extract.readData
+    print(banane.__dict__)
+#    print(extract.__dict__)
+#    f.convertFile(outFiles[i], delimiter=options.delimiter, stepSize=options.progress_step)
+    print(banane)
 
 
 
