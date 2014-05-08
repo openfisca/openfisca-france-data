@@ -40,17 +40,57 @@ def build_empty_erfs_survey_collection(years= None):
     output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
 
     for year in years:
-        surveys = erfs_survey_collection.surveys
         yr = str(year)[2:]
         yr1 = str(year+1)[2:]
 
-        eec_variables = ['noi','noicon','noindiv','noiper','noimer','ident','naia','naim','lien',
-                       'acteu','stc','contra','titc','mrec','forter','rstg','retrai','lpr','cohab','sexe',
-                       'agepr','rga','statut', 'txtppb', 'encadr', 'prosa', 'nbsala',  'chpub', 'dip11']
-        eec_rsa_variables = [ "sp0" + str(i) for i in range(0,10)] + ["sp10", "sp11"] + ['sitant', 'adeben',
-                            'datant', 'raistp', 'amois', 'adfdap' , 'ancentr', 'ancchom', 'dimtyp', 'rabsp', 'raistp',
-                             'rdem', 'ancinatm']
-        eec_aah_variables = ["rc1rev", "maahe"]
+        eec_variables = [
+            'acteu',
+            'agepr',
+            'chpub',
+            'cohab',
+            'contra',
+            'ddipl',
+            'dip11',
+            'encadr',
+            'forter',
+            'ident',
+            'lien',
+            'lpr',
+            'mrec',
+            'naia',
+            'naim',
+            'nbsala',
+            'noi',
+            'noicon',
+            'noimer',
+            'noindiv',
+            'noiper',
+            'prosa',
+            'retrai',
+            'rga',
+            'rstg',
+            'sexe',
+            'statut',
+            'stc',
+            'titc',
+            'txtppb',
+            ]
+        eec_rsa_variables = ["sp0" + str(i) for i in range(0,10)] + ["sp10", "sp11"] + [
+                'adeben',
+                'adfdap',
+                'amois',
+                'ancchom',
+                'ancentr',
+                'ancinatm',
+                'datant',
+                'dimtyp',
+                'rabsp',
+                'raistp',
+                'raistp',
+                'rdem',
+                'sitant',
+                ]
+        eec_aah_variables = [ "maahe", "rc1rev"]
         eec_variables += eec_rsa_variables + eec_aah_variables
 
         erf_tables = {
@@ -117,9 +157,13 @@ def build_empty_erfs_survey_collection(years= None):
             name = survey_name,
             hdf5_file_path = hdf5_file_path
             )
-        surveys[survey_name] = survey
+
         for table, table_args in erf_tables.iteritems():
             survey.insert_table(name = table, **table_args)
+
+        surveys = erfs_survey_collection.surveys
+        print surveys
+        surveys[survey_name] = survey
     return erfs_survey_collection
 
 
@@ -127,6 +171,8 @@ if __name__ == '__main__':
     import logging
     import sys
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-    erfs_survey_collection = build_empty_erfs_survey_collection(years=[2008])
-    erfs_survey_collection.fill_hdf_from_Rdata()
+    erfs_survey_collection = build_empty_erfs_survey_collection(
+        years = [2006, 2007, 2008, 2009],
+        )
+    erfs_survey_collection.fill_hdf_from_Rdata(surveys_name = ["erfs_2006"])
     erfs_survey_collection.dump(collection = "erfs")

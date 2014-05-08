@@ -50,7 +50,7 @@ from openfisca_france_data.build_openfisca_survey_data import load_temp, save_te
 from openfisca_france_data.build_openfisca_survey_data.utilitaries import print_id
 
 
-def sif(year=2006):
+def sif(year = 2006):
     erfs_survey_collection = SurveyCollection.load(collection='erfs')
     data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
@@ -119,7 +119,13 @@ def sif(year=2006):
     #sif <- within(sif,{
     ##  rbg = rbg*((tsrvbg =='+')-(tsrvbg =='-'))
     print sif["rbg"].describe()
-    sif["rbg"] = sif["rbg"]*( (sif["tsrvbg"]=='+')-(sif["tsrvbg"] =='-'))
+    print sif.tsrvbg.value_counts()
+
+    print (sif["tsrvbg"]=='+').astype(int) - (sif["tsrvbg"]=='-').astype(int)
+
+
+    print type(sif["tsrvbg"]=='+')
+    sif["rbg"] = sif["rbg"]*((sif["tsrvbg"]=='+').astype(int) - (sif["tsrvbg"]=='-').astype(int))
     print sif["rbg"].describe()
 
     #  stamar <- substr(sif,5,5)
@@ -306,13 +312,14 @@ def sif(year=2006):
     ##################################################################
 
 
-def foyer_all(year=2006):
+def foyer_all(year = 2006):
 
     ## On ajoute les cases de la déclaration
     #foyer_all <- LoadIn(erfFoyFil)
-    data = DataCollection(year=year)
-    foyer_all = data.get_values(table="foyer" )
 
+    erfs_survey_collection = SurveyCollection.load(collection='erfs')
+    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    foyer_all = data.get_values(table = "foyer")
     ## on ne garde que les cases de la déclaration ('fxzz')
     #vars <- names(foyer_all)
     #vars <- c("noindiv", vars[grep("^f[0-9]", vars)])

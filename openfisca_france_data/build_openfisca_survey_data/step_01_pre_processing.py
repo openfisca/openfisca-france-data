@@ -38,29 +38,29 @@ from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import save_temp, load_temp
 
 
-def create_indivim(year=2006):
+def create_indivim(year = 2006):
     '''
     '''
     # load
-    erfs_survey_collection = SurveyCollection.load()
+    erfs_survey_collection = SurveyCollection.load(collection='erfs')
     data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     erfmen = data.get_values(table="erf_menage")
     eecmen = data.get_values(table="eec_menage")
     print erfmen.info()
 
-    erfind = data.get_values(table="erf_indivi")
-    eecind = data.get_values(table="eec_indivi")
+    erfind = data.get_values(table = "erf_indivi")
+    eecind = data.get_values(table = "eec_indivi")
     print eecind.info()
     print erfind.info()
 
     # travail sur la cohérence entre les bases
-    noappar_m = eecmen[ ~(eecmen.ident.isin( erfmen.ident.values))]
+    noappar_m = eecmen[ ~(eecmen.ident.isin(erfmen.ident.values))]
     print 'describe noappar_m'
     print noappar_m.describe()
 
-    noappar_i = eecmen[ ~(eecmen.ident.isin( erfmen.ident.values))]
-    noappar_i = noappar_i.drop_duplicates(cols='ident', take_last = True)
+    noappar_i = eecmen[ ~(eecmen.ident.isin(erfmen.ident.values))]
+    noappar_i = noappar_i.drop_duplicates(cols = 'ident', take_last = True)
     #TODO: vérifier qu'il n'y a théoriquement pas de doublon
 
     dif = set(noappar_i.ident).symmetric_difference(noappar_m.ident)
@@ -72,7 +72,7 @@ def create_indivim(year=2006):
 
     #fusion enquete emploi et source fiscale
     menagem = erfmen.merge(eecmen)
-    indivim = eecind.merge(erfind, on = ['noindiv', 'ident', 'noi'], how="inner")
+    indivim = eecind.merge(erfind, on = ['noindiv', 'ident', 'noi'], how = "inner")
 
     # optimisation des types? Controle de l'existence en passant
     #TODO: minimal dtype
@@ -111,13 +111,15 @@ def create_indivim(year=2006):
     ## locataire
     menagem["locataire"] = menagem["so"].isin([3,4,5])
     menagem["locataire"] = menagem["locataire"].astype("int32")
+
     ## ?? c'est bizarre d'avoir besoin du diplome de la personne de référence,
     ## ce serait mieux de faire le merge quand on a besoin seulement
     ## laissons à la table individuel ce qui doit l'être
 
 #    NOTE pas de ddipl en year=2006 visiblement
-#    transfert = indivim.ix[indivim['lpr'] == 1, ['ident', 'ddipl']]
-#    print transfert
+    transfert = indivim.ix[indivim['lpr'] == 1, ['ident', 'ddipl']]
+    print transfert.info()
+    boum
 #    #TODO: Forget not to uncomment 'dat
 ##     #menagem <- merge(erfmen,eecmen)
 ##     #menagem <- merge(menagem,transfert)
@@ -149,8 +151,7 @@ def create_indivim(year=2006):
     gc.collect()
 
 
-
-def create_enfnn(year=2006):
+def create_enfnn(year = 2006):
     '''
     '''
     #load
@@ -205,7 +206,7 @@ if __name__ == '__main__':
     print('Entering 01_pre_proc')
     import time
     deb = time.clock()
-    year = 2006
-    create_indivim()
-    create_enfnn()
+    year = 2008
+    create_indivim(year = year)
+    create_enfnn(year = year)
     print time.clock() - deb

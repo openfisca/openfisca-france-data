@@ -214,7 +214,7 @@ class SurveyCollection(object):
             self.name = name
         self.surveys = dict()
 
-    def dump(self, file_path = None, collection = None, config_files_directory = None):
+    def dump(self, file_path = None, collection = None, config_files_directory = None, append = False):
         if file_path is None:
             if collection is None:
                 file_path = self.config.get("collections", "default_collection")
@@ -222,10 +222,13 @@ class SurveyCollection(object):
                 file_path = self.config.get("collections", collection)
 
         with open(file_path, 'w') as _file:
-            json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
+            json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_hdf_from_Rdata(self):
-        for survey in self.surveys.values():
+    def fill_hdf_from_Rdata(self, surveys_name = None):
+        if surveys_name is None:
+            surveys = self.surveys.values()
+        for survey_name in surveys_name:
+            survey = self.surveys[survey_name]
             for table in survey.tables:
                 survey.fill_hdf_from_Rdata(table)
 
@@ -267,7 +270,6 @@ class SurveyCollection(object):
         for name, survey in self.surveys.iteritems():
             self_json['surveys'][name] = survey.to_json()
         return self_json
-
 
     def set_config_files_directory(self, config_files_directory = None):
         if config_files_directory is None:

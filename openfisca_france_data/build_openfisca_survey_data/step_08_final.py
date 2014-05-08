@@ -172,10 +172,10 @@ def final(year=2006, filename="test", check=True):
     all_vars = vars + famille_vars
 
     print all_vars
-    print  set(menagem.columns)
+    print menagem.info()
+    boum
     available_vars = list( set(all_vars).intersection(set(menagem.columns)))
-
-    loyersMenages = menagem.xs(available_vars,axis=1)
+    loyersMenages = menagem.xs(available_vars, axis = 1)
 
 
 #
@@ -215,7 +215,7 @@ def final(year=2006, filename="test", check=True):
 # loyersMenages[loyersMenages$ddipl>1, "ddipl"] <- loyersMenages$ddipl[loyersMenages$ddipl>1]-1
 #
 
-
+    print loyersMenages.info()
     loyersMenages.ddipl = where(loyersMenages.ddipl.isnull(), 7, loyersMenages.ddipl)
     loyersMenages.ddipl = where(loyersMenages.ddipl>1,
                                 loyersMenages.ddipl-1,
