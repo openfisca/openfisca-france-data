@@ -1,28 +1,42 @@
-# -*- coding:utf-8 -*-
-# Created on 21 mai 2013
-# This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright ©2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
-# # # OpenFisca
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+import logging
 from numpy import where, array, NaN
 
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
 from openfisca_france_data.build_openfisca_survey_data.utilitaries import control, print_id
 
+log = logging.getLogger(__name__)
 
-# #
-# # ##***********************************************************************/
-# # message('07_invalides: construction de la variable invalide')
-# # ##***********************************************************************/
+
 def invalide(year = 2006):
 
-    print 'Entering 07_invalides: construction de la variable invalide NOTFUNCTIONNAL NAOW'
-
-    return
+    log.info("Entering 07_invalides: construction de la variable invalide")
 # # # Invalides
 # # #inv = caseP (vous), caseF (conj) ou case G, caseI, ou caseR (pac)
 
@@ -36,29 +50,38 @@ def invalide(year = 2006):
 # # table(invalides[,c("caseF","quifoy")],useNA="ifany")
 # # invalides[(invalides$caseP==1) & (invalides$quifoy=="vous"),"inv"] <- TRUE
 # #
-    print ''
-    print 'Etape 1 : création de la df invalides'
-    print '    1.1 : déclarants invalides'
-    final = load_temp(name="final", year=year)
-    invalides = final.xs(["noindiv","idmen","caseP","caseF","idfoy","quifoy","maahe","rc1rev"], axis=1)
 
-    print invalides['rc1rev'].value_counts()
+    log.info("Etape 1 : création de la df invalides")
+    log.info("    1.1 : déclarants invalides")
+    final = load_temp(name = "final", year = year)
+    invalides = final.xs([
+        "caseF",
+        "caseP",
+        "idfoy",
+        "idmen",
+        "maahe",
+        "noindiv",
+        "quifoy",
+        "rc1rev"
+        ], axis=1)
+
+    log.info("Inspecting rc1rev")
+    log.info(invalides['rc1rev'].value_counts())
 
     for var in ["caseP", "caseF"]:
-        assert invalides[var].notnull().all(), 'présence de NaN dans %s' %(var)
+        assert invalides[var].notnull().all(), 'NaN values in {}'.format(var)
 
     # Les déclarants invalides
     invalides['inv'] = False
     invalides['inv'][(invalides['caseP']==1) & (invalides['quifoy']==0)] = True
-    print invalides["inv"].sum(), " invalides déclarants"
+    log.info("Il y a {} invalides déclarants".format(invalides["inv"].sum())
 
     #Les personnes qui touchent l'aah dans l'enquête emploi
     invalides['inv'][(invalides['maahe']>0)] = True
     invalides['inv'][(invalides['rc1rev']==4)] = True #TODO: vérifier le format.
-    print invalides["inv"].sum(), " invalides qui touchent des alloc"
+    log.info("Il y a {} invalides qui touchent des alloc").format(invalides["inv"].sum())
 
     print_id(invalides)
-
 
 # # # Les conjoints invalides
 # #
@@ -85,13 +108,13 @@ def invalide(year = 2006):
 # # rm(invalides_conj,foy_inv_conj)
 
     # On récupère les idfoy des foyers avec une caseF cochée
-    print '    1.2 : Les conjoints invalides'
+    log.info('    1.2 : Les conjoints invalides')
     idfoy_inv_conj = final["idfoy"][final["caseF"]]
     inv_conj_condition = (invalides["idfoy"].isin(idfoy_inv_conj)  & (invalides["quifoy"]==1))
     invalides["inv"][inv_conj_condition] = True
 
-    print len(invalides[inv_conj_condition]), "invalides conjoints"
-    print invalides["inv"].sum(), " invalides déclarants et invalides conjoints"
+    log.info("Il y a {} invalides conjoints".format(len(invalides[inv_conj_condition]))
+    log.info(" Il y a {} invalides déclarants et invalides conjoints".format(invalides["inv"].sum()))
 
 # # # Enfants invalides et garde alternée
 # #
@@ -181,5 +204,5 @@ def invalide(year = 2006):
     print 'final complétée et sauvegardée'
 
 if __name__ == '__main__':
-    year=2006
-    invalide(year=year)
+    year = 2006
+    invalide(year = year)

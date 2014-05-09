@@ -24,18 +24,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-# Prepare the some useful merged tables
-
-
-# Menages et Individus
-
 import gc
+
+import logging
 from numpy import where, nan
-import pdb
 
 
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import save_temp, load_temp
+
+log = logging.getLogger(__name__)
+
+# Prepare the some useful merged tables
+
+# Menages et Individus
 
 
 def create_indivim(year = 2006):
@@ -43,16 +45,17 @@ def create_indivim(year = 2006):
     '''
     # load
     erfs_survey_collection = SurveyCollection.load(collection='erfs')
-    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
-    erfmen = data.get_values(table="erf_menage")
-    eecmen = data.get_values(table="eec_menage")
-    print erfmen.info()
+    erfmen = survey.get_values(table="erf_menage")
+    eecmen = survey.get_values(table="eec_menage")
+    log.info(erfmen.info())
 
-    erfind = data.get_values(table = "erf_indivi")
-    eecind = data.get_values(table = "eec_indivi")
-    print eecind.info()
-    print erfind.info()
+    erfind = survey.get_values(table = "erf_indivi")
+    eecind = survey.get_values(table = "eec_indivi")
+
+    log.info(eecind.info())
+    log.info(erfind.info())
 
     # travail sur la cohérence entre les bases
     noappar_m = eecmen[ ~(eecmen.ident.isin(erfmen.ident.values))]
@@ -76,6 +79,7 @@ def create_indivim(year = 2006):
 
     # optimisation des types? Controle de l'existence en passant
     #TODO: minimal dtype
+    # TODO: this should be done somewhere else
     var_list = (['acteu', 'stc', 'contra', 'titc', 'forter', 'mrec', 'rstg', 'retrai', 'lien', 'noicon',
                  'noiper', 'noimer', 'naia', 'cohab', 'agepr', 'statut', 'txtppb', 'encadr', 'prosa'])
     for var in var_list:
@@ -112,25 +116,14 @@ def create_indivim(year = 2006):
     menagem["locataire"] = menagem["so"].isin([3,4,5])
     menagem["locataire"] = menagem["locataire"].astype("int32")
 
-    ## ?? c'est bizarre d'avoir besoin du diplome de la personne de référence,
-    ## ce serait mieux de faire le merge quand on a besoin seulement
-    ## laissons à la table individuel ce qui doit l'être
-
-#    NOTE pas de ddipl en year=2006 visiblement
     transfert = indivim.ix[indivim['lpr'] == 1, ['ident', 'ddipl']]
-    print transfert.info()
-    boum
-#    #TODO: Forget not to uncomment 'dat
-##     #menagem <- merge(erfmen,eecmen)
-##     #menagem <- merge(menagem,transfert)
-#    menagem  = menagem.merge(transfert)
+    menagem  = menagem.merge(transfert)
 
     # correction
     def _manually_remove_errors():
         '''
         This method is here because some oddities can make it through the controls throughout the procedure
         It is here to remove all these individual errors that compromise the process.
-        GL,HF
         '''
 
         if year==2006:
@@ -154,25 +147,25 @@ def create_indivim(year = 2006):
 def create_enfnn(year = 2006):
     '''
     '''
-    #load
 
     erfs_survey_collection = SurveyCollection.load()
-    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     ### Enfant à naître (NN pour nouveaux nés)
     individual_vars = ['noi', 'noicon', 'noindiv', 'noiper', 'noimer', 'ident', 'naia', 'naim', 'lien',
                'acteu','stc','contra','titc','mrec','forter','rstg','retrai','lpr','cohab','sexe',
                'agepr','rga']
 
-    eeccmp1 = data.get_values(table="eec_cmp_1", variables=individual_vars)
-    eeccmp2 = data.get_values(table="eec_cmp_2", variables=individual_vars)
-    eeccmp3 = data.get_values(table="eec_cmp_3", variables=individual_vars)
-    tmp = eeccmp1.merge(eeccmp2, how="outer")
-    enfnn = tmp.merge(eeccmp3, how="outer")
+    eeccmp1 = survey.get_values(table = "eec_cmp_1", variables = individual_vars)
+    eeccmp2 = survey.get_values(table = "eec_cmp_2", variables = individual_vars)
+    eeccmp3 = survey.get_values(table = "eec_cmp_3", variables = individual_vars)
+
+    tmp = eeccmp1.merge(eeccmp2, how = "outer")
+    enfnn = tmp.merge(eeccmp3, how = "outer")
 
     # optimisation des types? Controle de l'existence en passant
     # pourquoi pas des int quand c'est possible
-    #TODO: minimal dtype
+    #TODO: minimal dtype TODO: shoudln't be here
     for var in individual_vars:
         print var
         enfnn[var] = enfnn[var].astype('float')
@@ -193,8 +186,13 @@ def create_enfnn(year = 2006):
 
     #selection
     #enfnn <- enfnn[(enfnn$naia==enfnn$year & enfnn$naim>=10) | (enfnn$naia==enfnn$year+1 & enfnn$naim<=5),]
-    enfnn = enfnn[((enfnn['naia'] == enfnn['year']) & (enfnn['naim'] >= 10)) |
-                      ((enfnn['naia'] == enfnn['year'] + 1) & (enfnn['naim'] <= 5))]
+    enfnn = enfnn[
+        (
+            (enfnn['naia'] == enfnn['year']) & (enfnn['naim'] >= 10)
+            ) | (
+                    (enfnn['naia'] == enfnn['year'] + 1) & (enfnn['naim'] <= 5)
+                    )
+        ]
     #save
     save_temp(enfnn, name="enfnn", year=year)
     del enfnn
@@ -206,7 +204,7 @@ if __name__ == '__main__':
     print('Entering 01_pre_proc')
     import time
     deb = time.clock()
-    year = 2008
+    year = 2006
     create_indivim(year = year)
     create_enfnn(year = year)
     print time.clock() - deb

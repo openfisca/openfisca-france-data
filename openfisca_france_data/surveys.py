@@ -43,8 +43,8 @@ import rpy2.rpy_classic as rpy
 
 rpy.set_default_mode(rpy.NO_CONVERSION)
 
-openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
-default_config_files_directory = os.path.join(openfisca_france_location)
+openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
+default_config_files_directory = os.path.join(openfisca_france_data_location)
 
 log = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ class Survey(object):
         df = self.get_values([variable], table)
         return df
 
-    def get_values(self, variables=None, table=None):
+    def get_values(self, variables = None, table = None):
         """
         Get values
 
@@ -185,7 +185,7 @@ class Survey(object):
     def load(cls, file_path):
         with open(file_path, 'r') as _file:
             self_json = json.load(_file)
-        log.info("Creating survey: {}".format(self_json.get('name')))
+        log.info("Getting survey information for {}".format(self_json.get('name')))
         self =  cls.create_from_json(self_json)
         return self
 
@@ -252,11 +252,6 @@ class SurveyCollection(object):
 
         surveys = self_json.get('surveys')
         for survey_name, survey_json in surveys.iteritems():
-            ### print """
-            ### {}
-            ### {}
-            ### """.format(survey_name, survey_json)
-            log.info("Creating survey: {}".format(survey_name))
             survey = Survey(name=survey_name)
             self.surveys[survey_name] = survey.create_from_json(survey_json)
         return self

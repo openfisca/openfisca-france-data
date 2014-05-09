@@ -34,7 +34,8 @@ import os
 
 
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utilitaries import print_id
+from openfisca_france_data.build_openfisca_survey_data.utilitaries import check_structure, control, print_id
+
 
 
 def final(year=2006, filename="test", check=True):
@@ -173,7 +174,6 @@ def final(year=2006, filename="test", check=True):
 
     print all_vars
     print menagem.info()
-    boum
     available_vars = list( set(all_vars).intersection(set(menagem.columns)))
     loyersMenages = menagem.xs(available_vars, axis = 1)
 
@@ -236,7 +236,7 @@ def final(year=2006, filename="test", check=True):
 #
 
 
-    final.act5 = NaN
+    final['act5'] = NaN
 
     final.act5 = where(final.actrec==1, 2, final.act5) # indépendants
     final.act5 = where(final.actrec.isin([2,3]), 1, final.act5)  # salariés
@@ -244,6 +244,16 @@ def final(year=2006, filename="test", check=True):
     final.act5 = where(final.actrec==4, 3, final.act5) # chômeur
     final.act5 = where(final.actrec==7, 4, final.act5) # retraité
     final.act5 = where(final.actrec==8, 5, final.act5) # autres inactifs
+
+    final.act5 = where(final.actrec==1, 2, final.act5) # indépendants
+    final.act5 = where(final.actrec.isin([2,3]), 1, final.act5)  # salariés
+
+    final.act5 = where(final.actrec==4, 3, final.act5) # chômeur
+    final.act5 = where(final.actrec==7, 4, final.act5) # retraité
+    final.act5 = where(final.actrec==8, 5, final.act5) # autres inactifs
+
+
+
     print final.act5.value_counts() # TODO : 29 retraités ?
 
 #     assert final.act5.notnull().all(), 'there are NaN inside final.act5'
@@ -308,7 +318,10 @@ def final(year=2006, filename="test", check=True):
 #
 
     print '    traitement des zones apl'
-    apl_imp = read_csv("../../zone_apl/zone_apl_imputation_data.csv")
+    import pkg_resources
+    openfisca_france_location = pkg_resources.get_distribution('openfisca-france').location
+    zone_apl_imputation_data_file_path = os.path.join(openfisca_france_location, 'openfisca_france', 'data', 'zone_apl', 'zone_apl_imputation_data.csv')
+    apl_imp = read_csv(zone_apl_imputation_data_file_path)
 
     print apl_imp.head(10)
     if year == 2008:
@@ -384,7 +397,7 @@ def final(year=2006, filename="test", check=True):
 
 
 
-    control(final2, debug=True)
+    control(final2, debug = True)
     print final2.age.isnull().sum()
     final2 = final2.drop_duplicates(cols='noindiv')
 
@@ -404,8 +417,8 @@ def final(year=2006, filename="test", check=True):
     if check:
         check_structure(final2)
 
-    from openfisca_france import DATA_SOURCES_DIR
-    test_filename = os.path.join(DATA_SOURCES_DIR, filename + ".h5")
+    home = os.path.expanduser("~")
+    test_filename = os.path.join(home, filename + ".h5")
     if os.path.exists(test_filename):
         import warnings
         import datetime

@@ -23,7 +23,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import logging
 from numpy import where, array, NaN
 from pandas import concat, DataFrame
 import pdb
@@ -32,25 +32,25 @@ from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
 from openfisca_france_data.build_openfisca_survey_data.utilitaries import print_id, control, check_structure
 
+log = logging.getLogger(__name__)
 
-# OpenFisca
 # Retreives the families
 # Creates 'idfam' and 'quifam' variables
 
-##***********************************************************************/
-print('04_famille: construction de la table famille')
-##***********************************************************************/
-
-def subset_base(base,famille):
+def subset_base(base, famille):
     """
-    generates a dataframe containing the values of base that are not already in famille
+    Generates a dataframe containing the values of base that are not already in famille
     """
     print "base", len(base.index)
     tmp = base[~(base.noindiv.isin(famille.noindiv.values))]
     return tmp
 
 
-def famille(year=2006):
+def famille(year = 2006):
+
+    log.info('step_04_famille: construction de la table famille')
+
+
 ### On suit la méthode décrite dans le Guide ERF_2002_rétropolée page 135
 #
     #TODO: appeler un fichier de paramètres de législation
@@ -533,9 +533,11 @@ def famille(year=2006):
     famille = concat([famille, enfant_fip])
     base = concat([base, enfant_fip])
     parent_fip = famille[famille.noindiv.isin(enfant_fip.noifam.values)]
+    print type(parent_fip)
+    assert (enfant_fip.noifam.isin(parent_fip.noindiv.values)).any(), "Doublons entre enfant_fip et parent fip !"
+    parent_fip['noifam'] = parent_fip['noindiv'].values
+    boum
 
-    if any(enfant_fip.noifam.isin(parent_fip.noindiv.values)): print "Doublons entre enfant_fip et parent fip !"
-    parent_fip['noifam'] = parent_fip['noindiv']
     parent_fip['famille'] = 51
     parent_fip['kid'] = False
     print 'contrôle de parent_fip'
@@ -641,20 +643,26 @@ def famille(year=2006):
 
     famille['quifam'] = -1
     print 'controle initial', len(famille[famille['quifam']==-1])
-    famille['quifam'] = where(famille['chef'], 0, famille['quifam'])
-    famille['quifam'] = where(famille['kid'], 1 + famille['rang'], famille['quifam'])
-    famille['quifam'] = where(~(famille['chef']) & ~(famille['kid']), 1, famille['quifam'])
+    famille['quifam'] = famille['quifam'].where(famille['chef'], 0)
+    famille['quifam'] = famille['quifam'].where(famille['kid'], 1 + famille['rang'])
+    famille['quifam'] = famille['quifam'].where(~(famille['chef']) & ~(famille['kid']), 1)
 
     famille['noifam'] = famille['noifam'].astype('int')
     print famille['quifam'].value_counts()
-
+    print famille['noifam'].value_counts()
+    boum
     famille_check = famille
     famille = famille.loc[:, ['noindiv', 'quifam', 'noifam']]
     famille.columns = ['noindiv', 'quifam', 'idfam']
-
+    famille.rename(columns={'noifam': 'idfam'}, inplace=True)
     print 'Vérifications sur famille'
-    assert len(famille_check.loc[famille_check['chef'], :]) == len(set(famille.idfam.values)), 'the number of family chiefs is different from the number of families'
-    assert not(any(famille.duplicated(cols=['idfam', 'quifam']))), 'there are duplicates of quifam inside a family'
+    assert len(famille_check.loc[famille_check['chef'], :]) == len(set(famille.idfam.values)), \
+      'the number of family chiefs {} is different from the number of families {}'.format(
+          len(famille_check.loc[famille_check['chef'], :]),
+          (set(famille.idfam.values))
+          )
+    assert not(any(famille.duplicated(cols=['idfam', 'quifam']))), \
+      'There are {} duplicates of quifam inside a family'.format(sum((famille.duplicated(cols=['idfam', 'quifam']))))
     assert famille['quifam'].notnull().all(), 'there are missing values in quifam'
     assert famille['idfam'].notnull().all(), 'there are missing values in idfam'
 #    control(famille, debug=True, verbose=True, verbose_columns=['idfam', 'quifam'])
