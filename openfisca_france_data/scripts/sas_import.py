@@ -60,5 +60,8 @@ def extract_from_sas(file_to_import):
 
 
 if __name__ == '__main__':
-    extract_from_sas("/Users/pacificoadrien/Downloads/help.sas7bdat")
 
+    import pkg_resources
+    openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
+    file_exemple_location = openfisca_france_location + "/openfisca_france_data/scripts/help.sas7bdat"
+    extract_from_sas(file_exemple_location)
