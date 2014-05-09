@@ -40,8 +40,8 @@ from openfisca_france_data.build_openfisca_survey_data import (
 
 def run_all(year = 2006, filename = "test", check = False):
 
-    # pre_processing.create_indivim(year = year)
-    # pre_processing.create_enfnn(year = year)
+    pre_processing.create_indivim(year = year)
+    pre_processing.create_enfants_a_naitre(year = year)
     # imputation_loyer.create_imput_loyer(year = year)
     # fip.create_fip(year = year)
     famille.famille(year = year)

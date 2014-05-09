@@ -26,7 +26,7 @@ def get_tmp_file_path(config_files_directory = default_config_files_directory):
     hdf_file_path = os.path.join(tmp_directory,'temp.h5')
     return hdf_file_path
 
-def load_temp(name = None, year = None, config_files_directory = default_config_files_directory):
+def load_temp(name = None, year = None, variables = None, config_files_directory = default_config_files_directory):
     """
     Load a temporary saved table
 
@@ -45,8 +45,11 @@ def load_temp(name = None, year = None, config_files_directory = default_config_
     print(hdf_file_path)
     store = HDFStore(hdf_file_path)
     dataframe = store[str(year)+"/"+name]
-    store.close()
-    return dataframe
+    store.close()    
+    if variables is None:
+        return dataframe
+    else:
+        return dataframe[variables].copy()
 
 
 def save_temp(dataframe, name = None, year = None, config_files_directory = default_config_files_directory):

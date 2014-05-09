@@ -7,7 +7,13 @@
 # (see openfisca/__init__.py for details)
 # # # OpenFisca
 
-from pandas import DataFrame, concat
+from numpy import dtype
+from pandas import concat, DataFrame, Series
+
+def assert_dtype(series, dtype_string):
+    assert isinstance(series, Series), "First argument is not of Series type"
+    assert series.dtype == dtype(dtype_string), "Series {} dtype is {} instead of {}".format(
+        series.name, series.dtype, dtype_string)
 
 def assert_variable_inrange(name, wrange, table):
     '''
