@@ -78,7 +78,7 @@ def famille(year = 2006):
     indivi = load_temp(name="indivim", year=year)
 
     indivi['year'] = year
-    indivi["noidec"] = indivi["declar1"].str[0:2]
+    indivi["noidec"] = indivi["declar1"].str[0:2].copy() # Not converted to int because some NaN are present
     indivi["agepf"] = (
         (indivi.naim < 7) * (indivi.year - indivi.naia)
         + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
@@ -340,7 +340,7 @@ def famille(year = 2006):
     avec_dec = subset_base(base, famille)
     avec_dec = avec_dec[(avec_dec.persfip == "pac") & (avec_dec.lpr == 4) &
                     ( (avec_dec.p16m20 & ~(avec_dec.smic55)) | (avec_dec.m15 == 1 ))]
-    avec_dec['noifam'] = (100 * avec_dec.ident + avec_dec.noidec).astype('int')
+    avec_dec['noifam'] = (100 * avec_dec.ident + avec_dec.noidec.astype('int')).astype('int')
     avec_dec['famille'] = 47
     avec_dec['kid'] = True
     for series_name in ['famille', 'noifam']:
@@ -348,9 +348,9 @@ def famille(year = 2006):
     assert_dtype(avec_dec.kid, "bool")
     control_04(avec_dec, base)
     #on récupère les déclarants pour leur attribuer une famille propre
-    declarant_id = DataFrame(avec_dec['noifam'].copy()).rename(columns={'noifam': 'noindiv'}, inplace = True)
+    declarant_id = DataFrame(avec_dec['noifam'].copy()).rename(columns={'noifam': 'noindiv'})
     declarant_id.drop_duplicates(inplace = True)
-    dec = base.merge(declarant_id, how='inner')
+    dec = declarant_id.merge(base)
     dec['noifam'] = (100 * dec.ident + dec.noi).astype(int)
     dec['famille'] = 48
     for series_name in ['famille', 'noifam']:
@@ -360,38 +360,8 @@ def famille(year = 2006):
     del dec, declarant_id, avec_dec
     control_04(famille, base)
 
-# # ## famille etape 5 : enfants fip */
-# # message('Etape 5 : enfants fip')
-# # # On rajoute les enfants fip
-# # # (on le fait ici pour que cela n'interfère pas avec les recherches précédentes)
-# # fip <- LoadIn(fipDat)
-# #
-# # indVar = c('noi','noicon','noindiv','noiper','noimer','ident','declar1','naia','naim','lien','quelfic','acteu','stc','contra','titc','mrec',
-# #             'forter','rstg','retrai','lpr','cohab','ztsai','sexe','persfip','agepr','rga')
-# #
-# # fip <- fip[c(indVar,'actrec','agepf','noidec','year')]
-# #
-# # table(duplicated(fip$noindiv))
-# #
-# # ## Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
-# # ## WARNING les noindiv des fip sont construits sur les ident des déclarants
-# # ## pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
-# # names(fip)
-# #
-# # fip <- within(fip,{
-# #   m15 <- (agepf<16)
-# #   p16m20 <- ((agepf>=16) & (agepf<=20))
-# #   p21 <- (agepf>=21)
-# #   ztsai[is.na(ztsai)] <- 0
-# #   smic55 <- (ztsai >= smic*12*0.55)   ## 55% du smic mensuel brut */
-# #   famille <- 0
-# #   kid <- FALSE
-# # })
-
-    print ''
-    print 'Etape 5 : récupération des enfants fip-----------'
-    print '    5.1 : création de la df fip'
-    fip = load_temp(name = 'fipDat', year = year)
+    log.info(u"Etape 5 : Récupération des enfants fip")
+    log.info(u"    5.1 : Création de la df fip")
     individual_variables_fip = [
         'acteu',
         'actrec',
@@ -421,22 +391,23 @@ def famille(year = 2006):
         'sexe',
         'stc',
         'titc',
-        'year'
+        'year',
         'ztsai',
         ]
-
-    fip = fip[individual_variables_fip].copy()
+    fip = load_temp(name = 'fipDat', variables = individual_variables_fip, year = year)
     # Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
     # WARNING les noindiv des fip sont construits sur les ident des déclarants
     # pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
     fip['m15'] = (fip.agepf < 16)
     fip['p16m20'] = ((fip.agepf >= 16) & (fip.agepf <= 20))
     fip['p21'] = (fip.agepf >= 21)
-#     fip['ztsai'][fip['ztsai'] is None] = 0 #there are alrdy zeros
     fip['smic55'] = (fip.ztsai >= smic * 12 * 0.55)
     fip['famille'] = 0
     fip['kid'] = False
-    print fip['ztsai'].isnull().describe()
+    for series_name in ['kid', 'm15', 'p16m20', 'p21', 'smic55']:
+        assert_dtype(fip[series_name], "bool")
+    for series_name in ['famille']:
+        assert_dtype(fip[series_name], "int")
 
 # # base <- rbind(base,fip)
 # # table(base$quelfic)
@@ -460,11 +431,8 @@ def famille(year = 2006):
 # # famille[famille$noindiv %in% enfant_fip$noifam,] <- parent_fip
 # # # TODO quid du conjoint ?
 
-    print "    5.2 : extension de base avec les fip"
-    print fip[['noindiv', 'noidec', 'ztsai']].describe()
+    log.info(u"    5.2 : extension de base avec les fip")
     base_ = concat([base, fip])
-    print len(base.index)
-
     enfant_fip = subset_base(base_, famille)
     print enfant_fip.ix[enfant_fip.quelfic == "FIP","agepf"].describe()
 
