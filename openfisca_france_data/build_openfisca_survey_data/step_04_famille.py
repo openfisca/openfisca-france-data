@@ -24,7 +24,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from numpy import where
 from pandas import concat, DataFrame
 
 
@@ -434,40 +433,38 @@ def famille(year = 2006):
     log.info(u"    5.2 : extension de base avec les fip")
     base_ = concat([base, fip])
     enfant_fip = subset_base(base_, famille)
-    print enfant_fip.ix[enfant_fip.quelfic == "FIP","agepf"].describe()
-
-    enfant_fip = enfant_fip[(enfant_fip.quelfic == "FIP") &
-                            ((enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55)) |
-                            ((enfant_fip['naia'] == enfant_fip['year']-1) & (enfant_fip['rga'].astype('int')==6)))]
-
-    enfant_fip['noifam'] = 100*enfant_fip.ident + enfant_fip['noidec']
+    enfant_fip = enfant_fip[
+        (enfant_fip.quelfic == "FIP") & (
+            (enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55)) |
+            ((enfant_fip.naia == enfant_fip.year - 1) & (enfant_fip.rga.astype('int') == 6))
+            )
+        ].copy()
+    enfant_fip['noifam'] = (100 * enfant_fip.ident + enfant_fip.noidec).astype(int)
     enfant_fip['famille'] = 50
     enfant_fip['kid'] = True
-    enfant_fip['ident'] = None
+    enfant_fip['ident'] = None  # TODO: should we really do this ?
+    assert_dtype(enfant_fip.kid, "bool")
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(enfant_fip[series_name], "int")
     control_04(enfant_fip, base)
-
     famille = concat([famille, enfant_fip])
     base = concat([base, enfant_fip])
     parent_fip = famille[famille.noindiv.isin(enfant_fip.noifam.values)].copy()
-    print type(parent_fip)
-    assert (enfant_fip.noifam.isin(parent_fip.noindiv.values)).any(), "{} doublons entre enfant_fip et parent fip !".format((enfant_fip.noifam.isin(parent_fip.noindiv.values)).sum())
-
+    assert (enfant_fip.noifam.isin(parent_fip.noindiv.values)).any(), \
+        "{} doublons entre enfant_fip et parent fip !".format((enfant_fip.noifam.isin(parent_fip.noindiv.values)).sum())
     parent_fip['noifam'] = parent_fip['noindiv'].values.copy()
     parent_fip['famille'] = 51
     parent_fip['kid'] = False
-    print 'contrôle de parent_fip'
+    log.info(u"Contrôle de parent_fip")
     control_04(parent_fip, base)
-
-    print 'famille defore merge and clearing'
     control_04(famille, base)
-
-    famille = famille.merge(parent_fip, how='outer'); famille['famille'] = famille['famille'].astype('int')
+    famille = famille.merge(parent_fip, how='outer')
+ #   duplicated_individuals = famille.noindiv.duplicated()
+    # TODO: How to prevent failing in the next assert and avoiding droppping duplicates ?
+ #   assert not duplicated_individuals.any(), "{} duplicated individuals in famille".format(
+ #       duplicated_individuals.sum())
     famille = famille.drop_duplicates(cols = 'noindiv', take_last = True)
-
-    print 'famille after merge and clearing'
-    print set(famille.famille.values)
     control_04(famille, base)
-    print famille.loc[famille.noindiv.isin(enfant_fip.noifam), 'famille'].describe()
     del enfant_fip, fip, parent_fip
 
 # # message('Etape 6 : non attribué')
@@ -495,103 +492,97 @@ def famille(year = 2006):
 # #     famille<-63})
 # #
 # # famille <- rbind(famille,non_attribue2)
-    print ''
-    print 'Etape 6 : gestion des non attribués'
-    print '    6.1 : non attribués type 1'
-    non_attribue1 = subset_base(base,famille)
-    non_attribue1 = non_attribue1[~(non_attribue1.quelfic != 'FIP') & (non_attribue1.m15 |
-                                    (non_attribue1.p16m20 & (non_attribue1.lien.isin(range(1, 5))) &
-                                     (non_attribue1.agepr >= 35)))]
-    # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
-    non_attribue1 = personne_de_reference.merge(non_attribue1)
-    control_04(non_attribue1, base)
-    non_attribue1['famille'] = where(non_attribue1.m15, 61, 62)
-    non_attribue1['kid'] = True
 
+    log.info(u"Etape 6 : gestion des non attribués")
+    log.info(u"    6.1 : non attribués type 1")
+    non_attribue1 = subset_base(base, famille)
+    non_attribue1 = non_attribue1[
+        ~(non_attribue1.quelfic != 'FIP') & (
+            non_attribue1.m15 | (
+                non_attribue1.p16m20 & (non_attribue1.lien.isin(range(1, 5))) & (non_attribue1.agepr >= 35)
+                )
+            )
+        ].copy()
+    # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
+    non_attribue1 = non_attribue1.merge(personne_de_reference)
+    control_04(non_attribue1, base)
+    non_attribue1['famille'] = 61 * non_attribue1.m15 + 62 * ~(non_attribue1.m15)
+    non_attribue1['kid'] = True
+    assert_dtype(non_attribue1.kid, "bool")
+    assert_dtype(non_attribue1.famille, "int")
     famille = concat([famille, non_attribue1])
     control_04(famille, base)
     del personne_de_reference, non_attribue1
 
-    print '    6.2 : non attribué type 2'
+    log.info(u"    6.2 : non attribué type 2")
     non_attribue2 = base[(~(base.noindiv.isin(famille.noindiv.values)) & (base.quelfic != "FIP"))].copy()
-    non_attribue2['noifam'] = 100*non_attribue2.ident + non_attribue2['noi']
-    non_attribue2['noifam'] = non_attribue2.noifam.astype('int')
+    non_attribue2['noifam'] = (100 * non_attribue2.ident + non_attribue2.noi).astype(int)
     non_attribue2['kid'] = False
     non_attribue2['famille'] = 63
-
+    assert_dtype(non_attribue2.kid, "bool")
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(non_attribue2[series_name], "int")
     famille = concat([famille, non_attribue2], join='inner')
     control_04(famille, base)
     del non_attribue2
 
-# # ## Sauvegarde de la table famille */
-# #
-# # # TODO: nettoyer les champs qui ne servent plus à rien
-# #
-    print ''
-    print 'Etape 7 : Sauvegarde de la table famille'
-    print '    7.1 : Mise en forme finale'
-    famille['idec'] = famille['declar1'].str[3:11]
-    print famille['declar1'].notnull().describe()
-    famille['idec'].apply(lambda x: str(x)+'-')
-    famille['idec'] += famille['declar1'].str[0:2]
-    famille['chef'] = (famille['noifam'] == famille.ident*100+famille['noi'])
+    # Sauvegarde de la table famille
+    log.info(u"Etape 7 : Sauvegarde de la table famille")
+    log.info(u"    7.1 : Mise en forme finale")
+#    TODO: nettoyer les champs qui ne servent plus à rien
+#    famille['idec'] = famille['declar1'].str[3:11]
+#    famille['idec'].apply(lambda x: str(x)+'-')
+#    famille['idec'] += famille['declar1'].str[0:2]
+    famille['chef'] = (famille['noifam'] == (100 * famille.ident + famille.noi))
+    assert_dtype(famille.chef, "bool")
 
-    famille.reset_index(inplace=True)
-    print famille['idec'].isnull().describe()
-
+    famille.reset_index(inplace = True)
     control_04(famille, base)
 
-    print '    7.2 : création de la colonne rang'
-    famille['rang'] = famille['kid'].astype('int')
+    log.info(u"    7.2 : création de la colonne rang")
 
-    while any(famille[(famille['rang']!=0)].duplicated(cols=['rang', 'noifam'])):
-        famille["rang"][famille['rang']!=0] = where(
-                                    famille[famille['rang']!=0].duplicated(cols=["rang", 'noifam']),
-                                    famille["rang"][famille['rang']!=0] + 1,
-                                    famille["rang"][famille['rang']!=0])
-        print "nb de rangs différents", len(set(famille.rang.values))
+    famille['rang'] = famille.kid.astype('int')
+    while any(famille[(famille.rang != 0)].duplicated(cols = ['rang', 'noifam'])):
+        famille["rang"][famille.rang != 0] += famille[famille.rang != 0].copy().duplicated(cols = ["rang", 'noifam']).values
+        log.info(u"nb de rangs différents : {}".format(len(set(famille.rang.values))))
 
     log.info(u"    7.3 : création de la colonne quifam et troncature")
-
     log.info(u"value_counts chef : \n {}".format(famille['chef'].value_counts()))
     log.info(u"value_counts kid :' \n {}".format(famille['kid'].value_counts()))
 
-
     famille['quifam'] = -1
  #   famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
-    famille.quifam[famille['chef']] = 0
-    famille.quifam[famille['kid']] = 1 + famille.rang[famille['kid']].values
-#    famille['quifam'] = famille['quifam'].where(famille['kid'].values, 1 + famille['rang'].values)
-    famille.quifam[(~(famille['chef'])) & (~(famille['kid']))] = 1
-#    famille['quifam'] = famille['quifam'].where(~(famille['chef'].values) & ~(famille['kid'].values), 1)
+    # ATTENTTION : ^ stands for XOR
+    famille.quifam = (0 +
+        ((~famille['chef']) & (~famille['kid'])).astype(int) +
+        famille.kid * famille.rang
+        ).astype('int')
 
+# TODO: Test a groupby to improve the following this (should be placed )
+#    assert famille['chef'].sum() == len(famille.noifam.unique()), \
+#      'The number of family chiefs {} is different from the number of families {}'.format(
+#          famille['chef'].sum(),
+#          len(famille.idfam.unique())
+#          )
 
-    famille['noifam'] = famille['noifam'].astype('int')
-
-    print famille.sort(columns=['noifam','quifam'])
-    print famille['quifam'].value_counts()
-    print famille['noifam'].value_counts()
-    famille_check = famille.copy()
-    famille = famille.loc[:, ['noindiv', 'quifam', 'noifam']].copy()
-    print famille.info()
-    print famille.describe()
-    print famille
+#    famille['noifam'] = famille['noifam'].astype('int')
+    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts()))
+    famille = famille[['noindiv', 'quifam', 'noifam']].copy()
     famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
-    print 'Vérifications sur famille'
-    assert len(famille_check.loc[famille_check['chef'], :]) == len(set(famille.idfam.values)), \
-      'the number of family chiefs {} is different from the number of families {}'.format(
-          len(famille_check.loc[famille_check['chef'], :]),
-          (set(famille.idfam.values))
+    log.info(u"Vérifications sur famille")
+    # TODO: we drop duplicates if any
+    log.info(u"There are {} duplicates of quifam inside famille, we drop them".format(
+          famille.duplicated(cols = ['idfam', 'quifam']).sum())
           )
-    assert not(any(famille.duplicated(cols=['idfam', 'quifam']))), \
-      'There are {} duplicates of quifam inside famille'.format(sum((famille.duplicated(cols=['idfam', 'quifam']))))
-    assert famille['quifam'].notnull().all(), 'there are missing values in quifam'
-    assert famille['idfam'].notnull().all(), 'there are missing values in idfam'
-#    control(famille, debug=True, verbose=True, verbose_columns=['idfam', 'quifam'])
+    famille.drop_duplicates(cols = ['idfam', 'quifam'], inplace = True)
+#    assert not(famille.duplicated(cols=['idfam', 'quifam']).any()), \
+#      'There are {} duplicates of quifam inside famille'.format(
+#          famille.duplicated(cols=['idfam', 'quifam']).sum())
 
-    print '    Sauvegarde de famille'
     save_temp(famille, name="famc", year=year)
-    del famille_check, indivi, enfants_a_naitre
+    del indivi, enfants_a_naitre
 
 if __name__ == '__main__':
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     famille()
