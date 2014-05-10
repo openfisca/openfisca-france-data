@@ -125,9 +125,7 @@ def famille(year = 2006):
         'year',
         'ztsai',
         ]
-
     enfants_a_naitre = load_temp(name = 'enfants_a_naitre', variables = individual_variables, year = year)
-
     enfants_a_naitre.drop_duplicates('noindiv', inplace = True)
     log.info(u""""
     Il y a {} enfants à naitre avant de retirer ceux qui ne sont pas enfants
@@ -139,12 +137,10 @@ def famille(year = 2006):
     Il y a {} enfants à naitre après avoir retiré ceux qui ne sont pas enfants
     de la personne de référence
     """.format(len(enfants_a_naitre.index)))
-
     # PB with vars "agepf"  "noidec" "year"  NOTE: quels problèmes ? JS
     log.info(u"    1.3 : création de la base complète")
     base = concat([indivi, enfants_a_naitre])
     log.info(u"base contient {} lignes ".format(len(base.index)))
-
     base['noindiv'] = (100 * base['ident'] + base['noi']).astype(int)
     base['m15'] = base['agepf'] < 16
     base['p16m20'] = (base['agepf'] >= 16) & (base['agepf'] <= 20)
@@ -153,137 +149,105 @@ def famille(year = 2006):
     base['smic55'] = base['ztsai'] >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     base['famille'] = 0
     base['kid'] = False
-
     for series_name in ['kid', 'm15', 'p16m20', 'p21', 'smic55']:
         assert_dtype(base[series_name], "bool")
-
     assert_dtype(base.famille, "int")
     assert_dtype(base.ztsai, "int")
 
     log.info(u"Etape 2 : On cherche les enfants ayant père et/ou mère")
-
-    pr = base[['ident', 'noi']][base['lpr'] == 1].copy()
-    pr['noifam'] = 100 * pr['ident'] + pr['noi']
-    pr = pr[['ident', 'noifam']].copy()
-    log.info(u"length pr : {}".format(len(pr.index)))
-
-    nof01 = base[(base.lpr.isin([1, 2])) | ((base['lpr'] == 3) & (base['m15'])) |
-                 ((base['lpr'] == 3) & (base['p16m20']) & (~base['smic55']))]
+    personne_de_reference = base[['ident', 'noi']][base['lpr'] == 1].copy()
+    personne_de_reference['noifam'] = (100 * personne_de_reference['ident'] + personne_de_reference['noi']).astype(int)
+    personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
+    log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
+    nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.m15)) |
+                 ((base.lpr == 3) & (base.p16m20) & (~base.smic55))].copy()
     log.info('longueur de nof01 avant merge : {}'.format(len(nof01.index)))
-    nof01 = nof01.merge(pr, on='ident', how='outer')
+    nof01 = nof01.merge(personne_de_reference, on='ident', how='outer')
     nof01['famille'] = 10
     nof01['kid'] = (
-        (nof01['lpr'] == 3) & (nof01['m15'])
+        (nof01.lpr == 3) & (nof01.m15)
         ) | (
-            (nof01['lpr'] == 3) & (nof01['p16m20']) & ~(nof01['smic55'])
+            (nof01.lpr == 3) & (nof01.p16m20) & ~(nof01.smic55)
             )
-
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(nof01[series_name], "int")
+    assert_dtype(nof01.kid, "bool")
     famille = nof01.copy()
-    print nof01['kid'].value_counts()
-    print nof01.lpr.value_counts()
     del nof01
     control_04(famille, base)
 
     log.info(u"    2.1 : identification des couples")
     # l'ID est le noi de l'homme
-    boum
 
     hcouple = subset_base(base, famille)
-    hcouple = hcouple[(hcouple['cohab'] == 1) & (hcouple['lpr'] >= 3) & (hcouple['sexe'] == 1)]
-    hcouple['noifam'] = 100 * hcouple['ident'] + hcouple['noi']
+    hcouple = hcouple[(hcouple.cohab == 1) & (hcouple.lpr >= 3) & (hcouple.sexe == 1)].copy()
+    hcouple['noifam'] = (100 * hcouple.ident + hcouple.noi).astype(int)
     hcouple['famille'] = 21
-    print 'longueur hcouple', len(hcouple.index)
-
-# # message('Etape 2b')
-# # fcouple<- base[!base$noindiv %in% famille$noindiv,]
-# # fcouple <- subset(fcouple,(cohab==1) & (lpr>=3) & (sexe==2))
-# # fcouple <- within(fcouple,{
-# #     noifam <- 100*ident + noicon ## l'identifiant est le conjoint du ménage  */
-# #     famille <- 22 })
-# #
-# # famcom<- merge(fcouple['noifam'],hcouple['noifam'])
-# # fcouple <- merge(famcom,fcouple)
-# #
-# # famille <- rbind(famille,hcouple,fcouple)
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(hcouple[series_name], "int")
+    log.info(u"longueur hcouple : ".format(len(hcouple.index)))
 
     log.info(u"    2.2 : attributing the noifam to the wives")
     fcouple = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    fcouple = fcouple[(fcouple['cohab'] == 1) & (fcouple['lpr'] >= 3) & (fcouple['sexe'] == 2)]
-    fcouple['noifam'] = 100 * fcouple['ident'] + fcouple['noi']
+    fcouple = fcouple[(fcouple.cohab == 1) & (fcouple.lpr >= 3) & (fcouple.sexe == 2)].copy()
+    # l'identifiant de la famille est celui du conjoint de la personne de référence du ménage
+    fcouple['noifam'] = (100 * fcouple.ident + fcouple.noicon).astype(int)
     fcouple['famille'] = 22
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(fcouple[series_name], "int")
     log.info(u"Il y a {} enfants avec parents en fcouple".format(len(fcouple.index)))
 
     famcom = fcouple.merge(hcouple, on='noifam', how='outer')
-    print 'longueur fancom après fusion', len(famcom.index)
-    fcouple = fcouple.merge(famcom) #NOTE : faire un inner merge sinon présence de doublons
-    print 'longueur fcouple après fusion', len(fcouple.index)
-
+    log.info(u"longueur fancom après fusion : {}".format(len(famcom.index)))
+    fcouple = fcouple.merge(famcom)  # TODO : check s'il ne faut pas faire un inner merge sinon présence de doublons
+    log.info(u"longueur fcouple après fusion : {}".format(len(fcouple.index)))
     famille = concat([famille, hcouple, fcouple], join='inner')
     control_04(famille, base)
 
-    print ''
-    print 'Etape 3: Récupération des personnes seules'
-    print '    3.1 : personnes seules de catégorie 1'
-    seul1 = base[~(base.noindiv.isin(famille.noindiv.values))]
-    seul1 = seul1[(seul1.lpr.isin([3,4])) & ((seul1['p16m20'] & seul1['smic55'])|seul1['p21']) & (seul1['cohab']==1) &
-                  (seul1['sexe']==2)]
-    if len(seul1.index)>0:
-        seul1['noifam'] = 100*seul1['ident'] + seul1['noi']
+    log.info(u"Etape 3: Récupération des personnes seules")
+    log.info(u"    3.1 : personnes seules de catégorie 1")
+    seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
+    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.p16m20 & seul1.smic55) | seul1.p21) & (seul1.cohab == 1) &
+                  (seul1.sexe == 2)].copy()
+    if len(seul1.index) > 0:
+        seul1['noifam'] = (100 * seul1.ident + seul1.noi).astype(int)
         seul1['famille'] = 31
+        for series_name in ['famille', 'noifam']:
+            assert_dtype(seul1[series_name], "int")
         famille = concat([famille, seul1])
-    print len(seul1.index)
     control_04(famille, base)
 
-# # message('  3.2 personnes seules 2')
-# # seul2 <- base[(!base$noindiv %in% famille$noindiv),]
-# # seul2 <- subset(seul2,(lpr %in% c(3,4)) & p16m20 & smic55 & (cohab!=1))
-# # seul2 <- within(seul2,{noifam <- 100*ident+noi
-# #                      famille <- 32})
-# # famille <- rbind(famille,seul2)
-    print '    3.1 personnes seules de catégorie 2'
-    seul2 = base[~(base.noindiv.isin(famille.noindiv.values))]
-    seul2 = seul2[(seul2.lpr.isin([3,4])) & seul2['p16m20'] & seul2['smic55'] & (seul2['cohab'] != 1)]
-    seul2['noifam'] = 100*seul2['ident'] + seul2['noi']
+    log.info(u"    3.1 personnes seules de catégorie 2")
+    seul2 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
+    seul2 = seul2[(seul2.lpr.isin([3, 4])) & seul2.p16m20 & seul2.smic55 & (seul2.cohab != 1)].copy()
+    seul2['noifam'] = (100 * seul2.ident + seul2.noi).astype(int)
     seul2['famille'] = 32
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(seul2[series_name], "int")
     famille = concat([famille, seul2])
     control_04(famille, base)
 
-# # message(' 3.3 personnes seules 3')
-# # seul3 <- base[(!base$noindiv %in% famille$noindiv),]
-# # seul3 <- subset(seul3,(lpr %in% c(3,4)) & p21 & cohab!=1)
-# #     ## TODO CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement */
-# # seul3 <- within(seul3,{noifam=100*ident+noi
-# #                          famille = 33})
-# # famille <- rbind(famille,seul3)
-
-    print '    3.3 personnes seules de catégorie 3'
-    seul3 = subset_base(base,famille)
-    seul3 = seul3[(seul3.lpr.isin([3,4])) & seul3['p21'] & (seul3['cohab'] != 1)]
-    seul3['noifam'] = 100*seul3['ident'] + seul3['noi']
+    log.info(u"    3.3 personnes seules de catégorie 3")
+    seul3 = subset_base(base, famille)
+    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.p21 & (seul3.cohab != 1)].copy()
+    # TODO: CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement
+    seul3['noifam'] = (100 * seul3.ident + seul3.noi).astype(int)
     seul3['famille'] = 33
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(seul3[series_name], "int")
     famille = concat([famille, seul3])
     control_04(famille, base)
 
-# # message(' 3.4 personnes seules 4')
-# # seul4 <- base[(!base$noindiv %in% famille$noindiv),]
-# # seul4 <- subset(seul4,(lpr==4) & p16m20 & !smic55 & noimer==0 & noiper==0 & persfip=="vous")
-# #
-# # if (nrow(seul4) >0 ) {  # 2006, 2009 pas de personne seule (sans enfant fip)
-# #   seul4 <- within(seul4,{noifam = 100*ident + noi
-# #                          famille = 34})
-# # }
-# #
-# # famille <- rbind(famille,seul4)
-
-    print '    3.4 : personnes seules de catégorie 4'
-    seul4 = subset_base(base,famille)
-    seul4 = seul4[(seul4['lpr']==4) & seul4['p16m20'] & ~(seul4['smic55']) & (seul4['noimer']==0) &
-                  (seul4['persfip']=='vous')]
-
-    if len(seul4.index)>0:
-        seul4['noifam'] = 100*seul4['ident'] + seul4['noi']
+    log.info(u"    3.4 : personnes seules de catégorie 4")
+    seul4 = subset_base(base, famille)
+    seul4 = seul4[(seul4.lpr == 4) & seul4.p16m20 & ~(seul4.smic55) & (seul4.noimer.isnull()) &
+                  (seul4.persfip == 'vous')].copy()
+    if len(seul4.index) > 0:
+        seul4['noifam'] = (100 * seul4.ident + seul4.noi).astype(int)
         seul4['famille'] = 34
         famille = concat([famille, seul4])
+        for series_name in ['famille', 'noifam']:
+            assert_dtype(seul4[series_name], "int")
     control_04(famille, base)
 
 # # message('Etape 4')
@@ -302,31 +266,36 @@ def famille(year = 2006):
 # # mere <- merge(mereid,base)
 # # mere <- within(mere,{noifam=100*ident + noi
 # #                      famille=42})
-# # # TODO il y a deux mères qui ne sont pas dans les individus (problème des conjoints fip ? MBJ ne comprends pas) :
+# #
 # # dim(mereid)
 # # dim(mere)
 # # # TODO on préfère  donc enlever leurs enfants
 # # avec_mere <- avec_mere[avec_mere$noifam %in% mere$noifam,]
 # #
-    print ''
-    print 'Etape 4 : traitement des enfants'
-    print '    4.1 : enfant avec mère'
+
+    log.info(u"Etape 4 : traitement des enfants")
+    log.info(u"    4.1 : enfant avec mère")
     avec_mere = subset_base(base,famille)
-    avec_mere =  avec_mere[((avec_mere['lpr']==4) & ((avec_mere['p16m20']==1) | (avec_mere['m15']==1)) &
-                           (avec_mere['noimer'] != 0))]
-    avec_mere['noifam'] = 100*avec_mere['ident'] + avec_mere['noimer']
+
+    avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.p16m20 == 1) | (avec_mere.m15 == 1)) &
+                           (avec_mere.noimer.notnull()))].copy()
+
+    avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
     avec_mere['famille'] = 41
     avec_mere['kid'] = True
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(avec_mere[series_name], "int")
+    assert_dtype(avec_mere.kid, "bool")
 
-    #On récupère les mères des enfants
-    mereid = DataFrame(avec_mere['noifam'])
-    mereid.columns = ['noindiv']
+    # On récupère les mères des enfants
+    mereid = avec_mere['noifam'].copy()
+    # Ces mères peuvent avoir plusieurs enfants, or il ne faut unicité de l'identifiant
+    mereid.rename({'noifam': 'noindiv'}, inplace=True)
     mereid = mereid.drop_duplicates()
-
     mere = mereid.merge(base)
-    mere['noifam'] = 100*mere['ident'] + mere['noi']
+    mere['noifam'] = 100 * mere.ident + mere.noi
     mere['famille'] = 42 #H2G2 nous voilà
-    avec_mere = avec_mere[avec_mere.noifam.isin(mere.noifam.values)]
+    avec_mere = avec_mere[avec_mere.noifam.isin(mereid.noindiv.values)]
     print 'contrôle df mère'
     control_04(mere, base)
 
@@ -612,14 +581,14 @@ def famille(year = 2006):
                                     (non_attribue1['p16m20'] & (non_attribue1.lien.isin(range(1,5))) &
                                      (non_attribue1['agepr']>=35)))]
     # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
-    non_attribue1 = pr.merge(non_attribue1)
+    non_attribue1 = personne_de_reference.merge(non_attribue1)
     control_04(non_attribue1, base)
     non_attribue1['famille'] = where(non_attribue1['m15'], 61, 62)
     non_attribue1['kid'] = True
 
     famille = concat([famille, non_attribue1])
     control_04(famille, base)
-    del pr, non_attribue1
+    del personne_de_reference, non_attribue1
 
     print '    6.2 : non attribué type 2'
     non_attribue2 = base[(~(base.noindiv.isin(famille.noindiv.values)) & (base['quelfic']!="FIP"))].copy()
