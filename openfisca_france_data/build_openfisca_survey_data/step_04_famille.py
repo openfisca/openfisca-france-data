@@ -24,7 +24,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-from numpy import where, array
+from numpy import where
 from pandas import concat, DataFrame
 
 
@@ -141,10 +141,10 @@ def famille(year = 2006):
     log.info(u"    1.3 : création de la base complète")
     base = concat([indivi, enfants_a_naitre])
     log.info(u"base contient {} lignes ".format(len(base.index)))
-    base['noindiv'] = (100 * base['ident'] + base['noi']).astype(int)
-    base['m15'] = base['agepf'] < 16
-    base['p16m20'] = (base['agepf'] >= 16) & (base['agepf'] <= 20)
-    base['p21'] = base['agepf'] >= 21
+    base['noindiv'] = (100 * base.ident + base['noi']).astype(int)
+    base['m15'] = base.agepf < 16
+    base['p16m20'] = (base.agepf >= 16) & (base.agepf <= 20)
+    base['p21'] = base.agepf >= 21
     base['ztsai'].fillna(0, inplace = True)
     base['smic55'] = base['ztsai'] >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     base['famille'] = 0
@@ -155,8 +155,8 @@ def famille(year = 2006):
     assert_dtype(base.ztsai, "int")
 
     log.info(u"Etape 2 : On cherche les enfants ayant père et/ou mère")
-    personne_de_reference = base[['ident', 'noi']][base['lpr'] == 1].copy()
-    personne_de_reference['noifam'] = (100 * personne_de_reference['ident'] + personne_de_reference['noi']).astype(int)
+    personne_de_reference = base[['ident', 'noi']][base.lpr == 1].copy()
+    personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
     log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
     nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.m15)) |
@@ -250,36 +250,11 @@ def famille(year = 2006):
             assert_dtype(seul4[series_name], "int")
     control_04(famille, base)
 
-# # message('Etape 4')
-# # message(' 4.1 enfant avec mère')
-# # avec_mere <- base[(!base$noindiv %in% famille$noindiv),]
-# # avec_mere <- subset(avec_mere,((lpr=4) & ( (p16m20=1) | (m15=1))) & noimer!=0)
-# #
-# # avec_mere <- within(avec_mere,{noifam=100*ident + noimer
-# #              famille=41
-# #              kid=TRUE})
-# #
-# # ## on récupère les mères */
-# # mereid <- upData(avec_mere['noifam'], rename = c(noifam = 'noindiv'));
-# # mereid <- unique(mereid)
-# #
-# # mere <- merge(mereid,base)
-# # mere <- within(mere,{noifam=100*ident + noi
-# #                      famille=42})
-# #
-# # dim(mereid)
-# # dim(mere)
-# # # TODO on préfère  donc enlever leurs enfants
-# # avec_mere <- avec_mere[avec_mere$noifam %in% mere$noifam,]
-# #
-
     log.info(u"Etape 4 : traitement des enfants")
     log.info(u"    4.1 : enfant avec mère")
-    avec_mere = subset_base(base,famille)
-
+    avec_mere = subset_base(base, famille)
     avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.p16m20 == 1) | (avec_mere.m15 == 1)) &
                            (avec_mere.noimer.notnull()))].copy()
-
     avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
     avec_mere['famille'] = 41
     avec_mere['kid'] = True
@@ -288,152 +263,101 @@ def famille(year = 2006):
     assert_dtype(avec_mere.kid, "bool")
 
     # On récupère les mères des enfants
-    mereid = avec_mere['noifam'].copy()
-    # Ces mères peuvent avoir plusieurs enfants, or il ne faut unicité de l'identifiant
-    mereid.rename({'noifam': 'noindiv'}, inplace=True)
-    mereid = mereid.drop_duplicates()
+    mereid = DataFrame(avec_mere['noifam'].copy())  # Keep a DataFrame instead of a Series to deal with rename and merge
+    # Ces mères peuvent avoir plusieurs enfants, or il faut unicité de l'identifiant
+    mereid.rename(columns = {'noifam': 'noindiv'}, inplace = True)
+    mereid.drop_duplicates(inplace = True)
     mere = mereid.merge(base)
-    mere['noifam'] = 100 * mere.ident + mere.noi
-    mere['famille'] = 42 #H2G2 nous voilà
-    avec_mere = avec_mere[avec_mere.noifam.isin(mereid.noindiv.values)]
-    print 'contrôle df mère'
+    mere['noifam'] = (100 * mere.ident + mere.noi).astype(int)
+    mere['famille'] = 42
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(mere[series_name], "int")
+    avec_mere = avec_mere[avec_mere.noifam.isin(mereid.noindiv.values)].copy()
+    log.info(u"Contrôle de famille après ajout des pères")
     control_04(mere, base)
 
-# # conj_mere <- merge(conj_mereid,base)
-# # conj_mere$famille <- 43
-# #
-# # famille <- famille[(!famille$noindiv %in% mere$noindiv),]
-# #
-# # ## on récupère les conjoints des mères */
-# # conj_mereid <- mere[mere$noicon!=0,c('ident','noicon','noifam')]
-# #
-# # conj_mereid$noindiv = 100*conj_mereid$ident + conj_mereid$noicon
-# # conj_mereid <- conj_mereid[c('noindiv','noifam')]
-# #
-# # conj_mere <- merge(conj_mereid,base)
-# # conj_mere$famille <- 43
-# #
-# # famille <- famille[(!famille$noindiv %in% conj_mere$noindiv),]
-# # famille <- rbind(famille,avec_mere,mere,conj_mere)
-# #
-
-    famille = famille[~(famille.noindiv.isin(mere.noindiv.values))]
+    famille = famille[~(famille.noindiv.isin(mere.noindiv.values))].copy()
     control_04(famille, base)
-
-    #on retrouve les conjoints des mères
-    conj_mereid = mere[mere['noicon']!=0].loc[:, ['ident', 'noicon', 'noifam']]
-    conj_mereid['noindiv'] = 100*conj_mereid['ident'] + conj_mereid['noicon']
-    conj_mereid = conj_mereid.loc[:, ['noindiv', 'noifam']]
+    # on retrouve les conjoints des mères
+    conj_mereid = mere[['ident', 'noicon', 'noifam']].copy()[mere.noicon.notnull()].copy()
+    conj_mereid['noindiv'] = 100 * conj_mereid.ident + conj_mereid.noicon
+    assert_dtype(conj_mereid[series_name], "int")
+    conj_mereid = conj_mereid[['noindiv', 'noifam']].copy()
     conj_mereid = conj_mereid.merge(base)
     control_04(conj_mereid, base)
-
     conj_mere = conj_mereid.merge(base)
     conj_mere['famille'] = 43
-
-    famille = famille[~(famille.noindiv.isin(conj_mere.noindiv.values))]
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(conj_mereid[series_name], "int")
+    famille = famille[~(famille.noindiv.isin(conj_mere.noindiv.values))].copy()
     famille = concat([famille, avec_mere, mere, conj_mere])
     control_04(famille, base)
     del avec_mere, mere, conj_mere, mereid, conj_mereid
 
-# # message(' 4.2 enfants avec père')
-# # avec_pere <- base[(!base$noindiv %in% famille$noindiv),]
-# # avec_pere <- subset(avec_pere,((lpr=4) & ( (p16m20=1) | (m15=1))) & noiper!=0)
-# # avec_pere <- within(avec_pere,{noifam=100*ident + noiper
-# #              famille=44
-# #              kid=TRUE})
-# #
-# # ## on récupère les pères  pour leur attribuer une famille propre */
-# # pereid <- upData(avec_pere['noifam'], rename = c(noifam = 'noindiv'));
-# # pereid <- unique(pereid)
-# # pere <- merge(pereid,base)
-# # pere <- within(pere,{noifam=100*ident + noi
-# #                        famille=45})
-# #
-# # famille <- famille[(!famille$noindiv %in% pere$noindiv),]
-# #
-# # ## on récupère les conjoints des pères */
-# # conj_pereid <- pere[pere$noicon!=0,c('ident','noicon','noifam')]
-# # conj_pereid$noindiv = 100*conj_pereid$ident + conj_pereid$noicon
-# # conj_pereid <- conj_pereid[c('noindiv','noifam')]
-# #
-# # conj_pere <- merge(conj_pereid,base)
-# # if (nrow(conj_pere) >0) conj_pere$famille <- 46
-# # # 2006: erreur pas de conjoint de père ?
-# #
-# # famille <- famille[(!famille$noindiv %in% conj_pere$noindiv),]
-# # famille <- rbind(famille,avec_pere,pere,conj_pere)
-
-    print '    4.2 : enfants avec père'
-    avec_pere = subset_base(base,famille)
-    avec_pere = avec_pere[(avec_pere['lpr']==4) &
-                          ((avec_pere['p16m20']==1) | (avec_pere['m15']==1)) &
-                          (avec_pere['noiper'].notnull())]
-    avec_pere['noifam'] = 100*avec_pere['ident'] + avec_pere['noiper']
+    log.info(u"    4.2 : enfants avec père")
+    avec_pere = subset_base(base, famille)
+    avec_pere = avec_pere[(avec_pere.lpr == 4) &
+                          ((avec_pere.p16m20 == 1) | (avec_pere.m15 == 1)) &
+                          (avec_pere.noiper.notnull())]
+    avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
     avec_pere['famille'] = 44
     avec_pere['kid'] = True
-    print 'presence of NaN in avec_pere ?', avec_pere['noifam'].isnull().any()
+    # TODO: hack to deal with the problem of presence of NaN in avec_pere
+#    avec_pere.dropna(subset = ['noifam'], how = 'all', inplace = True)
+    assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(avec_pere[series_name], "int")
+    assert_dtype(avec_pere.kid, "bool")
 
+    pereid = DataFrame(avec_pere['noifam'])  # Keep a DataFrame instead of a Series to deal with rename and merge
+    pereid.rename(columns = {'noifam': 'noindiv'}, inplace = True)
+    pereid.drop_duplicates(inplace = True)
+    pere = pereid.merge(base)
 
-    pereid = DataFrame(avec_pere['noifam']); pereid.columns = ['noindiv']
-    pereid = pereid.drop_duplicates()
-    pere = base.merge(pereid, on='noindiv', how='inner')
-
-    pere['noifam'] = 100*pere['ident'] + pere['noi']
+    pere['noifam'] = (100 * pere.ident + pere.noi).astype(int)
     pere['famille'] = 45
-    famille = famille[~(famille.noindiv.isin(pere.noindiv.values))]
+    famille = famille[~(famille.noindiv.isin(pere.noindiv.values))].copy()
 
     #On récupère les conjoints des pères
-    conj_pereid = pere.loc[array(pere['noicon']!=0), ['ident','noicon','noifam']]
-    conj_pereid['noindiv'] = 100*conj_pereid['ident'] + conj_pereid['noicon']
-    conj_pereid = conj_pereid.loc[:, ['noindiv','noifam']]
+    conj_pereid = pere[['ident', 'noicon', 'noifam']].copy()[pere.noicon.notnull()].copy()
+    conj_pereid['noindiv'] = (100 * conj_pereid.ident + conj_pereid.noicon).astype(int)
+    conj_pereid = conj_pereid[['noindiv', 'noifam']].copy()
 
-    conj_pere = base.merge(conj_pereid, on=['noindiv'] ,how='inner')
+    conj_pere = conj_pereid.merge(base)
     control_04(conj_pere, base)
-    if len(conj_pere.index)>0 : conj_pere['famille'] = 46
+    if len(conj_pere.index) > 0:
+        conj_pere['famille'] = 46
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(conj_pere[series_name], "int")
 
-    famille = famille[~(famille.noindiv.isin(conj_pere.noindiv.values))]
+    famille = famille[~(famille.noindiv.isin(conj_pere.noindiv.values))].copy()
     famille = concat([famille, avec_pere, pere, conj_pere])
-    print 'contrôle de famille après ajout des pères'
+    log.info(u"Contrôle de famille après ajout des pères")
     control_04(famille, base)
-    del avec_pere,pere,pereid,conj_pere,conj_pereid
+    del avec_pere, pere, pereid, conj_pere, conj_pereid
 
-# # ##* 42. enfants avec déclarant */
-# # avec_dec <- base[(!base$noindiv %in% famille$noindiv),]
-# # avec_dec <- subset(avec_dec,(persfip=="pac") & (lpr=4) &  ( (p16m20&!smic55) | (m15=1 )))
-# # avec_dec <- within(avec_dec,{noifam = 100*ident + noidec
-# #             famille=47
-# #             kid=TRUE})
-# #
-# # ## on récupère les déclarants pour leur attribuer une famille propre */
-# # decid <- upData(avec_dec['noifam'], rename = c(noifam = 'noindiv'));
-# # decid <- unique(decid)
-# #
-# # dec <- merge(decid,base)
-# # dec <- within(dec,{noifam=100*ident + noi
-# #                    famille=48})
-# #
-# # famille <- famille[(!famille$noindiv %in% dec$noindiv),]
-# # famille <- rbind(famille,avec_dec,dec)
-
-    print '    4.3 : enfants avec déclarant'
-    avec_dec = subset_base(base,famille)
-    avec_dec = avec_dec[(avec_dec['persfip']=="pac") & (avec_dec['lpr']==4) &
-                    ( (avec_dec['p16m20'] & ~(avec_dec['smic55'])) | (avec_dec['m15']==1 ))]
-    avec_dec['noifam'] = 100*avec_dec['ident'] + avec_dec['noidec'].astype('float')
+    log.info(u"    4.3 : enfants avec déclarant")
+    avec_dec = subset_base(base, famille)
+    avec_dec = avec_dec[(avec_dec.persfip == "pac") & (avec_dec.lpr == 4) &
+                    ( (avec_dec.p16m20 & ~(avec_dec.smic55)) | (avec_dec.m15 == 1 ))]
+    avec_dec['noifam'] = (100 * avec_dec.ident + avec_dec.noidec).astype('int')
     avec_dec['famille'] = 47
     avec_dec['kid'] = True
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(avec_dec[series_name], "int")
+    assert_dtype(avec_dec.kid, "bool")
     control_04(avec_dec, base)
-
     #on récupère les déclarants pour leur attribuer une famille propre
-    decid = DataFrame(avec_dec['noifam']) ; decid.columns = ['noindiv']
-    decid = decid.drop_duplicates()
-    dec = base.merge(decid, how='inner')
-    dec['noifam'] = 100*dec['ident'] + dec['noi']
+    declarant_id = DataFrame(avec_dec['noifam'].copy()).rename(columns={'noifam': 'noindiv'}, inplace = True)
+    declarant_id.drop_duplicates(inplace = True)
+    dec = base.merge(declarant_id, how='inner')
+    dec['noifam'] = (100 * dec.ident + dec.noi).astype(int)
     dec['famille'] = 48
-
-    famille = famille[~(famille.noindiv.isin(dec.noindiv.values))]
+    for series_name in ['famille', 'noifam']:
+        assert_dtype(dec[series_name], "int")
+    famille = famille[~(famille.noindiv.isin(dec.noindiv.values))].copy()
     famille = concat([famille, avec_dec, dec])
-    del dec, decid, avec_dec
+    del dec, declarant_id, avec_dec
     control_04(famille, base)
 
 # # ## famille etape 5 : enfants fip */
@@ -467,19 +391,49 @@ def famille(year = 2006):
     print ''
     print 'Etape 5 : récupération des enfants fip-----------'
     print '    5.1 : création de la df fip'
-    fip = load_temp(name='fipDat', year=year)
-    indVar_fip = ['noi','noicon','noindiv','noiper','noimer','ident','declar1','naia','naim','lien','quelfic','acteu','stc','contra','titc','mrec',
-            'forter','rstg','retrai','lpr','cohab','ztsai','sexe','persfip','agepr','rga','actrec','agepf','noidec','year']
-    fip = fip.loc[:, indVar_fip]
+    fip = load_temp(name = 'fipDat', year = year)
+    individual_variables_fip = [
+        'acteu',
+        'actrec',
+        'agepf',
+        'agepr',
+        'cohab',
+        'contra',
+        'declar1',
+        'forter',
+        'ident',
+        'lien',
+        'lpr',
+        'mrec',
+        'naia',
+        'naim',
+        'noi',
+        'noicon',
+        'noidec',
+        'noimer',
+        'noindiv',
+        'noiper',
+        'persfip',
+        'quelfic',
+        'retrai',
+        'rga',
+        'rstg',
+        'sexe',
+        'stc',
+        'titc',
+        'year'
+        'ztsai',
+        ]
 
+    fip = fip[individual_variables_fip].copy()
     # Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
     # WARNING les noindiv des fip sont construits sur les ident des déclarants
     # pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
-    fip['m15'] = (fip['agepf']<16)
-    fip['p16m20'] = ((fip['agepf']>=16) & (fip['agepf']<=20))
-    fip['p21'] = (fip['agepf']>=21)
+    fip['m15'] = (fip.agepf < 16)
+    fip['p16m20'] = ((fip.agepf >= 16) & (fip.agepf <= 20))
+    fip['p21'] = (fip.agepf >= 21)
 #     fip['ztsai'][fip['ztsai'] is None] = 0 #there are alrdy zeros
-    fip['smic55'] = (fip['ztsai'] >= smic*12*0.55)
+    fip['smic55'] = (fip.ztsai >= smic * 12 * 0.55)
     fip['famille'] = 0
     fip['kid'] = False
     print fip['ztsai'].isnull().describe()
@@ -512,13 +466,13 @@ def famille(year = 2006):
     print len(base.index)
 
     enfant_fip = subset_base(base_, famille)
-    print enfant_fip.ix[enfant_fip['quelfic']=="FIP","agepf"].describe()
+    print enfant_fip.ix[enfant_fip.quelfic == "FIP","agepf"].describe()
 
-    enfant_fip = enfant_fip[(enfant_fip['quelfic']=="FIP") &
-                            ((enfant_fip.agepf.isin([19,20]) & ~(enfant_fip['smic55'])) |
-                            ((enfant_fip['naia']==enfant_fip['year']-1) & (enfant_fip['rga'].astype('int')==6)))]
+    enfant_fip = enfant_fip[(enfant_fip.quelfic == "FIP") &
+                            ((enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55)) |
+                            ((enfant_fip['naia'] == enfant_fip['year']-1) & (enfant_fip['rga'].astype('int')==6)))]
 
-    enfant_fip['noifam'] = 100*enfant_fip['ident'] + enfant_fip['noidec']
+    enfant_fip['noifam'] = 100*enfant_fip.ident + enfant_fip['noidec']
     enfant_fip['famille'] = 50
     enfant_fip['kid'] = True
     enfant_fip['ident'] = None
@@ -540,7 +494,7 @@ def famille(year = 2006):
     control_04(famille, base)
 
     famille = famille.merge(parent_fip, how='outer'); famille['famille'] = famille['famille'].astype('int')
-    famille = famille.drop_duplicates(cols='noindiv', take_last=True)
+    famille = famille.drop_duplicates(cols = 'noindiv', take_last = True)
 
     print 'famille after merge and clearing'
     print set(famille.famille.values)
@@ -577,13 +531,13 @@ def famille(year = 2006):
     print 'Etape 6 : gestion des non attribués'
     print '    6.1 : non attribués type 1'
     non_attribue1 = subset_base(base,famille)
-    non_attribue1 = non_attribue1[~(non_attribue1['quelfic'] != 'FIP') & (non_attribue1['m15'] |
-                                    (non_attribue1['p16m20'] & (non_attribue1.lien.isin(range(1,5))) &
-                                     (non_attribue1['agepr']>=35)))]
+    non_attribue1 = non_attribue1[~(non_attribue1.quelfic != 'FIP') & (non_attribue1.m15 |
+                                    (non_attribue1.p16m20 & (non_attribue1.lien.isin(range(1, 5))) &
+                                     (non_attribue1.agepr >= 35)))]
     # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
     non_attribue1 = personne_de_reference.merge(non_attribue1)
     control_04(non_attribue1, base)
-    non_attribue1['famille'] = where(non_attribue1['m15'], 61, 62)
+    non_attribue1['famille'] = where(non_attribue1.m15, 61, 62)
     non_attribue1['kid'] = True
 
     famille = concat([famille, non_attribue1])
@@ -591,9 +545,9 @@ def famille(year = 2006):
     del personne_de_reference, non_attribue1
 
     print '    6.2 : non attribué type 2'
-    non_attribue2 = base[(~(base.noindiv.isin(famille.noindiv.values)) & (base['quelfic']!="FIP"))].copy()
-    non_attribue2['noifam'] = 100*non_attribue2['ident'] + non_attribue2['noi']
-    non_attribue2['noifam'] = non_attribue2['noifam'].astype('int')
+    non_attribue2 = base[(~(base.noindiv.isin(famille.noindiv.values)) & (base.quelfic != "FIP"))].copy()
+    non_attribue2['noifam'] = 100*non_attribue2.ident + non_attribue2['noi']
+    non_attribue2['noifam'] = non_attribue2.noifam.astype('int')
     non_attribue2['kid'] = False
     non_attribue2['famille'] = 63
 
@@ -612,7 +566,7 @@ def famille(year = 2006):
     print famille['declar1'].notnull().describe()
     famille['idec'].apply(lambda x: str(x)+'-')
     famille['idec'] += famille['declar1'].str[0:2]
-    famille['chef'] = (famille['noifam'] == famille['ident']*100+famille['noi'])
+    famille['chef'] = (famille['noifam'] == famille.ident*100+famille['noi'])
 
     famille.reset_index(inplace=True)
     print famille['idec'].isnull().describe()
