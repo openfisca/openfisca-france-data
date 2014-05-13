@@ -139,22 +139,22 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
 
 def check_structure(df):
 
-    dup = df.noindiv.duplicated().sum()
-    if dup > 1:
-        print "there are %s duplicated individuals" % dup
+    duplicates = df.noindiv.duplicated().sum()
+    if duplicates > 1:
+        log.warning("there are {} duplicated individuals".format(duplicates))
         df.drop_duplicates("noindiv", inplace = True)
 
     for entity in ["men", "fam", "foy"]:
-        print entity
-        qui = 'qui' + entity
-        id = 'id' + entity
+        log.info("Checking entity {}".format())
+        role = 'qui' + entity
+        entity_id = 'id' + entity
 
-        if df[qui].isnull().any():
+        if df[role].isnull().any():
             print "there are NaN in qui%s" % entity
 
         max_entity = df[qui].max().astype("int")
         for position in range(0, max_entity + 1):
-            test = df[[qui, id]].groupby(by = id).agg(lambda x: (x == position).sum())
-            errors = (test[qui] > 1).sum()
+            test = df[[role, entity_id]].groupby(by = entity_id).agg(lambda x: (x == position).sum())
+            errors = (test[role] > 1).sum()
             if errors > 0:
                 print "There are %s duplicated qui%s = %s" % (errors, entity, position)

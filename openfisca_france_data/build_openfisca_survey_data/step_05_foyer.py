@@ -47,7 +47,7 @@ import re
 
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
-from openfisca_france_data.build_openfisca_survey_data.utilitaries import print_id
+from openfisca_france_data.build_openfisca_survey_data.utils import print_id
 
 
 def sif(year = 2006):

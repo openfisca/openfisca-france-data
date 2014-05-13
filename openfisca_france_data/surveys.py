@@ -56,7 +56,6 @@ class Survey(object):
     tables = None
 
     def __init__(self, name = None, label = None, hdf5_file_path = None, **kwargs):
-
         assert name is not None, "A survey should have a name"
         self.name = name
         self.tables = dict()  # TODO: rework to better organize this dict
@@ -266,7 +265,6 @@ class SurveyCollection(object):
     surveys = dict()
 
     def __init__(self, name = None, label = None):
-        super(SurveyCollection, self).__init__()
         if label is not None:
             self.label = label
         if name is not None:

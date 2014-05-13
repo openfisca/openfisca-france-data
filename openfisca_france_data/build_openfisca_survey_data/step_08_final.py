@@ -34,7 +34,7 @@ import os
 
 
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utilitaries import check_structure, control, print_id
+from openfisca_france_data.build_openfisca_survey_data.utils import check_structure, control, print_id
 
 
 

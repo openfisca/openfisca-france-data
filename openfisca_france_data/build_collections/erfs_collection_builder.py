@@ -35,6 +35,8 @@ def build_empty_erfs_survey_collection(years= None):
         log.error("A list of years to process is needed")
 
     erfs_survey_collection = SurveyCollection(name = "erfs")
+
+
     erfs_survey_collection.set_config_files_directory()
     input_data_directory = erfs_survey_collection.config.get('data', 'input_directory')
     output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')

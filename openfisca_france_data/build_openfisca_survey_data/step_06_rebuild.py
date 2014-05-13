@@ -33,7 +33,7 @@ from numpy import sum, NaN, nan, where
 
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
-from openfisca_france_data.build_openfisca_survey_data.utilitaries import print_id, control
+from openfisca_france_data.build_openfisca_survey_data.utils import print_id, control
 
 ## On part de la table individu de l'ERFS
 ## on renomme les variables
