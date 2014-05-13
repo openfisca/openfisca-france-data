@@ -17,7 +17,7 @@
 #
 # OpenFisca is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
@@ -30,6 +30,7 @@ import logging
 
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import save_temp
+from openfisca_france_data.build_openfisca_survey_data.utilitaries import assert_dtype
 
 log = logging.getLogger(__name__)
 
@@ -42,11 +43,11 @@ def create_indivim(year = 2006):
     '''
     '''
     # load
-    erfs_survey_collection = SurveyCollection.load(collection='erfs')
+    erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
-    erfmen = survey.get_values(table="erf_menage")
-    eecmen = survey.get_values(table="eec_menage")
+    erfmen = survey.get_values(table = "erf_menage")
+    eecmen = survey.get_values(table = "eec_menage")
     log.info(erfmen.info())
 
     erfind = survey.get_values(table = "erf_indivi")
@@ -57,18 +58,15 @@ def create_indivim(year = 2006):
 
     # travail sur la cohérence entre les bases
     noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
-    print 'describe noappar_m'
-    print noappar_m.describe()
 
     noappar_i = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
     noappar_i = noappar_i.drop_duplicates(cols = 'ident', take_last = True)
     #TODO: vérifier qu'il n'y a théoriquement pas de doublon
 
-    dif = set(noappar_i.ident).symmetric_difference(noappar_m.ident)
-    int = set(noappar_i.ident) & set(noappar_m.ident)
-    print "dif, int --------------------------------"
-    print dif, int
-    del noappar_i, noappar_m, dif, int
+    difference = set(noappar_i.ident).symmetric_difference(noappar_m.ident)
+    intersection = set(noappar_i.ident) & set(noappar_m.ident)
+    log.info((difference, intersection))
+    del noappar_i, noappar_m, difference, intersection
     gc.collect()
 
     #fusion enquete emploi et source fiscale
@@ -78,8 +76,28 @@ def create_indivim(year = 2006):
     # optimisation des types? Controle de l'existence en passant
     #TODO: minimal dtype
     # TODO: this should be done somewhere else
-    var_list = (['acteu', 'stc', 'contra', 'titc', 'forter', 'mrec', 'rstg', 'retrai', 'lien', 'noicon',
-                 'noiper', 'noimer', 'naia', 'cohab', 'agepr', 'statut', 'txtppb', 'encadr', 'prosa'])
+    var_list = ([
+        'acteu',
+        'agepr',
+        'cohab',
+        'contra',
+        'encadr',
+        'forter',
+        'lien',
+        'mrec',
+        'naia',
+        'noicon',
+        'noimer',
+        'noiper',
+        'prosa',
+        'retrai',
+        'rstg',
+        'statut',
+        'stc',
+        'titc',
+        'txtppb',
+        ])
+
     for var in var_list:
         try:
             indivim[var] = indivim[var].astype("float32")
@@ -103,14 +121,16 @@ def create_indivim(year = 2006):
     indivim['actrec'][filter7] = 7
     indivim['actrec'][indivim['acteu'] == 3] = 8
     indivim['actrec'][indivim['acteu'].isnull()] = 9
-    print indivim['actrec'].value_counts()
+
+    assert_dtype(indivim['actrec'], "int")
+
     # tu99
     if year == 2009:
         erfind['tu99'] = None  # TODO: why ?
 
     ## locataire
     menagem["locataire"] = menagem.so.isin([3, 4, 5])
-    menagem["locataire"] = menagem["locataire"].astype("int32")
+    menagem["locataire"] = menagem["locataire"].astype("bool")
 
     transfert = indivim.ix[indivim['lpr'] == 1, ['ident', 'ddipl']]
     menagem = menagem.merge(transfert)
@@ -145,9 +165,30 @@ def create_enfants_a_naitre(year = 2006):
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     ### Enfant à naître (NN pour nouveaux nés)
-    individual_vars = ['noi', 'noicon', 'noindiv', 'noiper', 'noimer', 'ident', 'naia', 'naim', 'lien',
-               'acteu','stc','contra','titc','mrec','forter','rstg','retrai','lpr','cohab','sexe',
-               'agepr','rga']
+    individual_vars = [
+        'acteu',
+        'agepr',
+        'cohab',
+        'contra',
+        'forter',
+        'ident',
+        'lien',
+        'lpr',
+        'mrec',
+        'naia',
+        'naim',
+        'noi',
+        'noicon',
+        'noimer',
+        'noindiv',
+        'noiper',
+        'retrai',
+        'rga',
+        'rstg',
+        'sexe',
+        'stc',
+        'titc',
+        ]
 
     eeccmp1 = survey.get_values(table = "eec_cmp_1", variables = individual_vars)
     eeccmp2 = survey.get_values(table = "eec_cmp_2", variables = individual_vars)
@@ -165,7 +206,6 @@ def create_enfants_a_naitre(year = 2006):
     del eeccmp1, eeccmp2, eeccmp3, individual_vars
 
     # création de variables
-    print enfants_a_naitre.describe()
     enfants_a_naitre['declar1'] = ''
     enfants_a_naitre['noidec'] = 0
     enfants_a_naitre['ztsai'] = 0
@@ -177,12 +217,16 @@ def create_enfants_a_naitre(year = 2006):
     enfants_a_naitre['quelfic'] = 'ENF_NN'
     enfants_a_naitre['persfip'] = ""
 
+    # TODO: deal with agepf
+    for series_name in ['actrec', 'noidec', 'ztsai']:
+        assert_dtype(enfants_a_naitre[series_name], "int")
+
     #selection
     enfants_a_naitre = enfants_a_naitre[
         (
-            (enfants_a_naitre['naia'] == enfants_a_naitre['year']) & (enfants_a_naitre['naim'] >= 10)
+            (enfants_a_naitre.naia == enfants_a_naitre.year.) & (enfants_a_naitre.naim >= 10)
             ) | (
-                    (enfants_a_naitre['naia'] == enfants_a_naitre['year'] + 1) & (enfants_a_naitre['naim'] <= 5)
+                    (enfants_a_naitre.naia == enfants_a_naitre.year + 1) & (enfants_a_naitre.naim. <= 5)
                     )
         ].copy()
 
@@ -192,6 +236,8 @@ def create_enfants_a_naitre(year = 2006):
 
 if __name__ == '__main__':
     print('Entering 01_pre_proc')
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     import time
     deb = time.clock()
     year = 2006

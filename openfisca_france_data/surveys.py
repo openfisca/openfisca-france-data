@@ -34,9 +34,6 @@ from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
 
-from openfisca_france.utils import check_consistency
-#    Uses rpy2.
-#    On MS Windows, The environment variable R_HOME and R_USER should be set
 import pandas.rpy.common as com
 import rpy2.rpy_classic as rpy
 
@@ -50,13 +47,14 @@ log = logging.getLogger(__name__)
 
 
 class Survey(object):
+    """
+    An object to describe survey data
+    """
     hdf5_file_path = None
     label = None
     name = None
     tables = None
-    """
-    An object to describe survey data
-    """
+
     def __init__(self, name = None, label = None, hdf5_file_path = None, **kwargs):
 
         assert name is not None, "A survey should have a name"
@@ -83,10 +81,9 @@ class Survey(object):
 
     def dump(self, file_path):
         with open(file_path, 'w') as _file:
-            json.dump(self.to_json(), _file, ensure_ascii=False, indent=2)
+            json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_hdf_from_Rdata(self, table, verbose = False):
-
+    def fill_hdf_from_Rdata(self, table):
         assert table in self.tables, "Table {} is not a filed table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
         Rdata_file = self.tables[table]["Rdata_file"]
@@ -96,7 +93,7 @@ class Survey(object):
             variables = None
 
         if not os.path.isfile(Rdata_file):
-             raise Exception("file_path do  not exists")
+            raise Exception("file_path do  not exists")
 
         rpy.r.load(Rdata_file)
         stored_dataframe = com.load_data(Rdata_table)
@@ -110,15 +107,76 @@ class Survey(object):
         )
 
         if variables is not None:
-
             log.info('variables asked by the user: {}'.format(variables))
             variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
             log.info('variables stored: {}'.format(variables_stored))
 
             stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
         else:
-             stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
+            stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
 
+        gc.collect()
+
+    def fill_hdf_from_sas(self, table):
+        from sas7bdat import read_sas
+        assert table in self.tables, "Table {} is not a filed table".format(table)
+        sas_table = self.tables[table]["sas_table"]
+        sas_file = self.tables[table]["sas_file"]
+        try:
+            variables = self.tables[table]['variables']
+        except:
+            variables = None
+        if not os.path.isfile(sas_file):
+            raise Exception("file_path do  not exists")
+
+        log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
+            sas_table,
+            sas_file,
+            self.hdf5_file_path,
+            table,
+            )
+        )
+        stored_dataframe = read_sas(sas_file)
+        store_path = table
+        if variables is not None:
+            log.info('variables asked by the user: {}'.format(variables))
+            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
+            log.info('variables stored: {}'.format(variables_stored))
+
+            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+        else:
+            stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+        gc.collect()
+
+    def fill_hdf_from_stata(self, table):
+        from pandas import read_stata
+        assert table in self.tables, "Table {} is not a filed table".format(table)
+        stata_table = self.tables[table]["stata_table"]
+        stata_file = self.tables[table]["stata_file"]
+        try:
+            variables = self.tables[table]['variables']
+        except:
+            variables = None
+        if not os.path.isfile(stata_file):
+            raise Exception("file_path do  not exists")
+
+        log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
+            stata_table,
+            stata_file,
+            self.hdf5_file_path,
+            table,
+            )
+        )
+        stored_dataframe = read_stata(stata_file)
+        store_path = table
+        if variables is not None:
+            log.info('variables asked by the user: {}'.format(variables))
+            variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
+            log.info('variables stored: {}'.format(variables_stored))
+
+            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+        else:
+            stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         gc.collect()
 
     def get_value(self, variable, table=None):
@@ -205,6 +263,7 @@ class SurveyCollection(object):
     """
     label = None
     name = None
+    surveys = dict()
 
     def __init__(self, name = None, label = None):
         super(SurveyCollection, self).__init__()
@@ -212,9 +271,8 @@ class SurveyCollection(object):
             self.label = label
         if name is not None:
             self.name = name
-        self.surveys = dict()
 
-    def dump(self, file_path = None, collection = None, config_files_directory = None, append = False):
+    def dump(self, file_path = None, collection = None, config_files_directory = None):
         if file_path is None:
             if collection is None:
                 file_path = self.config.get("collections", "default_collection")
@@ -226,7 +284,7 @@ class SurveyCollection(object):
 
     def fill_hdf_from_Rdata(self, surveys_name = None):
         if surveys_name is None:
-            surveys = self.surveys.values()
+            surveys_name = self.surveys.values()
         for survey_name in surveys_name:
             survey = self.surveys[survey_name]
             for table in survey.tables:
@@ -271,8 +329,7 @@ class SurveyCollection(object):
             config_files_directory = default_config_files_directory
 
         parser = SafeConfigParser()
-
         config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
         config_ini = os.path.join(config_files_directory, 'config.ini')
-        found = parser.read([config_ini, config_local_ini,])
+        parser.read([config_ini, config_local_ini])
         self.config = parser

@@ -8,14 +8,16 @@
 # # # OpenFisca
 
 from numpy import dtype
-from pandas import concat, DataFrame, Series
+from pandas import Series
+
 
 def assert_dtype(series, dtype_string):
     assert isinstance(series, Series), "First argument is not of Series type"
     assert series.dtype == dtype(dtype_string), "Series {} dtype is {} instead of {}".format(
         series.name, series.dtype, dtype_string)
 
-def assert_variable_inrange(name, wrange, table):
+
+def assert_variable_in_range(name, wrange, table):
     '''
     Assert if transformed variables are in correct range
     wrange is a list like [minimum, maximum]
@@ -24,11 +26,14 @@ def assert_variable_inrange(name, wrange, table):
     range_1 = wrange[0]
     range_2 = wrange[1]
     for v in temp[name]:
-        assert v in range(range_1, range_2), Exception('some non-null values for %s not in wanted %s: %s' %(name, str(wrange), str(v)))
+        assert v in range(range_1, range_2), 'some non-null values for %s not in wanted %s: %s' % (
+            name, str(wrange), str(v))
 
-def count_NA(name,table):
+
+def count_NA(name, table):
     '''Counts the number of Na's in a specified axis'''
-    print "count of NA's for %s is %s" %(name, str(sum(table[name].isnull())))
+    print "count of NA's for %s is %s" % (name, str(sum(table[name].isnull())))
+
 
 def print_id(df):
     try:
@@ -70,7 +75,7 @@ def print_id(df):
         print "No idfam or quifam"
 
 
-def control(dataframe, verbose=False, verbose_columns=None, debug=False, verbose_length=5, ignore=None):
+def control(dataframe, verbose = False, verbose_columns = None, debug = False, verbose_length = 5, ignore = None):
     """
     Function to help debugging the data crunchin' files.
 
@@ -90,7 +95,7 @@ def control(dataframe, verbose=False, verbose_columns=None, debug=False, verbose
         try:
             assert var in dataframe.columns
         except:
-            raise Exception('the dataframe does not contain the required column %s' %(var))
+            raise Exception('the dataframe does not contain the required column %s' % var)
 
     print 'longueur de la data frame =', len(dataframe.index)
     if debug:
@@ -110,7 +115,8 @@ def control(dataframe, verbose=False, verbose_columns=None, debug=False, verbose
         if (dataframe[col].isnull().all()):
                 empty_columns.append(col)
 
-    if empty_columns != []: print 'liste des colonnes entièrement vides', empty_columns
+    if empty_columns != []:
+        print 'liste des colonnes entièrement vides', empty_columns
 
     if verbose is True:
         print '------ informations détaillées -------'
@@ -121,13 +127,12 @@ def control(dataframe, verbose=False, verbose_columns=None, debug=False, verbose
             if dataframe.duplicated().any():
                 print dataframe[dataframe.duplicated()].head(verbose_length).to_string()
 
-
-        else :
+        else:
             if dataframe.duplicated(verbose_columns).any():
                 print 'nb lignes lignes dupliquées_____', len(dataframe[dataframe.duplicated(verbose_columns)])
                 print dataframe.loc[:, verbose_columns].describe()
             for col in verbose_columns:
-                print 'nombre de NaN dans %s : ' %(col), dataframe[col].isnull().sum()
+                print 'nombre de NaN dans %s : ' % (col), dataframe[col].isnull().sum()
             print 'colonnes contrôlées ------>', verbose_columns
     print 'vérifications terminées'
 
@@ -136,23 +141,20 @@ def check_structure(df):
 
     dup = df.noindiv.duplicated().sum()
     if dup > 1:
-        print "there are %s duplicated individuals" %dup
-        df.drop_duplicates("noindiv", inplace=True)
+        print "there are %s duplicated individuals" % dup
+        df.drop_duplicates("noindiv", inplace = True)
 
     for entity in ["men", "fam", "foy"]:
         print entity
         qui = 'qui' + entity
-        id  = 'id' + entity
+        id = 'id' + entity
 
         if df[qui].isnull().any():
-            print "there are NaN in qui%s" %entity
+            print "there are NaN in qui%s" % entity
 
         max_entity = df[qui].max().astype("int")
-        for position in range(0, max_entity+1):
-            test = df[[ qui, id]].groupby(by=id).agg(lambda x: (x==position).sum())
+        for position in range(0, max_entity + 1):
+            test = df[[qui, id]].groupby(by = id).agg(lambda x: (x == position).sum())
             errors = (test[qui] > 1).sum()
             if errors > 0:
-                print "There are %s duplicated qui%s = %s" %(errors,entity,position)
-
-
-
+                print "There are %s duplicated qui%s = %s" % (errors, entity, position)
