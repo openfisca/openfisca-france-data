@@ -26,19 +26,21 @@
 
 from __future__ import division
 
+import logging
 
-import gc
+import numpy as np
 from numpy import where, NaN, random, unique
 from pandas import read_csv, HDFStore
 import os
 
-
+from openfisca_france_data.surveys import Survey, SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import check_structure, control, print_id
 
+log = logging.getLogger(__name__)
 
 
-def final(year=2006, filename="test", check=True):
+def final(year = 2006, filename = "test", check = True):
 
 ##***********************************************************************/
     print('08_final: derniers réglages')
@@ -80,13 +82,12 @@ def final(year=2006, filename="test", check=True):
 # saveTmp(final, file= "final.Rdata")
 #
     print '    gestion des FIP de final'
-    final_fip = final.loc[final.quelfic=="FIP", ["choi", "sali", "alr", "rsti","age"]]
+    final_fip = final[["choi", "sali", "alr", "rsti", "age"]][final.quelfic == "FIP"].copy()
 
     print set(["choi", "sali", "alr", "rsti"]).difference(set(final_fip.columns))
-    for var in  ["choi", "sali", "alr", "rsti"]:
+    for var in ["choi", "sali", "alr", "rsti"]:
         final_fip[var].fillna(0, inplace=True)
-        assert final_fip[var].notnull().all(), "some NaN are remaining in column %s" %(var)
-
+        assert final_fip[var].notnull().all(), "Some NaN are remaining in column {}".format(var)
 
     final_fip["activite"] = 2 # TODO comment choisr la valeur par défaut ?
     final_fip.activite = where(final_fip.choi > 0, 1, final_fip.activite)
@@ -94,35 +95,33 @@ def final(year=2006, filename="test", check=True):
     final_fip.activite = where(final_fip.age > 21, 2, final_fip.activite)  # ne peuvent être rattach?s que les ?tudiants
 
     final.update(final_fip)
-    save_temp(final, name="final", year=year)
-    print '    final has been updated with fip'
+    save_temp(final, name = "final", year = year)
+    log.info("    final has been updated with fip")
 
-# loadTmp("final.Rdata")
-# load(menm)
-# menagem <- rename(menagem, c("ident"="idmen","loym"="loyer"))
-# menagem$cstotpragr <- floor(menagem$cstotpr/10)
-#
-    from math import floor
+    menagem = load_temp(name = "menagem", year = year)
+    menagem.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
+    menagem["cstotpragr"] = np.floor(menagem["cstotpr"] / 10)
 
-    menagem = load_temp(name="menagem", year=year)
-    menagem.rename(columns=dict(ident="idmen",loym="loyer"), inplace=True)
-    menagem["cstotpragr"] = menagem["cstotpr"].apply(lambda x: floor(x/10))
-#
-# # 2008 tau99 removed TODO: check ! and check incidence
-# if (year == "2008") {
-#  vars <- c("loyer", "tu99", "pol99", "reg","idmen", "so", "wprm", "typmen15", "nbinde","ddipl","cstotpragr","champm","zthabm")
-# } else {
-#   vars <- c("loyer", "tu99", "pol99", "tau99", "reg","idmen", "so", "wprm", "typmen15", "nbinde","ddipl","cstotpragr","champm","zthabm")
-# }
-#
-# famille_vars <- c("m_afeamam", "m_agedm","m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm')
-
+    # 2008 tau99 removed TODO: check ! and check incidence
+    vars = [
+        "champm",
+        "cstotpragr",
+        "ddipl",
+        "idmen",
+        "loyer",
+        "nbinde",
+        "pol99",
+        "reg",
+        "so",
+        "tau99",
+        "tu99",
+        "typmen15",
+        "wprm",
+        "zthabm",
+        ]
     if year == 2008:
-        vars = ["loyer", "tu99", "pol99", "reg","idmen", "so", "wprm", "typmen15",
-                 "nbinde","ddipl","cstotpragr","champm","zthabm"]
-    else:
-        vars = ["loyer", "tu99", "pol99", "tau99", "reg","idmen", "so", "wprm",
-                "typmen15", "nbinde","ddipl","cstotpragr","champm","zthabm"]
+        vars.remove("tau99")
+
     famille_vars = ["m_afeamam", "m_agedm","m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
 
 
@@ -165,11 +164,7 @@ def final(year=2006, filename="test", check=True):
 
 
 
-# # TODO: 2008tau99 is not present should be provided by 02_loy.... is it really needed
-# all_vars <- union(vars,famille_vars)
-# available_vars <- all_vars[union(vars,famille_vars) %in% names(menagem)]
-# loyersMenages <- menagem[,available_vars]
-#
+    # TODO: 2008tau99 is not present should be provided by 02_loy.... is it really needed
     all_vars = vars + famille_vars
 
     print all_vars
@@ -217,8 +212,8 @@ def final(year=2006, filename="test", check=True):
 
     print loyersMenages.info()
     loyersMenages.ddipl = where(loyersMenages.ddipl.isnull(), 7, loyersMenages.ddipl)
-    loyersMenages.ddipl = where(loyersMenages.ddipl>1,
-                                loyersMenages.ddipl-1,
+    loyersMenages.ddipl = where(loyersMenages.ddipl > 1,
+                                loyersMenages.ddipl - 1,
                                 loyersMenages.ddipl)
     loyersMenages.ddipl.astype("int32")
 #
@@ -234,30 +229,24 @@ def final(year=2006, filename="test", check=True):
 # })
 # table(final$act5,useNA="ifany")
 #
-
-
     final['act5'] = NaN
+    final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
+    final.act5 = where(final.actrec.isin([2, 3]), 1, final.act5)  # salariés
 
-    final.act5 = where(final.actrec==1, 2, final.act5) # indépendants
-    final.act5 = where(final.actrec.isin([2,3]), 1, final.act5)  # salariés
+    final.act5 = where(final.actrec == 4, 3, final.act5)  # chômeur
+    final.act5 = where(final.actrec == 7, 4, final.act5)  # retraité
+    final.act5 = where(final.actrec == 8, 5, final.act5)  # autres inactifs
 
-    final.act5 = where(final.actrec==4, 3, final.act5) # chômeur
-    final.act5 = where(final.actrec==7, 4, final.act5) # retraité
-    final.act5 = where(final.actrec==8, 5, final.act5) # autres inactifs
+    final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
+    final.act5 = where(final.actrec.isin([2, 3]), 1, final.act5)  # salariés
 
-    final.act5 = where(final.actrec==1, 2, final.act5) # indépendants
-    final.act5 = where(final.actrec.isin([2,3]), 1, final.act5)  # salariés
+    final.act5 = where(final.actrec == 4, 3, final.act5)  # chômeur
+    final.act5 = where(final.actrec == 7, 4, final.act5)  # retraité
+    final.act5 = where(final.actrec == 8, 5, final.act5)  # autres inactifs
 
-    final.act5 = where(final.actrec==4, 3, final.act5) # chômeur
-    final.act5 = where(final.actrec==7, 4, final.act5) # retraité
-    final.act5 = where(final.actrec==8, 5, final.act5) # autres inactifs
-
-
-
-    print final.act5.value_counts() # TODO : 29 retraités ?
+    print final.act5.value_counts()  # TODO : 29 retraités ?
 
 #     assert final.act5.notnull().all(), 'there are NaN inside final.act5'
-
 # final$wprm <- NULL # with the intention to extract wprm from menage to deal with FIPs
 # final$tax_hab <- final$zthabm # rename zthabm to tax_hab
 # final$zthabm <- NULL
@@ -266,68 +255,29 @@ def final(year=2006, filename="test", check=True):
     print '    création de final2'
     del final["wprm"]
     gc.collect()
-    final.rename(columns=dict(zthabm="tax_hab"), inplace=True) # rename zthabm to tax_hab
-    final2 = final.merge(loyersMenages, on="idmen", how="left") # TODO: Check
+    final.rename(columns = dict(zthabm = "tax_hab"), inplace = True)  # rename zthabm to tax_hab
+    final2 = final.merge(loyersMenages, on = "idmen", how = "left")  # TODO: Check
     print loyersMenages.head()
     gc.collect()
     print_id(final2)
-
-#
 # # TODO: merging with patrimoine
-# rm(menagem,final)
-#
-# # table(final2$activite,useNA="ifany")
-# # table(final2$alt,useNA="ifany")
-#
-# saveTmp(final2, file= "final2.Rdata")
-#
-# loadTmp("final2.Rdata")
-# names(final2)
-# print_id(final2)
-#
-#
-# # set zone_apl using zone_apl_imputation_data
-# apl_imp <- read.csv("./zone_apl/zone_apl_imputation_data.csv")
-#
-# if (year == "2008") {
-#   zone_apl <- final2[, c("tu99", "pol99", "reg")]
-# } else {
-#   zone_apl <- final2[, c("tu99", "pol99", "tau99", "reg")]
-# }
-#
-# for (i in 1:length(apl_imp[,"TU99"])) {
-#   tu <- apl_imp[i,"TU99"]
-#   pol <- apl_imp[i,"POL99"]
-#   tau <- apl_imp[i,"TAU99"]
-#   reg <- apl_imp[i,"REG"]
-#   #  print(c(tu,pol,tau,reg))
-#
-#   if (year == "2008") {
-#     indices <- (final2["tu99"] == tu & final2["pol99"] == pol  & final2["reg"] == reg)
-#     selection <-  (apl_imp["TU99"] == tu & apl_imp["POL99"] == pol & apl_imp["REG"] == reg)
-#   } else {
-#     indices <- (final2["tu99"] == tu & final2["pol99"] == pol & final2["tau99"] == tau & final2["reg"] == reg)
-#     selection <-  (apl_imp["TU99"] == tu & apl_imp["POL99"] == pol & apl_imp["TAU99"] == tau & apl_imp["REG"] == reg)
-#   }
-#   z <- runif(sum(indices))
-#   probs <- apl_imp[selection , c("proba_zone1", "proba_zone2")]
-#   #  print(probs)
-#   final2[indices,"zone_apl"] <- 1 + (z>probs[,'proba_zone1']) + (z>(probs[,'proba_zone1']+probs[,'proba_zone2']))
-#   rm(indices, probs)
-# }
-#
-
     print '    traitement des zones apl'
     import pkg_resources
     openfisca_france_location = pkg_resources.get_distribution('openfisca-france').location
-    zone_apl_imputation_data_file_path = os.path.join(openfisca_france_location, 'openfisca_france', 'data', 'zone_apl', 'zone_apl_imputation_data.csv')
+    zone_apl_imputation_data_file_path = os.path.join(
+        openfisca_france_location,
+        'openfisca_france',
+        'data',
+        'zone_apl',
+        'zone_apl_imputation_data.csv',
+        )
     apl_imp = read_csv(zone_apl_imputation_data_file_path)
 
     print apl_imp.head(10)
     if year == 2008:
-        zone_apl = final2.xs(["tu99", "pol99", "reg"], axis=1)
+        zone_apl = final2.xs(["tu99", "pol99", "reg"], axis = 1)
     else:
-        zone_apl = final2.xs(["tu99", "pol99", "tau99", "reg"], axis=1)
+        zone_apl = final2.xs(["tu99", "pol99", "tau99", "reg"], axis = 1)
 
     for i in range(len(apl_imp["TU99"])):
         tu = apl_imp["TU99"][i]
@@ -340,26 +290,28 @@ def final(year=2006, filename="test", check=True):
         selection = (apl_imp["TU99"] == tu) & (apl_imp["POL99"] == pol) & (apl_imp["REG"] == reg)
     else:
         indices = (final2["tu99"] == tu) & (final2["pol99"] == pol) & (final2["tau99"] == tau) & (final2["reg"] == reg)
-        selection = (apl_imp["TU99"] == tu) & (apl_imp["POL99"] == pol) & (apl_imp["TAU99"] == tau) & (apl_imp["REG"] == reg)
+        selection = (
+            (apl_imp["TU99"] == tu) &
+            (apl_imp["POL99"] == pol) &
+            (apl_imp["TAU99"] == tau) &
+            (apl_imp["REG"] == reg)
+            )
 
     z = random.uniform(size=indices.sum())
     print len(z)
     print len(indices)
-
-    print len(indices)/len(z)
-    probs = apl_imp.loc[selection , ["proba_zone1", "proba_zone2"]]
+    print len(indices) / len(z)
+    probs = apl_imp[["proba_zone1", "proba_zone2"]][selection].copy()
     print probs
     print probs['proba_zone1'].values
-
-    proba_zone_1 =  probs['proba_zone1'].values[0]
-    proba_zone_2 =  probs['proba_zone2'].values[0]
+    proba_zone_1 = probs['proba_zone1'].values[0]
+    proba_zone_2 = probs['proba_zone2'].values[0]
 
     final2["zone_apl"] = 3
-    final2["zone_apl"][indices] = ( 1 + (z>proba_zone_1) +
-                                       (z>(proba_zone_1 + proba_zone_2)))
+    final2["zone_apl"][indices] = (
+        1 + (z > proba_zone_1) + (z > (proba_zone_1 + proba_zone_2))
+        )
     del indices, probs
-
-#     control(final2, verbose=True, debug=True, verbose_length=15)
 
     print '    performing cleaning on final2'
     print 'nombre de sali nuls', len(final2[final2['sali'].isnull()])
@@ -395,17 +347,15 @@ def final(year=2006, filename="test", check=True):
 #
 # saveTmp(final2, file= "final2.Rdata")
 
-
-
     control(final2, debug = True)
     print final2.age.isnull().sum()
     final2 = final2.drop_duplicates(cols='noindiv')
 
     print '    Filter to manage the new 3-tables structures:'
     # On récupère les foyer, famille, ménages qui ont un chef :
-    liste_men = unique(final2.loc[final2['quimen']==0,'idmen'].values)
-    liste_fam = unique(final2.loc[final2['quifam']==0,'idfam'].values)
-    liste_foy = unique(final2.loc[final2['quifoy']==0,'idfoy'].values)
+    liste_men = unique(final2.loc[final2['quimen'] == 0,'idmen'].values)
+    liste_fam = unique(final2.loc[final2['quifam'] == 0,'idfam'].values)
+    liste_foy = unique(final2.loc[final2['quifoy'] == 0,'idfoy'].values)
 
     #On ne conserve dans final2 que ces foyers là :
     print 'final2 avant le filtrage' ,len(final2)
@@ -417,19 +367,33 @@ def final(year=2006, filename="test", check=True):
     if check:
         check_structure(final2)
 
-    home = os.path.expanduser("~")
-    test_filename = os.path.join(home, filename + ".h5")
-    if os.path.exists(test_filename):
-        import warnings
-        import datetime
-        time_stamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
-        renamed_file = os.path.join(DATA_SOURCES_DIR, filename + "_" + time_stamp + ".h5")
-        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
-        test_filename = renamed_file
+#    home = os.path.expanduser("~")
+#    test_filename = os.path.join(home, filename + ".h5")
+#    if os.path.exists(test_filename):
+#        import warnings
+#        import datetime
+#        time_stamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
+#        renamed_file = os.path.join(DATA_SOURCES_DIR, filename + "_" + time_stamp + ".h5")
+#        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
+#        test_filename = renamed_file
+
+
+    erfs_survey_collection = SurveyCollection(name = "openfisca")
+    erfs_survey_collection.set_config_files_directory()
+    output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
+    survey_name = "openfisca_{}".format(year)
+    hdf5_file_path = os.path.join(
+            os.path.dirname(output_data_directory),
+            "{}{}".format(survey_name, ".h5")
+            )
+    survey = Survey(
+            name = survey_name,
+            hdf5_file_path = hdf5_file_path
+            )
 
 
     store = HDFStore(test_filename)
-    store['survey_'+ str(year)] = final2
+    store['openfisca_input_'+ str(year)] = final2
 
 
 if __name__ == '__main__':

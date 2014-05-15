@@ -203,7 +203,7 @@ def create_fip(year = 2006):
     gc.collect()
 
 # # We keep the fip in the menage of their parents because it is used in to
-# # build the famille. We should build an individual ident for the fip that are
+# # build the famille. We should build an individual ident (ménage) for the fip that are
 # # older than 18 since they are not in their parents' menage according to the eec
 
 # individec1 <- subset(indivi, (declar1 %in% fip$declar) & (persfip=="vous"))
@@ -221,7 +221,7 @@ def create_fip(year = 2006):
     individec1 = indivi[(indivi.declar1.isin(fip.declaration.values)) & (indivi.persfip == "vous")]
     individec1 = individec1[["declar1", "noidec", "ident", "rga", "ztsai", "ztsao"]].copy()
     individec1 = individec1.rename(columns = {'declar1': 'declaration'})
-    fip1 = fip.merge(individec1, on='declaration')
+    fip1 = fip.merge(individec1, on = 'declaration')
     log.info(u"    2.3 : fip1 created")
 
 # # TODO: On ne s'occupe pas des declar2 pour l'instant
@@ -232,8 +232,7 @@ def create_fip(year = 2006):
 
     individec2 = indivi[(indivi.declar2.isin(fip.declaration.values)) & (indivi['persfip'] == "vous")]
     individec2 = individec2[["declar2", "noidec", "ident", "rga", "ztsai", "ztsao"]].copy()
-    individec2.rename(columns = {'declar2': 'declaration'}, inplace=True)
-    print individec2.head()
+    individec2.rename(columns = {'declar2': 'declaration'}, inplace = True)
     fip2 = fip.merge(individec2)
     log.info(u"    2.4 : fip2 created")
 
@@ -242,7 +241,6 @@ def create_fip(year = 2006):
 
     fip = concat([fip1, fip2])
 
-    print fip.columns
     fip['persfip'] = 'pac'
     fip['year'] = year
     fip['year'] = fip['year'].astype('float')  # BUG; pas de colonne année dans la DF

@@ -25,10 +25,9 @@
 
 
 import logging
-from numpy import where, array, NaN
+from numpy import where
 
-from openfisca_france_data.surveys import SurveyCollection
-from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp, show_temp
+from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import control, print_id
 
 log = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ log = logging.getLogger(__name__)
 
 def invalide(year = 2006):
 
-    log.info("Entering 07_invalides: construction de la variable invalide")
+    log.info(u"Entering 07_invalides: construction de la variable invalide")
 # # # Invalides
 # # #inv = caseP (vous), caseF (conj) ou case G, caseI, ou caseR (pac)
 
@@ -51,35 +50,47 @@ def invalide(year = 2006):
 # # invalides[(invalides$caseP==1) & (invalides$quifoy=="vous"),"inv"] <- TRUE
 # #
 
-    log.info("Etape 1 : création de la df invalides")
-    log.info("    1.1 : déclarants invalides")
+    log.info(u"Etape 1 : création de la df invalides")
+    log.info(u"    1.1 : déclarants invalides")
     final = load_temp(name = "final", year = year)
-    invalides = final.xs([
+    invalides_vars = [
         "caseF",
         "caseP",
         "idfoy",
         "idmen",
-        "maahe",
         "noindiv",
         "quifoy",
-        "rc1rev"
-        ], axis=1)
+        ]
 
-    log.info("Inspecting rc1rev")
-    log.info(invalides['rc1rev'].value_counts())
+    aah_eec_variables = ["rc1rev", "maahe"]
+    aah_eec = False
+
+    if set(aah_eec_variables) < set(final.columns):
+        aah_eec = True
+        invalides_vars += aah_eec
+
+    assert set(invalides_vars) < set(final.columns), \
+        "Variables {} are missing".format(set(invalides_vars).difference(set(final.columns)))
+
+    invalides = final.xs(invalides_vars, axis = 1)
 
     for var in ["caseP", "caseF"]:
         assert invalides[var].notnull().all(), 'NaN values in {}'.format(var)
 
     # Les déclarants invalides
     invalides['inv'] = False
-    invalides['inv'][(invalides['caseP']==1) & (invalides['quifoy']==0)] = True
-    log.info("Il y a {} invalides déclarants".format(invalides["inv"].sum())
+    invalides['inv'][(invalides['caseP'] == 1) & (invalides['quifoy'] == 0)] = True
+    log.info(u"Il y a {} invalides déclarants".format(invalides["inv"].sum()))
 
-    #Les personnes qui touchent l'aah dans l'enquête emploi
-    invalides['inv'][(invalides['maahe']>0)] = True
-    invalides['inv'][(invalides['rc1rev']==4)] = True #TODO: vérifier le format.
-    log.info("Il y a {} invalides qui touchent des alloc").format(invalides["inv"].sum())
+    # Les personnes qui touchent l'aah dans l'enquête emploi
+    if aah_eec:
+        log.info(u"Inspecting rc1rev")
+        log.info(invalides['rc1rev'].value_counts())
+
+
+        invalides['inv'][invalides.maahe > 0] = True
+        invalides['inv'][invalides.rc1rev == 4] = True  # TODO: vérifier le format.
+        log.info(u"Il y a {} invalides qui touchent des alloc").format(invalides["inv"].sum())
 
     print_id(invalides)
 
@@ -109,12 +120,12 @@ def invalide(year = 2006):
 
     # On récupère les idfoy des foyers avec une caseF cochée
     log.info('    1.2 : Les conjoints invalides')
-    idfoy_inv_conj = final["idfoy"][final["caseF"]]
-    inv_conj_condition = (invalides["idfoy"].isin(idfoy_inv_conj)  & (invalides["quifoy"]==1))
+    idfoy_inv_conj = final.idfoy[final.caseF].copy()
+    inv_conj_condition = (invalides.idfoy.isin(idfoy_inv_conj) & (invalides.quifoy == 1))
     invalides["inv"][inv_conj_condition] = True
 
-    log.info("Il y a {} invalides conjoints".format(len(invalides[inv_conj_condition]))
-    log.info(" Il y a {} invalides déclarants et invalides conjoints".format(invalides["inv"].sum()))
+    log.info(u"Il y a {} invalides conjoints".format(len(invalides[inv_conj_condition])))
+    log.info(u" Il y a {} invalides déclarants et invalides conjoints".format(invalides["inv"].sum()))
 
 # # # Enfants invalides et garde alternée
 # #
@@ -135,53 +146,54 @@ def invalide(year = 2006):
 # # invalides$alt <- 0
 # # foy_inv_pac[is.na(foy_inv_pac$alt),"alt"] <- 0
 # # invalides[!(invalides$quifoy %in% c("vous","conj")),c("noindiv","inv","alt")] <- foy_inv_pac
-
-
-    print '    1.3 : enfants invalides et garde alternée'
-
+    log.info(u"    1.3 : enfants invalides et garde alternée")
     pacIndiv = load_temp(name='pacIndiv', year=year)
     print pacIndiv.type_pac.value_counts()
 
-    foy_inv_pac = invalides.loc[~(invalides.quifoy.isin([0, 1])), ['noindiv', 'inv']]
+    foy_inv_pac = invalides[['noindiv', 'inv']][~(invalides.quifoy.isin([0, 1]))].copy()
 #     pac = pacIndiv.ix[:, ["noindiv", "type_pac", "naia"]]
     print len(foy_inv_pac)
 
     print pacIndiv.columns
-    foy_inv_pac = foy_inv_pac.merge(pacIndiv.loc[:, ['noindiv', 'type_pac', 'naia']],
-                                    on='noindiv', how='left')
-    foy_inv_pac['inv'] = (foy_inv_pac['type_pac'].isin(['G','R','I']) |
-                             ((foy_inv_pac['type_pac']=="F") & ((year - foy_inv_pac['naia'])>18)))
+    foy_inv_pac = foy_inv_pac.merge(
+        pacIndiv[['noindiv', 'type_pac', 'naia']].copy(),
+        on = 'noindiv',
+        how = 'left',
+        )
+    foy_inv_pac['inv'] = (
+        foy_inv_pac['type_pac'].isin(['G', 'R', 'I']) |
+        (
+            (foy_inv_pac.type_pac == "F") & ((year - foy_inv_pac.naia) > 18)
+            )
+        )
 
-    foy_inv_pac['alt'] = ((foy_inv_pac['type_pac']=="H") | (foy_inv_pac['type_pac']=="I"))
+    foy_inv_pac['alt'] = ((foy_inv_pac.type_pac == "H") | (foy_inv_pac.type_pac == "I"))
     foy_inv_pac['naia'] = None
     foy_inv_pac['type_pac'] = None
     foy_inv_pac['alt'] = foy_inv_pac['alt'].fillna(False)
 
-
     print foy_inv_pac['inv'].describe()
     invalides['alt'] = 0
     foy_inv_pac['alt'][foy_inv_pac.alt.isnull()] = 0
-    invalides = invalides.merge(foy_inv_pac, on=["noindiv","inv","alt"])
+    invalides = invalides.merge(foy_inv_pac, on=["noindiv", "inv", "alt"])
 
-    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last=True)
-# =======
+    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
 #     print foy_inv_pac.inv.value_counts() # TODO: JS : trop peu de True là-dedans
 #     print foy_inv_pac.alt.value_counts() #
 #
 #
 #     print  len(invalides), len(foy_inv_pac)
 #     print invalides.inv.value_counts()
-# >>>>>>> 67cd9a43177cf3f6f72521cda59dae02485df1e3
 
-    invalides = invalides.merge(foy_inv_pac, on='noindiv', how='left')
-    invalides['inv'] = where(invalides['inv_y']==True, invalides['inv_y'], invalides['inv_x'])
-    invalides['alt'] = where(invalides['inv_y']==True, invalides['inv_y'], invalides['inv_x'])
+    invalides = invalides.merge(foy_inv_pac, on = 'noindiv', how = 'left')
+    invalides['inv'] = where(invalides['inv_y'], invalides['inv_y'], invalides['inv_x'])
+    invalides['alt'] = where(invalides['inv_y'], invalides['inv_y'], invalides['inv_x'])
 
-    invalides = invalides.loc[:, ["noindiv","idmen","caseP","caseF","idfoy","quifoy", "inv", 'alt']]
-    invalides['alt'].fillna(False, inplace=True)
+    invalides = invalides.loc[:, ["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']]
+    invalides['alt'].fillna(False, inplace = True)
 
     print invalides.inv.value_counts()
-    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last=True)
+    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
     del foy_inv_pac, pacIndiv
 
 # # # Initialisation des NA sur alt et inv
@@ -194,13 +206,13 @@ def invalide(year = 2006):
     print ''
     print 'Etape 2 : Initialisation des NA sur alt et inv'
     assert invalides["inv"].notnull().all() & invalides.alt.notnull().all()
-    final = final.merge(invalides.loc[:, ['noindiv', 'inv', 'alt']], on='noindiv', how='left')
+    final = final.merge(invalides[['noindiv', 'inv', 'alt']].copy(), on = 'noindiv', how = 'left')
     del invalides
 
     print final.inv.value_counts()
-    control(final, debug=True)
+    control(final, debug = True)
 
-    save_temp(final, name='final', year=year)
+    save_temp(final, name = 'final', year = year)
     print 'final complétée et sauvegardée'
 
 if __name__ == '__main__':
