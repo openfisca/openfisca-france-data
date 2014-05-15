@@ -135,7 +135,7 @@ class Survey(object):
         if not os.path.isfile(sas_file):
             raise Exception("file_path do  not exists")
 
-        log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
+        log.info("Inserting sas_file {} in HDF file {} at point {}".format(
             sas_file,
             self.hdf5_file_path,
             table,
