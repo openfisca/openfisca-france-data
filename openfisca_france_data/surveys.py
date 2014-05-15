@@ -34,11 +34,11 @@ from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
 
-import pandas.rpy.common as com
-import rpy2.rpy_classic as rpy
-
-
-rpy.set_default_mode(rpy.NO_CONVERSION)
+#import pandas.rpy.common as com     #need to import it just for people using Rdata files
+#import rpy2.rpy_classic as rpy
+#
+#
+#rpy.set_default_mode(rpy.NO_CONVERSION)
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_data_location)
@@ -83,12 +83,19 @@ class Survey(object):
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
     def fill_hdf_from_Rdata(self, table):
+
+        import pandas.rpy.common as com
+        import rpy2.rpy_classic as rpy
+        rpy.set_default_mode(rpy.NO_CONVERSION)
+
+
         assert table in self.tables, "Table {} is not a filed table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
         Rdata_file = self.tables[table]["Rdata_file"]
-        try:
+
+        if 'variables' in self.tables:
             variables = self.tables[table]['variables']
-        except:
+        else:
             variables = None
 
         if not os.path.isfile(Rdata_file):
@@ -119,17 +126,16 @@ class Survey(object):
     def fill_hdf_from_sas(self, table):
         from sas7bdat import read_sas
         assert table in self.tables, "Table {} is not a filed table".format(table)
-        sas_table = self.tables[table]["sas_table"]
         sas_file = self.tables[table]["sas_file"]
-        try:
+
+        if 'variables' in self.tables:
             variables = self.tables[table]['variables']
-        except:
+        else :
             variables = None
         if not os.path.isfile(sas_file):
             raise Exception("file_path do  not exists")
 
         log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
-            sas_table,
             sas_file,
             self.hdf5_file_path,
             table,
@@ -216,7 +222,7 @@ class Survey(object):
         store = HDFStore(self.hdf5_file_path)
         try:
             df = store[table]
-        except:
+        except KeyError:
             df = store[self.tables[table]["Rdata_table"]]
 
         if variables is None:
@@ -287,6 +293,14 @@ class SurveyCollection(object):
             survey = self.surveys[survey_name]
             for table in survey.tables:
                 survey.fill_hdf_from_Rdata(table)
+
+    def fill_hdf_from_sas(self, surveys_name = None):
+        if surveys_name is None:
+            surveys_name = self.surveys.values()
+        for survey_name in surveys_name:
+            survey = self.surveys[survey_name]
+            for table in survey.tables:
+                survey.fill_hdf_from_sas(table)
 
     @classmethod
     def load(cls, file_path = None, collection = None, config_files_directory = None):
