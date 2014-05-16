@@ -25,6 +25,7 @@
 #
 
 import collections
+import datetime
 import gc
 import json
 import os
@@ -69,6 +70,8 @@ class Survey(object):
         self.informations = kwargs
 
     @classmethod
+
+
     def create_from_json(cls, survey_json):
         self = cls(
             name = survey_json.get('name'),
@@ -124,6 +127,8 @@ class Survey(object):
         gc.collect()
 
     def fill_hdf_from_sas(self, table):
+
+        start_table_time = datetime.datetime.now()
         from sas7bdat import read_sas
         assert table in self.tables, "Table {} is not a filed table".format(table)
         sas_file = self.tables[table]["sas_file"]
@@ -135,12 +140,16 @@ class Survey(object):
         if not os.path.isfile(sas_file):
             raise Exception("file_path do  not exists")
 
-        log.info("Inserting sas_file {} in HDF file {} at point {}".format(
+        log.info("    {} : Inserting sas_file {} in HDF file {} at point {}".format(
+            datetime.datetime.now().isoformat(' ').split('.')[0],
             sas_file,
             self.hdf5_file_path,
             table,
             )
         )
+
+
+
         stored_dataframe = read_sas(sas_file)
         store_path = table
         if variables is not None:
@@ -152,6 +161,7 @@ class Survey(object):
         else:
             stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         gc.collect()
+        log.info("{} have been processed in {}".format(sas_file, datetime.datetime.now() - start_table_time))
 
     def fill_hdf_from_stata(self, table):
         from pandas import read_stata

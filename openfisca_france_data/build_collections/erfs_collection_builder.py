@@ -26,12 +26,12 @@
 
 import os
 import logging
-
 from openfisca_france_data.surveys import Survey, SurveyCollection
 
 log = logging.getLogger(__name__)
 
 def build_empty_erfs_survey_collection(years= None):
+
     if years is None:
         log.error("A list of years to process is needed")
 
@@ -93,7 +93,7 @@ def build_empty_erfs_survey_collection(years= None):
                 ]
         eec_aah_variables = [ "maahe", "rc1rev"]
         eec_variables += eec_rsa_variables + eec_aah_variables
-
+        #all sas files ok for 2009, 2007, 2008
         erf_tables = {
             "erf_menage": {  # Enquête revenu fiscaux, table ménage
                 "Rdata_table" : "menage" + yr,
@@ -107,7 +107,7 @@ def build_empty_erfs_survey_collection(years= None):
                 "year" : year,
                 "variables" : None,
                 },
-            "foyer": {      # Enquête revenu fiscaux, table foyer
+            "foyer": {      # Enquête revenu fiscaux, table foyer # compressed file for 2006
                 "Rdata_table" : "foyer" + yr,
                 "sas_file" : "Foyers/foyer" + yr,
                 "year": year,
@@ -115,7 +115,7 @@ def build_empty_erfs_survey_collection(years= None):
                 },
             "erf_indivi": {  # Enquête revenu fiscaux, table individu
                 "Rdata_table" : "indivi" + yr,
-                "sas_file" :"Individus/indivi{}".format(year, yr),
+                "sas_file" :"Individus/indivi{}".format(yr),
                 "year": year,
                 "variables" : ['noi','noindiv','ident','declar1','quelfic','persfip','declar2','persfipd','wprm',
                      "zsali","zchoi","ztsai","zreti","zperi","zrsti","zalri","zrtoi","zragi","zrici","zrnci",
@@ -184,9 +184,13 @@ def build_empty_erfs_survey_collection(years= None):
 if __name__ == '__main__':
     import logging
     import sys
+    import datetime
+    start_time = datetime.datetime.now()
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     erfs_survey_collection = build_empty_erfs_survey_collection(
         years = [2006, 2007, 2008, 2009],
         )
-    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2006"])
+    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2008"])
     erfs_survey_collection.dump(collection = "erfs")
+
+    log.info("The program have been executed in {}".format(start_time - datetime.datetime.now()))
