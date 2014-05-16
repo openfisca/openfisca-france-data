@@ -27,15 +27,20 @@
 from __future__ import division
 
 import logging
-
 import numpy as np
 from numpy import where, NaN, random, unique
-from pandas import read_csv, HDFStore
+from pandas import read_csv
 import os
+
 
 from openfisca_france_data.surveys import Survey, SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import check_structure, control, print_id
+from openfisca_france_data.build_openfisca_survey_data.utils import (
+    check_structure,
+    control,
+    print_id,
+    rectify_dtype,
+    )
 
 log = logging.getLogger(__name__)
 
@@ -72,7 +77,7 @@ def final(year = 2006, filename = "test", check = True):
 #   activite <- 2 # TODO comment choisr la valeur par d?faut ?
 #   activite <- ifelse(choi > 0,1,activite)
 #   activite <- ifelse(sali > 0,0,activite)
-#   activite <- ifelse(age  >= 21, 2,activite) # ne peuvent être rattach?s que les ?tudiants
+#   activite <- ifelse(age  >= 21, 2,activite) # ne peuvent être rattachés que les étudiants
 # })
 # final[final$quelfic=="FIP",]<- final_fip
 # table(final_fip[,c("age","activite")])
@@ -92,7 +97,7 @@ def final(year = 2006, filename = "test", check = True):
     final_fip["activite"] = 2 # TODO comment choisr la valeur par défaut ?
     final_fip.activite = where(final_fip.choi > 0, 1, final_fip.activite)
     final_fip.activite = where(final_fip.sali > 0, 0, final_fip.activite)
-    final_fip.activite = where(final_fip.age > 21, 2, final_fip.activite)  # ne peuvent être rattach?s que les ?tudiants
+    final_fip.activite = where(final_fip.age > 21, 2, final_fip.activite)  # ne peuvent être rattachés que les étudiants
 
     final.update(final_fip)
     save_temp(final, name = "final", year = year)
@@ -121,10 +126,7 @@ def final(year = 2006, filename = "test", check = True):
         ]
     if year == 2008:
         vars.remove("tau99")
-
-    famille_vars = ["m_afeamam", "m_agedm","m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
-
-
+    famille_vars = ["m_afeamam", "m_agedm", "m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
 # if ("naf16pr" %in% names(menagem)) {
 #   naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16
@@ -142,8 +144,6 @@ def final(year = 2006, filename = "test", check = True):
 #   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
 #
-
-
 #TODO: TODO: pytohn translation needed
 #    if "naf16pr" in menagem.columns:
 #        naf16pr <- factor(menagem$naf16pr)
@@ -161,18 +161,13 @@ def final(year = 2006, filename = "test", check = True):
 #   menagem$nafg17npr <- as.character(nafg17npr)
 #   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
-
-
-
     # TODO: 2008tau99 is not present should be provided by 02_loy.... is it really needed
     all_vars = vars + famille_vars
 
     print all_vars
     print menagem.info()
-    available_vars = list( set(all_vars).intersection(set(menagem.columns)))
+    available_vars = list(set(all_vars).intersection(set(menagem.columns)))
     loyersMenages = menagem.xs(available_vars, axis = 1)
-
-
 #
 # # Recodage de typmen15: modalités de 1:15
 # table(loyersMenages$typmen15, useNA="ifany")
@@ -196,7 +191,6 @@ def final(year = 2006, filename = "test", check = True):
 #
 #
 # TODO: MBJ UNNECESSARY ?
-
 #
 # # Pb avec ddipl, pas de modalités 2: on décale les chaps >=3
 # # Cependant on fait cela après avoir fait les traitement suivants
@@ -209,7 +203,6 @@ def final(year = 2006, filename = "test", check = True):
 #
 # loyersMenages[loyersMenages$ddipl>1, "ddipl"] <- loyersMenages$ddipl[loyersMenages$ddipl>1]-1
 #
-
     print loyersMenages.info()
     loyersMenages.ddipl = where(loyersMenages.ddipl.isnull(), 7, loyersMenages.ddipl)
     loyersMenages.ddipl = where(loyersMenages.ddipl > 1,
@@ -349,21 +342,26 @@ def final(year = 2006, filename = "test", check = True):
 
     control(final2, debug = True)
     print final2.age.isnull().sum()
-    final2 = final2.drop_duplicates(cols='noindiv')
+    final2 = final2.drop_duplicates(cols = 'noindiv')
 
     print '    Filter to manage the new 3-tables structures:'
     # On récupère les foyer, famille, ménages qui ont un chef :
-    liste_men = unique(final2.loc[final2['quimen'] == 0,'idmen'].values)
-    liste_fam = unique(final2.loc[final2['quifam'] == 0,'idfam'].values)
-    liste_foy = unique(final2.loc[final2['quifoy'] == 0,'idfoy'].values)
+    liste_men = unique(final2.loc[final2['quimen'] == 0, 'idmen'].values)
+    liste_fam = unique(final2.loc[final2['quifam'] == 0, 'idfam'].values)
+    liste_foy = unique(final2.loc[final2['quifoy'] == 0, 'idfoy'].values)
 
     #On ne conserve dans final2 que ces foyers là :
-    print 'final2 avant le filtrage' ,len(final2)
+    print 'final2 avant le filtrage', len(final2)
     final2 = final2.loc[final2.idmen.isin(liste_men), :]
     final2 = final2.loc[final2.idfam.isin(liste_fam), :]
     final2 = final2.loc[final2.idfoy.isin(liste_foy), :]
     print 'final2 après le filtrage', len(final2)
 
+
+
+    rectify_dtype(final2)
+
+    check = False
     if check:
         check_structure(final2)
 
@@ -377,24 +375,25 @@ def final(year = 2006, filename = "test", check = True):
 #        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
 #        test_filename = renamed_file
 
-
-    erfs_survey_collection = SurveyCollection(name = "openfisca")
-    erfs_survey_collection.set_config_files_directory()
-    output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
-    survey_name = "openfisca_{}".format(year)
+    dataframe = final2
+    openfisca_survey_collection = SurveyCollection(name = "openfisca")
+    openfisca_survey_collection.set_config_files_directory()
+    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    survey_name = "openfisca_data_{}".format(year)
+    table = "input"
     hdf5_file_path = os.path.join(
-            os.path.dirname(output_data_directory),
-            "{}{}".format(survey_name, ".h5")
-            )
+        os.path.dirname(output_data_directory),
+        "{}{}".format(survey_name, ".h5"),
+        )
+    print hdf5_file_path
     survey = Survey(
-            name = survey_name,
-            hdf5_file_path = hdf5_file_path
-            )
-
-
-    store = HDFStore(test_filename)
-    store['openfisca_input_'+ str(year)] = final2
-
+        name = survey_name,
+        hdf5_file_path = hdf5_file_path,
+        )
+    survey.insert_table(name = table)
+#    survey.fill_hdf(table, dataframe)
+    openfisca_survey_collection.surveys[survey_name] = survey
+    openfisca_survey_collection.dump(collection = "openfisca")
 
 if __name__ == '__main__':
     final()

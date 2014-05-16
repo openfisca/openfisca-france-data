@@ -83,25 +83,35 @@ class Survey(object):
         with open(file_path, 'w') as _file:
             json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
 
-    def fill_hdf_from_Rdata(self, table):
+    def fill_hdf(self, table = None, dataframe = None):
+        if table is None:
+            raise Exception(u"The mandatory keyword argument 'table' is not provided")
+        if dataframe is None:
+            raise Exception(u"The mandatory keyword argument 'dataframe' is not provided")
+        if table not in self.tables:
+            self.tables[table] = {}
 
+        log.info("Inserting table {} in HDF file {}".format(
+            table,
+            self.hdf5_file_path,
+            )
+        )
+        store_path = table
+        dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+
+    def fill_hdf_from_Rdata(self, table):
         import pandas.rpy.common as com
         import rpy2.rpy_classic as rpy
         rpy.set_default_mode(rpy.NO_CONVERSION)
-
-
         assert table in self.tables, "Table {} is not a filed table".format(table)
         Rdata_table = self.tables[table]["Rdata_table"]
         Rdata_file = self.tables[table]["Rdata_file"]
-
         if 'variables' in self.tables:
             variables = self.tables[table]['variables']
         else:
             variables = None
-
         if not os.path.isfile(Rdata_file):
-            raise Exception("file_path do  not exists")
-
+            raise Exception("file_path do not exists")
         rpy.r.load(Rdata_file)
         stored_dataframe = com.load_data(Rdata_table)
         store_path = table
@@ -112,16 +122,13 @@ class Survey(object):
             table,
             )
         )
-
         if variables is not None:
             log.info('variables asked by the user: {}'.format(variables))
             variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
             log.info('variables stored: {}'.format(variables_stored))
+            stored_dataframe = stored_dataframe[variables_stored].copy()
 
-            stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
-        else:
-            stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format='table', append=False)
-
+        stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         gc.collect()
 
     def fill_hdf_from_sas(self, table):
@@ -133,7 +140,7 @@ class Survey(object):
 
         if 'variables' in self.tables:
             variables = self.tables[table]['variables']
-        else :
+        else:
             variables = None
         if not os.path.isfile(sas_file):
             raise Exception("file_path do  not exists")
@@ -189,7 +196,7 @@ class Survey(object):
             stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         gc.collect()
 
-    def get_value(self, variable, table=None):
+    def get_value(self, variable, table = None):
         """
         Get value
 
@@ -235,8 +242,8 @@ class Survey(object):
         else:
             diff = set(variables) - set(df.columns)
             if diff:
-                raise Exception("The following variable(s) %s are missing" %diff)
-            variables = list( set(variables).intersection(df.columns))
+                raise Exception("The following variable(s) {} are missing".factor(diff))
+            variables = list(set(variables).intersection(df.columns))
             df = df[variables]
             return df
 
@@ -254,7 +261,7 @@ class Survey(object):
         with open(file_path, 'r') as _file:
             self_json = json.load(_file)
         log.info("Getting survey information for {}".format(self_json.get('name')))
-        self =  cls.create_from_json(self_json)
+        self = cls.create_from_json(self_json)
         return self
 
     def to_json(self):

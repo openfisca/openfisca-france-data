@@ -7,8 +7,12 @@
 # (see openfisca/__init__.py for details)
 # # # OpenFisca
 
+import logging
 from numpy import dtype
 from pandas import Series
+
+
+log = logging.getLogger(__name__)
 
 
 def assert_dtype(series, dtype_string):
@@ -145,16 +149,59 @@ def check_structure(df):
         df.drop_duplicates("noindiv", inplace = True)
 
     for entity in ["men", "fam", "foy"]:
-        log.info("Checking entity {}".format())
+        log.info("Checking entity {}".format(entity))
         role = 'qui' + entity
         entity_id = 'id' + entity
 
         if df[role].isnull().any():
-            print "there are NaN in qui%s" % entity
+            print "there are NaN in qui{}".format(entity)
 
-        max_entity = df[qui].max().astype("int")
+        max_entity = df[role].max().astype("int")
         for position in range(0, max_entity + 1):
             test = df[[role, entity_id]].groupby(by = entity_id).agg(lambda x: (x == position).sum())
             errors = (test[role] > 1).sum()
             if errors > 0:
                 print "There are %s duplicated qui%s = %s" % (errors, entity, position)
+
+
+def rectify_dtype(dataframe):
+    series_to_rectify = []
+    rectified_series = []
+    for serie_name, serie in dataframe.iteritems():
+        if serie.dtype.char == 'O':  # test for object
+            series_to_rectify.append(serie_name)
+            print """
+Variable name: {}
+NaN are present : {}
+{}""".format(serie_name, serie.isnull().sum(), serie.value_counts())
+            # bool
+            if serie.dropna().isin([True, False]).all():
+                if serie.isnull().any():
+                    serie = serie.fillna(False).copy()
+                dataframe[serie_name] = serie.astype('bool', copy = True)
+                rectified_series.append(serie_name)
+            # Nombre 01-99
+            elif serie.dropna().str.match("\d\d$").all():
+                if serie.isnull().any():
+                    serie = serie.fillna(0)
+                dataframe[serie_name] = serie.astype('int', copy = True)
+                rectified_series.append(serie_name)
+            # year
+            elif serie_name in ['birthvous', 'birthconj', 'caseH']:
+                if serie.isnull().any():
+                    serie = serie.fillna(9999)
+                dataframe[serie_name] = serie.astype('int', copy = True)
+                rectified_series.append(serie_name)
+            # datetime
+            elif serie_name[0:4] == "date":
+                from pandas import to_datetime
+                dataframe[serie_name] = to_datetime(
+                    serie.str[:2] + "-" + serie.str[2:4] + "-" + serie.str[4:8],
+                    coerce = True)
+                rectified_series.append(serie_name)
+
+            if serie_name in rectified_series:
+                print """Converted to {}
+{}""".format(dataframe[serie_name].dtype, dataframe[serie_name].value_counts())
+
+    print set(series_to_rectify).difference(rectified_series)
