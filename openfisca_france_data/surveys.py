@@ -70,8 +70,6 @@ class Survey(object):
         self.informations = kwargs
 
     @classmethod
-
-
     def create_from_json(cls, survey_json):
         self = cls(
             name = survey_json.get('name'),
@@ -147,9 +145,6 @@ class Survey(object):
             table,
             )
         )
-
-
-
         stored_dataframe = read_sas(sas_file)
         store_path = table
         if variables is not None:
