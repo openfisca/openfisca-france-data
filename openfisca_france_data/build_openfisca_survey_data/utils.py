@@ -34,58 +34,6 @@ def assert_variable_in_range(name, wrange, table):
             name, str(wrange), str(v))
 
 
-def count_NA(name, table):
-    '''Counts the number of Na's in a specified axis'''
-    print "count of NA's for %s is %s" % (name, str(sum(table[name].isnull())))
-
-
-def id_formatter(dataframe, entity_id):
-    id_unique = dataframe[entity_id].unique()
-    new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
-    dataframe[entity_id] = dataframe[entity_id].replace(to_replace = new_id_by_old_id)
-    return dataframe
-
-
-def print_id(df):
-    try:
-        print "Individus : ", len(df.noindiv), "/", len(df)
-    except:
-        print "No noindiv"
-
-    try:
-        # Ici, il doit y avoir autant de vous que d'idfoy
-        print "Foyers", len(df.idfoy)
-        print df["quifoy"].value_counts()
-        if df["idfoy"].isnull().any():
-            print "NaN in idfoy : ", df["idfoy"].isnull().sum()
-        if df["quifoy"].isnull().any():
-            print "NaN in quifoy : ", df["quifoy"].isnull().sum()
-    except:
-        print "No idfoy or quifoy"
-
-    try:
-        # Ici, il doit y avoir autant de quimen = 0 que d'idmen
-        print "Ménages", len(df.idmen)
-        print df["quimen"].value_counts()
-        if df["idmen"].isnull().any():
-            print "NaN in idmen : ", df["idmen"].isnull().sum()
-        if df["quimen"].isnull().any():
-            print "NaN in quimen : ", df["quimen"].isnull().sum()
-    except:
-        print "No idmen or quimen"
-
-    try:
-        # Ici, il doit y avoir autant de quifam = 0 que d'idfam
-        print "Familles", len(df.idfam)
-        print df["quifam"].value_counts()
-        if df["idfam"].isnull().any():
-            print "NaN in idfam : ", df["idfam"].isnull().sum()
-        if df["quifam"].isnull().any():
-            print "NaN in quifam : ", df["quifam"].isnull().sum()
-    except:
-        print "No idfam or quifam"
-
-
 def control(dataframe, verbose = False, verbose_columns = None, debug = False, verbose_length = 5, ignore = None):
     """
     Function to help debugging the data crunchin' files.
@@ -148,36 +96,95 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
     print 'vérifications terminées'
 
 
-def check_structure(df):
+def count_NA(name, table):
+    '''Counts the number of Na's in a specified axis'''
+    print "count of NA's for %s is %s" % (name, str(sum(table[name].isnull())))
 
-    duplicates = df.noindiv.duplicated().sum()
-    if duplicates > 1:
-        log.warning("there are {} duplicated individuals".format(duplicates))
-        df.drop_duplicates("noindiv", inplace = True)
+
+def id_formatter(dataframe, entity_id):
+    id_unique = dataframe[entity_id].unique()
+    new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
+    dataframe[entity_id] = dataframe[entity_id].replace(to_replace = new_id_by_old_id)
+    return dataframe
+
+
+def print_id(df):
+    try:
+        print "Individus : ", len(df.noindiv), "/", len(df)
+    except:
+        print "No noindiv"
+
+    try:
+        # Ici, il doit y avoir autant de vous que d'idfoy
+        print "Foyers", len(df.idfoy)
+        print df["quifoy"].value_counts()
+        if df["idfoy"].isnull().any():
+            print "NaN in idfoy : ", df["idfoy"].isnull().sum()
+        if df["quifoy"].isnull().any():
+            print "NaN in quifoy : ", df["quifoy"].isnull().sum()
+    except:
+        print "No idfoy or quifoy"
+
+    try:
+        # Ici, il doit y avoir autant de quimen = 0 que d'idmen
+        print "Ménages", len(df.idmen)
+        print df["quimen"].value_counts()
+        if df["idmen"].isnull().any():
+            print "NaN in idmen : ", df["idmen"].isnull().sum()
+        if df["quimen"].isnull().any():
+            print "NaN in quimen : ", df["quimen"].isnull().sum()
+    except:
+        print "No idmen or quimen"
+
+    try:
+        # Ici, il doit y avoir autant de quifam = 0 que d'idfam
+        print "Familles", len(df.idfam)
+        print df["quifam"].value_counts()
+        if df["idfam"].isnull().any():
+            print "NaN in idfam : ", df["idfam"].isnull().sum()
+        if df["quifam"].isnull().any():
+            print "NaN in quifam : ", df["quifam"].isnull().sum()
+    except:
+        print "No idfam or quifam"
+
+
+def check_structure(dataframe):
+
+    duplicates = dataframe.noindiv.duplicated().sum()
+    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
+#        df.drop_duplicates("noindiv", inplace = True)
 
     for entity in ["men", "fam", "foy"]:
         log.info("Checking entity {}".format(entity))
         role = 'qui' + entity
         entity_id = 'id' + entity
+        assert not dataframe[role].isnull().any(), "there are NaN in qui{}".format(entity)
+        max_entity = dataframe[role].max().astype("int")
 
-        if df[role].isnull().any():
-            print "there are NaN in qui{}".format(entity)
-
-        max_entity = df[role].max().astype("int")
         for position in range(0, max_entity + 1):
-            test = df[[role, entity_id]].groupby(by = entity_id).agg(lambda x: (x == position).sum())
-            errors = (test[role] > 1).sum()
-            if errors > 0:
-                print "There are %s duplicated qui%s = %s" % (errors, entity, position)
+            test = dataframe[[role, entity_id]].groupby(by = entity_id).agg(lambda x: (x == position).sum())
+            if position == 0:
+                errors = (test[role] != 1).sum()
+                if errors > 0:
+                    log.error("There are {} errors for the head of {}".format(errors, entity))
+            else:
+                errors = (test[role] > 1).sum()
+                if errors > 0:
+                    log.error("There are {} duplicated qui{} = {}".format(errors, entity, position))
+
+    for entity in ['fam', 'foy', 'men']:
+        assert len(dataframe['id' + entity].unique()) == (dataframe['qui' + entity] == 0).sum(),\
+            "Wronger number of entity/head for {}".format(entity)
 
 
-def rectify_dtype(dataframe):
+def rectify_dtype(dataframe, verbose = True):
     series_to_rectify = []
     rectified_series = []
     for serie_name, serie in dataframe.iteritems():
         if serie.dtype.char == 'O':  # test for object
             series_to_rectify.append(serie_name)
-            print """
+            if verbose:
+                print """
 Variable name: {}
 NaN are present : {}
 {}""".format(serie_name, serie.isnull().sum(), serie.value_counts())
@@ -208,7 +215,21 @@ NaN are present : {}
                 rectified_series.append(serie_name)
 
             if serie_name in rectified_series:
-                print """Converted to {}
+                if verbose:
+                    print """Converted to {}
 {}""".format(dataframe[serie_name].dtype, dataframe[serie_name].value_counts())
 
-    print set(series_to_rectify).difference(rectified_series)
+    if verbose:
+        print set(series_to_rectify).difference(rectified_series)
+
+
+def set_variables_default_value(dataframe, year):
+    import openfisca_france
+    TaxBenefitSystem = openfisca_france.init_country()
+    tax_benefit_system = TaxBenefitSystem()
+
+    for column_name, column in tax_benefit_system.column_by_name.iteritems():
+        if column_name in dataframe.columns:
+            dataframe[column_name].fillna(column.default, inplace = True)
+            dataframe[column_name] = dataframe[column_name].astype(column.dtype)
+

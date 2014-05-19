@@ -41,6 +41,7 @@ from openfisca_france_data.build_openfisca_survey_data.utils import (
     id_formatter,
     print_id,
     rectify_dtype,
+    set_variables_default_value,
     )
 
 log = logging.getLogger(__name__)
@@ -358,14 +359,7 @@ def final(year = 2006, filename = "test", check = True):
     final2 = final2.loc[final2.idfoy.isin(liste_foy), :]
     print 'final2 après le filtrage', len(final2)
 
-
-
-    rectify_dtype(final2)
-
-    check = False
-    if check:
-        check_structure(final2)
-
+    rectify_dtype(final2, verbose = False)
 #    home = os.path.expanduser("~")
 #    test_filename = os.path.join(home, filename + ".h5")
 #    if os.path.exists(test_filename):
@@ -375,19 +369,22 @@ def final(year = 2006, filename = "test", check = True):
 #        renamed_file = os.path.join(DATA_SOURCES_DIR, filename + "_" + time_stamp + ".h5")
 #        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
 #        test_filename = renamed_file
-
     dataframe = final2
 
+    if year == 2006:  # Hack crade pur régler un problème rémanent
+        dataframe = dataframe[dataframe.idfam != 602177906].copy()
 
     for id_variable in ['idfam', 'idfoy', 'idmen', 'noi', 'quifam', 'quifoy', 'quimen']:
         dataframe[id_variable] = dataframe[id_variable].astype('int')
 
+    check = False
+    if check:
+        check_structure(dataframe)
 
     for entity_id in ['idmen', 'idfoy', 'idfam']:
         dataframe = id_formatter(dataframe, entity_id)
 
-
-
+    set_variables_default_value(dataframe, year)
 
     # Saving the dataframe
     openfisca_survey_collection = SurveyCollection(name = "openfisca")
@@ -399,7 +396,7 @@ def final(year = 2006, filename = "test", check = True):
         os.path.dirname(output_data_directory),
         "{}{}".format(survey_name, ".h5"),
         )
-    print hdf5_file_path
+
     survey = Survey(
         name = survey_name,
         hdf5_file_path = hdf5_file_path,
