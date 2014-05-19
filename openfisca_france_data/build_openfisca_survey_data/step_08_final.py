@@ -38,6 +38,7 @@ from openfisca_france_data.build_openfisca_survey_data import load_temp, save_te
 from openfisca_france_data.build_openfisca_survey_data.utils import (
     check_structure,
     control,
+    id_formatter,
     print_id,
     rectify_dtype,
     )
@@ -376,6 +377,19 @@ def final(year = 2006, filename = "test", check = True):
 #        test_filename = renamed_file
 
     dataframe = final2
+
+
+    for id_variable in ['idfam', 'idfoy', 'idmen', 'noi', 'quifam', 'quifoy', 'quimen']:
+        dataframe[id_variable] = dataframe[id_variable].astype('int')
+
+
+    for entity_id in ['idmen', 'idfoy', 'idfam']:
+        dataframe = id_formatter(dataframe, entity_id)
+
+
+
+
+    # Saving the dataframe
     openfisca_survey_collection = SurveyCollection(name = "openfisca")
     openfisca_survey_collection.set_config_files_directory()
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
@@ -391,7 +405,7 @@ def final(year = 2006, filename = "test", check = True):
         hdf5_file_path = hdf5_file_path,
         )
     survey.insert_table(name = table)
-#    survey.fill_hdf(table, dataframe)
+    survey.fill_hdf(table, dataframe)
     openfisca_survey_collection.surveys[survey_name] = survey
     openfisca_survey_collection.dump(collection = "openfisca")
 

@@ -39,6 +39,13 @@ def count_NA(name, table):
     print "count of NA's for %s is %s" % (name, str(sum(table[name].isnull())))
 
 
+def id_formatter(dataframe, entity_id):
+    id_unique = dataframe[entity_id].unique()
+    new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
+    dataframe[entity_id] = dataframe[entity_id].replace(to_replace = new_id_by_old_id)
+    return dataframe
+
+
 def print_id(df):
     try:
         print "Individus : ", len(df.noindiv), "/", len(df)
