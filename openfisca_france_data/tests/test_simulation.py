@@ -59,30 +59,23 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
     data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
     for entity_id in ['id' + entity.symbol for entity in simulation.entity_by_key_singular.values()]:
             data_frame = id_formatter(data_frame, entity_id)
-
     return data_frame
 
 
-
-def create_simulation(year = None):
-    assert year is not None
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
+def test_survey_simulation():
+    year = 2006
     openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
     openfisca_survey = openfisca_survey_collection.surveys["openfisca_data_2006"]
     input_data_frame = openfisca_survey.get_values(table = "input")
     input_data_frame.reset_index(inplace = True)
+    TaxBenefitSystem = openfisca_france.init_country()
+    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         tax_benefit_system = tax_benefit_system,
         year = year,
         )
-    return survey_scenario.new_simulation()
-
-def test_survey_simulation():
-    year = 2006
-    simulation = create_simulation(year = 2006)
-
+    simulation = survey_scenario.new_simulation()
     try:
         from pandas import DataFrame
         revdisp = DataFrame({"revdisp": simulation.calculate('revdisp')})
@@ -90,13 +83,11 @@ def test_survey_simulation():
         index = error.index
         entity = error.entity
         column_name = error.column_name
-
         input_data_frame_debug = filter_input_data_frame(
-            input_data_frame,
+            simulation.input_data_frame,
             entity,
             index[:10],
             )
-
         survey_scenario_debug = SurveyScenario()
         simulation_debug = survey_scenario_debug.new_simulation(
             debug = True,
@@ -104,7 +95,6 @@ def test_survey_simulation():
             tax_benefit_system = tax_benefit_system,
             year = year,
             )
-
         simulation_debug.calculate(column_name)
 
     print revdisp.info()
