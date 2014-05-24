@@ -233,3 +233,6 @@ def set_variables_default_value(dataframe, year):
             dataframe[column_name].fillna(column.default, inplace = True)
             dataframe[column_name] = dataframe[column_name].astype(column.dtype)
 
+
+def search_nan_presence(dataframe, year):
+    pass
