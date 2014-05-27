@@ -103,46 +103,46 @@ def build_empty_erfs_survey_collection(years= None):
                 },
             "eec_menage": {  # Enquête emploi en continu, table ménage
                 "Rdata_table" : "mrf" + yr + "e" + yr + "t4",
-                "sas_file" : u"Ménages/mrf" + yr + "e" + yr + "t4",
+                "sas_file" : u"Ménages/mrf" + yr + u"e" + yr + u"t4",
                 "year" : year,
                 "variables" : None,
                 },
             "foyer": {      # Enquête revenu fiscaux, table foyer # compressed file for 2006
                 "Rdata_table" : "foyer" + yr,
-                "sas_file" : "Foyers/foyer" + yr,
+                "sas_file" : u"Foyers/foyer" + yr,
                 "year": year,
                 "variables" : None,
                 },
             "erf_indivi": {  # Enquête revenu fiscaux, table individu
-                "Rdata_table" : "indivi" + yr,
-                "sas_file" :"Individus/indivi{}".format(yr),
+                "Rdata_table": "indivi" + yr,
+                "sas_file": u"Individus/indivi{}".format(yr),
                 "year": year,
-                "variables" : ['noi','noindiv','ident','declar1','quelfic','persfip','declar2','persfipd','wprm',
+                "variables": ['noi','noindiv','ident','declar1','quelfic','persfip','declar2','persfipd','wprm',
                      "zsali","zchoi","ztsai","zreti","zperi","zrsti","zalri","zrtoi","zragi","zrici","zrnci",
                      "zsalo","zchoo","ztsao","zreto","zpero","zrsto","zalro","zrtoo","zrago","zrico","zrnco",
                      ],
                 },
             "eec_indivi": {  # Enquête emploi en continue, table individu
                 "Rdata_table" : "irf" + yr + "e" + yr + "t4",
-                "sas_file" : "Individus/irf" + yr + "e" + yr + "t4",
+                "sas_file" : u"Individus/irf" + yr + u"e" + yr + u"t4",
                 "year" : year,
                 "variables" : eec_variables,
                 },
             "eec_cmp_1": {  # Enquête emploi en continue, table complémentaire 1
                 "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t1",
-                "sas_file" : "Tables complémentaires/icomprf" + yr + "e" + yr1 + "t1",
+                "sas_file" : u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t1",
                 "year" : year,
                 "variables" : eec_variables,
                 },
             "eec_cmp_2": {
                 "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t2",
-                "sas_file" : "Tables complémentaires/icomprf" + yr + "e" + yr1 + "t2",
+                "sas_file" : u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t2",
                 "year" : year,
                 "variables" : eec_variables,
                 },
             "eec_cmp_3": {
                 "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t3",
-                "sas_file" : "Tables complémentaires/icomprf" + yr + "e" + yr1 + "t3",
+                "sas_file" : u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t3",
                 "year" : year,
                 "variables" : eec_variables,
                 },
@@ -155,17 +155,18 @@ def build_empty_erfs_survey_collection(years= None):
                 'R',
                 'erf',
                 str(year),
-                table["Rdata_table"] + str(".Rdata"),
+                table["Rdata_table"] + ".Rdata",
                 )
-            table["sas_file"] = os.path.join(
-                os.path.dirname(input_data_directory),
-                'ERFS_20{}'.format(yr),
-                table["sas_file"] + str(".sas7bdat"),
+            table[u"sas_file"] = os.path.join(
+                os.path.dirname(input_data_directory).decode('utf-8'),
+                u'ERFS_20{}'.format(yr),
+                table[u"sas_file"] + u".sas7bdat",
                 )
-        survey_name = 'erfs_{}'.format(year)
+            assert isinstance(table[u"sas_file"], unicode)
+        survey_name = u'erfs_{}'.format(year)
         hdf5_file_path = os.path.join(
             os.path.dirname(output_data_directory),
-            "{}{}".format(survey_name, ".h5")
+            u"{}{}".format(survey_name, u".h5")
             )
         survey = Survey(
             name = survey_name,
@@ -174,9 +175,7 @@ def build_empty_erfs_survey_collection(years= None):
 
         for table, table_kwargs in erf_tables.iteritems():
             survey.insert_table(name = table, **table_kwargs)
-            print table_kwargs.keys()
         surveys = erfs_survey_collection.surveys
-        print surveys
         surveys[survey_name] = survey
     return erfs_survey_collection
 
@@ -190,7 +189,8 @@ if __name__ == '__main__':
     erfs_survey_collection = build_empty_erfs_survey_collection(
         years = [2006, 2007, 2008, 2009],
         )
-    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2008"])
-    erfs_survey_collection.dump(collection = "erfs")
+#    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2007", "erfs_2008", "erfs_2009"])
+    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2009"])
+    erfs_survey_collection.dump(collection = u"erfs")
 
-    log.info("The program have been executed in {}".format(start_time - datetime.datetime.now()))
+    log.info("The program have been executed in {}".format( datetime.datetime.now()-start_time))

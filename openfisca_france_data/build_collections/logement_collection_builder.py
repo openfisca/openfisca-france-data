@@ -88,6 +88,7 @@ def build_empty_logement_survey_collection(years= None):
 
 if __name__ == '__main__':
 
-    logement_survey_collection = build_empty_logement_survey_collection(years = [2006])
-    logement_survey_collection.fill_hdf_from_Rdata()
+    logement_survey_collection = build_empty_logement_survey_collection(years = [2008])
+#    logement_survey_collection.fill_hdf_from_Rdata()
+    logement_survey_collection.fill_hdf_from_sas()
     logement_survey_collection.dump(collection = "logement")

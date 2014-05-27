@@ -24,6 +24,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import codecs
 import collections
 import datetime
 import gc
@@ -80,8 +81,8 @@ class Survey(object):
         return self
 
     def dump(self, file_path):
-        with open(file_path, 'w') as _file:
-            json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
+        with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
+            json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
     def fill_hdf(self, table = None, dataframe = None):
         if table is None:
@@ -295,8 +296,8 @@ class SurveyCollection(object):
             else:
                 file_path = self.config.get("collections", collection)
 
-        with open(file_path, 'w') as _file:
-            json.dump(self.to_json(), _file, ensure_ascii = False, indent = 2)
+        with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
+            json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
     def fill_hdf_from_Rdata(self, surveys_name = None):
         if surveys_name is None:
@@ -324,6 +325,7 @@ class SurveyCollection(object):
             else:
                 file_path = self.config.get("collections", collection)
             with open(file_path, 'r') as _file:
+                print _file
                 self_json = json.load(_file)
                 self.name = self_json.get('name')
                 self.label = self_json.get('label')
