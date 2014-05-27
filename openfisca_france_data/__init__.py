@@ -23,4 +23,58 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-conf = {}
+AGGREGATES_DEFAULT_VARS = [
+    'cotsoc_noncontrib',
+    'csg',
+    'crds',
+    'irpp',
+    'ppe',
+    'ppe_brute',
+    'af',
+    'af_base',
+    'af_majo',
+    'af_forf',
+    'cf',
+    'paje_base',
+    'paje_nais',
+    'paje_clca',
+    'paje_clmg',
+    'ars',
+    'aeeh',
+    'asf',
+    'aspa',
+    'aah',
+    'caah',
+    'rsa',
+    'rsa_act',
+    'aefa',
+    'api',
+    'majo_rsa',
+    'psa',
+    'logt',
+    'alf',
+    'als',
+    'apl',
+    ]
+    # ajouter csgd pour le calcul des agrégats erfs
+    # ajouter rmi pour le calcul des agrégats erfs
+FILTERING_VARS = ["champm"]
+WEIGHT = "wprm"
+WEIGHT_INI = "wprm_init"
+
+
+def preproc_inputs(self, datatable):
+    """Preprocess inputs table: country specific manipulations
+
+    Parameters
+    ----------
+    datatable : a DataTable object
+                the DataTable containing the input variables of the model
+
+    """
+    try:
+        datatable.propagate_to_members(WEIGHT, 'ind')
+    #    datatable.propagate_to_members('rfr_n_2', 'ind')
+    #    datatable.propagate_to_members('nbptr_n_2', 'ind')
+    except:
+        pass

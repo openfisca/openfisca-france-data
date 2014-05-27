@@ -36,6 +36,13 @@ from openfisca_france_data.build_openfisca_survey_data.utils import id_formatter
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
+def get_input_data_frame(year):
+    openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
+    openfisca_survey = openfisca_survey_collection.surveys["openfisca_data_{}".format(year)]
+    input_data_frame = openfisca_survey.get_values(table = "input")
+    input_data_frame.reset_index(inplace = True)
+    return input_data_frame
+
 # TODO, move to SurveyScenario
 def filter_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
     symbol = filter_entity.symbol
@@ -64,10 +71,7 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
 
 def test_survey_simulation():
     year = 2006
-    openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
-    openfisca_survey = openfisca_survey_collection.surveys["openfisca_data_2006"]
-    input_data_frame = openfisca_survey.get_values(table = "input")
-    input_data_frame.reset_index(inplace = True)
+    input_data_frame = get_input_data_frame(year)
     TaxBenefitSystem = openfisca_france.init_country()
     tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
@@ -101,10 +105,23 @@ def test_survey_simulation():
     print 'finished'
 
 
+def test_weights_building():
+    year = 2006
+    input_data_frame = get_input_data_frame(year)
+    TaxBenefitSystem = openfisca_france.init_country()
+    tax_benefit_system = TaxBenefitSystem()
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        tax_benefit_system = tax_benefit_system,
+        year = year,
+        )
+    simulation = survey_scenario.new_simulation()
+
+
 if __name__ == '__main__':
     import logging
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
-    test_survey_simulation()
+#    test_survey_simulation()
+    test_weights_building()
