@@ -40,7 +40,7 @@ from openfisca_france_data.build_openfisca_survey_data import load_temp, save_te
 log = logging.getLogger(__name__)
 
 
-def create_fip(year = 2006):
+def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     """
     Creates a 'fipDat' table containing all these 'fip individuals'
     """
