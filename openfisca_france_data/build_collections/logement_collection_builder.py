@@ -75,20 +75,25 @@ def build_empty_logement_survey_collection(years= None):
             }
 
         RData_directory = os.path.join(os.path.dirname(input_data_directory),'R','logement', str(year))
+        SasData_directory = os.path.join(os.path.dirname(input_data_directory),'enqlog2006/enq_06')
+
 
         for name, Rdata_table in logement_tables.iteritems():
           Rdata_file = os.path.join(RData_directory, "{}.Rdata".format(Rdata_table))
+          sas_file = os.path.join(SasData_directory, "{}.sas7bdat".format(Rdata_table))
           survey.insert_table(name = name,
                               year = year,
                               Rdata_file = Rdata_file,
                               Rdata_table = Rdata_table,
+                              sas_file = sas_file
                               )
+
     return logement_survey_collection
 
 
 if __name__ == '__main__':
 
-    logement_survey_collection = build_empty_logement_survey_collection(years = [2008])
+    logement_survey_collection = build_empty_logement_survey_collection(years = [2006])
 #    logement_survey_collection.fill_hdf_from_Rdata()
-    logement_survey_collection.fill_hdf_from_sas()
+    logement_survey_collection.fill_hdf_from_sas(["logement_2006"]) #TODO give the corect data directory (in os.path.join(os.etc...))
     logement_survey_collection.dump(collection = "logement")

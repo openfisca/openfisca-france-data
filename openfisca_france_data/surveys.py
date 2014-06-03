@@ -31,6 +31,7 @@ import gc
 import json
 import os
 import pkg_resources
+import re
 
 from ConfigParser import SafeConfigParser
 import logging
@@ -44,6 +45,7 @@ from pandas import HDFStore
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_data_location)
+ident_re = re.compile(u"(?i)ident\d{2,4}$")
 
 log = logging.getLogger(__name__)
 
@@ -217,7 +219,7 @@ class Survey(object):
         df = self.get_values([variable], table)
         return df
 
-    def get_values(self, variables = None, table = None):
+    def get_values(self, variables = None, table = None, lowercase = True, rename_ident = True):
         """
         Get values
 
@@ -227,6 +229,10 @@ class Survey(object):
                   list of variables names, if None return the whole table
         table : string, default None
                 name of the table hosting the variables
+        lowercase : boolean, deflault True
+                    put variables of the table into lowercase
+        rename_ident :  boolean, deflault True
+                        rename variables ident+yr (e.g. ident08) into ident
         Returns
         -------
         df : DataFrame, default None
@@ -238,12 +244,23 @@ class Survey(object):
         except KeyError:
             df = store[self.tables[table]["Rdata_table"]]
 
+        if lowercase is True:
+            columns = dict((column_name, column_name.lower()) for column_name in df)
+            df.rename(columns = columns, inplace = True)
+
+        if rename_ident is True:
+            for column_name in df:
+                if ident_re.match(column_name) is not None:
+                    df.rename(columns = {column_name : "ident"}, inplace = True)
+                    print("{} column have been replaced by ident".format(column_name))
+                    break
+
         if variables is None:
             return df
         else:
             diff = set(variables) - set(df.columns)
             if diff:
-                raise Exception("The following variable(s) {} are missing".factor(diff))
+                raise Exception("The following variable(s) {} are missing".format(diff))
             variables = list(set(variables).intersection(df.columns))
             df = df[variables]
             return df

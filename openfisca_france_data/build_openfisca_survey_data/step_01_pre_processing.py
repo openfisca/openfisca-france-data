@@ -71,11 +71,12 @@ def create_indivim(year = 2006):
     log.info(eecind.info(False))
     print(datetime.datetime.now() - start_time)
 
-    for table in [erfmen, eecmen, erfind, eecind]:
-        for column_name in table:
-            table.rename(columns = {column_name: column_name.lower()}, inplace = True)
-            if column_name == "ident08" :
-                table.rename(columns = {column_name: "ident"}, inplace = True)
+#normalement l'option faire passer en lowercase et de remplacer tout "Ident"+yr par ident à été ajoutée dans une méthode de classe get_values survey.py
+#    for table in [erfmen, eecmen, erfind, eecind]:
+#        for column_name in table:
+##            table.rename(columns = {column_name: column_name.lower()}, inplace = True)
+#            if column_name == "ident08" :
+#                table.rename(columns = {column_name: "ident"}, inplace = True)
 
 
 #    erfmen.info()
@@ -301,5 +302,5 @@ if __name__ == '__main__':
     deb = time.clock()
     year = 2008
     create_indivim(year = year)
-#    create_enfants_a_naitre(year = year)
+    create_enfants_a_naitre(year = year)
     print time.clock() - deb
