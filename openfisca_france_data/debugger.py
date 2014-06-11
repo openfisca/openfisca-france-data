@@ -399,23 +399,23 @@ class Debugger(object):
                             column_name = column.name
 
                             if column_name in simu_aggr_tables.columns:
-                                of_menage_columns_name.append(column_name + '_of')
+                                of_menage_columns_name.append(column_name)
                             if column_name in erf_menage.columns:
-                                erf_menage_columns_name.append(column_name + '_erf')
+                                erf_menage_columns_name.append(column_name)
                             else:
                                 indvidual_columns_name.append(column_name)
 
-                            menage_column_fetched = list(
-                                set(of_menage_columns_name).intersection(
-                                    set(of_menage_columns_name)
-                                    )
+                        menage_column_fetched = list(
+                            set(of_menage_columns_name).intersection(
+                                set(of_menage_columns_name)
                                 )
-                            temp = table[['idmen'] + menage_column_fetched][0:fov]
-                            debug_data_frame_by_entity['menage'] = debug_data_frame_by_entity['menage'].merge(
-                                temp,
-                                how = 'inner',
-                                on = 'idmen'
-                                )
+                            )
+                        temp = table[['idmen'] + menage_column_fetched][0:fov]
+                        debug_data_frame_by_entity['menage'] = debug_data_frame_by_entity['menage'].merge(
+                            temp,
+                            how = 'inner',
+                            on = 'idmen'
+                            )
 
 
                             #print temp.to_string(), "\n"
