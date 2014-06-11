@@ -341,7 +341,7 @@ def create_comparable_logement_data_frame(year):
     Lgtmen['mrret'].fillna(0, inplace = True)
     Lgtmen['mrsal'].fillna(0, inplace = True)
     Lgtmen['mrtns'].fillna(0, inplace = True)
-    Lgtmen['revtot'] = Lgtmen['mrcho'] + Lgtmen['mrcho'] + Lgtmen['mrsal'] + Lgtmen['mrtns'] # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
+    Lgtmen['revtot'] = Lgtmen['mrcho'] + Lgtmen ['mrret'] + Lgtmen['mrsal'] + Lgtmen['mrtns'] # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
     count_NA('revtot', Lgtmen)
     Lgtmen['nvpr'] = 10.0 * Lgtmen['revtot'] / Lgtmen['muc1']
 
