@@ -131,8 +131,9 @@ def create_indivim(year = 2006):
 ##    for var in indivim:
     for var in var_list:
         print var
-        filter00 =  ((indivim[var] == "") | (indivim[var] == ".")) #crée un filtre pour les valeurs manquantes
-        indivim[var][filter00] = np.nan
+        if indivim[var].dtype != 'float64' or indivim[var].dtype != 'float32':
+            filter00 =  ((indivim[var] == "") | (indivim[var] == ".")) #crée un filtre pour les valeurs manquantes, ne marche pas si type en float
+            indivim[var][filter00] = np.nan
 
 
         try:
@@ -261,7 +262,7 @@ def create_enfants_a_naitre(year = 2006):
         print ("on va printer les vars in individual_vars")
         print var
         enfants_a_naitre[var] = enfants_a_naitre[var].astype('float')
-    del eeccmp1, eeccmp2, eeccmp3, individual_vars
+#    del eeccmp1, eeccmp2, eeccmp3, individual_vars  #TODO: Adrien: me fait planter python
 
     # création de variables
     enfants_a_naitre['declar1'] = ''
@@ -300,7 +301,7 @@ if __name__ == '__main__':
 #    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     import time
     deb = time.clock()
-    year = 2008
+    year = 2006
     create_indivim(year = year)
     create_enfants_a_naitre(year = year)
     print time.clock() - deb
