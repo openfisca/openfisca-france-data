@@ -24,6 +24,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+## This step requires to have R installed with StatMatch library
+## You'll also need rpy2 2.3x available at  https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
+###(the version on python website is not compatible, working correctly for the debian's testing version)
+
+
 from __future__ import division
 
 
@@ -32,11 +37,15 @@ import logging
 import numpy as np
 
 from pandas import DataFrame
+
+#problem with rpy last version is not working
 import pandas.rpy.common as com
 
 
 from rpy2.robjects.packages import importr
-import rpy2.robjects.pandas2ri
+import rpy2.robjects.pandas2ri #use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
+
+
 import rpy2.robjects.vectors as vectors
 
 
@@ -332,7 +341,7 @@ def create_comparable_logement_data_frame(year):
     Lgtmen['mrret'].fillna(0, inplace = True)
     Lgtmen['mrsal'].fillna(0, inplace = True)
     Lgtmen['mrtns'].fillna(0, inplace = True)
-    Lgtmen['revtot'] = Lgtmen['mrcho'] + Lgtmen ['mrret'] + Lgtmen['mrsal'] + Lgtmen['mrtns'] # Virer les revenus négatifs ?
+    Lgtmen['revtot'] = Lgtmen['mrcho'] + Lgtmen['mrcho'] + Lgtmen['mrsal'] + Lgtmen['mrtns'] # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
     count_NA('revtot', Lgtmen)
     Lgtmen['nvpr'] = 10.0 * Lgtmen['revtot'] / Lgtmen['muc1']
 
@@ -506,13 +515,13 @@ def imputation_loyer(year):
 
     for variable in allvars:
         count_NA(variable, Logt)
-        count_NA(mcs8, erf)
+        count_NA(variable, erf)
 
     erf['mcs8'] = erf['mcs8'].astype(int)
 
     rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes
     try:
-        sm = importr("StatMatch")
+        sm = importr("StatMatch") # Launch R you need to have StatMatch installed in R
     except:
         sm = importr("StatMatch", lib_loc = STATMATCH_LIB_LOCATION)
     out_nnd = sm.NND_hotdeck(data_rec = erf,
@@ -531,11 +540,18 @@ def imputation_loyer(year):
 
     fill_erf_nnd = com.convert_robj(fill_erf_nnd)
     fill_erf_nnd = DataFrame(fill_erf_nnd)
-    (fill_erf_nnd).rename(columns={'lmlm': 'loym'}, inplace = True)
+    fill_erf_nnd.rename(columns={'lmlm': 'loym'}, inplace = True)
 
-    loy_imput = (fill_erf_nnd)[['ident', 'loym']]
+    loy_imput = fill_erf_nnd[['ident', 'loym']]
 
     erfmenm = load_temp(name = "menagem", year = year)
+
+    for var in ["loym","loym_x","loym_y","loym_z"]:
+        if var in erfmenm:
+            del erfmenm[var]
+            log.info("{} have been deleted".format(var))
+
+
     erfmenm = erfmenm.merge(loy_imput, on='ident', how='left')
     assert 'loym' in erfmenm.columns, u"La variable loym n'est pas présente dans erfmenm"
     save_temp(erfmenm, name = "menagem", year=year)

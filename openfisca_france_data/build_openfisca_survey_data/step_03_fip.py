@@ -48,7 +48,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     # but are not present in the erf or eec tables.
     # We add them to ensure consistency between concepts.
 
-    erfs_survey_collection = SurveyCollection.load()
+    erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     df = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     log.info(u"Démarrage de 03_fip")
