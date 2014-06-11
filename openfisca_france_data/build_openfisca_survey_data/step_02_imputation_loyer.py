@@ -43,9 +43,7 @@ import pandas.rpy.common as com
 
 
 from rpy2.robjects.packages import importr
-import rpy2.robjects.pandas2ri #use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
-
-
+import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
 import rpy2.robjects.vectors as vectors
 
 
@@ -519,7 +517,8 @@ def imputation_loyer(year):
 
     erf['mcs8'] = erf['mcs8'].astype(int)
 
-    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes
+    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes   padas2ri doesn't exist anymore in rpy2
+    com.convert_to_r_dataframe()
     try:
         sm = importr("StatMatch") # Launch R you need to have StatMatch installed in R
     except:
@@ -546,11 +545,10 @@ def imputation_loyer(year):
 
     erfmenm = load_temp(name = "menagem", year = year)
 
-    for var in ["loym","loym_x","loym_y","loym_z"]:
+    for var in ["loym", "loym_x", "loym_y", "loym_z"]:
         if var in erfmenm:
             del erfmenm[var]
             log.info("{} have been deleted".format(var))
-
 
     erfmenm = erfmenm.merge(loy_imput, on='ident', how='left')
     assert 'loym' in erfmenm.columns, u"La variable loym n'est pas présente dans erfmenm"
