@@ -22,10 +22,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import os
 
-from openfisca_france_data.surveys import build_empty_erfs_survey_collection, Survey, SurveyCollection
+
+from openfisca_france_data.collection_builders.erfs_collection_builder import build_empty_erfs_survey_collection
+from openfisca_france_data.surveys import Survey, SurveyCollection
+
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -47,18 +49,22 @@ def test_survey_collection_dump_load():
     erfs_survey_collection_bis = SurveyCollection.load(saved_fake_survey_collection_file_path)
 
     assert erfs_survey_collection.to_json().keys() == erfs_survey_collection_bis.to_json().keys()
-
-    print erfs_survey_collection.to_json().get('name')
-
-    print erfs_survey_collection_bis.to_json().get('name')
-
-
     assert erfs_survey_collection.to_json().get('name') == erfs_survey_collection_bis.to_json().get('name')
-
     assert erfs_survey_collection.to_json() == erfs_survey_collection_bis.to_json()
 
 
+def test_find_tables():
+    erfs_survey_collection = SurveyCollection.load(collection = "erfs")
+    erfs_survey = erfs_survey_collection.surveys['erfs_2006']
+    tables = erfs_survey.find_tables(variable = "ident")
+    print tables
+
 
 if __name__ == '__main__':
-    test_survey_dump_load()
-    test_survey_collection_dump_load()
+    import logging
+    log = logging.getLogger(__name__)
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+#    test_survey_dump_load()
+#    test_survey_collection_dump_load()
+    test_find_tables()

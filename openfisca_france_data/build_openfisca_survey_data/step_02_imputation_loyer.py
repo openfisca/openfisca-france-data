@@ -47,7 +47,7 @@ import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lga
 import rpy2.robjects.vectors as vectors
 
 
-from openfisca_france.model.common import mark_weighted_percentiles
+from openfisca_france_data.model.common import mark_weighted_percentiles
 from openfisca_france_data.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
@@ -91,13 +91,9 @@ def create_comparable_erf_data_frame(year):
 
     if year == 2008:  # Tau99 not present
         menm_vars = menm_vars.pop('tau99')
-
     indm_vars = ["dip11", 'ident', "lpr", "noi"]
-
-
     ## Travail sur la base ERF
     #Preparing ERF menages tables
-
     erfmenm = load_temp(name = "menagem", year = year)
 #     erfmenm = df.get_values(table="erf_menage",variables=menm_vars)
     erfmenm['revtot'] = (
@@ -145,17 +141,40 @@ def create_comparable_erf_data_frame(year):
         (erf['nvpr'] > values[9])
         )
 #    erf['deci'] = 1 + sum( (erf['nvpr'] > values[i]) for i in range(1,10) )
-
     # Problème : tous les individus sont soit dans le premier, soit dans le dernier décile. WTF
-    assert_variable_in_range('deci',[1,11], erf)
+    assert_variable_in_range('deci', [1, 11], erf)
     count_NA('deci', erf)
     del dec, values
     gc.collect()
 
     #TODO: faire le lien avec men_vars, il manque "pol99","reg","tau99" et ici on a en plus logt, 'nvpr','revtot','dip11','deci'
-    erf = erf[['ident','ztsam','zperm','zragm','zricm','zrncm','zracm',
-                 'nb_uci', 'logt' ,'nbpiec','typmen5','spr','nbenfc','agpr','cstotpr',
-                 'nat28pr','tu99','aai1','wprm', 'nvpr','revtot','dip11','deci']][erf['so'].isin(range(3,6))]
+    erf = erf[
+        [
+            'ident',
+            'ztsam',
+            'zperm',
+            'zragm',
+            'zricm',
+            'zrncm',
+            'zracm',
+            'nb_uci',
+            'logt',
+            'nbpiec',
+            'typmen5',
+            'spr',
+            'nbenfc',
+            'agpr',
+            'cstotpr',
+            'nat28pr',
+            'tu99',
+            'aai1',
+            'wprm',
+            'nvpr',
+            'revtot',
+            'dip11',
+            'deci',
+            ]
+        ][erf['so'].isin(range(3, 6))]
 
     erf.rename(columns = {
         'aai1': 'iaat',
@@ -244,7 +263,6 @@ def create_comparable_erf_data_frame(year):
     erf.mcs8[erf['mcs8'].isin([5, 6, 7])] = 5
     count_NA('mcs8', erf)
 
-
     nb_out_of_range_mcs8 = (~(erf.mcs8.isin(range(1, 6)))).sum()
     if nb_out_of_range_mcs8 > 0:
         log.info(u"{} valeurs de mcs8 sont hors de la plage allant de 1 à 5 ".format(nb_out_of_range_mcs8))
@@ -317,7 +335,6 @@ def create_comparable_logement_data_frame(year):
         LgtAdrVars.extend(["idlog"])  # pas de typse en 2006
         LgtLgtVars = ["hnph2", "iaat", "idlog", "lmlm", "tu99"]  # pas de typse en 2006
 
-
     ## Travail sur la table logement
     # Table menage
     if year == 2003:
@@ -327,8 +344,6 @@ def create_comparable_logement_data_frame(year):
 
     logement_survey_collection = SurveyCollection.load(collection='logement')
     logement_survey = logement_survey_collection.surveys['logement_{}'.format(year)]
-
-
 
     log.info("Preparing logement menage table")
 #     Lgtmen = load_temp(name = "indivim",year = year) # Je rajoute une étape bidon
@@ -352,7 +367,8 @@ def create_comparable_logement_data_frame(year):
         return_quantiles = True,
         )
     values.sort()
-    Lgtmen['deci'] = (1 +
+    Lgtmen['deci'] = (
+        1 +
         (Lgtmen['nvpr'] > values[1]) +
         (Lgtmen['nvpr'] > values[2]) +
         (Lgtmen['nvpr'] > values[3]) +
@@ -361,7 +377,8 @@ def create_comparable_logement_data_frame(year):
         (Lgtmen['nvpr'] > values[6]) +
         (Lgtmen['nvpr'] > values[7]) +
         (Lgtmen['nvpr'] > values[8]) +
-        (Lgtmen['nvpr'] > values[9]))
+        (Lgtmen['nvpr'] > values[9])
+        )
 
     del dec, values
     assert Lgtmen['deci'].isin(range(1, 11)).all(), "Logement decile are out of range'"
@@ -414,7 +431,7 @@ def create_comparable_logement_data_frame(year):
     Logement.mnatior[Logement['mnatior'].isin([0, 1])] = 1
     Logement.mnatior[Logement['mnatior'].isin([2, 3, 4, 5, 6, 7, 8, 9, 10, 11])] = 2
     count_NA('mnatior', Logement)
-    assert_variable_in_range('mnatior', [1,3], Logement)
+    assert_variable_in_range('mnatior', [1, 3], Logement)
 
     Logement.iaat[Logement['iaat'].isin([1, 2, 3, 4, 5])] = 1
     Logement.iaat[Logement['iaat'] == 6] = 2
@@ -520,7 +537,7 @@ def imputation_loyer(year):
     rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes   padas2ri doesn't exist anymore in rpy2
     com.convert_to_r_dataframe()
     try:
-        sm = importr("StatMatch") # Launch R you need to have StatMatch installed in R
+        sm = importr("StatMatch")  # Launch R you need to have StatMatch installed in R
     except:
         sm = importr("StatMatch", lib_loc = STATMATCH_LIB_LOCATION)
     out_nnd = sm.NND_hotdeck(data_rec = erf,

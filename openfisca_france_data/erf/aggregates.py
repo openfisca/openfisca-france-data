@@ -7,23 +7,38 @@
 # (see openfisca/__init__.py for details)
 
 
-from openfisca_france.data.erf.datatable import DataCollection
-from openfisca_france.data.erf import get_of2erf, get_erf2of
+import logging
+
+
+from openfisca_france_data.surveys import SurveyCollection
+from openfisca_france_data.erf import get_of2erf, get_erf2of
 import numpy as np
+
+
+log = logging.getLogger(__name__)
+
 
 def build_erf_aggregates(variables = None, year = 2006, unit = 1e6):
     """
     Fetch the relevant aggregates from erf data
     """
+    erfs_survey_collection = SurveyCollection.load(collection = "erfs")
+    erfs_survey = erfs_survey_collection.surveys["erfs_{}".format(year)]
 
-    erf = DataCollection(year=year)
-    if variables is not None and "wprm" not in variables:
-        variables.append("wprm")
-    print 'Fetching aggregates from erf %s data' %str(year)
-    df = erf.get_of_values(variables=variables, table = "erf_menage")
 
     of2erf = get_of2erf()
     erf2of = get_erf2of()
+
+    if set(variables) <= set(of2erf.keys()):
+        variables = [ of2erf[variable] for variable in variables]
+
+    if variables is not None and "wprm" not in variables:
+        variables.append("wprm")
+    log.info("Fetching aggregates from erfs {} data".format(year))
+
+
+    df = erfs_survey.get_values(variables = variables, table = "erf_menage")
+
 
     df.rename(columns = erf2of, inplace = True)
     wprm = df["wprm"]
@@ -42,8 +57,6 @@ def build_erf_aggregates(variables = None, year = 2006, unit = 1e6):
     return df.ix[0:1] # Aggregate so we only need 1 row
 
 
-
-
 if __name__ == '__main__':
-    df = build_erf_aggregates()
+    df = build_erf_aggregates(variables = ["af"])
     print df.to_string()

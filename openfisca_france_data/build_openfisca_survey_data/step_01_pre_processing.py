@@ -39,13 +39,12 @@ log = logging.getLogger(__name__)
 # Menages et Individus
 
 
-
-
-
-def create_indivim(year = 2006):
-    '''
-    '''
-    # load
+def create_indivim(year = None):
+    """
+    Création de la table individus concaténée (merged)
+    """
+    assert year is not None
+    # load data
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
@@ -53,23 +52,19 @@ def create_indivim(year = 2006):
 
     import datetime
     start_time = datetime.datetime.now()
-    log.info(erfmen.info(False))
-    print(datetime.datetime.now() - start_time)
+    log.info(datetime.datetime.now() - start_time)
 
     eecmen = survey.get_values(table = "eec_menage")
     start_time = datetime.datetime.now()
-    log.info(eecmen.info(False))
-    print(datetime.datetime.now() - start_time)
+    log.info(datetime.datetime.now() - start_time)
 
     erfind = survey.get_values(table = "erf_indivi")
     start_time = datetime.datetime.now()
-    log.info(erfind.info(False))
-    print(datetime.datetime.now() - start_time)
+    log.info(datetime.datetime.now() - start_time)
 
     eecind = survey.get_values(table = "eec_indivi")
     start_time = datetime.datetime.now()
-    log.info(eecind.info(False))
-    print(datetime.datetime.now() - start_time)
+    log.info(datetime.datetime.now() - start_time)
 
 #normalement l'option faire passer en lowercase et de remplacer tout "Ident"+yr par ident à été ajoutée dans une méthode de classe get_values survey.py
 #    for table in [erfmen, eecmen, erfind, eecind]:
@@ -77,13 +72,6 @@ def create_indivim(year = 2006):
 ##            table.rename(columns = {column_name: column_name.lower()}, inplace = True)
 #            if column_name == "ident08" :
 #                table.rename(columns = {column_name: "ident"}, inplace = True)
-
-
-#    erfmen.info()
-#    log.info(erfmen.info())
-#    log.info(erfmen.info())
-#    log.info(eecind.info())
-#    log.info(erfind.info())
 
     # travail sur la cohérence entre les bases
     noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
@@ -94,7 +82,7 @@ def create_indivim(year = 2006):
 
     difference = set(noappar_i.ident).symmetric_difference(noappar_m.ident)
     intersection = set(noappar_i.ident) & set(noappar_m.ident)
-    log.info((difference, intersection))
+    log.info("There are {} diffenrents entries and {} intrsections".format(len(difference), len(intersection)))
     del noappar_i, noappar_m, difference, intersection
     gc.collect()
 
@@ -130,15 +118,12 @@ def create_indivim(year = 2006):
 #    for indivim.columns in indivim:
 ##    for var in indivim:
     for var in var_list:
-        print var
         if indivim[var].dtype != 'float64' or indivim[var].dtype != 'float32':
             filter00 =  ((indivim[var] == "") | (indivim[var] == ".")) #crée un filtre pour les valeurs manquantes, ne marche pas si type en float
             indivim[var][filter00] = np.nan
 
-
         try:
             indivim[var] = indivim[var].astype("float32")
-            print(indivim.info(False))
 
         except Exception as e:
             print e, "{}".format(var)
@@ -298,7 +283,7 @@ def create_enfants_a_naitre(year = 2006):
 if __name__ == '__main__':
     print('Entering 01_pre_proc')
     import sys
-#    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     import time
     deb = time.clock()
     year = 2006

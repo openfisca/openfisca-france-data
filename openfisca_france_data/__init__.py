@@ -23,6 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+
+
 AGGREGATES_DEFAULT_VARS = [
     'cotsoc_noncontrib',
     'csg',
@@ -58,7 +61,9 @@ AGGREGATES_DEFAULT_VARS = [
     ]
     # ajouter csgd pour le calcul des agrégats erfs
     # ajouter rmi pour le calcul des agrégats erfs
+COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
 FILTERING_VARS = ["champm"]
+PLUGINS_DIR = os.path.join(COUNTRY_DIR, 'plugins')
 WEIGHT = "wprm"
 WEIGHT_INI = "wprm_init"
 

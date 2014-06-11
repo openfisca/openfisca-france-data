@@ -33,7 +33,6 @@ from pandas import read_csv
 import os
 
 
-from openfisca_france_data.surveys import Survey, SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import (
     check_structure,
@@ -211,19 +210,7 @@ def final(year = 2006, filename = "test", check = True):
                                 loyersMenages.ddipl - 1,
                                 loyersMenages.ddipl)
     loyersMenages.ddipl.astype("int32")
-#
-# table(final$actrec,useNA="ifany")
-# final$act5 <- NA
-# final <- within(final, {
-#   act5[which(actrec==1) ] <- 2 # ind?pendants
-#   act5[which(actrec==2) ] <- 1 # salari?s
-#   act5[which(actrec==3) ] <- 1 # salari?s
-#   act5[which(actrec==4) ] <- 3 # ch?meur
-#   act5[which(actrec==7) ] <- 4 # retrait?
-#   act5[which(actrec==8) ] <- 5 # autres inactifs
-# })
-# table(final$act5,useNA="ifany")
-#
+
     final['act5'] = NaN
     final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
     final.act5 = where(final.actrec.isin([2, 3]), 1, final.act5)  # salariés
@@ -369,42 +356,23 @@ def final(year = 2006, filename = "test", check = True):
 #        renamed_file = os.path.join(DATA_SOURCES_DIR, filename + "_" + time_stamp + ".h5")
 #        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
 #        test_filename = renamed_file
-    dataframe = final2
+    data_frame = final2
 
     if year == 2006:  # Hack crade pur régler un problème rémanent
-        dataframe = dataframe[dataframe.idfam != 602177906].copy()
+        data_frame = data_frame[data_frame.idfam != 602177906].copy()
 
     for id_variable in ['idfam', 'idfoy', 'idmen', 'noi', 'quifam', 'quifoy', 'quimen']:
-        dataframe[id_variable] = dataframe[id_variable].astype('int')
+        data_frame[id_variable] = data_frame[id_variable].astype('int')
 
     check = False
     if check:
-        check_structure(dataframe)
+        check_structure(data_frame)
 
     for entity_id in ['idmen', 'idfoy', 'idfam']:
-        dataframe = id_formatter(dataframe, entity_id)
+        data_frame = id_formatter(data_frame, entity_id)
 
-    set_variables_default_value(dataframe, year)
-
-    # Saving the dataframe
-    openfisca_survey_collection = SurveyCollection(name = "openfisca")
-    openfisca_survey_collection.set_config_files_directory()
-    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
-    survey_name = "openfisca_data_{}".format(year)
-    table = "input"
-    hdf5_file_path = os.path.join(
-        os.path.dirname(output_data_directory),
-        "{}{}".format(survey_name, ".h5"),
-        )
-
-    survey = Survey(
-        name = survey_name,
-        hdf5_file_path = hdf5_file_path,
-        )
-    survey.insert_table(name = table)
-    survey.fill_hdf(table, dataframe)
-    openfisca_survey_collection.surveys[survey_name] = survey
-    openfisca_survey_collection.dump(collection = "openfisca")
+    set_variables_default_value(data_frame, year)
+    return data_frame
 
 if __name__ == '__main__':
     final()

@@ -36,6 +36,7 @@ import re
 from ConfigParser import SafeConfigParser
 import logging
 from pandas import HDFStore
+from pandas.lib import infer_dtype
 
 #import pandas.rpy.common as com     #need to import it just for people using Rdata files
 #import rpy2.rpy_classic as rpy
@@ -46,6 +47,7 @@ from pandas import HDFStore
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_data_location)
 ident_re = re.compile(u"(?i)ident\d{2,4}$")
+
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +60,7 @@ class Survey(object):
     label = None
     name = None
     tables = None
+    tables_index = dict()
 
     def __init__(self, name = None, label = None, hdf5_file_path = None, **kwargs):
         assert name is not None, "A survey should have a name"
@@ -87,10 +90,8 @@ class Survey(object):
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
     def fill_hdf(self, table = None, dataframe = None):
-        if table is None:
-            raise Exception(u"The mandatory keyword argument 'table' is not provided")
-        if dataframe is None:
-            raise Exception(u"The mandatory keyword argument 'dataframe' is not provided")
+        assert table is not None, u"The mandatory keyword argument 'table' is not provided"
+        assert dataframe is not None, u"The mandatory keyword argument 'dataframe' is not provided"
         if table not in self.tables:
             self.tables[table] = {}
 
@@ -100,7 +101,14 @@ class Survey(object):
             )
         )
         store_path = table
-        dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+        try:
+            dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+        except TypeError:
+            types = dataframe.apply(lambda x: infer_dtype(x.values))
+            log.info("The following types are converted to strings \n {}".format(types[types=='unicode']))
+            for column in types[types=='unicode'].index:
+                dataframe[column] = dataframe[column].astype(str)
+            dataframe.to_hdf(self.hdf5_file_path, store_path)
 
     def fill_hdf_from_Rdata(self, table):
         import pandas.rpy.common as com
@@ -161,7 +169,6 @@ class Survey(object):
             log.info('variables asked by the user: {}'.format(variables))
             variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
             log.info('variables stored: {}'.format(variables_stored))
-
             stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         else:
             stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
@@ -193,13 +200,33 @@ class Survey(object):
             log.info('variables asked by the user: {}'.format(variables))
             variables_stored = list(set(variables).intersection(set(stored_dataframe.columns)))
             log.info('variables stored: {}'.format(variables_stored))
-
             stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         else:
             stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         gc.collect()
 
-    def get_value(self, variable, table = None):
+    def find_tables(self, variable = None, tables = None):
+        container_tables = []
+        assert variable is not None
+        if tables is None:
+            tables = self.tables
+        tables_index = self.tables_index
+        for table in tables:
+            if table not in tables_index.keys():
+                tables_index[table] = self.get_columns(table)
+            if variable in tables_index[table]:
+                container_tables.append(table)
+        return container_tables
+
+    def get_columns(self, table = None):
+        assert table is not None
+        store = HDFStore(self.hdf5_file_path)
+        assert table in store
+        log.info("Building columns index for table {}".format(table))
+        return list(store[table].columns)
+
+
+    def get_value(self, variable = None, table = None):
         """
         Get value
 
@@ -214,6 +241,7 @@ class Survey(object):
         df : DataFrame, default None
              A DataFrame containing the variable
         """
+        assert variable is not None, "A variable is needed"
         if table not in self.tables:
             log.error("Table {} is not found in survey tables".format(table))
         df = self.get_values([variable], table)

@@ -24,9 +24,10 @@
 
 
 import logging
+import os
 import sys
-logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
+from openfisca_france_data.surveys import Survey, SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import (
     step_01_pre_processing as pre_processing,
     step_02_imputation_loyer as imputation_loyer,
@@ -38,21 +39,48 @@ from openfisca_france_data.build_openfisca_survey_data import (
     step_08_final as final,
     )
 
+logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+
+
 def run_all(year = 2006, filename = "test", check = False):
 
-    pre_processing.create_indivim(year = year)
-    pre_processing.create_enfants_a_naitre(year = year)
-    # imputation_loyer.create_imput_loyer(year = year)
-    # fip.create_fip(year = year)
-    famille.famille(year = year)
-    foyer.sif(year = year)
-    foyer.foyer_all(year = year)
-    rebuild.create_totals(year = year)
-    rebuild.create_final(year = year)
+#    pre_processing.create_indivim(year = year)
+#    pre_processing.create_enfants_a_naitre(year = year)
+#    imputation_loyer.imputation_loyer(year = year)
+#    fip.create_fip(year = year)
+#    famille.famille(year = year)
+#    foyer.sif(year = year)
+#    foyer.foyer_all(year = year)
+#    rebuild.create_totals(year = year)
+#    rebuild.create_final(year = year)
 #    invalides.invalide(year = year)
-    final.final(year = year, check = check)
+    data_frame = final.final(year = year, check = check)
+
+    # Saving the data_frame
+    openfisca_survey_collection = SurveyCollection(name = "openfisca")
+    openfisca_survey_collection.set_config_files_directory()
+    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    survey_name = "openfisca_data_{}".format(year)
+    table = "input"
+    hdf5_file_path = os.path.join(
+        os.path.dirname(output_data_directory),
+        "{}{}".format(survey_name, ".h5"),
+        )
+
+    survey = Survey(
+        name = survey_name,
+        hdf5_file_path = hdf5_file_path,
+        )
+    survey.insert_table(name = table)
+    survey.fill_hdf(table, data_frame)
+    openfisca_survey_collection.surveys[survey_name] = survey
+    openfisca_survey_collection.dump(collection = "openfisca")
+
 
 if __name__ == '__main__':
+    import time
+    start = time.time()
     run_all(year = 2006, check = False)
+    print time.time() - start
     # import pdb
     # pdb.set_trace()
