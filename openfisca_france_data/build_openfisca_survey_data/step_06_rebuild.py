@@ -311,6 +311,7 @@ def create_totals(year = 2006):
     del idfoyList
     print_id(indivi)
 
+#Sélectionne les variables à garder pour les steps suivants
     myvars = [
         "actrec",
         "age",
@@ -330,6 +331,8 @@ def create_totals(year = 2006):
         "titc",
         "txtppb",
         "wprm",
+        "rc1rev",
+        "maahe",
         ]
 
     assert len(set(myvars).difference(set(indivi.columns))) == 0, \
@@ -546,3 +549,4 @@ if __name__ == '__main__':
     year = 2006
     create_totals(year=year)
     create_final(year=year)
+    log.info(u"étape 06 terminée")

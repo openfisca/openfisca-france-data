@@ -102,7 +102,7 @@ def final(year = 2006, filename = "test", check = True):
 
     final.update(final_fip)
     save_temp(final, name = "final", year = year)
-    log.info("    final has been updated with fip")
+    log.info("final has been updated with fip")
 
     menagem = load_temp(name = "menagem", year = year)
     menagem.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
@@ -226,7 +226,7 @@ def final(year = 2006, filename = "test", check = True):
     final.act5 = where(final.actrec == 7, 4, final.act5)  # retraité
     final.act5 = where(final.actrec == 8, 5, final.act5)  # autres inactifs
 
-    print final.act5.value_counts()  # TODO : 29 retraités ?
+    print final.act5.value_counts()
 
 #     assert final.act5.notnull().all(), 'there are NaN inside final.act5'
 # final$wprm <- NULL # with the intention to extract wprm from menage to deal with FIPs

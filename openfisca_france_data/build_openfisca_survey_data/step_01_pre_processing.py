@@ -47,24 +47,16 @@ def create_indivim(year = None):
     # load data
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
-
     erfmen = survey.get_values(table = "erf_menage")
 
     import datetime
-    start_time = datetime.datetime.now()
-    log.info(datetime.datetime.now() - start_time)
 
+    start_time = datetime.datetime.now()
     eecmen = survey.get_values(table = "eec_menage")
-    start_time = datetime.datetime.now()
     log.info(datetime.datetime.now() - start_time)
-
     erfind = survey.get_values(table = "erf_indivi")
-    start_time = datetime.datetime.now()
-    log.info(datetime.datetime.now() - start_time)
-
     eecind = survey.get_values(table = "eec_indivi")
-    start_time = datetime.datetime.now()
-    log.info(datetime.datetime.now() - start_time)
+
 
 #normalement l'option faire passer en lowercase et de remplacer tout "Ident"+yr par ident à été ajoutée dans une méthode de classe get_values survey.py
 #    for table in [erfmen, eecmen, erfind, eecind]:
@@ -118,13 +110,11 @@ def create_indivim(year = None):
 #    for indivim.columns in indivim:
 ##    for var in indivim:
     for var in var_list:
-        if indivim[var].dtype != 'float64' or indivim[var].dtype != 'float32':
+        if indivim[var].dtype != 'float64' and indivim[var].dtype != 'float32':
             filter00 =  ((indivim[var] == "") | (indivim[var] == ".")) #crée un filtre pour les valeurs manquantes, ne marche pas si type en float
             indivim[var][filter00] = np.nan
-
         try:
             indivim[var] = indivim[var].astype("float32")
-
         except Exception as e:
             print e, "{}".format(var)
 
@@ -289,4 +279,5 @@ if __name__ == '__main__':
     year = 2006
     create_indivim(year = year)
     create_enfants_a_naitre(year = year)
+    log.info("etape 01 terminee")
     print time.clock() - deb

@@ -576,3 +576,4 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2006
     imputation_loyer(year = year)
+    log.info(u"étape 02 terminée")
