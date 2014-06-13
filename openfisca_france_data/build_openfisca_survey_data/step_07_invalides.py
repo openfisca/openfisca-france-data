@@ -67,18 +67,19 @@ def invalide(year = 2006):
 
     if set(aah_eec_variables) < set(final.columns):
         aah_eec = True
-        invalides_vars += aah_eec
+        invalides_vars += aah_eec_variables
 
     assert set(invalides_vars) < set(final.columns), \
         "Variables {} are missing".format(set(invalides_vars).difference(set(final.columns)))
 
     invalides = final.xs(invalides_vars, axis = 1)
 
+    invalides['inv'] = False
+    invalides['alt'] = False
     for var in ["caseP", "caseF"]:
         assert invalides[var].notnull().all(), 'NaN values in {}'.format(var)
 
     # Les déclarants invalides
-    invalides['inv'] = False
     invalides['inv'][(invalides['caseP'] == 1) & (invalides['quifoy'] == 0)] = True
     log.info(u"Il y a {} invalides déclarants".format(invalides["inv"].sum()))
 
@@ -86,11 +87,11 @@ def invalide(year = 2006):
     if aah_eec:
         log.info(u"Inspecting rc1rev")
         log.info(invalides['rc1rev'].value_counts())
-
-
         invalides['inv'][invalides.maahe > 0] = True
         invalides['inv'][invalides.rc1rev == 4] = True  # TODO: vérifier le format.
-        log.info(u"Il y a {} invalides qui touchent des alloc").format(invalides["inv"].sum())
+#  TODO:      invalides.rc1rev.astype("str") voir mai mahdi pour pendre en compte 14 24 etc
+
+        log.info(u"Il y a {} invalides qui touchent des alloc".format(invalides["inv"].sum()))
 
     print_id(invalides)
 
@@ -146,9 +147,10 @@ def invalide(year = 2006):
 # # invalides$alt <- 0
 # # foy_inv_pac[is.na(foy_inv_pac$alt),"alt"] <- 0
 # # invalides[!(invalides$quifoy %in% c("vous","conj")),c("noindiv","inv","alt")] <- foy_inv_pac
-    log.info(u"    1.3 : enfants invalides et garde alternée")
+    log.info(u"    1.3 : enfants invalides et en garde alternée (variables inv et alt)")
     pacIndiv = load_temp(name='pacIndiv', year=year)
-    print pacIndiv.type_pac.value_counts()
+#    print pacIndiv.type_pac.value_counts()
+    log.info(pacIndiv.type_pac.value_counts())
 
     foy_inv_pac = invalides[['noindiv', 'inv']][~(invalides.quifoy.isin([0, 1]))].copy()
 #     pac = pacIndiv.ix[:, ["noindiv", "type_pac", "naia"]]
@@ -166,34 +168,19 @@ def invalide(year = 2006):
             (foy_inv_pac.type_pac == "F") & ((year - foy_inv_pac.naia) > 18)
             )
         )
-
-    foy_inv_pac['alt'] = ((foy_inv_pac.type_pac == "H") | (foy_inv_pac.type_pac == "I"))
-    foy_inv_pac['naia'] = None
-    foy_inv_pac['type_pac'] = None
+    foy_inv_pac['alt'] = ((foy_inv_pac.type_pac == "H") | (foy_inv_pac.type_pac == "I")) #TODO : adrien self message, check what is exactly done here.
+    del foy_inv_pac['naia']
+    del foy_inv_pac['type_pac']
     foy_inv_pac['alt'] = foy_inv_pac['alt'].fillna(False)
 
     print foy_inv_pac['inv'].describe()
-    invalides['alt'] = 0
-    foy_inv_pac['alt'][foy_inv_pac.alt.isnull()] = 0
-    invalides = invalides.merge(foy_inv_pac, on=["noindiv", "inv", "alt"])
-
-    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
-#     print foy_inv_pac.inv.value_counts() # TODO: JS : trop peu de True là-dedans
-#     print foy_inv_pac.alt.value_counts() #
-#
-#
-#     print  len(invalides), len(foy_inv_pac)
-#     print invalides.inv.value_counts()
-
-    invalides = invalides.merge(foy_inv_pac, on = 'noindiv', how = 'left')
-    invalides['inv'] = where(invalides['inv_y'], invalides['inv_y'], invalides['inv_x'])
-    invalides['alt'] = where(invalides['inv_y'], invalides['inv_y'], invalides['inv_x'])
-
-    invalides = invalides.loc[:, ["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']]
+    invalides['alt'] = False
+    invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "inv" ]] = foy_inv_pac[["alt", "inv"]].copy().values
+    invalides = invalides[["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']].copy()
     invalides['alt'].fillna(False, inplace = True)
 
     print invalides.inv.value_counts()
-    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
+#    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
     del foy_inv_pac, pacIndiv
 
 # # # Initialisation des NA sur alt et inv
@@ -206,7 +193,7 @@ def invalide(year = 2006):
     print ''
     print 'Etape 2 : Initialisation des NA sur alt et inv'
     assert invalides["inv"].notnull().all() & invalides.alt.notnull().all()
-    final = final.merge(invalides[['noindiv', 'inv', 'alt']].copy(), on = 'noindiv', how = 'left')
+    final = final.merge(invalides[['noindiv', 'inv', 'alt']], on = 'noindiv', how = 'left')
     del invalides
 
     print final.inv.value_counts()
@@ -216,5 +203,9 @@ def invalide(year = 2006):
     print 'final complétée et sauvegardée'
 
 if __name__ == '__main__':
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+
     year = 2006
     invalide(year = year)
+    log.info(u"étape 07 imputation des loyers terminée")
