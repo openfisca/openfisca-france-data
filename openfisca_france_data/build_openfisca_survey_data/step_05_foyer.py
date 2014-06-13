@@ -345,3 +345,4 @@ if __name__ == '__main__':
     year = 2006
     sif(year=year)
     foyer_all(year=year)
+    log.info(u"étape 05 terminée")

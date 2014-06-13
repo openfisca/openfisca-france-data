@@ -304,3 +304,4 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 
 if __name__ == '__main__':
     create_fip()
+    log.info(u"etape 03 terminée")
