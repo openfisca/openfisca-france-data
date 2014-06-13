@@ -178,7 +178,6 @@ class Survey(object):
     def fill_hdf_from_stata(self, table):
         from pandas import read_stata
         assert table in self.tables, "Table {} is not a filed table".format(table)
-        stata_table = self.tables[table]["stata_table"]
         stata_file = self.tables[table]["stata_file"]
         try:
             variables = self.tables[table]['variables']
@@ -188,7 +187,7 @@ class Survey(object):
             raise Exception("file_path do  not exists")
 
         log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
-            stata_table,
+            table,
             stata_file,
             self.hdf5_file_path,
             table,
@@ -359,6 +358,14 @@ class SurveyCollection(object):
             survey = self.surveys[survey_name]
             for table in survey.tables:
                 survey.fill_hdf_from_sas(table)
+
+    def fill_hdf_from_stata(self, surveys_name = None):
+        if surveys_name is None:
+            surveys_name = self.surveys.values()
+        for survey_name in surveys_name:
+            survey = self.surveys[survey_name]
+            for table in survey.tables:
+                survey.fill_hdf_from_stata(table)
 
     @classmethod
     def load(cls, file_path = None, collection = None, config_files_directory = None):
