@@ -88,7 +88,7 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
 
 def simulation_results_as_data_frame(survey_scenario = None, column_names = None, entity = None, force_sum = False):
     assert survey_scenario is not None
-    assert force_sum is False or entity != 'ind', "force_sum cannot be tru when entity is 'ind'"
+    assert force_sum is False or entity != 'ind', "force_sum cannot be True when entity is 'ind'"
     simulation = survey_scenario.simulation
     column_by_name = simulation.tax_benefit_system.column_by_name
     assert set(column_names) <= set(column_by_name), \
