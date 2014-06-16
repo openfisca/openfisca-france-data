@@ -53,6 +53,9 @@ def invalide(year = 2006):
     log.info(u"Etape 1 : création de la df invalides")
     log.info(u"    1.1 : déclarants invalides")
     final = load_temp(name = "final", year = year)
+    final.drop(["inv", "alt"], axis = 1 ,inplace = True) #on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
+
+
     invalides_vars = [
         "caseF",
         "caseP",
@@ -154,9 +157,9 @@ def invalide(year = 2006):
 
     foy_inv_pac = invalides[['noindiv', 'inv']][~(invalides.quifoy.isin([0, 1]))].copy()
 #     pac = pacIndiv.ix[:, ["noindiv", "type_pac", "naia"]]
-    print len(foy_inv_pac)
+    log.info("{}".format(len(foy_inv_pac)))
 
-    print pacIndiv.columns
+    log.info("{}".format( pacIndiv.columns))
     foy_inv_pac = foy_inv_pac.merge(
         pacIndiv[['noindiv', 'type_pac', 'naia']].copy(),
         on = 'noindiv',
@@ -173,13 +176,13 @@ def invalide(year = 2006):
     del foy_inv_pac['type_pac']
     foy_inv_pac['alt'] = foy_inv_pac['alt'].fillna(False)
 
-    print foy_inv_pac['inv'].describe()
+    log.info("{}".format(foy_inv_pac['inv'].describe()))
     invalides['alt'] = False
     invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "inv" ]] = foy_inv_pac[["alt", "inv"]].copy().values
     invalides = invalides[["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']].copy()
     invalides['alt'].fillna(False, inplace = True)
 
-    print invalides.inv.value_counts()
+    log.info(invalides.inv.value_counts())
 #    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
     del foy_inv_pac, pacIndiv
 
@@ -190,17 +193,16 @@ def invalide(year = 2006):
 # # final <- merge(final, invalides[,c("noindiv","inv","alt")], by="noindiv",all.x=TRUE)
 # # table(final[, c("inv","alt")],useNA="ifany")
 
-    print ''
-    print 'Etape 2 : Initialisation des NA sur alt et inv'
+    log.info('Etape 2 : Initialisation des NA sur alt et inv')
     assert invalides["inv"].notnull().all() & invalides.alt.notnull().all()
     final = final.merge(invalides[['noindiv', 'inv', 'alt']], on = 'noindiv', how = 'left')
     del invalides
 
-    print final.inv.value_counts()
+    log.info("{}".format(final.inv.value_counts()))
     control(final, debug = True)
 
     save_temp(final, name = 'final', year = year)
-    print 'final complétée et sauvegardée'
+    log.info(u'final complétée et sauvegardée')
 
 if __name__ == '__main__':
     import sys
@@ -208,4 +210,4 @@ if __name__ == '__main__':
 
     year = 2006
     invalide(year = year)
-    log.info(u"étape 07 imputation des loyers terminée")
+    log.info(u"étape 07 création des invalides terminée")

@@ -149,8 +149,8 @@ def sif(year = 2006):
 
     del sif["sif"], sif["stamar"]
 
-    print "Number of individuals :", len(sif.noindiv)
-    print "Number of distinct individuals :", len(sif.noindiv.value_counts())
+    log.info("Number of individuals: {}".format(len(sif.noindiv)))
+    log.info("Number of distinct individuals: {}".format(len(sif.noindiv.value_counts())))
 
     sif_drop_duplicated = sif.drop_duplicates("noindiv")
     assert len(sif["noindiv"].value_counts()) == len(sif_drop_duplicated["noindiv"]), \
@@ -296,7 +296,7 @@ def foyer_all(year = 2006):
             # Testing if at least one variable of foyers_vars is in the eligible list
             presence = [x in eligible_vars for x in foyer_vars]
             if not any(presence):
-                print individual_var + " is not present"
+                log.info("{} is not present".format(individual_var))
                 continue
             else:
                 # Shrink the list
@@ -334,7 +334,7 @@ def foyer_all(year = 2006):
 
     assert foy_ind.quifoy .isin(range(5)).all(), 'présence de valeurs aberrantes dans quifoy'
 
-    print 'saving foy_ind'
+    log.info('saving foy_ind')
     print_id(foy_ind)
     save_temp(foy_ind, name = "foy_ind", year = year)
     show_temp()
@@ -345,4 +345,4 @@ if __name__ == '__main__':
     year = 2006
     sif(year=year)
     foyer_all(year=year)
-    log.info(u"étape 05 terminée")
+    log.info(u"étape 05 foyer terminée")

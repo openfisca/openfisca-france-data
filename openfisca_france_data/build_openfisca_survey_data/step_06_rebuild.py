@@ -104,7 +104,7 @@ def create_totals(year = 2006):
 
     indivi.reset_index( inplace = True)
 
-    print "Etape 2 : isolation des FIP"
+    log.info("Etape 2 : isolation des FIP")
     fip_imp = indivi.quelfic=="FIP_IMP"
     indivi["idfoy"] = (
         indivi["idmen"].astype("int64") * 100 +
@@ -157,7 +157,7 @@ def create_totals(year = 2006):
     del adults
     # TODO: hack to avoid assert error
     try:
-        print indivi.loc[indivi['lpr'].isin([1, 2]), "idfoy"].notnull().value_counts()
+        log.info("{}".format(indivi.loc[indivi['lpr'].isin([1, 2]), "idfoy"].notnull().value_counts()))
         assert indivi.idfoy[indivi['lpr'].isin([1, 2])].notnull().all()
     except:
         pass
@@ -350,7 +350,7 @@ def create_totals(year = 2006):
     indivi['activite'][indivi.actrec == 7] = 3
     indivi['activite'][indivi.actrec == 8] = 4
     indivi['activite'][indivi.age <= 13] = 2 # ce sont en fait les actrec=9
-    print indivi['activite'].value_counts()
+    log.info("{}".format(indivi['activite'].value_counts()))
     # TODO: MBJ problem avec les actrec
 
 
@@ -400,7 +400,7 @@ def create_totals(year = 2006):
     indivi['cadre'] = 0
     indivi['prosa'][indivi['prosa'].isnull()] = 0
     assert indivi['prosa'].notnull().all()
-    print indivi['encadr'].value_counts()
+    log.info("{}".format(indivi['encadr'].value_counts()))
 
     # encadr : 1=oui, 2=non
     indivi.encadr.fillna(2, inplace = True)
@@ -476,7 +476,7 @@ def create_totals(year = 2006):
     tot3 = tot2
     # TODO: check where they come from
     tot3 = tot3.drop_duplicates(cols = 'noindiv')
-    print len(tot3)
+    log.info("{}".format(len(tot3)))
 
     # Block to remove any unwanted duplicated pair
     control(tot3, debug = True, verbose = True)
@@ -491,7 +491,7 @@ def create_totals(year = 2006):
     allvars = load_temp(name = 'ind_vars_to_remove', year = year)
     vars2 = set(tot3.columns).difference(set(allvars))
     tot3 = tot3[list(vars2)]
-    print len(tot3)
+    log.info("{}".format(len(tot3)))
 
     assert not(tot3.duplicated(cols = ['noindiv']).any()), "doublon dans tot3['noindiv']"
     lg_dup = len(tot3[tot3.duplicated(['idfoy', 'quifoy'])])
@@ -527,11 +527,11 @@ def create_final(year=None):
     gc.collect()
 
 #final <- merge(final, sif, by = c('noindiv'), all.x = TRUE)
-    print "    loading fip"
+    log.info("    loading fip")
     sif = load_temp(name = 'sif', year=year)
 
-    print sif.columns
-    print "    update final using fip"
+    log.info("{}".format(sif.columns))
+    log.info("    update final using fip")
     final = final.merge(sif, on=["noindiv"], how="left")
     #TODO: IL FAUT UNE METHODE POUR GERER LES DOUBLES DECLARATIONS
 
@@ -549,4 +549,4 @@ if __name__ == '__main__':
     year = 2006
     create_totals(year=year)
     create_final(year=year)
-    log.info(u"étape 06 terminée")
+    log.info(u"étape 06 remise en forme des données terminée")

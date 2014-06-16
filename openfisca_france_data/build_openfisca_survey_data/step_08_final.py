@@ -49,7 +49,7 @@ log = logging.getLogger(__name__)
 def final(year = 2006, filename = "test", check = True):
 
 ##***********************************************************************/
-    print('08_final: derniers réglages')
+    log.info('08_final: derniers réglages')
 ##***********************************************************************/
 #
 # loadTmp("final.Rdata")
@@ -60,7 +60,7 @@ def final(year = 2006, filename = "test", check = True):
     import gc
     gc.collect()
     final = load_temp("final", year=year)
-    print 'check doublons', len(final[final.duplicated(['noindiv'])])
+    log.info('check doublons'.format(len(final[final.duplicated(['noindiv'])])))
     final.statmarit = where(final.statmarit.isnull(), 2, final.statmarit)
 #
 
@@ -87,10 +87,10 @@ def final(year = 2006, filename = "test", check = True):
 # print_id(final)
 # saveTmp(final, file= "final.Rdata")
 #
-    print '    gestion des FIP de final'
+    log.info('    gestion des FIP de final')
     final_fip = final[["choi", "sali", "alr", "rsti", "age"]][final.quelfic == "FIP"].copy()
 
-    print set(["choi", "sali", "alr", "rsti"]).difference(set(final_fip.columns))
+    log.info(set(["choi", "sali", "alr", "rsti"]).difference(set(final_fip.columns)))
     for var in ["choi", "sali", "alr", "rsti"]:
         final_fip[var].fillna(0, inplace=True)
         assert final_fip[var].notnull().all(), "Some NaN are remaining in column {}".format(var)
@@ -165,8 +165,8 @@ def final(year = 2006, filename = "test", check = True):
     # TODO: 2008tau99 is not present should be provided by 02_loy.... is it really needed
     all_vars = vars + famille_vars
 
-    print all_vars
-    print menagem.info()
+    log.info("liste de toutes les variables : {}".format(all_vars))
+    log.info(menagem.info())
     available_vars = list(set(all_vars).intersection(set(menagem.columns)))
     loyersMenages = menagem.xs(available_vars, axis = 1)
 #
@@ -204,7 +204,7 @@ def final(year = 2006, filename = "test", check = True):
 #
 # loyersMenages[loyersMenages$ddipl>1, "ddipl"] <- loyersMenages$ddipl[loyersMenages$ddipl>1]-1
 #
-    print loyersMenages.info()
+    log.info("{}".format( loyersMenages.info()))
     loyersMenages.ddipl = where(loyersMenages.ddipl.isnull(), 7, loyersMenages.ddipl)
     loyersMenages.ddipl = where(loyersMenages.ddipl > 1,
                                 loyersMenages.ddipl - 1,
@@ -226,7 +226,7 @@ def final(year = 2006, filename = "test", check = True):
     final.act5 = where(final.actrec == 7, 4, final.act5)  # retraité
     final.act5 = where(final.actrec == 8, 5, final.act5)  # autres inactifs
 
-    print final.act5.value_counts()
+    log.info("{}".format(final.act5.value_counts()))
 
 #     assert final.act5.notnull().all(), 'there are NaN inside final.act5'
 # final$wprm <- NULL # with the intention to extract wprm from menage to deal with FIPs
@@ -234,16 +234,16 @@ def final(year = 2006, filename = "test", check = True):
 # final$zthabm <- NULL
 #
 # final2 <- merge(final, loyersMenages, by="idmen", all.x=TRUE)
-    print '    création de final2'
+    log.info('    création de final2')
     del final["wprm"]
     gc.collect()
     final.rename(columns = dict(zthabm = "tax_hab"), inplace = True)  # rename zthabm to tax_hab
     final2 = final.merge(loyersMenages, on = "idmen", how = "left")  # TODO: Check
-    print loyersMenages.head()
+    log.info("{}".format( loyersMenages.head()))
     gc.collect()
     print_id(final2)
 # # TODO: merging with patrimoine
-    print '    traitement des zones apl'
+    log.info('    traitement des zones apl')
     import pkg_resources
     openfisca_france_location = pkg_resources.get_distribution('openfisca-france').location
     zone_apl_imputation_data_file_path = os.path.join(
@@ -255,7 +255,7 @@ def final(year = 2006, filename = "test", check = True):
         )
     apl_imp = read_csv(zone_apl_imputation_data_file_path)
 
-    print apl_imp.head(10)
+    log.info("{}".format( apl_imp.head(10)))
     if year == 2008:
         zone_apl = final2.xs(["tu99", "pol99", "reg"], axis = 1)
     else:
@@ -280,12 +280,12 @@ def final(year = 2006, filename = "test", check = True):
             )
 
     z = random.uniform(size=indices.sum())
-    print len(z)
-    print len(indices)
-    print len(indices) / len(z)
+    log.info(len(z))
+    log.info(len(indices))
+    log.info(len(indices) / len(z))
     probs = apl_imp[["proba_zone1", "proba_zone2"]][selection].copy()
-    print probs
-    print probs['proba_zone1'].values
+    log.info(probs)
+    log.info(probs['proba_zone1'].values)
     proba_zone_1 = probs['proba_zone1'].values[0]
     proba_zone_2 = probs['proba_zone2'].values[0]
 
@@ -295,24 +295,24 @@ def final(year = 2006, filename = "test", check = True):
         )
     del indices, probs
 
-    print '    performing cleaning on final2'
-    print 'nombre de sali nuls', len(final2[final2['sali'].isnull()])
-    print "nombre d'âges nuls", len(final2[final2.age.isnull()])
-    print "longueur de final2 avant purge", len(final2)
+    log.info('    performing cleaning on final2')
+    log.info('{} Sali nuls'.format(len(final2[final2['sali'].isnull()])))
+    log.info("{} individus d'âges nuls".format(len(final2[final2.age.isnull()])))
+    log.info("longueur de final2 avant purge : {}".format(len(final2)))
 #     columns_w_nan = []
 #     for col in final2.columns:
 #         if final2[final2['idfoy'].notnull()][col].isnull().any() and not final2[col].isnull().all():
 #             columns_w_nan.append(col)
 #     print columns_w_nan
-    print 'check doublons', len(final2[final2.duplicated(['noindiv'])])
-    print final2.age.isnull().sum()
+    log.info('check doublons : {}'.format(len(final2[final2.duplicated(['noindiv'])])))
+    log.info("{}".format(final2.age.isnull().sum()))
 
 #     print final2.loc[final2.duplicated('noindiv'), ['noindiv', 'quifam']].to_string()
     #TODO: JS: des chefs de famille et conjoints en double il faut trouver la source des ces doublons !
 #     final2 = final2.drop_duplicates(['noindiv'])
 
     final2 = final2[~(final2.age.isnull())]
-    print "longueur de final2 après purge", len(final2)
+    log.info("longueur de final2 après purge: ", len(final2))
     print_id(final2)
 
 #
@@ -330,21 +330,21 @@ def final(year = 2006, filename = "test", check = True):
 # saveTmp(final2, file= "final2.Rdata")
 
     control(final2, debug = True)
-    print final2.age.isnull().sum()
+    log.info(final2.age.isnull().sum())
     final2 = final2.drop_duplicates(cols = 'noindiv')
 
-    print '    Filter to manage the new 3-tables structures:'
+    log.info('    Filter to manage the new 3-tables structures:')
     # On récupère les foyer, famille, ménages qui ont un chef :
     liste_men = unique(final2.loc[final2['quimen'] == 0, 'idmen'].values)
     liste_fam = unique(final2.loc[final2['quifam'] == 0, 'idfam'].values)
     liste_foy = unique(final2.loc[final2['quifoy'] == 0, 'idfoy'].values)
 
     #On ne conserve dans final2 que ces foyers là :
-    print 'final2 avant le filtrage', len(final2)
+    log.info('final2 avant le filtrage {}'.format(len(final2)))
     final2 = final2.loc[final2.idmen.isin(liste_men), :]
     final2 = final2.loc[final2.idfam.isin(liste_fam), :]
     final2 = final2.loc[final2.idfoy.isin(liste_foy), :]
-    print 'final2 après le filtrage', len(final2)
+    log.info('final2 après le filtrage {}'.format(len(final2)))
 
     rectify_dtype(final2, verbose = False)
 #    home = os.path.expanduser("~")

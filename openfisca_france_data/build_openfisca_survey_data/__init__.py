@@ -45,7 +45,7 @@ def load_temp(name = None, year = None, variables = None, config_files_directory
     print(hdf_file_path)
     store = HDFStore(hdf_file_path)
     dataframe = store[str(year)+"/"+name]
-    store.close()    
+    store.close()
     if variables is None:
         return dataframe
     else:
@@ -71,7 +71,7 @@ def save_temp(dataframe, name = None, year = None, config_files_directory = defa
         raise Exception("name is needed")
     hdf_file_path = get_tmp_file_path(config_files_directory = config_files_directory)
     store = HDFStore(hdf_file_path)
-    print store
+    log.info("{}".format(store))
     store_path = "{}/{}".format(year, name)
 
     if store_path in store.keys():
@@ -88,5 +88,5 @@ def show_temp(config_files_directory = default_config_files_directory):
     hdf_file_path = get_tmp_file_path(config_files_directory = config_files_directory)
     store = HDFStore(hdf_file_path)
 
-    print store
+    log.info("{}".format(store))
     store.close()
