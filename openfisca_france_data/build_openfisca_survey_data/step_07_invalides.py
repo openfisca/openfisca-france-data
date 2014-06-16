@@ -53,7 +53,8 @@ def invalide(year = 2006):
     log.info(u"Etape 1 : création de la df invalides")
     log.info(u"    1.1 : déclarants invalides")
     final = load_temp(name = "final", year = year)
-    final.drop(["inv", "alt"], axis = 1 ,inplace = True) #on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
+    if "inv" in final :
+        final.drop(["inv", "alt"], axis = 1, inplace = True) #on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
 
 
     invalides_vars = [

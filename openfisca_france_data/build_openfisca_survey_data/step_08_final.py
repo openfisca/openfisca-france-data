@@ -49,7 +49,7 @@ log = logging.getLogger(__name__)
 def final(year = 2006, filename = "test", check = True):
 
 ##***********************************************************************/
-    log.info('08_final: derniers réglages')
+    log.info(u'08_final: derniers réglages')
 ##***********************************************************************/
 #
 # loadTmp("final.Rdata")
@@ -296,7 +296,7 @@ def final(year = 2006, filename = "test", check = True):
     del indices, probs
 
     log.info('    performing cleaning on final2')
-    log.info('{} Sali nuls'.format(len(final2[final2['sali'].isnull()])))
+    log.info('{} sali nuls'.format(len(final2[final2['sali'].isnull()])))
     log.info("{} individus d'âges nuls".format(len(final2[final2.age.isnull()])))
     log.info("longueur de final2 avant purge : {}".format(len(final2)))
 #     columns_w_nan = []
@@ -312,7 +312,7 @@ def final(year = 2006, filename = "test", check = True):
 #     final2 = final2.drop_duplicates(['noindiv'])
 
     final2 = final2[~(final2.age.isnull())]
-    log.info("longueur de final2 après purge: ", len(final2))
+    log.info(u"longueur de final2 après purge: {}".format( len(final2)))
     print_id(final2)
 
 #

@@ -8,11 +8,14 @@
 
 import gc
 import os
-
+import logging
 
 from ConfigParser import SafeConfigParser
 from pandas import HDFStore
 import pkg_resources
+
+log = logging.getLogger(__name__)
+
 
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_location)

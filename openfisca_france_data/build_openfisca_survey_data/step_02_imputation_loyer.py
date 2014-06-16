@@ -535,7 +535,7 @@ def imputation_loyer(year):
     erf['mcs8'] = erf['mcs8'].astype(int)
 
     rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes   padas2ri doesn't exist anymore in rpy2
-    com.convert_to_r_dataframe()
+#    com.convert_to_r_dataframe() TODO: Probablement à supprimer
     try:
         sm = importr("StatMatch")  # Launch R you need to have StatMatch installed in R
     except:

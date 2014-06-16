@@ -52,7 +52,7 @@ def create_indivim(year = None):
 
     start_time = datetime.datetime.now()
     eecmen = survey.get_values(table = "eec_menage")
-    log.info(u"La table eecmen a été récupérée en : {}".datetime.datetime.now() - start_time)
+    log.info(u"La table eecmen a été récupérée en : {}".format(datetime.datetime.now() - start_time))
     erfind = survey.get_values(table = "erf_indivi")
     eecind = survey.get_values(table = "eec_indivi")
 
