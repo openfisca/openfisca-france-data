@@ -35,7 +35,7 @@ from openfisca_france_data.build_openfisca_survey_data import (
     step_04_famille as famille,
     step_05_foyer as foyer,
     step_06_rebuild as rebuild,
-#    step_07_invalides as invalides,
+    step_07_invalides as invalides,
     step_08_final as final,
     )
 

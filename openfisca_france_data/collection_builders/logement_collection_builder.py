@@ -24,11 +24,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
 import os
 
 
 from openfisca_france_data.surveys import Survey, SurveyCollection
-
+log = logging.getLogger(__name__)
 
 
 def build_empty_logement_survey_collection(years= None):
@@ -63,7 +64,7 @@ def build_empty_logement_survey_collection(years= None):
             lgt_logt = None
             renameidlgt = dict(ident='ident')
 
-        elif yr in ["06" ,"07", "08", "09"]:
+        elif yr in ["06" ,"07", "08", "09"]: # TODO: clean this
             lgt_men = "menage1"
             lgt_lgt = "logement"
             renameidlgt = dict(idlog='ident')

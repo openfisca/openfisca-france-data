@@ -229,6 +229,7 @@ class Debugger(object):
         self.erf_eec_individus_data_frame = data_frame_by_table["erf_indivi"].merge(
             data_frame_by_table["eec_indivi"],
             )
+    # TODO: fichier foyer
 
     def get_major_differences(self):
         self.build_columns_to_fetch()
@@ -290,6 +291,8 @@ class Debugger(object):
             log.info('Weighted percentile method did not work for {}'.format(variable + "_rel_diff"))
             pass
         table.sort(columns = variable + "_rel_diff", ascending = False, inplace = True)
+
+        print table.to_string()
         return table
 
     def describe_discrepancies(self, fov = 10, consumers = False, parameters = True, descending = True, to_men = False):
@@ -301,9 +304,10 @@ class Debugger(object):
             inplace = True
             )
         debug_data_frame = major_differences_data_frame[0:fov]
+        boum
         of_menages_data_frame = self.of_menages_data_frame
         of_individus_data_frame = self.of_individus_data_frame
-        erf_eec_individus_data_frame = self.erf_eec_individus_data_frame
+        erf_individus_data_frame = self.erf_eec_individus_data_frame
         erf_menages_data_frame = self.erf_menages_data_frame
 
         kept_columns = set()
@@ -328,11 +332,22 @@ class Debugger(object):
             how = 'inner',
             on = 'idmen',
             )
+
+        print debug_data_frame.to_string()
+
         debug_data_frame = debug_data_frame.merge(
             self.extract(of_individus_data_frame, entities = entities_ind),
             how = 'inner',
             on = 'idmen',
             )
+        print debug_data_frame.to_string()
+
+        debug_data_frame = debug_data_frame.merge(
+            erf_individus_data_frame,
+            how = 'inner',
+            on = 'idmen',
+            )
+
         suffixes = ["_erf", "_of", "_rel_diff", "_ratio"]
         reordered_columns = [variable + suffixe for suffixe in suffixes] \
             + ["idmen", "quimen", "idfam", "quifam", "idfoy", "quifoy"]

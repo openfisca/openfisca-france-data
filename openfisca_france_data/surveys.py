@@ -184,7 +184,7 @@ class Survey(object):
         except:
             variables = None
         if not os.path.isfile(stata_file):
-            raise Exception("file_path do  not exists")
+            raise Exception("file_path {} do not exists".format(stata_file))
 
         log.info("Inserting stata table {} in file {} in HDF file {} at point {}".format(
             table,
@@ -201,7 +201,10 @@ class Survey(object):
             log.info('variables stored: {}'.format(variables_stored))
             stored_dataframe[variables_stored].to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         else:
-            stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+            try:
+                stored_dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+            except:
+                stored_dataframe.to_hdf(self.hdf5_file_path, store_path, append = False)
         gc.collect()
 
     def find_tables(self, variable = None, tables = None):
