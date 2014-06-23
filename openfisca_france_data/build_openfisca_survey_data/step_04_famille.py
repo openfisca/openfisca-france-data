@@ -68,12 +68,12 @@ def famille(year = 2006):
     elif year == 2009:
         smic = 1337
     else:
-        print("smic non défini")
+        log.info("smic non défini")
 
 ## TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
 
-    print 'Etape 1 : préparation de base'
-    print '    1.1 : récupération de indivi'
+    log.info('Etape 1 : préparation de base')
+    log.info('    1.1 : récupération de indivi')
     indivi = load_temp(name="indivim", year=year)
 
     indivi['year'] = year
@@ -586,4 +586,4 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     famille()
-    log.info(u"étape 04 terminée")
+    log.info(u"étape 04 famille terminée")

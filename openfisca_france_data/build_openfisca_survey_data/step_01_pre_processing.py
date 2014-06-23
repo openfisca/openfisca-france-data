@@ -38,7 +38,6 @@ log = logging.getLogger(__name__)
 
 # Menages et Individus
 
-
 def create_indivim(year = None):
     """
     Création de la table individus concaténée (merged)
@@ -53,7 +52,7 @@ def create_indivim(year = None):
 
     start_time = datetime.datetime.now()
     eecmen = survey.get_values(table = "eec_menage")
-    log.info(datetime.datetime.now() - start_time)
+    log.info(u"La table eecmen a été récupérée en : {}".format(datetime.datetime.now() - start_time))
     erfind = survey.get_values(table = "erf_indivi")
     eecind = survey.get_values(table = "eec_indivi")
 
@@ -116,7 +115,7 @@ def create_indivim(year = None):
         try:
             indivim[var] = indivim[var].astype("float32")
         except Exception as e:
-            print e, "{}".format(var)
+            log.info("{} {}".format(e,var))
 
 ########################
 # création de variables#
@@ -177,7 +176,7 @@ def create_indivim(year = None):
         if year == 2006:
             indivim.lien[indivim.noindiv == 603018905] = 2
             indivim.noimer[indivim.noindiv == 603018905] = 1
-            print indivim[indivim.noindiv == 603018905].to_string()
+            log.info("{}".format(indivim[indivim.noindiv == 603018905].to_string()))
 
     _manually_remove_errors()
 
@@ -234,8 +233,6 @@ def create_enfants_a_naitre(year = 2006):
     # pourquoi pas des int quand c'est possible
     # TODO: minimal dtype TODO: shoudln't be here
     for var in individual_vars:
-        print ("on va printer les vars in individual_vars")
-        print var
         enfants_a_naitre[var] = enfants_a_naitre[var].astype('float')
 #    del eeccmp1, eeccmp2, eeccmp3, individual_vars  #TODO: Adrien: me fait planter python
 
@@ -271,7 +268,7 @@ def create_enfants_a_naitre(year = 2006):
 
 
 if __name__ == '__main__':
-    print('Entering 01_pre_proc')
+    log.info('Entering 01_pre_proc')
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     import time
@@ -279,5 +276,4 @@ if __name__ == '__main__':
     year = 2006
     create_indivim(year = year)
     create_enfants_a_naitre(year = year)
-    log.info("etape 01 terminee")
-    print time.clock() - deb
+    log.info("etape 01 pre-processing terminee en {}".format(time.clock() - deb))

@@ -39,21 +39,21 @@ from openfisca_france_data.build_openfisca_survey_data import (
     step_08_final as final,
     )
 
-logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+log = logging.getLogger(__name__)
 
 
 def run_all(year = 2006, filename = "test", check = False):
 
-#    pre_processing.create_indivim(year = year)
-#    pre_processing.create_enfants_a_naitre(year = year)
-#    imputation_loyer.imputation_loyer(year = year)
-#    fip.create_fip(year = year)
-#    famille.famille(year = year)
-#    foyer.sif(year = year)
-#    foyer.foyer_all(year = year)
-#    rebuild.create_totals(year = year)
-#    rebuild.create_final(year = year)
-#    invalides.invalide(year = year)
+    pre_processing.create_indivim(year = year)
+    pre_processing.create_enfants_a_naitre(year = year)
+    imputation_loyer.imputation_loyer(year = year)
+    fip.create_fip(year = year)
+    famille.famille(year = year)
+    foyer.sif(year = year)
+    foyer.foyer_all(year = year)
+    rebuild.create_totals(year = year)
+    rebuild.create_final(year = year)
+    invalides.invalide(year = year)
     data_frame = final.final(year = year, check = check)
 
     # Saving the data_frame
@@ -81,6 +81,6 @@ if __name__ == '__main__':
     import time
     start = time.time()
     run_all(year = 2006, check = False)
-    print time.time() - start
+    log.info("{}".format( time.time() - start ))
     # import pdb
     # pdb.set_trace()

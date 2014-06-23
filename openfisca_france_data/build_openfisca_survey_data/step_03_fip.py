@@ -85,8 +85,8 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
         names = ['pac_number', 'variable']
         )
     fip = DataFrame(np.random.randn(len(foyer), 3 * nb_pac_max), columns = columns)
-    print fip.describe()
-    print fip.info()
+    log.info("{}".format(fip.describe()))
+    log.info("{}".format(fip.info()))
 
     for i in range(1, nb_pac_max + 1):  # TODO: using values to deal with mismatching indexes
         fip[(i, 'declaration')] = foyer['declar'].values
@@ -166,8 +166,8 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     log.info(u"longueur pacInd2 {}".format(len(pac_ind2)))
     log.info(u"pacInd1 & pacInd2 créés")
 
-    print pac_ind1.duplicated().sum()
-    print pac_ind2.duplicated().sum()
+    log.info("{}".format( pac_ind1.duplicated().sum()))
+    log.info("{}".format(pac_ind2.duplicated().sum()))
 
     del pac_ind1['key1'], pac_ind2['key2']
 
@@ -182,9 +182,9 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
         pacInd = pac_ind1
     else:
         pacInd = concat([pac_ind2, pac_ind1])
-    print len(pac_ind1), len(pac_ind2), len(pacInd)
-    print pac_ind2.type_pac.isnull().sum()
-    print pacInd.type_pac.value_counts()
+    log.info("{}{}{}".format( len(pac_ind1), len(pac_ind2), len(pacInd)))
+    log.info("{}".format(pac_ind2.type_pac.isnull().sum()))
+    log.info("{}".format(pacInd.type_pac.value_counts()))
 
     log.info(u"    2.2 : pacInd created")
 
@@ -195,11 +195,11 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     del pacInd["key"]
     pacIndiv = pacInd[~(pacInd.duplicated('noindiv'))].copy()
 #     pacIndiv.reset_index(inplace=True)
-    print pacIndiv.columns
+    log.info("{}".format(pacIndiv.columns))
 
     save_temp(pacIndiv, name="pacIndiv", year=year)
 
-    print pacIndiv.type_pac.value_counts()
+    log.info("{}".format(pacIndiv.type_pac.value_counts()))
     gc.collect()
 
 # # We keep the fip in the menage of their parents because it is used in to
@@ -211,10 +211,10 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 # individec1 <- upData(individec1,rename=c(declar1="declar"))
 # fip1       <- merge(fip,individec1)
 # indivi$noidec <- as.numeric(substr(indivi$declar1,1,2))
-    print indivi['declar1'].str[0:2].value_counts()
-    print indivi['declar1'].str[0:2].describe()
-    print indivi['declar1'].str[0:2].notnull().all()
-    print indivi.info()
+    log.info("{}".format(indivi['declar1'].str[0:2].value_counts()))
+    log.info("{}".format( indivi['declar1'].str[0:2].describe()))
+    log.info("{}".format( indivi['declar1'].str[0:2].notnull().all()))
+    log.info("{}".format(indivi.info()))
     selection = indivi['declar1'].str[0:2] != ""
     indivi['noidec'] = indivi.declar1[selection].str[0:2].astype('int32')  # To be used later to set idfoy
 
@@ -288,7 +288,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
         fip_tmp = fip.loc[:, ['noi', 'ident']]
         dup = fip_tmp.duplicated()
         tmp = fip.loc[dup, 'noi']
-        print len(tmp)
+        log.info("{}".format( len(tmp)))
         fip.loc[dup, 'noi'] = tmp.astype('int64') - 1
 
     fip['idfoy'] = 100 * fip['ident'] + fip['noidec']
@@ -296,7 +296,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     fip['type_pac'] = 0
     fip['key'] = 0
 
-    print fip.duplicated('noindiv').value_counts()
+    log.info("{}".format(fip.duplicated('noindiv').value_counts()))
     save_temp(fip, name="fipDat", year=year)
     del fip, fip1, individec1, indivifip, indivi, pac
     log.info(u"fip sauvegardé")
@@ -304,4 +304,4 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 
 if __name__ == '__main__':
     create_fip()
-    log.info(u"etape 03 terminée")
+    log.info(u"etape 03 fichier des peronnes imposables terminée")
