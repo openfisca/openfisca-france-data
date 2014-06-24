@@ -65,7 +65,7 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
 
     data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
     for entity_id in ['id' + entity.symbol for entity in simulation.entity_by_key_singular.values()]:
-            data_frame = id_formatter(data_frame, entity_id)
+        data_frame = id_formatter(data_frame, entity_id)
     return data_frame
 
 
