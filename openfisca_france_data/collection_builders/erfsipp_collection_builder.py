@@ -43,7 +43,7 @@ def build_empty_eipp_survey_collection(years= None):
 
     tables = ["base"]
     eipp_tables = dict()
-    for year in [2011]:
+    for year in [2011,2012]:
         for table in tables:
             eipp_tables[table] = {
                 "stata_file": os.path.join(
@@ -77,9 +77,10 @@ if __name__ == '__main__':
     start_time = datetime.datetime.now()
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     eipp_survey_collection = build_empty_eipp_survey_collection(
-        years = [2011],
+        years = [2011,2012],
         )
     eipp_survey_collection.fill_hdf_from_stata(surveys_name = ["eipp_2011"])
+    eipp_survey_collection.fill_hdf_from_stata(surveys_name = ["eipp_2012"])
     eipp_survey_collection.dump(collection = u"eipp")
     log.info("The program have been executed in {}".format( datetime.datetime.now()-start_time))
     
