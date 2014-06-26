@@ -36,10 +36,10 @@ def build_empty_piketty_survey_collection(years= None):
     if years is None:
         log.error("A list of years to process is needed")
 
-    erfs_survey_collection = SurveyCollection(name = "piketty")
-    erfs_survey_collection.set_config_files_directory()
-    input_data_directory = erfs_survey_collection.config.get('data', 'input_directory')
-    output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
+    survey_collection = SurveyCollection(name = "piketty")
+    survey_collection.set_config_files_directory()
+    input_data_directory = survey_collection.config.get('data', 'input_directory')
+    output_data_directory = survey_collection.config.get('data', 'output_directory')
 
     tables = ["indiv_conj", "indiv_ded", "indiv_demo", "indiv_logt", "indiv_rev"]
     piketty_tables = dict()
@@ -67,9 +67,9 @@ def build_empty_piketty_survey_collection(years= None):
             )
         for table, table_kwargs in piketty_tables.iteritems():
             survey.insert_table(name = table, **table_kwargs)
-        surveys = erfs_survey_collection.surveys
+        surveys = survey_collection.surveys
         surveys[survey_name] = survey
-    return erfs_survey_collection
+    return survey_collection
 
 
 if __name__ == '__main__':
