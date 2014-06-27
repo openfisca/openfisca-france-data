@@ -30,8 +30,9 @@ import sys
 import openfisca_france
 
 from openfisca_france_data.surveys import Survey, SurveyCollection
+from eipp_utils import build_input_OF, build_ipp2of_variables
 
-from eipp_utils import build_input_OF, build_ipp2of_input
+log = logging.getLogger(__name__)
 
 def adaptation_eipp_to_OF(years = None, filename = "test", check = False):
     """
@@ -45,7 +46,7 @@ def adaptation_eipp_to_OF(years = None, filename = "test", check = False):
         eipp_survey_collection = SurveyCollection.load(collection = 'eipp')
         survey = eipp_survey_collection.surveys['eipp_{}'.format(year)]
         base = survey.get_values(table = "base")
-        ipp2of_input_variables = build_ipp2of_input()
+        ipp2of_input_variables, ipp2of_output_variables = build_ipp2of_variables()
 #        print 'avant',list(base.columns.values)
 #        base.rename(columns = ipp2of_input_variables, inplace = True)
 #        print 'après',list(base.columns.values)
@@ -53,12 +54,42 @@ def adaptation_eipp_to_OF(years = None, filename = "test", check = False):
         TaxBenefitSystem = openfisca_france.init_country()
         tax_benefit_system = TaxBenefitSystem()
 
-        build_input_OF(base, ipp2of_input_variables, tax_benefit_system)
+    data_frame = build_input_OF(base, ipp2of_input_variables, tax_benefit_system)
+    return data_frame
+
+def dump_data_frame(data_frame, year):
+    
+    
+    from openfisca_france_data.build_openfisca_survey_data import utils
+    
+    utils.print_id(data_frame)
+#    utils.control(data_frame, verbose = True)
+    utils.check_structure(data_frame)
+    
+    survey_collection = SurveyCollection(name = "eipp")
+    survey_collection.set_config_files_directory()
+    output_data_directory = survey_collection.config.get('data', 'output_directory')
+    survey_name = "eipp_data_{}".format(year)
+    table = "input"
+    hdf5_file_path = os.path.join(
+        os.path.dirname(output_data_directory),
+        "{}{}".format(survey_name, ".h5"),
+        )
+
+    survey = Survey(
+        name = survey_name,
+        hdf5_file_path = hdf5_file_path,
+        )
+    survey.insert_table(name = table)
+    survey.fill_hdf(table, data_frame)
+    survey_collection.surveys[survey_name] = survey
+    survey_collection.dump(collection = "eipp")
 
 if __name__ == '__main__':
     #import time
     #start = time.time()
-    adaptation_eipp_to_OF(years = [2011], check = False)
+    data_frame = adaptation_eipp_to_OF(years = [2011], check = False)
+    dump_data_frame(data_frame, 2011)
     #log.info("{}".format( time.time() - start ))
     # import pdb
     # pdb.set_trace()

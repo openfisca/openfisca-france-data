@@ -70,9 +70,9 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
         assert ~(dataframe.duplicated(cols=['idfam', 'quifam'])).all(), 'duplicate of tupli idfam/quifam'
 
     empty_columns = []
-    for col in dataframe.columns:
-        if (dataframe[col].isnull().all()):
-                empty_columns.append(col)
+    for col in dataframe:
+        if dataframe[col].isnull().all(): 
+            empty_columns.append(col)
 
     if empty_columns != []:
         print 'liste des colonnes entièrement vides', empty_columns
@@ -151,8 +151,8 @@ def print_id(df):
 
 def check_structure(dataframe):
 
-    duplicates = dataframe.noindiv.duplicated().sum()
-    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
+#    duplicates = dataframe.noindiv.duplicated().sum()
+#    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
 #        df.drop_duplicates("noindiv", inplace = True)
 
     for entity in ["men", "fam", "foy"]:

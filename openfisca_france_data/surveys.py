@@ -89,9 +89,9 @@ class Survey(object):
         with codecs.open(file_path, 'w', encoding = 'utf-8') as _file:
             json.dump(self.to_json(), _file, encoding = "utf-8", ensure_ascii = False, indent = 2)
 
-    def fill_hdf(self, table = None, dataframe = None):
+    def fill_hdf(self, table = None, data_frame = None):
         assert table is not None, u"The mandatory keyword argument 'table' is not provided"
-        assert dataframe is not None, u"The mandatory keyword argument 'dataframe' is not provided"
+        assert data_frame is not None, u"The mandatory keyword argument 'dataframe' is not provided"
         if table not in self.tables:
             self.tables[table] = {}
 
@@ -102,13 +102,13 @@ class Survey(object):
         )
         store_path = table
         try:
-            dataframe.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
+            data_frame.to_hdf(self.hdf5_file_path, store_path, format = 'table', append = False)
         except TypeError:
-            types = dataframe.apply(lambda x: infer_dtype(x.values))
+            types = data_frame.apply(lambda x: infer_dtype(x.values))
             log.info("The following types are converted to strings \n {}".format(types[types=='unicode']))
             for column in types[types=='unicode'].index:
-                dataframe[column] = dataframe[column].astype(str)
-            dataframe.to_hdf(self.hdf5_file_path, store_path)
+                data_frame[column] = data_frame[column].astype(str)
+            data_frame.to_hdf(self.hdf5_file_path, store_path)
 
     def fill_hdf_from_Rdata(self, table):
         import pandas.rpy.common as com
