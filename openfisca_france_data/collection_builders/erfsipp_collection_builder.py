@@ -24,8 +24,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
+
 import logging
+import os
+
 from openfisca_france_data.surveys import Survey, SurveyCollection
 
 log = logging.getLogger(__name__)
@@ -43,7 +45,8 @@ def build_empty_eipp_survey_collection(years= None):
 
     tables = ["base"]
     eipp_tables = dict()
-    for year in [2010,2011]:
+
+    for year in years:
         for table in tables:
             eipp_tables[table] = {
                 "stata_file": os.path.join(
@@ -71,17 +74,14 @@ def build_empty_eipp_survey_collection(years= None):
 
 
 if __name__ == '__main__':
-    import logging
     import sys
     import datetime
     start_time = datetime.datetime.now()
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-    eipp_survey_collection = build_empty_eipp_survey_collection(
-        years = [2010,2011],
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    years = [2011]  # [2011, 2012]
+    eipp_survey_collection = build_empty_eipp_survey_collection(years = years)
+    eipp_survey_collection.fill_hdf_from_stata(
+        surveys_name = ["eipp_{}".format(year) for year in years]
         )
-    eipp_survey_collection.fill_hdf_from_stata(surveys_name = ["eipp_2011"])
-    eipp_survey_collection.fill_hdf_from_stata(surveys_name = ["eipp_2010"])
     eipp_survey_collection.dump(collection = u"eipp")
-    log.info("The program have been executed in {}".format( datetime.datetime.now()-start_time))
-    
-    
+    log.info("The program have been executed in {}".format(datetime.datetime.now() - start_time))
