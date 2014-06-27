@@ -30,7 +30,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 variables_corresp = os.path.join(current_dir, 'correspondances_eipp_OF.xlsx')
 print variables_corresp
 
-def build_ipp2of_input():
+def build_ipp2of_variables():
     '''
     Création du dictionnaire dont les clefs sont les noms des variables IPP
     et les arguments ceux des variables OF
@@ -40,9 +40,8 @@ def build_ipp2of_input():
         return dict(array(names.loc[names['equivalence'].isin([1, 5, 8]), ['Var_TAXIPP', 'Var_OF']]))
 
     ipp2of_input_variables = _dic_corresp('input')
-#    ipp2of_output_variables = _dic_corresp('output')
-    print 'input', ipp2of_input_variables
-    return ipp2of_input_variables#, ipp2of_output_variables
+    ipp2of_output_variables = _dic_corresp('output')
+    return ipp2of_input_variables, ipp2of_output_variables
 
 def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     print 'On commence buid_input'
@@ -51,7 +50,7 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         qui = "qui" + entity
         print 'qui',qui
         idi = "id" + entity
-        data[qui] = 2
+        data[qui] = 2  #  TODO incrémenter les pac du foyer/enfats des familles/autres personnes des ménages
         data.loc[data['decl'] == 1, qui] = 0
         data.loc[data['conj'] == 1, qui] = 1
         if entity == "men":
@@ -63,7 +62,7 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         return data[qui]
 
 
-    def _so(data):
+    def _so(data): #TODO: mettre directement la variable de EE au lieu de passer par TAXIPP
         data["so"] = 0
         data.loc[data['proprio_empr'] == 1, 'so'] = 1
         data.loc[data['proprio'] == 1, 'so'] = 2
@@ -98,21 +97,21 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
 #        data.index = range(len(data))
 #        return data
 
-    data['act5'] = 0 #TODO: rajouter le statut professionnel dans eipp
-    data['stat_prof'] = 0 #TODO: rajouter le statut professionnel dans eipp
-    data['activite'] = 4 #TODO: rajouter le activite dans eipp
-
     def _workstate(data):
         # TODO: titc should be filled in to deal with civil servant
         data['chpub'] = 0
         data.loc[data['public'] == 1, 'chpub'] = 1
         data.loc[data['public'] == 0, 'chpub'] = 6
         # Activité : [0'Actif occupé',  1'Chômeur', 2'Étudiant, élève', 3'Retraité', 4'Autre inactif']), default = 4)
-        # act5 : [0"Salarié",1"Indépendant",2"Chômeur",3"Retraité",4"Inactif"]
-        data.loc[(data['activite'] == 0) & (data['stat_prof'] == 1), 'act5'] = 1
-        data.loc[data['activite'] == 1, 'act5'] = 2
-        data.loc[data['activite'] == 3, 'act5'] = 3
-        data.loc[data['activite'].isin([2, 4]), 'act5'] = 4
+        # act5 : [0"Salarié",1"Indépendant",2"Chômeur",3"Retraité",4"Inactif"] => pas utilisé ?
+
+        data.loc[data['fi'] == 1, 'activite'] = 0
+        data.loc[data['fi'] == 2, 'activite'] = 1
+        data.loc[data['fi'] == 3, 'activite'] = 2
+        data.loc[data['fi'] == 4, 'activite'] = 0 #TODO: Les militaires
+        data.loc[data['fi'] == 5, 'activite'] = 3 #TODO: cf. gestion de l'homogénéisation EE de IPP (les retraités semblent être inclus dans la catégorie inactif)
+        data.loc[data['fi'] == 6, 'activite'] = 4
+
         data['statut'] = 8
         data.loc[data['public'] == 1, 'statut'] = 11
         # [0"Non renseigné/non pertinent",1"Exonéré",2"Taux réduit",3"Taux plein"]
@@ -126,6 +125,8 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
 
     data['nbj'] = 0 #TODO: rajouter Nombre d'enfants majeurs célibataires sans enfant 
     data['nbh'] = 4 #TODO: rajouter Nombre d'enfants à charge en résidence alternée, non mariés de moins de 18 ans au 1er janvier de l'année n-1, ou nés en n-1 ou handicapés quel que soit l'âge 
+    data['stat_prof'] = 0 #TODO: rajouter le statut professionnel dans eipp
+
 
     def _var_to_ppe(data):
         data['ppe_du_sa'] = 0
@@ -166,6 +167,11 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     min_idmen = data["idmen"].min()
     if min_idmen > 0:
         data["idmen"] -= min_idmen
+    min_idfam = data["idfam"].min()
+    if min_idfam > 0:
+        data["idfam"] -= min_idfam
+ 
+    
     data["idfam"] = data["idmen"] #TODO: rajouter les familles dans TAXIPP
     data["quifam"] = data['quimen']
 
@@ -188,10 +194,9 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     print 'data.columns', data.columns
     print 'tax_benefit_system.column_by_name',tax_benefit_system.column_by_name
     print 'variables_to_drop',variables_to_drop
-    print data.iloc[44:]
-    data = data.drop(variables_to_drop, axis = 1)
-    print 'data.columns2', data.columns
-    print 'On a droppé'
+    #print data.iloc[44:]
+  #  data.drop(variables_to_drop, axis = 1, inplace = True)
+    print 'youpi on a droppé'
 
 #    data.rename(columns = {"id_conj" : "conj"}, inplace = True)
     data['agem'] = data['age'] * 12
