@@ -28,7 +28,7 @@ import gc
 import numpy as np
 import logging
 
-from openfisca_france_data.surveys import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import assert_dtype
 

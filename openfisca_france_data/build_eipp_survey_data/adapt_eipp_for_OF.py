@@ -25,14 +25,14 @@
 
 import logging
 import os
-import sys
 
 import openfisca_france
 
-from openfisca_france_data.surveys import Survey, SurveyCollection
+from openfisca_survey_manager.surveys import Survey, SurveyCollection
 from eipp_utils import build_input_OF, build_ipp2of_variables
 
 log = logging.getLogger(__name__)
+
 
 def adaptation_eipp_to_OF(years = None, filename = "test", check = False):
     """
@@ -57,15 +57,15 @@ def adaptation_eipp_to_OF(years = None, filename = "test", check = False):
     data_frame = build_input_OF(base, ipp2of_input_variables, tax_benefit_system)
     return data_frame
 
+
 def dump_data_frame(data_frame, year):
-    
-    
+
     from openfisca_france_data.build_openfisca_survey_data import utils
-    
+
     utils.print_id(data_frame)
 #    utils.control(data_frame, verbose = True)
     utils.check_structure(data_frame)
-    
+
     survey_collection = SurveyCollection(name = "eipp")
     survey_collection.set_config_files_directory()
     output_data_directory = survey_collection.config.get('data', 'output_directory')

@@ -29,7 +29,7 @@ import os
 from openfisca_core.formulas import NaNCreationError
 import openfisca_france
 from openfisca_france.surveys import SurveyScenario
-from openfisca_france_data.surveys import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data.utils import id_formatter
 
 

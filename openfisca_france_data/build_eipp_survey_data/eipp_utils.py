@@ -23,12 +23,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-from pandas import DataFrame, ExcelFile
+
 from numpy import array
+from pandas import ExcelFile
+
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 variables_corresp = os.path.join(current_dir, 'correspondances_eipp_OF.xlsx')
 print variables_corresp
+
 
 def build_ipp2of_variables():
     '''
@@ -43,26 +46,26 @@ def build_ipp2of_variables():
     ipp2of_output_variables = _dic_corresp('output')
     return ipp2of_input_variables, ipp2of_output_variables
 
+
 def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     print 'On commence buid_input'
 
     def _qui(data, entity):
         qui = "qui" + entity
-        print 'qui',qui
-        idi = "id" + entity
-        data[qui] = 2  #  TODO incrémenter les pac du foyer/enfats des familles/autres personnes des ménages
+        print 'qui', qui
+        #idi = "id" + entity
+        data[qui] = 2   # TODO incrémenter les pac du foyer/enfats des familles/autres personnes des ménages
         data.loc[data['decl'] == 1, qui] = 0
         data.loc[data['conj'] == 1, qui] = 1
         if entity == "men":
             data.loc[data['concu'] == 1, qui] = 1
-        j = 2
+        #j = 2
 #        while any(data.duplicated([qui, idi])):
 #            data.loc[data.duplicated([qui, idi]), qui] = j + 1
 #            j += 1
         return data[qui]
 
-
-    def _so(data): #TODO: mettre directement la variable de EE au lieu de passer par TAXIPP
+    def _so(data):  # TODO: mettre directement la variable de EE au lieu de passer par TAXIPP
         data["so"] = 0
         data.loc[data['proprio_empr'] == 1, 'so'] = 1
         data.loc[data['proprio'] == 1, 'so'] = 2
@@ -75,7 +78,8 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         var = var.astype(int)
         return var
 
-#TODO: refaire cette fonction avec la nouvelle propagation des variables entre les membres d'une entité (cf. work at Etalab)
+# TODO: refaire cette fonction avec la nouvelle propagation des variables entre les membres d'une entité
+# (cf. work at Etalab)
 
 #    def _count_by_entity(data, var, entity, bornes):
 #        ''' Compte le nombre de 'var compris entre les 'bornes' au sein de l''entity' '''
@@ -108,8 +112,8 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         data.loc[data['fi'] == 1, 'activite'] = 0
         data.loc[data['fi'] == 2, 'activite'] = 1
         data.loc[data['fi'] == 3, 'activite'] = 2
-        data.loc[data['fi'] == 4, 'activite'] = 0 #TODO: Les militaires
-        data.loc[data['fi'] == 5, 'activite'] = 3 #TODO: cf. gestion de l'homogénéisation EE de IPP (les retraités semblent être inclus dans la catégorie inactif)
+        data.loc[data['fi'] == 4, 'activite'] = 0  # TODO: Les militaires
+        data.loc[data['fi'] == 5, 'activite'] = 3  # TODO: cf. gestion de l'homogénéisation EE de IPP (les retraités semblent être inclus dans la catégorie inactif)
         data.loc[data['fi'] == 6, 'activite'] = 4
 
         data['statut'] = 8
@@ -123,10 +127,9 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         data['exposition_accident'] = 0
         return data
 
-    data['nbj'] = 0 #TODO: rajouter Nombre d'enfants majeurs célibataires sans enfant 
-    data['nbh'] = 4 #TODO: rajouter Nombre d'enfants à charge en résidence alternée, non mariés de moins de 18 ans au 1er janvier de l'année n-1, ou nés en n-1 ou handicapés quel que soit l'âge 
-    data['stat_prof'] = 0 #TODO: rajouter le statut professionnel dans eipp
-
+    data['nbj'] = 0  # TODO: rajouter Nombre d'enfants majeurs célibataires sans enfant
+    data['nbh'] = 4  # TODO: rajouter Nombre d'enfants à charge en résidence alternée, non mariés de moins de 18 ans au 1er janvier de l'année n-1, ou nés en n-1 ou handicapés quel que soit l'âge
+    data['stat_prof'] = 0  # TODO: rajouter le statut professionnel dans eipp
 
     def _var_to_ppe(data):
         data['ppe_du_sa'] = 0
@@ -152,9 +155,9 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         data.loc[(data['nbh'] / 12 <= 151) & (data['nbh'] / 12 > 77), 'partiel2'] = 1
         return data
 
-    print 'avant',list(data.columns.values)
+    print 'avant', list(data.columns.values)
     data.rename(columns = ipp2of_input_variables, inplace = True)
-    print 'après',list(data.columns.values)
+    print 'après', list(data.columns.values)
 
     print 'On a fait rename'
 
@@ -170,16 +173,15 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     min_idfam = data["idfam"].min()
     if min_idfam > 0:
         data["idfam"] -= min_idfam
- 
-    
-    data["idfam"] = data["idmen"] #TODO: rajouter les familles dans TAXIPP
+
+    data["idfam"] = data["idmen"]  # TODO: rajouter les familles dans TAXIPP
     data["quifam"] = data['quimen']
 
     # print data[['idfoy','idmen', 'quimen','quifoy', 'decl', 'conj', 'con2']].to_string()
     data['so'] = _so(data)
 #    data = _count_enf(data)
     data = _workstate(data)
-    #data["caseN"] = _compl(data["caseN"]) #TODO: faire une fonction pour gérer l'imputation de cette case 
+    #data["caseN"] = _compl(data["caseN"]) #TODO: faire une fonction pour gérer l'imputation de cette case
     data = _var_to_ppe(data)
     data = _var_to_pfam(data)
     data['inv'] = 0
@@ -192,8 +194,8 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
         if variable not in tax_benefit_system.column_by_name
         ]
     print 'data.columns', data.columns
-    print 'tax_benefit_system.column_by_name',tax_benefit_system.column_by_name
-    print 'variables_to_drop',variables_to_drop
+    print 'tax_benefit_system.column_by_name', tax_benefit_system.column_by_name
+    print 'variables_to_drop', variables_to_drop
     #print data.iloc[44:]
   #  data.drop(variables_to_drop, axis = 1, inplace = True)
     print 'youpi on a droppé'

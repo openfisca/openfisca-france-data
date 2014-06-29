@@ -48,7 +48,7 @@ import rpy2.robjects.vectors as vectors
 
 
 from openfisca_france_data.model.common import mark_weighted_percentiles
-from openfisca_france_data.surveys import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
 

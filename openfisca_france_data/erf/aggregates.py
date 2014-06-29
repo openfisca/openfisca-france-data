@@ -10,7 +10,7 @@
 import logging
 
 
-from openfisca_france_data.surveys import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.erf import get_of2erf, get_erf2of
 import numpy as np
 

@@ -25,7 +25,7 @@
 
 
 import logging
-from numpy import where
+
 
 from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import control, print_id
@@ -53,9 +53,8 @@ def invalide(year = 2006):
     log.info(u"Etape 1 : création de la df invalides")
     log.info(u"    1.1 : déclarants invalides")
     final = load_temp(name = "final", year = year)
-    if "inv" in final :
-        final.drop(["inv", "alt"], axis = 1, inplace = True) #on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
-
+    if "inv" in final:
+        final.drop(["inv", "alt"], axis = 1, inplace = True)  # on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
 
     invalides_vars = [
         "caseF",
@@ -160,7 +159,7 @@ def invalide(year = 2006):
 #     pac = pacIndiv.ix[:, ["noindiv", "type_pac", "naia"]]
     log.info("{}".format(len(foy_inv_pac)))
 
-    log.info("{}".format( pacIndiv.columns))
+    log.info("{}".format(pacIndiv.columns))
     foy_inv_pac = foy_inv_pac.merge(
         pacIndiv[['noindiv', 'type_pac', 'naia']].copy(),
         on = 'noindiv',
@@ -172,14 +171,14 @@ def invalide(year = 2006):
             (foy_inv_pac.type_pac == "F") & ((year - foy_inv_pac.naia) > 18)
             )
         )
-    foy_inv_pac['alt'] = ((foy_inv_pac.type_pac == "H") | (foy_inv_pac.type_pac == "I")) #TODO : adrien self message, check what is exactly done here.
+    foy_inv_pac['alt'] = ((foy_inv_pac.type_pac == "H") | (foy_inv_pac.type_pac == "I"))
     del foy_inv_pac['naia']
     del foy_inv_pac['type_pac']
     foy_inv_pac['alt'] = foy_inv_pac['alt'].fillna(False)
 
     log.info("{}".format(foy_inv_pac['inv'].describe()))
     invalides['alt'] = False
-    invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "inv" ]] = foy_inv_pac[["alt", "inv"]].copy().values
+    invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "inv"]] = foy_inv_pac[["alt", "inv"]].copy().values
     invalides = invalides[["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']].copy()
     invalides['alt'].fillna(False, inplace = True)
 

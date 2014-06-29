@@ -24,11 +24,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
+import pkg_resources
 import logging
-from openfisca_france_data.surveys import Survey, SurveyCollection
+import os
+
+from openfisca_survey_manager.surveys import Survey, SurveyCollection
+
+openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
+config_files_directory = os.path.join(openfisca_france_data_location)
 
 log = logging.getLogger(__name__)
+
 
 def build_empty_erfs_survey_collection(years= None):
 
@@ -36,13 +42,13 @@ def build_empty_erfs_survey_collection(years= None):
         log.error("A list of years to process is needed")
 
     erfs_survey_collection = SurveyCollection(name = "erfs")
-    erfs_survey_collection.set_config_files_directory()
+    erfs_survey_collection.set_config_files_directory(config_files_directory)
     input_data_directory = erfs_survey_collection.config.get('data', 'input_directory')
     output_data_directory = erfs_survey_collection.config.get('data', 'output_directory')
 
     for year in years:
         yr = str(year)[2:]
-        yr1 = str(year+1)[2:]
+        yr1 = str(year + 1)[2:]
 
         eec_variables = [
             'acteu',
@@ -76,75 +82,76 @@ def build_empty_erfs_survey_collection(years= None):
             'titc',
             'txtppb',
             ]
-        eec_rsa_variables = ["sp0" + str(i) for i in range(0,10)] + ["sp10", "sp11"] + [
-                'adeben',
-                'adfdap',
-                'amois',
-                'ancchom',
-                'ancentr',
-                'ancinatm',
-                'datant',
-                'dimtyp',
-                'rabsp',
-                'raistp',
-                'raistp',
-                'rdem',
-                'sitant',
-                ]
-        eec_aah_variables = [ "maahe", "rc1rev"]
+        eec_rsa_variables = ["sp0" + str(i) for i in range(0, 10)] + ["sp10", "sp11"] + [
+            'adeben',
+            'adfdap',
+            'amois',
+            'ancchom',
+            'ancentr',
+            'ancinatm',
+            'datant',
+            'dimtyp',
+            'rabsp',
+            'raistp',
+            'raistp',
+            'rdem',
+            'sitant',
+            ]
+        eec_aah_variables = ["maahe", "rc1rev"]
         eec_variables += eec_rsa_variables + eec_aah_variables
         #all sas files ok for 2009, 2007, 2008
         erf_tables = {
             "erf_menage": {  # Enquête revenu fiscaux, table ménage
-                "Rdata_table" : "menage" + yr,
-                "sas_file" : u"Ménages/menage" + yr,
-                "year" : year,
-                "variables" : None,
+                "Rdata_table": "menage" + yr,
+                "sas_file": u"Ménages/menage" + yr,
+                "year": year,
+                "variables": None,
                 },
             "eec_menage": {  # Enquête emploi en continu, table ménage
-                "Rdata_table" : "mrf" + yr + "e" + yr + "t4",
-                "sas_file" : u"Ménages/mrf" + yr + u"e" + yr + u"t4",
-                "year" : year,
-                "variables" : None,
+                "Rdata_table": "mrf" + yr + "e" + yr + "t4",
+                "sas_file": u"Ménages/mrf" + yr + u"e" + yr + u"t4",
+                "year": year,
+                "variables": None,
                 },
             "foyer": {      # Enquête revenu fiscaux, table foyer # compressed file for 2006
-                "Rdata_table" : "foyer" + yr,
-                "sas_file" : u"Foyers/foyer" + yr,
+                "Rdata_table": "foyer" + yr,
+                "sas_file": u"Foyers/foyer" + yr,
                 "year": year,
-                "variables" : None,
+                "variables": None,
                 },
             "erf_indivi": {  # Enquête revenu fiscaux, table individu
                 "Rdata_table": "indivi" + yr,
                 "sas_file": u"Individus/indivi{}".format(yr),
                 "year": year,
-                "variables": ['noi','noindiv','ident','declar1','quelfic','persfip','declar2','persfipd','wprm',
-                     "zsali","zchoi","ztsai","zreti","zperi","zrsti","zalri","zrtoi","zragi","zrici","zrnci",
-                     "zsalo","zchoo","ztsao","zreto","zpero","zrsto","zalro","zrtoo","zrago","zrico","zrnco",
-                     ],
+                "variables": [
+                    'noi', 'noindiv', 'ident', 'declar1', 'quelfic', 'persfip', 'declar2', 'persfipd', 'wprm',
+                    "zsali", "zchoi", "ztsai", "zreti", "zperi", "zrsti", "zalri", "zrtoi", "zragi", "zrici", "zrnci",
+                    "zsalo", "zchoo", "ztsao", "zreto", "zpero", "zrsto", "zalro", "zrtoo", "zrago", "zrico", "zrnco",
+                    ],
                 },
             "eec_indivi": {  # Enquête emploi en continue, table individu
-                "Rdata_table" : "irf" + yr + "e" + yr + "t4",
-                "sas_file" : u"Individus/irf" + yr + u"e" + yr + u"t4",
-                "year" : year,
-                "variables" : eec_variables,
+                "Rdata_table": "irf" + yr + "e" + yr + "t4",
+                "sas_file": u"Individus/irf" + yr + u"e" + yr + u"t4",
+                "year": year,
+                "variables": eec_variables,
                 },
             "eec_cmp_1": {  # Enquête emploi en continue, table complémentaire 1
-                "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t1",
-                "sas_file" : u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t1",
-                "year" : year,
-                "variables" : eec_variables,
+                "Rdata_table": "icomprf" + yr + "e" + yr1 + "t1",
+                "sas_file": u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t1",
+                "year": year,
+                "variables": eec_variables,
                 },
             "eec_cmp_2": {
-                "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t2",
-                "sas_file" : u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t2",
-                "year" : year,
-                "variables" : eec_variables,
+                "Rdata_table": "icomprf" + yr + "e" + yr1 + "t2",
+                "sas_file": u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t2",
+                "year": year,
+                "variables": eec_variables,
                 },
             "eec_cmp_3": {
-                "Rdata_table" : "icomprf" + yr + "e" + yr1 + "t3",
-                "sas_file" : u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t3",
-                "year" : year,
-                "variables" : eec_variables,
+                "Rdata_table": "icomprf" + yr + "e" + yr1 + "t3",
+                "sas_file": u"Tables complémentaires/icomprf" + yr + u"e" + yr1 + u"t3",
+                "year": year,
+                "variables": eec_variables,
                 },
         }
 
@@ -192,5 +199,4 @@ if __name__ == '__main__':
 #    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2007", "erfs_2008", "erfs_2009"])
     erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2009"])
     erfs_survey_collection.dump(collection = u"erfs")
-
     log.info("The program have been executed in {}".format( datetime.datetime.now()-start_time))

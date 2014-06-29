@@ -25,9 +25,8 @@
 
 import logging
 import os
-import sys
 
-from openfisca_france_data.surveys import Survey, SurveyCollection
+from openfisca_survey_manager.surveys import Survey, SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import (
     step_01_pre_processing as pre_processing,
     step_02_imputation_loyer as imputation_loyer,

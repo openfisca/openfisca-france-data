@@ -36,7 +36,7 @@ from pandas import merge, concat
 
 
 from openfisca_france_data.model.common import mark_weighted_percentiles as mwp
-from openfisca_france_data.surveys import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.utils import simulation_results_as_data_frame
 from openfisca_france_data.erf import get_erf2of, get_of2erf
 from openfisca_plugin_aggregates.aggregates import Aggregates

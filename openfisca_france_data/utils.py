@@ -163,7 +163,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
-    from openfisca_france_data.surveys import Survey, SurveyCollection
+    from openfisca_survey_manager.surveys import Survey, SurveyCollection
     from openfisca_plugin_aggregates.tests.test_aggregates import create_survey_scenario
 
     year = 2006

@@ -22,11 +22,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+# TODO: modify and move to openfisca_survey_manager
+
 import os
 
 
 from openfisca_france_data.collection_builders.erfs_collection_builder import build_empty_erfs_survey_collection
-from openfisca_france_data.surveys import Survey, SurveyCollection
+from openfisca_survey_manager.surveys import Survey, SurveyCollection
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -38,16 +41,14 @@ def test_survey_dump_load():
     saved_fake_survey_file_path = os.path.join(current_dir, 'saved_fake_survey')
     erfs_survey.dump(saved_fake_survey_file_path)
     erfs_survey_bis = Survey.load(saved_fake_survey_file_path)
-
     assert erfs_survey.to_json() == erfs_survey_bis.to_json()
+
 
 def test_survey_collection_dump_load():
     erfs_survey_collection = build_empty_erfs_survey_collection()
     saved_fake_survey_collection_file_path = os.path.join(current_dir, 'saved_fake_survey_collection')
-
     erfs_survey_collection.dump(saved_fake_survey_collection_file_path)
     erfs_survey_collection_bis = SurveyCollection.load(saved_fake_survey_collection_file_path)
-
     assert erfs_survey_collection.to_json().keys() == erfs_survey_collection_bis.to_json().keys()
     assert erfs_survey_collection.to_json().get('name') == erfs_survey_collection_bis.to_json().get('name')
     assert erfs_survey_collection.to_json() == erfs_survey_collection_bis.to_json()

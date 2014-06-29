@@ -24,15 +24,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-## OpenFisca
-## Retreives data from erf foyer
-## Creates sif and foyer_aggr
-#
-#
-###***********************************************************************/
-#message('05_foyer: extraction des données foyer')
-###***********************************************************************/
-#
+# OpenFisca
+# Retreives data from erf foyer
+# Creates sif and foyer_aggr
+
 
 from __future__ import division
 
@@ -45,7 +40,7 @@ from pandas import concat, DataFrame, Series
 import re
 
 
-from openfisca_france_data.surveys import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.build_openfisca_survey_data import save_temp, show_temp
 from openfisca_france_data.build_openfisca_survey_data.utils import print_id
 
