@@ -102,7 +102,6 @@ def test_survey_simulation():
         simulation_debug.calculate(column_name)
 
     print revdisp.info()
-    print 'finished'
 
 
 def test_weights_building():
@@ -115,7 +114,7 @@ def test_weights_building():
         tax_benefit_system_class = tax_benefit_system_class,
         year = year,
         )
-    simulation = survey_scenario.new_simulation()
+    survey_scenario.new_simulation()
 
 
 if __name__ == '__main__':
