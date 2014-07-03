@@ -26,145 +26,29 @@
 
 
 import collections
+from functools import partial
+
 
 from openfisca_core.columns import EnumCol, FloatCol, IntCol
 from openfisca_core.enumerations import Enum
-from openfisca_core.formulas import AlternativeFormula, DatedFormula, SelectFormula, SimpleFormula
-
+from openfisca_core.formulas import (
+    build_alternative_formula_couple,
+    build_dated_formula_couple,
+    build_select_formula_couple,
+    build_simple_formula_couple,
+    )
 from openfisca_france import entities
+
+
+build_alternative_formula_couple = partial(build_alternative_formula_couple, entities = entities)
+build_dated_formula_couple = partial(build_dated_formula_couple, entities = entities)
+build_select_formula_couple = partial(build_select_formula_couple, entities = entities)
+build_simple_formula_couple = partial(build_simple_formula_couple, entities = entities)
+
+
 from . import calage as cl
 from . import common as cm
-
 from .cotisations_sociales import travail as cs_travail
-#from .cotisations_sociales import lps as cs_lps  # TODO: remove frome here
-#from . import inversion_revenus as inv_rev
-#from . import irpp as ir
-#from . import irpp_charges_deductibles as cd
-#from . import irpp_credits_impots as ci
-#from . import irpp_plus_values_immo as immo
-#from . import irpp_reductions_impots as ri
-#from . import isf as isf
-#from . import lgtm as lg
-#from . import mini as ms
-#from . import pfam as pf
-#from . import th as th
-
-
-def build_alternative_formula_couple(name, functions, column):
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-    assert isinstance(functions, list), functions
-    assert column.function is None
-
-    alternative_formulas_constructor = []
-    for function in functions:
-        formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
-            function = staticmethod(function),
-            ))
-        formula_class.extract_parameters()
-        alternative_formulas_constructor.append(formula_class)
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (AlternativeFormula,), dict(
-        alternative_formulas_constructor = alternative_formulas_constructor,
-        ))
-    if column.label is None:
-        column.label = name
-    assert column.name is None
-    column.name = name
-
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
-    assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
-
-    return (name, column)
-
-
-def build_dated_formula_couple(name, dated_functions, column):
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-    assert isinstance(dated_functions, list), dated_functions
-    assert column.function is None
-
-    dated_formulas_class = []
-    for dated_function in dated_functions:
-        assert isinstance(dated_function, dict), dated_function
-
-        formula_class = type(
-            name.encode('utf-8'),
-            (SimpleFormula,),
-            dict(
-                function = staticmethod(dated_function['function']),
-                ),
-            )
-        formula_class.extract_parameters()
-        dated_formulas_class.append(dict(
-            end = dated_function['end'],
-            formula_class = formula_class,
-            start = dated_function['start'],
-            ))
-
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (DatedFormula,), dict(
-        dated_formulas_class = dated_formulas_class,
-        ))
-    if column.label is None:
-        column.label = name
-    assert column.name is None
-    column.name = name
-
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
-    assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
-
-    return (name, column)
-
-
-def build_select_formula_couple(name, main_variable_function_couples, column):
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-    assert isinstance(main_variable_function_couples, list), main_variable_function_couples
-    assert column.function is None
-
-    formula_constructor_by_main_variable = collections.OrderedDict()
-    for main_variable, function in main_variable_function_couples:
-        formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
-            function = staticmethod(function),
-            ))
-        formula_class.extract_parameters()
-        formula_constructor_by_main_variable[main_variable] = formula_class
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (SelectFormula,), dict(
-        formula_constructor_by_main_variable = formula_constructor_by_main_variable,
-        ))
-    if column.label is None:
-        column.label = name
-    assert column.name is None
-    column.name = name
-
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
-    assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
-
-    return (name, column)
-
-
-def build_simple_formula_couple(name, column, replace = False):
-    assert isinstance(name, basestring), name
-    name = unicode(name)
-
-    column.formula_constructor = formula_class = type(name.encode('utf-8'), (SimpleFormula,), dict(
-        function = staticmethod(column.function),
-        ))
-    formula_class.extract_parameters()
-    del column.function
-    if column.label is None:
-        column.label = name
-    assert column.name is None
-    column.name = name
-
-    entity_column_by_name = entities.entity_class_by_symbol[column.entity].column_by_name
-    if not replace:
-        assert name not in entity_column_by_name, name
-    entity_column_by_name[name] = column
-
-    return (name, column)
 
 
 prestation_by_name = collections.OrderedDict((
