@@ -245,11 +245,11 @@ def final(year = 2006, filename = "test", check = True):
 # # TODO: merging with patrimoine
     log.info('    traitement des zones apl')
     import pkg_resources
-    openfisca_france_location = pkg_resources.get_distribution('openfisca-france').location
+    openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
     zone_apl_imputation_data_file_path = os.path.join(
-        openfisca_france_location,
-        'openfisca_france',
-        'data',
+        openfisca_france_data_location,
+        'openfisca_france_data',
+        'zone_apl_data',
         'zone_apl',
         'zone_apl_imputation_data.csv',
         )
