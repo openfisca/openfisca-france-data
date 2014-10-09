@@ -71,7 +71,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
 
     empty_columns = []
     for col in dataframe:
-        if dataframe[col].isnull().all(): 
+        if dataframe[col].isnull().all():
             empty_columns.append(col)
 
     if empty_columns != []:
