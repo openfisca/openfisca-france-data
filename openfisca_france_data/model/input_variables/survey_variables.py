@@ -28,7 +28,7 @@ import collections
 from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol
 from openfisca_core.enumerations import Enum
 
-from openfisca_france.model.input_variables.base import build_column_couple
+from openfisca_france.model.base import build_column_couple
 
 
 column_by_name = collections.OrderedDict((

@@ -27,7 +27,7 @@ from __future__ import division
 
 from numpy import arange, argsort, asarray, cumsum, linspace, logical_and as and_, repeat
 
-from openfisca_france.model.input_variables.base import QUIFAM, QUIFOY
+from openfisca_france.model.base import QUIFAM, QUIFOY
 
 
 CHEF = QUIFAM['chef']

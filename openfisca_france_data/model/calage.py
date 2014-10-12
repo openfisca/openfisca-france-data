@@ -12,7 +12,7 @@ from __future__ import division
 from numpy import floor, arange, array, where
 
 
-from openfisca_france.model.input_variables.base import QUIMEN
+from openfisca_france.model.base import QUIMEN
 
 
 PREF = QUIMEN['pref']
@@ -179,4 +179,3 @@ def _typmen15(nbinde, cohab, act_cpl, cplx, act_enf):
 #    ratio = (( (typmen15!=res)).sum())/((typmen15!=0).sum())
     # print ratio  2.7 % d'erreurs enfant non nés et erreur d'enfants
     return res
-
