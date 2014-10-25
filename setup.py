@@ -46,7 +46,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.3dev',
+    version = '0.4dev',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
@@ -64,6 +64,7 @@ setup(
         'Babel >= 0.9.4',
         'Biryani1[datetimeconv] >= 0.9dev',
         'numpy',
+        'OpenFisca-France >= 0.4dev',
         ],
     message_extractors = {
         'openfisca_france_data': [
