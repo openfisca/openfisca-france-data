@@ -22,7 +22,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#TODO: actualiser la date des end (c'est souvent 2014 ou 2015)
+
+# TODO: actualiser la date des end (c'est souvent 2014 ou 2015)
 
 
 from functools import partial
@@ -30,7 +31,9 @@ from functools import partial
 
 from openfisca_core.columns import EnumCol, FloatCol, IntCol
 from openfisca_core.enumerations import Enum
+
 from openfisca_core.formulas import build_simple_formula
+
 
 from . import calage as cl
 from . import common as cm

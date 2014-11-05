@@ -346,7 +346,6 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
     #                                    u"Autres ménages, 1 actif",
     #                                    u"Autres ménages, 2 actifs ou plus",
     #                                    u"Autres ménages, tous inactifs"],start = 1)))
-
     build_survey_column(
         'ageq', EnumCol(
             label = u"âge quinquennal de la personne de référence",
@@ -456,7 +455,6 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
             survey_only = True,
             )
         )
-
     build_survey_column(
         'm_clcam',
         IntCol(
@@ -471,7 +469,6 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
             survey_only = True,
             )
         )
-
     build_survey_column(
         'm_mgamm',
         IntCol(

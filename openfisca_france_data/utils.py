@@ -260,7 +260,7 @@ def get_data_frame(columns_name, survey_scenario, load_first = False, collection
         assert collection is not None
         entities = [simulation.tax_benefit_system.column_by_name[column_name].entity for column_name in columns_name]
         assert len(set(entities)) == 1
-        entity_symbol = entities[0]
+        # entity_symbol = entities[0]
         for entity_key_plural in simulation.entity_by_key_plural:
             if columns_name[0] in simulation.entity_by_key_plural[entity_key_plural].column_by_name:
                 entity = entity_key_plural
@@ -280,9 +280,9 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
         survey_scenario.new_simulation()
     simulation = survey_scenario.simulation
     data_frame_by_entity = dict()
-    for entity in simulation.tax_benefit_system.entities:
-        columns = simulation.entity_by_key_plural[entity].column_by_name.keys()
-        data_frame_by_entity[entity] = get_data_frame(columns, survey_scenario)
+    for entity in simulation.entity_by_key_plural.itervalues():
+        variables_name = entity.column_by_name.keys()
+        data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
 
 
@@ -334,7 +334,8 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
                 boolean_index = individual_data_frame["qui{}".format(other_entity)] == 0
                 index_other_entity = individual_data_frame.loc[boolean_index, "id{}".format(other_entity)].values
                 for column_name, column_series in data_frame_by_entity[other_entity].iteritems():
-                    individual_data_frame.loc[boolean_index, column_name] = column_series.iloc[index_other_entity].values
+                    individual_data_frame.loc[boolean_index, column_name] \
+                        = column_series.iloc[index_other_entity].values
                     individual_data_frame[column_name].fillna(0)
 
         if entity == 'ind' and force_sum is False:
