@@ -1,5 +1,6 @@
 # Ignore temporalrely h5 files
 *.h5
+!/openfisca_france_data/tests/data_files/fake_openfisca_input_data.h5
 !/openfisca_france_data/plugins/aggregates/amounts.h5
 !/openfisca_france_data/plugins/aggregates/amounts_g.h5
 # Spyder junk

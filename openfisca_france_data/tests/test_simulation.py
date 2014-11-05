@@ -43,6 +43,7 @@ def get_input_data_frame(year):
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
 
+
 # TODO, move to SurveyScenario
 def filter_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
     symbol = filter_entity.symbol
@@ -69,8 +70,44 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
     return data_frame
 
 
+def test_fake_survey_simulation():
+    year = 2006
+    from openfisca_france_data.tests.fake_openfisca_data_builder import get_fake_input_data_frame
+    input_data_frame = get_fake_input_data_frame(year)
+    TaxBenefitSystem = openfisca_france.init_country()
+    tax_benefit_system = TaxBenefitSystem()
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        tax_benefit_system = tax_benefit_system,
+        year = year,
+        )
+    simulation = survey_scenario.new_simulation()
+    try:
+        from pandas import DataFrame
+        revdisp = DataFrame({"revdisp": simulation.calculate('revdisp')})
+    except NaNCreationError as error:
+        index = error.index
+        entity = error.entity
+        column_name = error.column_name
+        input_data_frame_debug = filter_input_data_frame(
+            simulation.input_data_frame,
+            entity,
+            index[:10],
+            )
+        survey_scenario_debug = SurveyScenario()
+        simulation_debug = survey_scenario_debug.new_simulation(
+            debug = True,
+            input_data_frame = input_data_frame_debug,
+            tax_benefit_system = tax_benefit_system,
+            year = year,
+            )
+        simulation_debug.calculate(column_name)
+
+    print revdisp.info()
+    print revdisp.describe()
+
+
 def test_survey_simulation():
-    import datetime
     year = 2006
     input_data_frame = get_input_data_frame(year)
     TaxBenefitSystem = openfisca_france.init_country()
@@ -124,5 +161,6 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    test_survey_simulation()
+    test_fake_survey_simulation()
+#    test_survey_simulation()
  #   test_weights_building()
