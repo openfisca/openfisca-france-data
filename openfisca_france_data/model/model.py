@@ -25,51 +25,32 @@
 #TODO: actualiser la date des end (c'est souvent 2014 ou 2015)
 
 
-import collections
 from functools import partial
 
 
 from openfisca_core.columns import EnumCol, FloatCol, IntCol
 from openfisca_core.enumerations import Enum
-from openfisca_core.formulas import (
-    build_alternative_formula_couple,
-    build_dated_formula_couple,
-    build_select_formula_couple,
-    build_simple_formula_couple,
-    )
-from openfisca_france import entities
-
-
-build_alternative_formula_couple = partial(
-    build_alternative_formula_couple,
-    entity_class_by_symbol = entities.entity_class_by_symbol,
-    )
-build_dated_formula_couple = partial(
-    build_dated_formula_couple,
-    entity_class_by_symbol = entities.entity_class_by_symbol,
-    )
-build_select_formula_couple = partial(
-    build_select_formula_couple,
-    entity_class_by_symbol = entities.entity_class_by_symbol,
-    )
-build_simple_formula_couple = partial(
-    build_simple_formula_couple,
-    entity_class_by_symbol = entities.entity_class_by_symbol,
-    )
-
+from openfisca_core.formulas import build_simple_formula
 
 from . import calage as cl
 from . import common as cm
 from .cotisations_sociales import travail as cs_travail
 
 
-prestation_by_name = collections.OrderedDict((
+def add_survey_formulas_to_entities(survey_entity_class_by_symbol):
+
+    build_survey_simple_formula = partial(
+        build_simple_formula,
+        entity_class_by_symbol = survey_entity_class_by_symbol,
+        )
+
     ############################################################
     # Cotisations sociales
     ############################################################
 
     # Salaires
-    build_simple_formula_couple(
+
+    build_survey_simple_formula(
         'type_sal',
         EnumCol(
             function = cs_travail._type_sal,
@@ -88,8 +69,9 @@ prestation_by_name = collections.OrderedDict((
             url = u"http://fr.wikipedia.org/wiki/Professions_et_cat%C3%A9gories_socioprofessionnelles_en_France",
             ),
         replace = True,
-        ),
-    build_simple_formula_couple(
+        )
+
+    build_survey_simple_formula(
         'taille_entreprise',
         EnumCol(
             function = cs_travail._taille_entreprise,
@@ -106,11 +88,13 @@ prestation_by_name = collections.OrderedDict((
             url = u"http://www.insee.fr/fr/themes/document.asp?ref_id=ip1321",
             ),
         replace = True,
-        ),
+        )
+
     ############################################################
     # Catégories
     ############################################################
-    build_simple_formula_couple(
+
+    build_survey_simple_formula(
         'nb_ageq0',
         IntCol(
             function = cl._nb_ageq0,
@@ -118,8 +102,8 @@ prestation_by_name = collections.OrderedDict((
             label = u"Effectifs des tranches d'âge quiquennal",
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'decile',
         EnumCol(
             function = cm._decile,
@@ -142,8 +126,8 @@ prestation_by_name = collections.OrderedDict((
                 ),
             survey_only = True,
             ),
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'decile_net',
         EnumCol(
             function = cm._decile_net,
@@ -166,8 +150,8 @@ prestation_by_name = collections.OrderedDict((
                 ),
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'pauvre40',
         EnumCol(
             function = cm._pauvre40,
@@ -181,8 +165,8 @@ prestation_by_name = collections.OrderedDict((
                 ),
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'pauvre50',
         EnumCol(
             function = cm._pauvre50,
@@ -196,8 +180,8 @@ prestation_by_name = collections.OrderedDict((
                 ),
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'pauvre60',
         EnumCol(
             function = cm._pauvre60,
@@ -211,8 +195,8 @@ prestation_by_name = collections.OrderedDict((
                 ),
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'champm_ind',
         FloatCol(
             function = cm._champm_ind,
@@ -220,8 +204,8 @@ prestation_by_name = collections.OrderedDict((
             label = u"L'individu est dans un ménage du champ ménage",
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'champm_foy',
         FloatCol(
             function = cm._champm_foy,
@@ -229,8 +213,8 @@ prestation_by_name = collections.OrderedDict((
             label = u"Le premier déclarant du foyer est dans un ménage du champ ménage",
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'champm_fam',
         FloatCol(
             function = cm._champm_fam,
@@ -238,8 +222,8 @@ prestation_by_name = collections.OrderedDict((
             label = u"Le premier parent de la famille est dans un ménage du champ ménage",
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'weight_ind',
         FloatCol(
             function = cm._weight_ind,
@@ -247,8 +231,8 @@ prestation_by_name = collections.OrderedDict((
             label = u"Poids de l'individu",
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'weight_foy',
         FloatCol(
             function = cm._weight_foy,
@@ -256,8 +240,8 @@ prestation_by_name = collections.OrderedDict((
             label = u"Poids du foyer",
             survey_only = True,
             )
-        ),
-    build_simple_formula_couple(
+        )
+    build_survey_simple_formula(
         'weight_fam',
         FloatCol(
             function = cm._weight_fam,
@@ -265,6 +249,4 @@ prestation_by_name = collections.OrderedDict((
             label = u"Poids de la famille",
             survey_only = True,
             )
-        ),
-    )
-)
+        )

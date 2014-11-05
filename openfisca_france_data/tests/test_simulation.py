@@ -70,13 +70,14 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
 
 
 def test_survey_simulation():
+    import datetime
     year = 2006
     input_data_frame = get_input_data_frame(year)
     TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system_class = TaxBenefitSystem
+    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system_class = tax_benefit_system_class,
+        tax_benefit_system = tax_benefit_system,
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -96,22 +97,23 @@ def test_survey_simulation():
         simulation_debug = survey_scenario_debug.new_simulation(
             debug = True,
             input_data_frame = input_data_frame_debug,
-            tax_benefit_system_class = tax_benefit_system_class,
+            tax_benefit_system = tax_benefit_system,
             year = year,
             )
         simulation_debug.calculate(column_name)
 
     print revdisp.info()
+    print revdisp.describe()
 
 
 def test_weights_building():
     year = 2006
     input_data_frame = get_input_data_frame(year)
     TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system_class = TaxBenefitSystem
+    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system_class = tax_benefit_system_class,
+        tax_benefit_system= tax_benefit_system,
         year = year,
         )
     survey_scenario.new_simulation()
@@ -122,5 +124,5 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-#    test_survey_simulation()
-    test_weights_building()
+    test_survey_simulation()
+ #   test_weights_building()

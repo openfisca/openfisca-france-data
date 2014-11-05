@@ -36,7 +36,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 def test_survey_dump_load():
-    erfs_survey_collection = build_empty_erfs_survey_collection()
+    erfs_survey_collection = build_empty_erfs_survey_collection(years=[2006])
     erfs_survey = erfs_survey_collection.surveys['erfs_2006']
     saved_fake_survey_file_path = os.path.join(current_dir, 'saved_fake_survey')
     erfs_survey.dump(saved_fake_survey_file_path)
@@ -45,7 +45,7 @@ def test_survey_dump_load():
 
 
 def test_survey_collection_dump_load():
-    erfs_survey_collection = build_empty_erfs_survey_collection()
+    erfs_survey_collection = build_empty_erfs_survey_collection(years=[2006])
     saved_fake_survey_collection_file_path = os.path.join(current_dir, 'saved_fake_survey_collection')
     erfs_survey_collection.dump(saved_fake_survey_collection_file_path)
     erfs_survey_collection_bis = SurveyCollection.load(saved_fake_survey_collection_file_path)
@@ -57,8 +57,12 @@ def test_survey_collection_dump_load():
 def test_find_tables():
     erfs_survey_collection = SurveyCollection.load(collection = "erfs")
     erfs_survey = erfs_survey_collection.surveys['erfs_2006']
-    tables = erfs_survey.find_tables(variable = "ident")
-    print tables
+    available_tables = erfs_survey.find_tables(variable = "ident")
+
+    needed_tables = [
+        u'eec_cmp_1', u'eec_cmp_2', u'eec_cmp_3', u'eec_indivi', u'eec_menage', u'foyer', u'erf_indivi', u'erf_menage']
+    for table in needed_tables:
+        assert table in available_tables, "Table {} is not availabe".format(table)
 
 
 if __name__ == '__main__':
@@ -66,6 +70,6 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-#    test_survey_dump_load()
-#    test_survey_collection_dump_load()
+    test_survey_dump_load()
+    test_survey_collection_dump_load()
     test_find_tables()

@@ -197,6 +197,6 @@ if __name__ == '__main__':
         years = [2006, 2007, 2008, 2009],
         )
 #    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2007", "erfs_2008", "erfs_2009"])
-    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2009"])
+#    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2009"])
     erfs_survey_collection.dump(collection = u"erfs")
     log.info("The program have been executed in {}".format( datetime.datetime.now()-start_time))
