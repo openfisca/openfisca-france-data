@@ -52,7 +52,7 @@ AGGREGATES_DEFAULT_VARS = [
     'rsa_act',
     'aefa',
     'api',
-    'majo_rsa',
+#    'majo_rsa',
     'psa',
     'logt',
     'alf',
