@@ -23,6 +23,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 
 import gc
 import numpy as np
@@ -38,6 +39,7 @@ log = logging.getLogger(__name__)
 
 # Menages et Individus
 
+
 def create_indivim(year = None):
     """
     Création de la table individus concaténée (merged)
@@ -47,8 +49,6 @@ def create_indivim(year = None):
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
     erfmen = survey.get_values(table = "erf_menage")
-
-    import datetime
 
     start_time = datetime.datetime.now()
     eecmen = survey.get_values(table = "eec_menage")
@@ -69,7 +69,7 @@ def create_indivim(year = None):
 
     noappar_i = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
     noappar_i = noappar_i.drop_duplicates(cols = 'ident', take_last = True)
-    #TODO: vérifier qu'il n'y a théoriquement pas de doublon
+    # TODO: vérifier qu'il n'y a théoriquement pas de doublon
 
     difference = set(noappar_i.ident).symmetric_difference(noappar_m.ident)
     intersection = set(noappar_i.ident) & set(noappar_m.ident)
@@ -77,12 +77,12 @@ def create_indivim(year = None):
     del noappar_i, noappar_m, difference, intersection
     gc.collect()
 
-    #fusion enquete emploi et source fiscale
+    # fusion enquete emploi et source fiscale
     menagem = erfmen.merge(eecmen)
     indivim = eecind.merge(erfind, on = ['noindiv', 'ident', 'noi'], how = "inner")
 
     # optimisation des types? Controle de l'existence en passant
-    #TODO: minimal dtype
+    # TODO: minimal dtype
     # TODO: this should be done somewhere else
     var_list = ([
         'acteu',
@@ -107,60 +107,58 @@ def create_indivim(year = None):
         ])
 
 #    for indivim.columns in indivim:
-##    for var in indivim:
+#     for var in indivim:
     for var in var_list:
         if indivim[var].dtype != 'float64' and indivim[var].dtype != 'float32':
-            filter00 =  ((indivim[var] == "") | (indivim[var] == ".")) #crée un filtre pour les valeurs manquantes, ne marche pas si type en float
+            filter00 = ((indivim[var] == "") | (indivim[var] ==  ".")) #  crée un filtre pour les valeurs manquantes, ne marche pas si type en float
             indivim[var][filter00] = np.nan
         try:
             indivim[var] = indivim[var].astype("float32")
         except Exception as e:
-            log.info("{} {}".format(e,var))
+            log.info("{} {}".format(e, var))
 
 ########################
 # création de variables#
 ########################
 
- # actrec : activité recodée comme preconisé par l'INSEE p84 du guide utilisateur
+#   actrec : activité recodée comme preconisé par l'INSEE p84 du guide utilisateur
     indivim["actrec"] = np.nan
-    #Attention : Q: pas de 6 ?!! A : Non pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
+    # Attention : Q: pas de 6 ?!! A : Non pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
     # la même nomenclatue à été adopée
 
+#    3: contrat a durée déterminée
+    indivim['actrec'][indivim['acteu'] == 1] = 3  # TODO: check what is done
 
-
-   #3 : contrat a durée déterminée
-    indivim['actrec'][indivim['acteu'] == 1] = 3 #TODO: check what is done
-
-   # 8 : femme (homme) au foyer, autre inactif
+#    8 : femme (homme) au foyer, autre inactif
     indivim['actrec'][indivim['acteu'] == 3] = 8
 
 
-   # 1 : actif occupé non salarié
-    filter1 = (indivim.acteu == 1) & (indivim.stc.isin([1, 3])) # actifs occupés non salariés à son compte ou pour un
+#    1 : actif occupé non salarié
+    filter1 = (indivim.acteu == 1) & (indivim.stc.isin([1, 3]))  # actifs occupés non salariés à son compte ou pour un
     indivim["actrec"][filter1] = 1                                # membre de sa famille
-   # 2 : salarié pour une durée non limitée
+#   2 : salarié pour une durée non limitée
     filter2 = (indivim['acteu'] == 1) & (((indivim['stc'] == 2) & (indivim['contra'] == 1)) | (indivim['titc'] == 2))
     indivim['actrec'][filter2] = 2
-   # 4 : au chomage
+#   4 : au chomage
     filter4 = (indivim['acteu'] == 2) | ((indivim['acteu'] == 3) & (indivim['mrec'] == 1))
     indivim['actrec'][filter4] = 4
-   # 5 : élève étudiant , stagiaire non rémunéré
+#   5 : élève étudiant , stagiaire non rémunéré
     filter5 = (indivim['acteu'] == 3) & ((indivim['forter'] == 2) | (indivim['rstg'] == 1))
     indivim['actrec'][filter5] = 5
-   # 7 : retraité, préretraité, retiré des affaires unchecked
+#   7 : retraité, préretraité, retiré des affaires unchecked
     filter7 = (indivim['acteu'] == 3) & ((indivim['retrai'] == 1) | (indivim['retrai'] == 2))
     indivim['actrec'][filter7] = 7
-   # 9 : probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
+#   9 : probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
     indivim['actrec'][indivim['acteu'].isnull()] = 9
 
     indivim.actrec = indivim.actrec.astype("int8")
     assert_dtype(indivim['actrec'], "int8")
-    #TODO : compare the result with results provided by Insee
- # tu99
+#   TODO : compare the result with results provided by Insee
+#   tu99
     if year == 2009:
         erfind['tu99'] = None  # TODO: why ?
 
- ## locataire
+#   locataire
     menagem["locataire"] = menagem.so.isin([3, 4, 5])
     menagem["locataire"] = menagem["locataire"].astype("bool")
 
@@ -195,8 +193,7 @@ def create_enfants_a_naitre(year = 2006):
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
-
-    ### Enfant à naître (NN pour nouveaux nés)
+#   Enfant à naître (NN pour nouveaux nés)
     individual_vars = [
         'acteu',
         'agepr',
@@ -252,26 +249,24 @@ def create_enfants_a_naitre(year = 2006):
     for series_name in ['actrec', 'noidec', 'ztsai']:
         assert_dtype(enfants_a_naitre[series_name], "int")
 
-    #selection
+    # selection
     enfants_a_naitre = enfants_a_naitre[
         (
             (enfants_a_naitre.naia == enfants_a_naitre.year) & (enfants_a_naitre.naim >= 10)
             ) | (
-                    (enfants_a_naitre.naia == enfants_a_naitre.year + 1) & (enfants_a_naitre.naim <= 5)
-                    )
+                (enfants_a_naitre.naia == enfants_a_naitre.year + 1) & (enfants_a_naitre.naim <= 5)
+                )
         ].copy()
 
     save_temp(enfants_a_naitre, name = "enfants_a_naitre", year = year)
     gc.collect()
 
 
-
-
 if __name__ == '__main__':
     log.info('Entering 01_pre_proc')
     import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     import time
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2006
     create_indivim(year = year)

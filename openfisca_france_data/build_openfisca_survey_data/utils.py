@@ -67,7 +67,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
         assert not(dataframe.duplicated().any()), 'présence de lignes en double dans la dataframe'
         assert ~(dataframe.duplicated(cols=['idfoy', 'quifoy'])).all(), 'duplicate of tuple idfoy/quifoy'
         assert ~(dataframe.duplicated(cols=['idmen', 'quimen'])).all(), 'duplicate of tuple idmen/quimen'
-        assert ~(dataframe.duplicated(cols=['idfam', 'quifam'])).all(), 'duplicate of tupli idfam/quifam'
+        assert ~(dataframe.duplicated(cols=['idfam', 'quifam'])).all(), 'duplicate of tuple idfam/quifam'
 
     empty_columns = []
     for col in dataframe:
