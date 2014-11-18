@@ -42,6 +42,11 @@ def test(year = None):
     # load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
     survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+
+    from pandas import HDFStore
+    store =  HDFStore(survey.hdf5_file_path)
+    print store
+    boum
     c05d = survey.get_values(table = "c05d")
     print c05d.columns
     print c05d.info()

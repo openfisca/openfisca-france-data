@@ -139,8 +139,30 @@ def test_survey_simulation():
             )
         simulation_debug.calculate(column_name)
 
-    print revdisp.info()
-    print revdisp.describe()
+#    print revdisp.info()
+#    print revdisp.describe()
+
+    return DataFrame({
+        "idmen": simulation.calculate('idmen'),
+        "quimen": simulation.calculate('quimen'),
+        "idfoy": simulation.calculate('idmen'),
+        "quifoy": simulation.calculate('quimen'),
+        "idfam": simulation.calculate('idmen'),
+        "quifam": simulation.calculate('quimen'),
+        "sali": simulation.calculate('sali'),
+        })
+#    return DataFrame(
+#        {(name, simulation.calculate(name)) for name in [
+#            'idmen',
+#            'quimen',
+#            'idfoy',
+#            'quifoy',
+#            'idfam',
+#            'quifam',
+#            'age',
+#            'sali',
+# #           'revdisp',
+#            ]})
 
 
 def test_weights_building():
@@ -161,6 +183,7 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    test_fake_survey_simulation()
-#    test_survey_simulation()
+#    test_fake_survey_simulation()
+    df = test_survey_simulation()
  #   test_weights_building()
+    print df
