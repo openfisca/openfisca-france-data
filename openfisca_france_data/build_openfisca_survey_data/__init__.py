@@ -1,12 +1,28 @@
-# -*- coding:utf-8 -*-
-# Created on 16 mai 2013
-# This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright ©2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+# -*- coding: utf-8 -*-
 
-import gc
+
+# OpenFisca -- A versatile microsimulation software
+# By: OpenFisca Team <contact@openfisca.fr>
+#
+# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
+# https://github.com/openfisca
+#
+# This file is part of OpenFisca.
+#
+# OpenFisca is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# OpenFisca is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 import os
 import logging
 
@@ -20,14 +36,16 @@ log = logging.getLogger(__name__)
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
 default_config_files_directory = os.path.join(openfisca_france_location)
 
+
 def get_tmp_file_path(config_files_directory = default_config_files_directory):
     parser = SafeConfigParser()
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
-    found = parser.read([config_ini, config_local_ini])
+    _ = parser.read([config_ini, config_local_ini])
     tmp_directory = parser.get('data', 'tmp_directory')
-    hdf_file_path = os.path.join(tmp_directory,'temp.h5')
+    hdf_file_path = os.path.join(tmp_directory, 'temp.h5')
     return hdf_file_path
+
 
 def load_temp(name = None, year = None, variables = None, config_files_directory = default_config_files_directory):
     """
@@ -47,7 +65,7 @@ def load_temp(name = None, year = None, variables = None, config_files_directory
     hdf_file_path = get_tmp_file_path(config_files_directory = config_files_directory)
     print(hdf_file_path)
     store = HDFStore(hdf_file_path)
-    dataframe = store[str(year)+"/"+name]
+    dataframe = store["{}/{}".format(year, name)]
     store.close()
     if variables is None:
         return dataframe
@@ -78,7 +96,7 @@ def save_temp(dataframe, name = None, year = None, config_files_directory = defa
     store_path = "{}/{}".format(year, name)
 
     if store_path in store.keys():
-        del store[str(year)+"/"+name]
+        del store["{}/{}".format(year, name)]
 
     dataframe.to_hdf(hdf_file_path, store_path)
 

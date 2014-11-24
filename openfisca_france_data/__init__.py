@@ -24,6 +24,11 @@
 
 
 import os
+import pkg_resources
+
+
+openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
+default_config_files_directory = os.path.join(openfisca_france_location)
 
 
 AGGREGATES_DEFAULT_VARS = [

@@ -33,6 +33,9 @@ from openfisca_survey_manager.surveys import SurveyCollection
 
 log = logging.getLogger(__name__)
 
+from openfisca_france_data.temporary import TemporaryStore
+
+temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 def test(year = None):
     """
@@ -43,10 +46,6 @@ def test(year = None):
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
     survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 
-    from pandas import HDFStore
-    store =  HDFStore(survey.hdf5_file_path)
-    print store
-    boum
     c05d = survey.get_values(table = "c05d")
     print c05d.columns
     print c05d.info()
@@ -57,7 +56,8 @@ def test(year = None):
     print individu.columns
     print individu.info()
     print individu.describe()
-
+    temporary_store["test"] = c05d
+    temporary_store.close()
 
 if __name__ == '__main__':
     log.info('Entering 01_pre_proc')
