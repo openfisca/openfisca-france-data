@@ -41,6 +41,10 @@ def test(year = None):
     """
     Demo
     """
+    matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = \
+        get_transfert_data_frames(year)
+
+
     assert year is not None
     # load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
@@ -49,15 +53,48 @@ def test(year = None):
     c05d = survey.get_values(table = "c05d")
     print c05d.columns
     print c05d.info()
-    print c05d.describe()
-    gc.collect()
-    c05d = survey.get_values(table = "c05d")
-    individu = survey.get_values(table = "individu")
-    print individu.columns
-    print individu.info()
-    print individu.describe()
-    temporary_store["test"] = c05d
-    temporary_store.close()
+    df = matrice_passage_data_frame[['poste{}'.format(year), 'posteCOICOP']]
+    print df.info()
+    print df.head()
+    grouped = df.groupby('posteCOICOP')
+    print grouped.first()
+    print grouped.groups
+    print len(grouped.groups)
+    print grouped.min()
+    print grouped.groups
+    for name, group in grouped:
+        print name
+        print group
+
+ #   c05d['COICOP'] = c05d.rename()
+
+#    print c05d.describe()
+#    gc.collect()
+#    c05d = survey.get_values(table = "c05d")
+#    individu = survey.get_values(table = "individu")
+#    print individu.columns
+#    print individu.info()
+#    print individu.describe()
+#    temporary_store["test"] = c05d
+#    temporary_store.close()
+
+
+def get_transfert_data_frames(year = 2005):
+    from pandas import read_excel
+    import os
+    directory_path = os.path.normpath("/home/benjello/IPP/openfisca_france_indirect_taxation")
+    matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
+    parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
+    matrice_passage_data_frame = read_excel(matrice_passage_file_path)
+    print matrice_passage_data_frame
+    print matrice_passage_data_frame["label{}".format(year)][0]
+    parametres_fiscalite_data_frame = read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
+    selected_parametres_fiscalite_data_frame = \
+        parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
+    print selected_parametres_fiscalite_data_frame
+    return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
+
+
 
 if __name__ == '__main__':
     log.info('Entering 01_pre_proc')
@@ -67,4 +104,5 @@ if __name__ == '__main__':
     deb = time.clock()
     year = 2005
     test(year = year)
+
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
