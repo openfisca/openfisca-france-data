@@ -24,8 +24,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import gc
 import logging
+
+import pandas as pd
+
 
 from openfisca_survey_manager.surveys import SurveyCollection
 # from openfisca_france_data.build_openfisca_survey_data import save_temp
@@ -37,46 +39,68 @@ from openfisca_france_data.temporary import TemporaryStore
 
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
+
 def test(year = None):
     """
     Demo
     """
+    year = 2005
     matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = \
         get_transfert_data_frames(year)
 
-
     assert year is not None
-    # load data
+    # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
     survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 
     c05d = survey.get_values(table = "c05d")
-    print c05d.columns
-    print c05d.info()
-    df = matrice_passage_data_frame[['poste{}'.format(year), 'posteCOICOP']]
-    print df.info()
-    print df.head()
-    grouped = df.groupby('posteCOICOP')
-    print grouped.first()
-    print grouped.groups
-    print len(grouped.groups)
-    print grouped.min()
-    print grouped.groups
-    for name, group in grouped:
-        print name
-        print group
+    c05d.drop('pondmen', axis = 1, inplace = True)
+    c05d.set_index('ident_men', inplace = True)
+    c05d = c05d.iloc[:5]
 
- #   c05d['COICOP'] = c05d.rename()
+    # Grouping by coicop
+    coicop_poste_bdf = matrice_passage_data_frame[['poste{}'.format(year), 'posteCOICOP']]
+    coicop_poste_bdf.set_index('poste{}'.format(year), inplace = True)
+    coicop_by_poste_bdf = coicop_poste_bdf.to_dict()['posteCOICOP']
+    del coicop_poste_bdf
 
-#    print c05d.describe()
-#    gc.collect()
-#    c05d = survey.get_values(table = "c05d")
-#    individu = survey.get_values(table = "individu")
-#    print individu.columns
-#    print individu.info()
-#    print individu.describe()
-#    temporary_store["test"] = c05d
-#    temporary_store.close()
+    def reformat_consumption_column_coicop(coicop):
+        try:
+            return int(coicop.replace('c', '').lstrip('0'))
+        except:
+            return None
+
+    coicop_labels = [
+        coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf))
+        for poste_bdf in c05d.columns
+        ]
+    tuples = zip(coicop_labels, c05d.columns)
+    c05d.columns = pd.MultiIndex.from_tuples(tuples, names=['coicop', 'poste{}'.format(year)])
+
+    coicop_data_frame = c05d.groupby(level = 0, axis = 1).sum()
+    print coicop_data_frame
+
+    # Grouping by categorie_fiscale
+    selected_parametres_fiscalite_data_frame = \
+        selected_parametres_fiscalite_data_frame[['posteCOICOP', 'categoriefiscale']]
+    print selected_parametres_fiscalite_data_frame
+    selected_parametres_fiscalite_data_frame.set_index('posteCOICOP', inplace = True)
+    categorie_fiscale_by_coicop = selected_parametres_fiscalite_data_frame.to_dict()['categoriefiscale']
+    print categorie_fiscale_by_coicop
+    categorie_fiscale_labels = [
+        categorie_fiscale_by_coicop.get(coicop)
+        for coicop in coicop_data_frame.columns
+        ]
+    print categorie_fiscale_labels
+    tuples = zip(categorie_fiscale_labels, coicop_data_frame.columns)
+    coicop_data_frame.columns = pd.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
+    print coicop_data_frame
+
+    categorie_fiscale_data_frame = coicop_data_frame.groupby(level = 0, axis = 1).sum()
+    print categorie_fiscale_data_frame
+
+    temporary_store["categorie_fiscale"] = categorie_fiscale_data_frame
+    temporary_store.close()
 
 
 def get_transfert_data_frames(year = 2005):
@@ -86,14 +110,10 @@ def get_transfert_data_frames(year = 2005):
     matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     matrice_passage_data_frame = read_excel(matrice_passage_file_path)
-    print matrice_passage_data_frame
-    print matrice_passage_data_frame["label{}".format(year)][0]
     parametres_fiscalite_data_frame = read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
     selected_parametres_fiscalite_data_frame = \
         parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
-    print selected_parametres_fiscalite_data_frame
     return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
-
 
 
 if __name__ == '__main__':
