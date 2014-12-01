@@ -24,9 +24,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+
 import logging
+import pkg_resources
 
 import pandas as pd
+from pandas import read_excel
 
 
 from openfisca_survey_manager.surveys import SurveyCollection
@@ -38,6 +42,8 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
+
+from ConfigParser import SafeConfigParser
 
 
 def test(year = None):
@@ -104,13 +110,21 @@ def test(year = None):
 
 
 def get_transfert_data_frames(year = 2005):
-    from pandas import read_excel
-    import os
-    directory_path = os.path.normpath("/home/benjello/IPP/openfisca_france_indirect_taxation")
+
+    parser = SafeConfigParser()
+    openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
+    config_files_directory = os.path.join(openfisca_france_data_location)
+    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+    config_ini = os.path.join(config_files_directory, 'config.ini')
+    parser.read([config_ini, config_local_ini])
+    directory_path  = os.path.normpath(
+        parser.get("openfisca_france_indirect_taxation", "assets")
+        )
     matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     matrice_passage_data_frame = read_excel(matrice_passage_file_path)
     parametres_fiscalite_data_frame = read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
+    print parametres_fiscalite_data_frame
     selected_parametres_fiscalite_data_frame = \
         parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
     return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
