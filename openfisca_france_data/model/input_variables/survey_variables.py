@@ -23,49 +23,41 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import functools
-
-from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol
+from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol, reference_input_variable
 from openfisca_core.enumerations import Enum
 
-from openfisca_core.columns import build_column
 
+def add_survey_columns_to_entities(survey_entity_class_by_key_plural):
 
-def add_survey_columns_to_entities(survey_entity_class_by_symbol):
+    SurveyIndividus = survey_entity_class_by_key_plural['individus']
+    SurveyFamilles = survey_entity_class_by_key_plural['familles']
+    SurveyFoyers = survey_entity_class_by_key_plural['foyers_fiscaux']
+    SurveyMenages = survey_entity_class_by_key_plural['menages']
 
-    build_survey_column = functools.partial(
-        build_column,
-        entity_class_by_symbol = survey_entity_class_by_symbol,
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF ",
+        name = "idmen_original",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'idmen_original',
-        IntCol(
-            entity = "men",
-            label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF ",
-            survey_only = True,
-            ),
-        )
-    build_survey_column(
-        'idfoy_original',
-        IntCol(
-            entity = "fam",
-            label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF",
-            survey_only = True,
-            ),
-        )
-    build_survey_column(
-        'idfam_original',
-        IntCol(
-            entity = "fam",
-            label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
-            survey_only = True,
-            ),
-        )
-    build_survey_column(
-        'titc',
-        EnumCol(
-            label = u"Statut, pour les agents de l'Etat des collectivités locales, ou des hôpitaux",
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyFoyers,
+        label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF",
+        name = "idfoy_original",
+        # survey_only = True,
+    )
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyFamilles,
+        label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
+        name = "idfam_original",
+        # survey_only = True,
+    )
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Sans objet ou non renseigné",
@@ -74,14 +66,14 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u"Contractuel",
                     ]
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyIndividus,
+        label = u"Statut, pour les agents de l'Etat des collectivités locales, ou des hôpitaux",
+        name = "titc",
+        # survey_only = True,
         )
-
-    build_survey_column(
-        'statut',
-        EnumCol(
-            label = u"Statut détaillé mis en cohérence avec la profession",
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Sans objet",
@@ -98,14 +90,15 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u"Autres contrats (Etat, coll.loc.)",
                     ]
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyIndividus,
+        label = u"Statut détaillé mis en cohérence avec la profession",
+        name = "statut",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'txtppb',
-        EnumCol(
-            label = u"Taux du temps partiel",
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Sans objet",
@@ -116,14 +109,15 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u"Plus de 80%",
                     ],
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyIndividus,
+        label = u"Taux du temps partiel",
+        name = "txtppb",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'chpub',
-        EnumCol(
-            label = u"Nature de l'employeur principal",
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Sans objet",
@@ -135,23 +129,24 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u"Entreprise privée, association",
                     ],
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyIndividus,
+        label = u"Nature de l'employeur principal",
+        name = "chpub",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'cadre',
-        BoolCol(
-            label = u"Cadre salarié du privé",
-            survey_only = True
-            ),
+    reference_input_variable(
+        column = BoolCol(),
+        entity_class = SurveyIndividus,
+        label = u"Cadre salarié du privé",
+        name = "cadre",
+        # survey_only = True
         )
+
     #   zones apl and calibratio
-    build_survey_column(
-        'tu99',
-        EnumCol(
-            label = u"Tranche d'unité urbaine",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u'Communes rurales',
@@ -165,15 +160,15 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u'agglomération parisienne'
                     ],
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyMenages,
+        label = u"Tranche d'unité urbaine",
+        name = "tu99",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'tau99',
-        EnumCol(
-            label = u"tranche d'aire urbaine",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u'Communes hors aire urbaine',
@@ -189,15 +184,15 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u'Aire urbaine de Paris'
                     ]
                 ),
-            survey_only = True,
             ),
+        label = u"tranche d'aire urbaine",
+        entity_class = SurveyMenages,
+        name = "tau99",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'reg',
-        EnumCol(
-            label = u"Région",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u'Ile-de-France',
@@ -224,30 +219,32 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u'Corse'
                     ],
                 ),
-            survey_only = True,
             ),
+        label = u"Région",
+        entity_class = SurveyMenages,
+        name = "reg",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'pol99',
-        EnumCol(
-            label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Commune appartenant à un pôle urbain",
                     u"Commune monopolarisée (appartenant à une couronne périurbaine)",
                     u"Commune monopolarisée",
-                    u"Espace à dominante rurale"]),
-            survey_only = True,
+                    u"Espace à dominante rurale"
+                    ]
+                ),
             ),
+        label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains",
+        entity_class = SurveyMenages,
+        name = "pol99",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'cstotpragr',
-        EnumCol(
-            label = u"catégorie socio_professionelle agrégée de la personne de référence",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Non renseignée",
@@ -261,15 +258,15 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     u"Autres inactifs"
                     ],
                 ),
-            survey_only = True,
             ),
+        label = u"catégorie socio_professionelle agrégée de la personne de référence",
+        entity_class = SurveyMenages,
+        name = "cstotpragr",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'naf16pr',
-        EnumCol(
-            label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Sans objet",
@@ -293,15 +290,16 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     ],
                 start = -1,  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyMenages,
+        label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence",
+
+        name = "naf16pr",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'nafg17npr',
-        EnumCol(
-            label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence ",
-            entity = 'men',
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum(
                 [
                     u"Sans objet",
@@ -326,81 +324,86 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                     ],
                 start = -1,
                 ),  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
-            survey_only = True,
             ),
+        label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence ",
+        entity_class = SurveyMenages,
+        name = "nafg17npr",
+        # survey_only = True,
         )
-    #    build_survey_column('typmen15', EnumCol(label = u"Type de ménage",
-    #                       entity = 'men',
-    #                       enum = Enum([u"Personne seule active",
-    #                                    u"Personne seule inactive",
-    #                                    u"Familles monoparentales, parent actif",
-    #                                    u"Familles monoparentales, parent inactif et au moins un enfant actif",
-    #                                    u"Familles monoparentales, tous inactifs",
-    #                                    u"Couples sans enfant, 1 actif",
-    #                                    u"Couples sans enfant, 2 actifs",
-    #                                    u"Couples sans enfant, tous inactifs",
-    #                                    u"Couples avec enfant, 1 membre du couple actif",
-    #                                    u"Couples avec enfant, 2 membres du couple actif",
-    #                                    u"Couples avec enfant, couple inactif et au moins un enfant actif",
-    #                                    u"Couples avec enfant, tous inactifs",
-    #                                    u"Autres ménages, 1 actif",
-    #                                    u"Autres ménages, 2 actifs ou plus",
-    #                                    u"Autres ménages, tous inactifs"],start = 1)))
-    build_survey_column(
-        'ageq', EnumCol(
-            label = u"âge quinquennal de la personne de référence",
-            entity = 'men',
-            enum = Enum([
-                u"moins de 25 ans",
-                u"25 à 29 ans",
-                u"30 à 34 ans",
-                u"35 à 39 ans",
-                u"40 à 44 ans",
-                u"45 à 49 ans",
-                u"50 à 54 ans",
-                u"55 à 59 ans",
-                u"60 à 64 ans",
-                u"65 à 69 ans",
-                u"70 à 74 ans",
-                u"75 à 79 ans",
-                u"80 ans et plus"
-                ]),
-            survey_only = True
-            )
-        )
-    #    build_survey_column_couple('nbinde', EnumCol(label = u"taille du ménage",
-    #                     entity = 'men',
-    #                     enum = Enum([u"Une personne",
-    #                                  u"Deux personnes",
-    #                                  u"Trois personnes",
-    #                                  u"Quatre personnes",
-    #                                  u"Cinq personnes",
-    #                                  u"Six personnes et plus"], start = 1))),
 
-    build_survey_column(
-        'ddipl',
-        EnumCol(
-            label = u"diplôme de la personne de référence",
-            entity = 'men',
-            enum = Enum([
-                u"Non renseigné"
-                u"Diplôme supérieur",
-                u"Baccalauréat + 2 ans",
-                u"Baccalauréat ou brevet professionnel ou autre diplôme de ce niveau",
-                u"CAP, BEP ou autre diplôme de ce niveau",
-                u"Brevet des collèges",
-                u"Aucun diplôme ou CEP"
-                ],
+#    build_survey_column('typmen15', column = EnumCol(label = u"Type de ménage",
+#                       entity_class = SurveyMenages,
+#                       enum = Enum([u"Personne seule active",
+#                                    u"Personne seule inactive",
+#                                    u"Familles monoparentales, parent actif",
+#                                    u"Familles monoparentales, parent inactif et au moins un enfant actif",
+#                                    u"Familles monoparentales, tous inactifs",
+#                                    u"Couples sans enfant, 1 actif",
+#                                    u"Couples sans enfant, 2 actifs",
+#                                    u"Couples sans enfant, tous inactifs",
+#                                    u"Couples avec enfant, 1 membre du couple actif",
+#                                    u"Couples avec enfant, 2 membres du couple actif",
+#                                    u"Couples avec enfant, couple inactif et au moins un enfant actif",
+#                                    u"Couples avec enfant, tous inactifs",
+#                                    u"Autres ménages, 1 actif",
+#                                    u"Autres ménages, 2 actifs ou plus",
+#                                    u"Autres ménages, tous inactifs"],start = 1)))
+    reference_input_variable(
+        column = EnumCol(
+            enum = Enum(
+                [
+                    u"moins de 25 ans",
+                    u"25 à 29 ans",
+                    u"30 à 34 ans",
+                    u"35 à 39 ans",
+                    u"40 à 44 ans",
+                    u"45 à 49 ans",
+                    u"50 à 54 ans",
+                    u"55 à 59 ans",
+                    u"60 à 64 ans",
+                    u"65 à 69 ans",
+                    u"70 à 74 ans",
+                    u"75 à 79 ans",
+                    u"80 ans et plus",
+                    ],
+                ),
+            ),
+        label = u"âge quinquennal de la personne de référence",
+        entity_class = SurveyMenages,
+        name = "ageq",
+        # survey_only = True
+        )
+#    build_survey_column_couple('nbinde, column = EnumCol(label = u"taille du ménage",
+#                     entity_class = SurveyMenages,
+#                     enum = Enum([u"Une personne",
+#                                  u"Deux personnes",
+#                                  u"Trois personnes",
+#                                  u"Quatre personnes",
+#                                  u"Cinq personnes",
+#                                  u"Six personnes et plus"], start = 1))),
+
+    reference_input_variable(
+        column = EnumCol(
+            enum = Enum(
+                [
+                    u"Non renseigné"
+                    u"Diplôme supérieur",
+                    u"Baccalauréat + 2 ans",
+                    u"Baccalauréat ou brevet professionnel ou autre diplôme de ce niveau",
+                    u"CAP, BEP ou autre diplôme de ce niveau",
+                    u"Brevet des collèges",
+                    u"Aucun diplôme ou CEP"
+                    ],
                 start = 1,
                 ),
-            survey_only = True,
-            )
-        )
+            ),
+        entity_class = SurveyIndividus,
+        name = "ddipl",
+        # survey_only = True,
+    )
 
-    build_survey_column(
-        'act5',
-        EnumCol(
-            label = u"activité",
+    reference_input_variable(
+        column = EnumCol(
             enum = Enum([
                 u"Salarié",
                 u"Indépendant",
@@ -409,77 +412,75 @@ def add_survey_columns_to_entities(survey_entity_class_by_symbol):
                 u"Inactif"],
                 start = 1,
                 ),
-            survey_only = True,
             ),
+        entity_class = SurveyIndividus,
+        label = u"activité",
+        name = "act5",
+        # survey_only = True,
         )  # 5 postes normalement TODO: check = 0
+
     # to remove
-    build_survey_column(
-        'champm',
-        BoolCol(
-            entity = 'men',
-            default = True,
-            survey_only = True,
-            ),
+    reference_input_variable(
+        column = BoolCol(default = True),
+        entity_class = SurveyMenages,
+        name = "champm",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'wprm',
-        FloatCol(
-            entity = 'men',
-            default = 1,
-            label = u"Effectifs",
-            survey_only = True,
-            ),
+    reference_input_variable(
+        column = FloatCol(default = 1),
+        entity_class = SurveyMenages,
+        label = u"Effectifs",
+        name = "wprm",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'wprm_init',
-        FloatCol(
-            label = u"Effectifs",
-            survey_only = True,
-            )
+    reference_input_variable(
+        column = FloatCol(),
+        entity_class = SurveyMenages,
+        label = u"Effectifs",
+        name = "wprm_init",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'm_afeamam',
-        IntCol(
-            entity = 'men',
-            survey_only = True,
-            )
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        name = "m_afeamam",
+        # survey_only = True,
         )
 
-    build_survey_column(
-        'm_agedm',
-        IntCol(
-            entity = 'men',
-            survey_only = True,
-            )
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        name = "m_agedm",
+        # survey_only = True,
         )
-    build_survey_column(
-        'm_clcam',
-        IntCol(
-            entity = 'men',
-            survey_only = True,
-            )
+
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        name = "m_clcam",
+        # survey_only = True,
         )
-    build_survey_column(
-        'm_colcam',
-        IntCol(
-            entity = 'men',
-            survey_only = True,
-            )
+
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        name = "m_colcam",
+        # survey_only = True,
         )
-    build_survey_column(
-        'm_mgamm',
-        IntCol(
-            entity = 'men',
-            survey_only = True,
-            )
+
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        name = "m_mgamm",
+        # survey_only = True,
         )
-    build_survey_column(
-        'm_mgdomm',
-        IntCol(
-            entity = 'men',
-            survey_only = True,
-            )
+
+    reference_input_variable(
+        column = IntCol(),
+        entity_class = SurveyMenages,
+        name = "m_mgdomm",
+        # survey_only = True,
         )

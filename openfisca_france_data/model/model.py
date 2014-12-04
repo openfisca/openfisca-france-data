@@ -40,11 +40,13 @@ from . import common as cm
 from .cotisations_sociales import travail as cs_travail
 
 
-def add_survey_formulas_to_entities(survey_entity_class_by_symbol):
+def add_survey_formulas_to_entities(survey_entity_class_by_key_plural):
 
     build_survey_simple_formula = partial(
         build_simple_formula,
-        entity_class_by_symbol = survey_entity_class_by_symbol,
+        entity_class_by_symbol = dict([
+            (entity.symbol, entity) for _, entity in survey_entity_class_by_key_plural.iteritems()
+            ]),
         )
 
     ############################################################

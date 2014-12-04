@@ -183,7 +183,9 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-#    test_fake_survey_simulation()
-    df = test_survey_simulation()
- #   test_weights_building()
-    print df
+    test_fake_survey_simulation()
+    test_fake_survey_simulation()
+
+#   df = test_survey_simulation()
+#   test_weights_building()
+#    print df
