@@ -29,21 +29,20 @@ import os
 import openfisca_france
 from openfisca_france.surveys import SurveyScenario
 from openfisca_france_data.calibration import Calibration
-from openfisca_france_data.tests.test_simulation import get_input_data_frame
+from openfisca_france_data.input_data_builders import get_input_data_frame
 
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
-
 
 
 def test_calibration():
     year = 2006
     input_data_frame = get_input_data_frame(year)
     TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system_class = TaxBenefitSystem
+    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system_class = tax_benefit_system_class,
+        tax_benefit_system = tax_benefit_system,
         year = year,
         )
     calibration = Calibration()
@@ -60,12 +59,9 @@ def test_calibration():
         "calib_2006.csv"
         )
     calibration.set_inputs_margins_from_file(filename, 2006)
-
     calibration.set_parameters('invlo', 3)
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
-
-
     calibration.calibrate()
 
 if __name__ == '__main__':
