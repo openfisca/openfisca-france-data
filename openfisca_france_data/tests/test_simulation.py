@@ -25,7 +25,7 @@
 
 from openfisca_core.formulas import NaNCreationError
 import openfisca_france
-from openfisca_france.surveys import SurveyScenario
+from openfisca_france_data.surveys import SurveyScenario
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.input_data_builders.fake_openfisca_data_builder import get_fake_input_data_frame
 

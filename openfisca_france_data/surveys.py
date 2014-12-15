@@ -37,7 +37,7 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils
 log = logging.getLogger(__name__)
 
 
-class SurveyScenario(object):
+class AbstractSurveyScenario(object):
     inflators = None
     input_data_frame = None
     legislation_json = None
@@ -47,44 +47,19 @@ class SurveyScenario(object):
     year = None
     weight_column_name_by_entity_symbol = dict()
 
-    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, year = None):
+    def init_from_data_frame(self, input_data_frame = None, reform = None, tax_benefit_system = None, year = None):
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
-        survey_tax_benefit_system = adapt_to_survey(tax_benefit_system)
+        # TODO adapt using reform/or other mechanism
+        # if reform is not None:
+        # survey_tax_benefit_system = adapt_to_survey(tax_benefit_system)
+        survey_tax_benefit_system = tax_benefit_system
         self.tax_benefit_system = survey_tax_benefit_system
         assert year is not None
         self.year = year
-        self.weight_column_name_by_entity_symbol['men'] = 'wprm'
-        self.weight_column_name_by_entity_symbol['fam'] = 'weight_fam'
-        self.weight_column_name_by_entity_symbol['foy'] = 'weight_foy'
-        self.weight_column_name_by_entity_symbol['ind'] = 'weight_ind'
         return self
-
-    def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
-        symbol = filter_entity.symbol
-        other_symbols = [entity.symbol for entity in simulation.entity_by_key_singular.values()]
-        other_symbols = other_symbols.remove('ind')
-        person_index = dict()
-        if symbol is 'ind':
-            selection = data_frame.index.isin(filter_index)
-            person_index['ind'] = data_frame.index[selection].copy()
-        else:
-            selection = data_frame['id' + symbol].isin(filter_index)
-            other_symbols.remove(symbol)
-            person_index[symbol] = data_frame.index[selection].copy()
-
-        final_selection_index = person_index[symbol]  # initialisation
-        for other_symbol in other_symbols:
-            other_symbol_index = data_frame['id' + other_symbol][person_index[symbol]].unique()
-            person_index[other_symbol] = data_frame.index[data_frame['id' + other_symbol].isin(other_symbol_index)].copy()
-            final_selection_index += person_index[other_symbol]
-
-        data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
-        for entity_id in ['id' + entity.symbol for entity in simulation.entity_by_key_singular.values()]:
-            data_frame = id_formatter(data_frame, entity_id)
-        return data_frame
 
     def inflate(self, inflators = None):
         if inflators is not None:
@@ -109,12 +84,17 @@ class SurveyScenario(object):
             trace = trace,
             )
 
-        symbols_other_than_ind = [entity.symbol for entity in simulation.entity_by_key_singular.values()]
-        symbols_other_than_ind.remove('ind')
-        id_variables = ["id{}".format(symbol) for symbol in symbols_other_than_ind]
-        role_variables = ["qui{}".format(symbol) for symbol in symbols_other_than_ind]
+        id_variables = [
+            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+            if not entity.is_persons_entity]
+
+        role_variables = [
+            entity.role_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+            if not entity.is_persons_entity]
+
         for id_variable in id_variables + role_variables:
-            assert id_variable in self.input_data_frame.columns
+            assert id_variable in self.input_data_frame.columns, \
+                "Variable {} is not present in input dataframe".format(id_variable)
 
         column_by_name = self.tax_benefit_system.column_by_name
         for column_name in input_data_frame:
@@ -133,8 +113,8 @@ class SurveyScenario(object):
             if entity.is_persons_entity:
                 entity.count = entity.step_size = len(input_data_frame)
             else:
-                entity.count = entity.step_size = (input_data_frame["qui{}".format(entity.symbol)] == 0).sum()
-                entity.roles_count = input_data_frame["qui{}".format(entity.symbol)].max() + 1
+                entity.count = entity.step_size = (input_data_frame[entity.role_for_person_variable_name] == 0).sum()
+                entity.roles_count = input_data_frame[entity.role_for_person_variable_name].max() + 1
 #       TODO: Create a validation/conversion step
 #       TODO: introduce an assert when loading in place of astype
         for column_name, column_series in input_data_frame.iteritems():
@@ -143,7 +123,7 @@ class SurveyScenario(object):
             if entity.is_persons_entity:
                 array = column_series.values.astype(holder.column.dtype)
             else:
-                array = column_series.values[input_data_frame['qui' + entity.symbol].values == 0].astype(
+                array = column_series.values[input_data_frame[entity.role_for_person_variable_name].values == 0].astype(
                     holder.column.dtype)
             assert array.size == entity.count, 'Bad size for {}: {} instead of {}'.format(
                 column_name,
@@ -153,6 +133,55 @@ class SurveyScenario(object):
 
         self.simulation = simulation
         return simulation
+
+
+class SurveyScenario(AbstractSurveyScenario):
+    def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
+        person_index = dict()
+        id_variables = [
+            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+            if not entity.is_persons_entity]
+
+        if filter_entity.is_persons_entity:
+            selection = data_frame.index.isin(filter_index)
+            person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+        else:
+            selection = data_frame[filter_entity.index_for_person_variable_name].isin(filter_index)
+            id_variables.remove(filter_entity.index_for_person_variable_name)
+            person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+
+        final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
+
+        for entities in simulation.entity_by_key_singular.values():
+            if entity.index_for_person_variable_name in id_variables:
+                other_entity_index = \
+                    data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
+                person_index[entity.key_plural] = \
+                    data_frame.index[data_frame[entity.index_for_person_variable_name].isin(other_entity_index)].copy()
+                final_selection_index += person_index[entity.key_plural]
+
+        data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
+        for entity in simulation.entity_by_key_singular.values():
+            data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
+        return data_frame
+
+    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, year = None):
+        assert input_data_frame is not None
+        self.input_data_frame = input_data_frame
+        assert tax_benefit_system is not None
+        self.tax_benefit_system = tax_benefit_system
+        survey_tax_benefit_system = adapt_to_survey(tax_benefit_system)
+        self.tax_benefit_system = survey_tax_benefit_system
+        assert year is not None
+        self.year = year
+        self.initialize_weights()
+        return self
+
+    def initialize_weights(self):
+        self.weight_column_name_by_entity_symbol['men'] = 'wprm'
+        self.weight_column_name_by_entity_symbol['fam'] = 'weight_fam'
+        self.weight_column_name_by_entity_symbol['foy'] = 'weight_foy'
+        self.weight_column_name_by_entity_symbol['ind'] = 'weight_ind'
 
 
 def adapt_to_survey(tax_benefit_system):
