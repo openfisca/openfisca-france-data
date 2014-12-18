@@ -41,8 +41,8 @@ import re
 
 
 from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.build_openfisca_survey_data import save_temp, show_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import print_id
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import save_temp, show_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id
 
 log = logging.getLogger(__name__)
 

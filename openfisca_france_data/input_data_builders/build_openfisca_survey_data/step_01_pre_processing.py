@@ -30,8 +30,8 @@ import numpy as np
 import logging
 
 from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.build_openfisca_survey_data import save_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import assert_dtype
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ def create_indivim(year = None):
     noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
 
     noappar_i = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
-    noappar_i = noappar_i.drop_duplicates(cols = 'ident', take_last = True)
+    noappar_i = noappar_i.drop_duplicates(subset = 'ident', take_last = True)
     # TODO: vérifier qu'il n'y a théoriquement pas de doublon
 
     difference = set(noappar_i.ident).symmetric_difference(noappar_m.ident)

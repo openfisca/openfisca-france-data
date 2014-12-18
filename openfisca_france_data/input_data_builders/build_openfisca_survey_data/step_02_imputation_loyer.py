@@ -49,8 +49,8 @@ import rpy2.robjects.vectors as vectors
 
 from openfisca_france_data.model.common import mark_weighted_percentiles
 from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
 
 
 log = logging.getLogger(__name__)
@@ -534,28 +534,35 @@ def imputation_loyer(year):
 
     erf['mcs8'] = erf['mcs8'].astype(int)
 
-    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes   padas2ri doesn't exist anymore in rpy2
-#    com.convert_to_r_dataframe() TODO: Probablement à supprimer
-    try:
-        sm = importr("StatMatch")  # Launch R you need to have StatMatch installed in R
-    except:
-        sm = importr("StatMatch", lib_loc = STATMATCH_LIB_LOCATION)
-    out_nnd = sm.NND_hotdeck(data_rec = erf,
-                             data_don = Logt,
-                             match_vars = vectors.StrVector(matchvars),
-                             don_class = vectors.StrVector(classes),
-                             dist_fun = "Gower",
-                             )
-    fill_erf_nnd = sm.create_fused(data_rec = erf,
-                                   data_don = Logt,
-                                   mtc_ids = out_nnd[0],
-                                   z_vars = vectors.StrVector(["lmlm"]),
-                                   )
-    del allvars, matchvars, classes, out_nnd
-    gc.collect()
+#    NOT WORKING ANYMORE AARGH
+#    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes   padas2ri doesn't exist anymore in rpy2
+#    try:
+#        sm = importr("StatMatch")  # Launch R you need to have StatMatch installed in R
+#    except:
+#        sm = importr("StatMatch", lib_loc = STATMATCH_LIB_LOCATION)
+#
+#    out_nnd = sm.NND_hotdeck(data_rec = erf,
+#                             data_don = Logt,
+#                             match_vars = vectors.StrVector(matchvars),
+#                             don_class = vectors.StrVector(classes),
+#                             dist_fun = "Gower",
+#                             )
+#
+#    fill_erf_nnd = sm.create_fused(
+#        data_rec = erf,
+#        data_don = Logt,
+#        mtc_ids = out_nnd[0], <- THE PROBLEM IS HERE
+#        z_vars = vectors.StrVector(["lmlm"]),
+#        )
+#    del allvars, matchvars, classes, out_nnd
+#    gc.collect()
+#    fill_erf_nnd = com.convert_robj(fill_erf_nnd)
+#    fill_erf_nnd = DataFrame(fill_erf_nnd)
 
-    fill_erf_nnd = com.convert_robj(fill_erf_nnd)
-    fill_erf_nnd = DataFrame(fill_erf_nnd)
+    from til.data.utils.matching import Matching
+
+
+
     fill_erf_nnd.rename(columns={'lmlm': 'loym'}, inplace = True)
 
     loy_imput = fill_erf_nnd[['ident', 'loym']]

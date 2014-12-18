@@ -27,8 +27,8 @@
 import logging
 
 
-from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import control, print_id
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import control, print_id
 
 log = logging.getLogger(__name__)
 
@@ -177,7 +177,7 @@ def invalide(year = 2006):
     foy_inv_pac['alt'] = foy_inv_pac['alt'].fillna(False)
 
     log.info("{}".format(foy_inv_pac['inv'].describe()))
-    invalides['alt'] = False
+    invalides.loc[:,'alt'] = False
     invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "inv"]] = foy_inv_pac[["alt", "inv"]].copy().values
     invalides = invalides[["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']].copy()
     invalides['alt'].fillna(False, inplace = True)

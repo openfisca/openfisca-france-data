@@ -33,8 +33,8 @@ from pandas import read_csv
 import os
 
 
-from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import (
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     check_structure,
     control,
     id_formatter,

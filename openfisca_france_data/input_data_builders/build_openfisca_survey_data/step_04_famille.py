@@ -27,8 +27,8 @@ import logging
 from pandas import concat, DataFrame
 
 
-from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
-from openfisca_france_data.build_openfisca_survey_data.utils import assert_dtype
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)
 

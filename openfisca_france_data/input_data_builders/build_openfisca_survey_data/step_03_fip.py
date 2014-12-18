@@ -34,7 +34,7 @@ from pandas import DataFrame, MultiIndex, concat
 import numpy as np
 
 from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
 
 
 log = logging.getLogger(__name__)
