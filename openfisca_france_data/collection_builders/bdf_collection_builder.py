@@ -107,7 +107,7 @@ def build_empty_bdf_survey_collection(years = None):
 
 
 if __name__ == '__main__':
-    years = [2000]
+    years = [2005]
     bdf_survey_collection = build_empty_bdf_survey_collection(years = years)
     for year in years:
         bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
