@@ -71,6 +71,26 @@ def build_empty_bdf_survey_collection(years = None):
             # Sociodem.sd2
             "vetements",
             ],
+        2011: [
+            "a04",
+            "abocom",
+            "assu",
+            "autvehic",
+            "automobile",
+            "bienscult",
+            "biensdur",
+            "c05",
+            "carnets",
+            "compl_sante",
+            "depindiv",
+            "depmen",
+            "enfanthorsdom",
+            "garage",
+            "individu",
+            "menage",
+            "revind_dom",
+            "revmen_dom",
+            ],
         }
 
     for year in years:
@@ -87,28 +107,39 @@ def build_empty_bdf_survey_collection(years = None):
             )
         surveys[survey_name] = survey
 
-#       TODO; deal with previous years
-#        sas_data_directory = os.path.join(
-#            os.path.dirname(input_data_directory),
-#            'INSEE/budget_des_familles/{}/sas'.format(year)
-#            )
+        sas_data_directory = os.path.join(
+            os.path.dirname(input_data_directory),
+            'INSEE/budget_des_familles/{}/sas'.format(year)
+            )
+
         stata_data_directory = os.path.join(
             os.path.dirname(input_data_directory),
             'INSEE/budget_des_familles/{}/stata'.format(year)
             )
 
         for table_name in tables_by_year[year]:
+
+            sas_file = os.path.join(sas_data_directory, "{}.sas7bdat".format(table_name))
             stata_file = os.path.join(stata_data_directory, "{}.dta".format(table_name))
-            survey.insert_table(name = table_name,
-                                year = year,
-                                stata_file = stata_file,
-                                )
+
+            if os.path.isfile(sas_file) or year == 2011:
+                print sas_file
+                survey.insert_table(name = table_name,
+                                    year = year,
+                                    sas_file = sas_file,
+                                    )
+            elif os.path.isfile(stata_file) and year != 2011:
+                survey.insert_table(name = table_name,
+                                    year = year,
+                                    stata_file = stata_file,
+                                    )
     return bdf_survey_collection
 
 
 if __name__ == '__main__':
-    years = [2005]
+    years = [2011]
     bdf_survey_collection = build_empty_bdf_survey_collection(years = years)
     for year in years:
-        bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
+        # bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
+        bdf_survey_collection.fill_hdf_from_sas(surveys_name = ["budget_des_familles_{}".format(year)])
     bdf_survey_collection.dump(collection = "budget_des_familles")

@@ -27,7 +27,7 @@ import os
 
 
 import openfisca_france
-from openfisca_france.surveys import SurveyScenario
+from openfisca_france_data.surveys import SurveyScenario
 from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders import get_input_data_frame
 

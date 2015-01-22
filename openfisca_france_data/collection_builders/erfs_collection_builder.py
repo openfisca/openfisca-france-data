@@ -24,19 +24,26 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import pkg_resources
 import logging
 import os
+import pkg_resources
+
 
 from openfisca_survey_manager.surveys import Survey, SurveyCollection
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
+
 config_files_directory = os.path.join(openfisca_france_data_location)
+print openfisca_france_data_location
+print type()
+print config_files_directory
+
+boum
 
 log = logging.getLogger(__name__)
 
 
-def build_empty_erfs_survey_collection(years= None):
+def build_empty_erfs_survey_collection(years = None):
 
     if years is None:
         log.error("A list of years to process is needed")
@@ -199,4 +206,4 @@ if __name__ == '__main__':
 #    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2007", "erfs_2008", "erfs_2009"])
 #    erfs_survey_collection.fill_hdf_from_sas(surveys_name = ["erfs_2009"])
     erfs_survey_collection.dump(collection = u"erfs")
-    log.info("The program have been executed in {}".format( datetime.datetime.now()-start_time))
+    log.info("The program have been executed in {}".format(datetime.datetime.now() - start_time))

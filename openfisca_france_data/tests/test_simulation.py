@@ -96,6 +96,7 @@ def test_survey_simulation():
                 'quifam',
                 'age',
                 'sal',
+                'salnet',
 #                'revdisp',
                 ]
             ])

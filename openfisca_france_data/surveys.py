@@ -47,16 +47,16 @@ class AbstractSurveyScenario(object):
     year = None
     weight_column_name_by_entity_symbol = dict()
 
-    def init_from_data_frame(self, input_data_frame = None, reform = None, tax_benefit_system = None, year = None):
+    def init_from_data_frame(
+            self,
+            input_data_frame = None,
+            tax_benefit_system = None,
+            year = None):
+
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
         assert tax_benefit_system is not None
         self.tax_benefit_system = tax_benefit_system
-        # TODO adapt using reform/or other mechanism
-        # if reform is not None:
-        # survey_tax_benefit_system = adapt_to_survey(tax_benefit_system)
-        survey_tax_benefit_system = tax_benefit_system
-        self.tax_benefit_system = survey_tax_benefit_system
         assert year is not None
         self.year = year
         return self
@@ -75,7 +75,6 @@ class AbstractSurveyScenario(object):
 
     def new_simulation(self, debug = False, debug_all = False, trace = False):
         input_data_frame = self.input_data_frame
-        # TODO: Pass year to this method, not init_from_data_frame
         simulation = simulations.Simulation(
             debug = debug,
             debug_all = debug_all,
@@ -165,76 +164,11 @@ class SurveyScenario(AbstractSurveyScenario):
             data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
         return data_frame
 
-    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, year = None):
-        assert input_data_frame is not None
-        self.input_data_frame = input_data_frame
-        assert tax_benefit_system is not None
-        self.tax_benefit_system = tax_benefit_system
-        survey_tax_benefit_system = adapt_to_survey(tax_benefit_system)
-        self.tax_benefit_system = survey_tax_benefit_system
-        assert year is not None
-        self.year = year
-        self.initialize_weights()
-        return self
-
     def initialize_weights(self):
         self.weight_column_name_by_entity_symbol['men'] = 'wprm'
         self.weight_column_name_by_entity_symbol['fam'] = 'weight_fam'
         self.weight_column_name_by_entity_symbol['foy'] = 'weight_foy'
         self.weight_column_name_by_entity_symbol['ind'] = 'weight_ind'
-
-
-def adapt_to_survey(tax_benefit_system):
-
-    survey_entity_class_by_key_plural = tax_benefit_system.entity_class_by_key_plural.copy()
-
-    individus_class = survey_entity_class_by_key_plural['individus']
-    familles_class = survey_entity_class_by_key_plural['familles']
-    foyers_class = survey_entity_class_by_key_plural['foyers_fiscaux']
-    menages_class = survey_entity_class_by_key_plural['menages']
-
-    survey_individus_column_by_name = individus_class.column_by_name.copy()
-    survey_familles_column_by_name = familles_class.column_by_name.copy()
-    survey_foyers_column_by_name = foyers_class.column_by_name.copy()
-    survey_menages_column_by_name = menages_class.column_by_name.copy()
-
-    del survey_individus_column_by_name['birth']
-    survey_individus_column_by_name['agem'].formula_class = None
-    survey_individus_column_by_name['age'].formula_class = None
-
-    class SurveyIndividus(individus_class):
-        column_by_name = survey_individus_column_by_name
-
-    class SurveyFamilles(familles_class):
-        column_by_name = survey_familles_column_by_name
-
-    class SurveyFoyers(foyers_class):
-        column_by_name = survey_foyers_column_by_name
-
-    class SurveyMenages(menages_class):
-        column_by_name = survey_menages_column_by_name
-
-    survey_entity_class_by_key_plural['individus'] = SurveyIndividus
-    survey_entity_class_by_key_plural['familles'] = SurveyFamilles
-    survey_entity_class_by_key_plural['foyers_fiscaux'] = SurveyFoyers
-    survey_entity_class_by_key_plural['menages'] = SurveyMenages
-
-    from openfisca_france_data.model.input_variables.survey_variables import add_survey_columns_to_entities
-    add_survey_columns_to_entities(survey_entity_class_by_key_plural)
-
-    from openfisca_france_data.model.model import add_survey_formulas_to_entities
-    add_survey_formulas_to_entities(survey_entity_class_by_key_plural)
-
-    survey_legislation_json = copy.deepcopy(tax_benefit_system.legislation_json)
-
-    from openfisca_core import reforms
-    survey_tax_benefit_system = reforms.Reform(
-        entity_class_by_key_plural = survey_entity_class_by_key_plural,
-        legislation_json = survey_legislation_json,
-        name = u'openfisca-france-survey',
-        reference = tax_benefit_system,
-        )
-    return survey_tax_benefit_system
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
