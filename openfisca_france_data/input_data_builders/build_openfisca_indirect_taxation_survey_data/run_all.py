@@ -59,7 +59,7 @@ def run_all(year = 2005, filename = "test_indirect_taxation"):
         hdf5_file_path = hdf5_file_path,
         )
     survey.insert_table(name = table)
-    survey.fill_hdf(table, data_frame)
+    survey.fill_hdf(data_frame = data_frame, table = table)
     openfisca_survey_collection.surveys[survey_name] = survey
     openfisca_survey_collection.dump(collection = "openfisca_indirect_taxation")
 
