@@ -45,8 +45,8 @@ class SurveyScenario(AbstractSurveyScenario):
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
         if tax_benefit_system is None:
-            tax_benefit_system = openfisca_france_data.init_country()
-        self.tax_benefit_system = tax_benefit_system
+            TaxBenefitSystem = openfisca_france_data.init_country()
+        self.tax_benefit_system = TaxBenefitSystem()
         assert year is not None
         self.year = year
         return self

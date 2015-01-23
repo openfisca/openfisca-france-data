@@ -198,7 +198,7 @@ class champm_ind(SimpleFormulaColumn):
 
     def function(self, simulation, period):
         champm_holder = simulation.calculate("champm", period)
-        return period, self.cast_from_entity_to_roles(champm_holder)
+        return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
 
 
 @SurveyTaxBenefitSystem.formula
@@ -366,7 +366,7 @@ class weight_ind(SimpleFormulaColumn):
 
     def function(self, simulation, period):
         wprm_holder = simulation.calculate('wprm_holder', period)
-        return period, self.cast_from_entity_to_roles(wprm_holder)
+        return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
 
 
 @SurveyTaxBenefitSystem.formula
