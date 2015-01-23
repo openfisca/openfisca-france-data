@@ -27,15 +27,7 @@ from __future__ import division
 
 from numpy import arange, argsort, asarray, cumsum, linspace, logical_and as and_, repeat
 
-from openfisca_core import columns, formulas
-from openfisca_france import entities
-from openfisca_france.model.base import * # noqa analysis:ignore
-
-
-CHEF = QUIFAM['chef']
-ENFS = [QUIFAM['enf{}'.format(i)] for i in range(1, 10)]
-PART = QUIFAM['part']
-VOUS = QUIFOY['vous']
+from .base import *  # noqa analysis:ignore
 
 
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
@@ -198,10 +190,10 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 #            )
 #        )
 
-
-class champm_ind(formulas.SimpleFormulaColumn):
-    column = columns.BoolCol
-    entity_class = entities.Individus
+@SurveyTaxBenefitSystem.fomula
+class champm_ind(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = Individus
     label = u"L'individu est dans un ménage du champ ménage",
 
     def function(self, simulation, period):
@@ -209,9 +201,10 @@ class champm_ind(formulas.SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(champm_holder)
 
 
-class champm_fam(formulas.SimpleFormulaColumn):
-    column = columns.BoolCol
-    entity_class = entities.Familles
+@SurveyTaxBenefitSystem.fomula
+class champm_fam(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = Familles
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
 
     def function(self, simulation, period):
@@ -219,9 +212,10 @@ class champm_fam(formulas.SimpleFormulaColumn):
         return period, self.filter_role(champm_ind_holder, role = CHEF)
 
 
-class champm_foy(formulas.SimpleFormulaColumn):
-    column = columns.BoolCol
-    entity_class = entities.FoyersFiscaux
+@SurveyTaxBenefitSystem.fomula
+class champm_foy(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = FoyersFiscaux
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
     def function(self, simulation, period):
@@ -229,8 +223,9 @@ class champm_foy(formulas.SimpleFormulaColumn):
         return period, self.filter_role(champm_ind_holder, role = VOUS)
 
 
-class decile(formulas.SimpleFormulaColumn):
-    column = columns.EnumCol(
+@SurveyTaxBenefitSystem.fomula
+class decile(SimpleFormulaColumn):
+    column = EnumCol(
         enum = Enum([
             u"Hors champ"
             u"1er décile",
@@ -246,7 +241,7 @@ class decile(formulas.SimpleFormulaColumn):
             ])
         )
 
-    entity_class = entities.Menages
+    entity_class = Menages
     label = u"Décile de niveau de vie disponible"
 
     def function(self, simulation, period):
@@ -267,8 +262,9 @@ class decile(formulas.SimpleFormulaColumn):
         return period, decile * champm
 
 
-class decile_net(formulas.SimpleFormulaColumn):
-    column = columns.EnumCol(
+@SurveyTaxBenefitSystem.fomula
+class decile_net(SimpleFormulaColumn):
+    column = EnumCol(
         enum = Enum([
             u"Hors champ"
             u"1er décile",
@@ -283,7 +279,7 @@ class decile_net(formulas.SimpleFormulaColumn):
             u"10e décile",
             ])
         )
-    entity_class = entities.Menages
+    entity_class = Menages
     label = u"Décile de niveau de vie net"
 
     def function(self, simulation, period):
@@ -296,14 +292,15 @@ class decile_net(formulas.SimpleFormulaColumn):
         return period, decile * champm
 
 
-class pauvre40(formulas.SimpleFormulaColumn):
-    column = columns.EnumCol(
+@SurveyTaxBenefitSystem.fomula
+class pauvre40(SimpleFormulaColumn):
+    column = EnumCol(
         enum = Enum([
             u"Ménage au dessus du seuil de pauvreté à 40%",
             u"Ménage en dessous du seuil de pauvreté à 40%",
             ])
         )
-    entity_class = entities.Menages
+    entity_class = Menages
     label = u"Pauvreté monétaire au seuil de 40%"
 
     def function(self, simulation, period):
@@ -317,14 +314,15 @@ class pauvre40(formulas.SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-class pauvre50(formulas.SimpleFormulaColumn):
-    column = columns.EnumCol(
+@SurveyTaxBenefitSystem.fomula
+class pauvre50(SimpleFormulaColumn):
+    column = EnumCol(
         enum = Enum([
             u"Ménage au dessus du seuil de pauvreté à 50%",
             u"Ménage en dessous du seuil de pauvreté à 50%",
             ])
         )
-    entity_class = entities.Menages
+    entity_class = Menages
     label = u"Pauvreté monétaire au seuil de 50%"
 
     def function(self, simulation, period):
@@ -338,14 +336,15 @@ class pauvre50(formulas.SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-class pauvre60(formulas.SimpleFormulaColumn):
-    column = columns.EnumCol(
+@SurveyTaxBenefitSystem.fomula
+class pauvre60(SimpleFormulaColumn):
+    column = EnumCol(
         enum = Enum([
             u"Ménage au dessus du seuil de pauvreté à 60%",
             u"Ménage en dessous du seuil de pauvreté à 60%",
             ])
         )
-    entity_class = entities.Menages
+    entity_class = Menages
     label = u"Pauvreté monétaire au seuil de 60%"
 
     def function(self, simulation, period):
@@ -359,9 +358,10 @@ class pauvre60(formulas.SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-class weight_ind(formulas.SimpleFormulaColumn):
-    column = columns.FloatCol
-    entity_class = entities.Individus
+@SurveyTaxBenefitSystem.fomula
+class weight_ind(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Individus
     label = u"Poids de l'individu"
 
     def function(self, simulation, period):
@@ -369,9 +369,10 @@ class weight_ind(formulas.SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(wprm_holder)
 
 
-class weight_fam(formulas.SimpleFormulaColumn):
-    column = columns.FloatCol
-    entity_class = entities.Familles
+@SurveyTaxBenefitSystem.fomula
+class weight_fam(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Familles
     label = u"Poids de la famille"
 
     def function(self, simulation, period):
@@ -379,9 +380,10 @@ class weight_fam(formulas.SimpleFormulaColumn):
         return period, self.filter_role(weight_ind_holder, role = CHEF)
 
 
-class weight_foy(formulas.SimpleFormulaColumn):
-    column = columns.FloatCol
-    entity = entities.Individus
+@SurveyTaxBenefitSystem.fomula
+class weight_foy(SimpleFormulaColumn):
+    column = FloatCol
+    entity = Individus
     label = u"Poids de l'individu",
 
     def function(self, simulation, period):

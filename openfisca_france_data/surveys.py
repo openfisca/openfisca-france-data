@@ -23,14 +23,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-import copy
-
-
 import logging
 import numpy as np
 
 
-from openfisca_core import periods, simulations
+from openfisca_core import periods, reforms, simulations
+import openfisca_france
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 
 
@@ -43,9 +41,8 @@ class AbstractSurveyScenario(object):
     legislation_json = None
     simulation = None
     tax_benefit_system = None
-    tax_benefit_system_class = None
     year = None
-    weight_column_name_by_entity_symbol = dict()
+    weight_column_name_by_entity_key_plural = dict()
 
     def init_from_data_frame(
             self,
@@ -135,6 +132,30 @@ class AbstractSurveyScenario(object):
 
 
 class SurveyScenario(AbstractSurveyScenario):
+
+    def init_from_data_frame(
+            self,
+            input_data_frame = None,
+            tax_benefit_system = None,
+            year = None):
+
+        assert input_data_frame is not None
+        self.input_data_frame = input_data_frame
+        if tax_benefit_system is None:
+            ReferenceTaxBenefitSystem = openfisca_france.init_country()
+            reference_tax_benefit_system = ReferenceTaxBenefitSystem()
+            SurveyTaxBenefitSystem = reforms.new_simple_reform_class(
+                name = u"OpenFisca for survey data",
+                reference = reference_tax_benefit_system,
+                )
+            from .model import model  # noqa analysis:ignore
+            tax_benefit_system = SurveyTaxBenefitSystem()
+
+        self.tax_benefit_system = tax_benefit_system
+        assert year is not None
+        self.year = year
+        return self
+
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
         person_index = dict()
         id_variables = [
@@ -165,10 +186,10 @@ class SurveyScenario(AbstractSurveyScenario):
         return data_frame
 
     def initialize_weights(self):
-        self.weight_column_name_by_entity_symbol['men'] = 'wprm'
-        self.weight_column_name_by_entity_symbol['fam'] = 'weight_fam'
-        self.weight_column_name_by_entity_symbol['foy'] = 'weight_foy'
-        self.weight_column_name_by_entity_symbol['ind'] = 'weight_ind'
+        self.weight_column_name_by_entity_key_plural['menages'] = 'wprm'
+        self.weight_column_name_by_entity_key_plural['familles'] = 'weight_fam'
+        self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foy'
+        self.weight_column_name_by_entity_key_plural['individus'] = 'weight_ind'
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,

@@ -22,317 +22,285 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol, reference_input_variable
-from openfisca_core.enumerations import Enum
+from ..base import * # noqa  analysis:ignore
 
 
-def add_survey_columns_to_entities(survey_entity_class_by_key_plural):
-
-    SurveyIndividus = survey_entity_class_by_key_plural['individus']
-    SurveyFamilles = survey_entity_class_by_key_plural['familles']
-    SurveyFoyers = survey_entity_class_by_key_plural['foyers_fiscaux']
-    SurveyMenages = survey_entity_class_by_key_plural['menages']
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF ",
-        name = "idmen_original",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyFoyers,
-        label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF",
-        name = "idfoy_original",
-        # survey_only = True,
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF ",
+    name = "idmen_original",
     )
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyFamilles,
-        label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
-        name = "idfam_original",
-        # survey_only = True,
+
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = FoyersFiscaux,
+    label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF",
+    name = "idfoy_original",
+)
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = SurveyFamilles,
+    label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
+    name = "idfam_original",
+)
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Sans objet ou non renseigné",
+                u"Elève fonctionnaire ou stagiaire",
+                u"Agent titulaire",
+                u"Contractuel",
+                ]
+            ),
+        ),
+    entity_class = Individus,
+    label = u"Statut, pour les agents de l'Etat des collectivités locales, ou des hôpitaux",
+    name = "titc",
+    # survey_only = True,
     )
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Sans objet ou non renseigné",
-                    u"Elève fonctionnaire ou stagiaire",
-                    u"Agent titulaire",
-                    u"Contractuel",
-                    ]
-                ),
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Sans objet",
+                u"Indépendants",
+                u"Employeurs",
+                u"Aides familiaux",
+                u"Intérimaires",
+                u"Apprentis",
+                u"CDD (hors Etat, coll.loc.), hors contrats aidés",
+                u"Stagiaires et contrats aides (hors Etat, coll.loc.)",
+                u"Autres contrats (hors Etat, coll.loc.)",
+                u"CDD (Etat, coll.loc.), hors contrats aidés",
+                u"Stagiaires et contrats aidés (Etat, coll.loc.)",
+                u"Autres contrats (Etat, coll.loc.)",
+                ]
             ),
-        entity_class = SurveyIndividus,
-        label = u"Statut, pour les agents de l'Etat des collectivités locales, ou des hôpitaux",
-        name = "titc",
-        # survey_only = True,
-        )
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Sans objet",
-                    u"Indépendants",
-                    u"Employeurs",
-                    u"Aides familiaux",
-                    u"Intérimaires",
-                    u"Apprentis",
-                    u"CDD (hors Etat, coll.loc.), hors contrats aidés",
-                    u"Stagiaires et contrats aides (hors Etat, coll.loc.)",
-                    u"Autres contrats (hors Etat, coll.loc.)",
-                    u"CDD (Etat, coll.loc.), hors contrats aidés",
-                    u"Stagiaires et contrats aidés (Etat, coll.loc.)",
-                    u"Autres contrats (Etat, coll.loc.)",
-                    ]
-                ),
+        ),
+    entity_class = Individus,
+    label = u"Statut détaillé mis en cohérence avec la profession",
+    name = "statut",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Sans objet",
+                u"Moins d'un mi-temps (50%)",
+                u"Mi-temps (50%)",
+                u"Entre 50 et 80%",
+                u"80%",
+                u"Plus de 80%",
+                ],
             ),
-        entity_class = SurveyIndividus,
-        label = u"Statut détaillé mis en cohérence avec la profession",
-        name = "statut",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Sans objet",
-                    u"Moins d'un mi-temps (50%)",
-                    u"Mi-temps (50%)",
-                    u"Entre 50 et 80%",
-                    u"80%",
-                    u"Plus de 80%",
-                    ],
-                ),
+        ),
+    entity_class = Individus,
+    label = u"Taux du temps partiel",
+    name = "txtppb",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Sans objet",
+                u"Etat",
+                u"Collectivités locales, HLM",
+                u"Hôpitaux publics",
+                u"Particulier",
+                u"Entreprise publique (La Poste, EDF-GDF, etc.)",
+                u"Entreprise privée, association",
+                ],
             ),
-        entity_class = SurveyIndividus,
-        label = u"Taux du temps partiel",
-        name = "txtppb",
-        # survey_only = True,
-        )
+        ),
+    entity_class = Individus,
+    label = u"Nature de l'employeur principal",
+    name = "chpub",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = BoolCol(),
+    entity_class = Individus,
+    label = u"Cadre salarié du privé",
+    name = "cadre",
+    )
 
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Sans objet",
-                    u"Etat",
-                    u"Collectivités locales, HLM",
-                    u"Hôpitaux publics",
-                    u"Particulier",
-                    u"Entreprise publique (La Poste, EDF-GDF, etc.)",
-                    u"Entreprise privée, association",
-                    ],
-                ),
+#   zones apl and calibration
+
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u'Communes rurales',
+                u'moins de 5 000 habitants',
+                u'5 000 à 9 999 habitants',
+                u'10 000 à 19 999 habitants',
+                u'20 000 à 49 999 habitants',
+                u'50 000 à 99 999 habitants',
+                u'100 000 à 199 999 habitants',
+                u'200 000 habitants ou plus (sauf agglomération parisienne)',
+                u'agglomération parisienne'
+                ],
             ),
-        entity_class = SurveyIndividus,
-        label = u"Nature de l'employeur principal",
-        name = "chpub",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = BoolCol(),
-        entity_class = SurveyIndividus,
-        label = u"Cadre salarié du privé",
-        name = "cadre",
-        # survey_only = True
-        )
-
-    #   zones apl and calibratio
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u'Communes rurales',
-                    u'moins de 5 000 habitants',
-                    u'5 000 à 9 999 habitants',
-                    u'10 000 à 19 999 habitants',
-                    u'20 000 à 49 999 habitants',
-                    u'50 000 à 99 999 habitants',
-                    u'100 000 à 199 999 habitants',
-                    u'200 000 habitants ou plus (sauf agglomération parisienne)',
-                    u'agglomération parisienne'
-                    ],
-                ),
+        ),
+    entity_class = Menages,
+    label = u"Tranche d'unité urbaine",
+    name = "tu99",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u'Communes hors aire urbaine',
+                u'Aire urbaine de moins de 15 000 habitants',
+                u'Aire urbaine de 15 000 à 19 999 habitants',
+                u'Aire urbaine de 20 000 à 24 999 habitants',
+                u'Aire urbaine de 25 000 à 34 999 habitants',
+                u'Aire urbaine de 35 000 à 49 999 habitants',
+                u'Aire urbaine de 50 000 à 99 999 habitants',
+                u'Aire urbaine de 100 000 à 199 999 habitants',
+                u'Aire urbaine de 200 000 à 499 999 habitants',
+                u'Aire urbaine de 500 000 à 9 999 999 habitants',
+                u'Aire urbaine de Paris'
+                ]
             ),
-        entity_class = SurveyMenages,
-        label = u"Tranche d'unité urbaine",
-        name = "tu99",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u'Communes hors aire urbaine',
-                    u'Aire urbaine de moins de 15 000 habitants',
-                    u'Aire urbaine de 15 000 à 19 999 habitants',
-                    u'Aire urbaine de 20 000 à 24 999 habitants',
-                    u'Aire urbaine de 25 000 à 34 999 habitants',
-                    u'Aire urbaine de 35 000 à 49 999 habitants',
-                    u'Aire urbaine de 50 000 à 99 999 habitants',
-                    u'Aire urbaine de 100 000 à 199 999 habitants',
-                    u'Aire urbaine de 200 000 à 499 999 habitants',
-                    u'Aire urbaine de 500 000 à 9 999 999 habitants',
-                    u'Aire urbaine de Paris'
-                    ]
-                ),
+        ),
+    label = u"tranche d'aire urbaine",
+    entity_class = Menages,
+    name = "tau99",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u'Ile-de-France',
+                u'Champagne-Ardenne',
+                u'Picardie',
+                u'Haute-Normandie',
+                u'Centre',
+                u'Basse-Normandie',
+                u'Bourgogne',
+                u'Nord-Pas de Calais',
+                u'Lorraine',
+                u'Alsace',
+                u'Franche-Comté',
+                u'Pays de la Loire',
+                u'Bretagne',
+                u'Poitou-Charentes',
+                u'Aquitaine',
+                u'Midi-Pyrénées',
+                u'Limousin',
+                u'Rhône-Alpes',
+                u'Auvergne',
+                u'Languedoc-Roussillon',
+                u"Provence-Alpes-Côte-d'Azur",
+                u'Corse'
+                ],
             ),
-        label = u"tranche d'aire urbaine",
-        entity_class = SurveyMenages,
-        name = "tau99",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u'Ile-de-France',
-                    u'Champagne-Ardenne',
-                    u'Picardie',
-                    u'Haute-Normandie',
-                    u'Centre',
-                    u'Basse-Normandie',
-                    u'Bourgogne',
-                    u'Nord-Pas de Calais',
-                    u'Lorraine',
-                    u'Alsace',
-                    u'Franche-Comté',
-                    u'Pays de la Loire',
-                    u'Bretagne',
-                    u'Poitou-Charentes',
-                    u'Aquitaine',
-                    u'Midi-Pyrénées',
-                    u'Limousin',
-                    u'Rhône-Alpes',
-                    u'Auvergne',
-                    u'Languedoc-Roussillon',
-                    u"Provence-Alpes-Côte-d'Azur",
-                    u'Corse'
-                    ],
-                ),
+        ),
+    label = u"Région",
+    entity_class = Menages,
+    name = "reg",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Commune appartenant à un pôle urbain",
+                u"Commune monopolarisée (appartenant à une couronne périurbaine)",
+                u"Commune monopolarisée",
+                u"Espace à dominante rurale"
+                ]
             ),
-        label = u"Région",
-        entity_class = SurveyMenages,
-        name = "reg",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Commune appartenant à un pôle urbain",
-                    u"Commune monopolarisée (appartenant à une couronne périurbaine)",
-                    u"Commune monopolarisée",
-                    u"Espace à dominante rurale"
-                    ]
-                ),
+        ),
+    label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains",
+    entity_class = Menages,
+    name = "pol99",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Non renseignée",
+                u"Agriculteurs exploitants",
+                u"Artisans, commerçants, chefs d'entreprise",
+                u"Cadres supérieurs",
+                u"Professions intermédiaires",
+                u"Employés",
+                u"Ouvriers",
+                u"Retraités",
+                u"Autres inactifs"
+                ],
             ),
-        label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains",
-        entity_class = SurveyMenages,
-        name = "pol99",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Non renseignée",
-                    u"Agriculteurs exploitants",
-                    u"Artisans, commerçants, chefs d'entreprise",
-                    u"Cadres supérieurs",
-                    u"Professions intermédiaires",
-                    u"Employés",
-                    u"Ouvriers",
-                    u"Retraités",
-                    u"Autres inactifs"
-                    ],
-                ),
+        ),
+    label = u"catégorie socio_professionelle agrégée de la personne de référence",
+    entity_class = Menages,
+    name = "cstotpragr",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Sans objet",
+                u"Non renseignée",
+                u"Agriculture, sylviculture et pêche",
+                u"Industries agricoles",
+                u"Industries des biens de consommation",
+                u"Industrie automobile",
+                u"Industries des biens d'équipement",
+                u"Industries des biens intermédiaires",
+                u"Energie",
+                u"Construction",
+                u"Commerce et réparations",
+                u"Transports",
+                u"Activités financières",
+                u"Activités immobilières",
+                u"Services aux entreprises",
+                u"Services aux particuliers",
+                u"Education, santé, action sociale",
+                u"Administrations"
+                ],
+            start = -1,  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
             ),
-        label = u"catégorie socio_professionelle agrégée de la personne de référence",
-        entity_class = SurveyMenages,
-        name = "cstotpragr",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Sans objet",
-                    u"Non renseignée",
-                    u"Agriculture, sylviculture et pêche",
-                    u"Industries agricoles",
-                    u"Industries des biens de consommation",
-                    u"Industrie automobile",
-                    u"Industries des biens d'équipement",
-                    u"Industries des biens intermédiaires",
-                    u"Energie",
-                    u"Construction",
-                    u"Commerce et réparations",
-                    u"Transports",
-                    u"Activités financières",
-                    u"Activités immobilières",
-                    u"Services aux entreprises",
-                    u"Services aux particuliers",
-                    u"Education, santé, action sociale",
-                    u"Administrations"
-                    ],
-                start = -1,  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
-                ),
-            ),
-        entity_class = SurveyMenages,
-        label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence",
-
-        name = "naf16pr",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Sans objet",
-                    u"Non renseignée",
-                    u"Agriculture, sylviculture et pêche",
-                    u"Industries extractives, énergie, eau, gestion des déchets et dépollution",
-                    u"Fabrication de denrées alimentaires, de boissons et de produits à base de tabac",
-                    u"Cokéfaction et raffinage",
-                    u"Fabrication d'équipements électriques, électroniques, informatiques ; fabrication de machines",
-                    u"Fabrication de matériels de transport",
-                    u"Fabrication d'autres produits industriels",
-                    u"Construction",
-                    u"Commerce ; réparation d'automobiles et de motocycles",
-                    u"Transports et entreposage",
-                    u"Hébergement et restauration",
-                    u"Information et communication",
-                    u"Activités financières et d'assurance",
-                    u"Activités immobilières",
-                    u"Activités scientifiques et techniques ; services administratifs et de soutien",
-                    u"Administration publique, enseignement, santé humaine et action sociale",
-                    u"Autres activités de services",
-                    ],
-                start = -1,
-                ),  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
-            ),
-        label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence ",
-        entity_class = SurveyMenages,
-        name = "nafg17npr",
-        # survey_only = True,
-        )
+        ),
+    entity_class = Menages,
+    label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence",
+    name = "naf16pr",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Sans objet",
+                u"Non renseignée",
+                u"Agriculture, sylviculture et pêche",
+                u"Industries extractives, énergie, eau, gestion des déchets et dépollution",
+                u"Fabrication de denrées alimentaires, de boissons et de produits à base de tabac",
+                u"Cokéfaction et raffinage",
+                u"Fabrication d'équipements électriques, électroniques, informatiques ; fabrication de machines",
+                u"Fabrication de matériels de transport",
+                u"Fabrication d'autres produits industriels",
+                u"Construction",
+                u"Commerce ; réparation d'automobiles et de motocycles",
+                u"Transports et entreposage",
+                u"Hébergement et restauration",
+                u"Information et communication",
+                u"Activités financières et d'assurance",
+                u"Activités immobilières",
+                u"Activités scientifiques et techniques ; services administratifs et de soutien",
+                u"Administration publique, enseignement, santé humaine et action sociale",
+                u"Autres activités de services",
+                ],
+            start = -1,
+            ),  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
+        ),
+    label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence ",
+    entity_class = Menages,
+    name = "nafg17npr",
+    )
 
 #    build_survey_column('typmen15', column = EnumCol(label = u"Type de ménage",
-#                       entity_class = SurveyMenages,
+#                       entity_class = Menages,
 #                       enum = Enum([u"Personne seule active",
 #                                    u"Personne seule inactive",
 #                                    u"Familles monoparentales, parent actif",
@@ -348,33 +316,32 @@ def add_survey_columns_to_entities(survey_entity_class_by_key_plural):
 #                                    u"Autres ménages, 1 actif",
 #                                    u"Autres ménages, 2 actifs ou plus",
 #                                    u"Autres ménages, tous inactifs"],start = 1)))
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"moins de 25 ans",
-                    u"25 à 29 ans",
-                    u"30 à 34 ans",
-                    u"35 à 39 ans",
-                    u"40 à 44 ans",
-                    u"45 à 49 ans",
-                    u"50 à 54 ans",
-                    u"55 à 59 ans",
-                    u"60 à 64 ans",
-                    u"65 à 69 ans",
-                    u"70 à 74 ans",
-                    u"75 à 79 ans",
-                    u"80 ans et plus",
-                    ],
-                ),
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"moins de 25 ans",
+                u"25 à 29 ans",
+                u"30 à 34 ans",
+                u"35 à 39 ans",
+                u"40 à 44 ans",
+                u"45 à 49 ans",
+                u"50 à 54 ans",
+                u"55 à 59 ans",
+                u"60 à 64 ans",
+                u"65 à 69 ans",
+                u"70 à 74 ans",
+                u"75 à 79 ans",
+                u"80 ans et plus",
+                ],
             ),
-        label = u"âge quinquennal de la personne de référence",
-        entity_class = SurveyMenages,
-        name = "ageq",
-        # survey_only = True
-        )
+        ),
+    label = u"âge quinquennal de la personne de référence",
+    entity_class = Menages,
+    name = "ageq",
+    )
 #    build_survey_column_couple('nbinde, column = EnumCol(label = u"taille du ménage",
-#                     entity_class = SurveyMenages,
+#                     entity_class = Menages,
 #                     enum = Enum([u"Une personne",
 #                                  u"Deux personnes",
 #                                  u"Trois personnes",
@@ -382,105 +349,87 @@ def add_survey_columns_to_entities(survey_entity_class_by_key_plural):
 #                                  u"Cinq personnes",
 #                                  u"Six personnes et plus"], start = 1))),
 
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum(
-                [
-                    u"Non renseigné"
-                    u"Diplôme supérieur",
-                    u"Baccalauréat + 2 ans",
-                    u"Baccalauréat ou brevet professionnel ou autre diplôme de ce niveau",
-                    u"CAP, BEP ou autre diplôme de ce niveau",
-                    u"Brevet des collèges",
-                    u"Aucun diplôme ou CEP"
-                    ],
-                start = 1,
-                ),
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum(
+            [
+                u"Non renseigné"
+                u"Diplôme supérieur",
+                u"Baccalauréat + 2 ans",
+                u"Baccalauréat ou brevet professionnel ou autre diplôme de ce niveau",
+                u"CAP, BEP ou autre diplôme de ce niveau",
+                u"Brevet des collèges",
+                u"Aucun diplôme ou CEP"
+                ],
+            start = 1,
             ),
-        entity_class = SurveyIndividus,
-        name = "ddipl",
-        # survey_only = True,
+        ),
+    entity_class = Individus,
+    name = "ddipl",
+)
+
+SurveyTaxBenefitSystem.input_variable(
+    column = EnumCol(
+        enum = Enum([
+            u"Salarié",
+            u"Indépendant",
+            u"Chômeur",
+            u"Retraité",
+            u"Inactif"],
+            start = 1,
+            ),
+        ),
+    entity_class = Individus,
+    label = u"activité",
+    name = "act5",
+    # survey_only = True,
+    )  # 5 postes normalement TODO: check = 0
+
+# to remove
+SurveyTaxBenefitSystem.input_variable(
+    column = BoolCol(default = True),
+    entity_class = Menages,
+    name = "champm",
     )
-
-    reference_input_variable(
-        column = EnumCol(
-            enum = Enum([
-                u"Salarié",
-                u"Indépendant",
-                u"Chômeur",
-                u"Retraité",
-                u"Inactif"],
-                start = 1,
-                ),
-            ),
-        entity_class = SurveyIndividus,
-        label = u"activité",
-        name = "act5",
-        # survey_only = True,
-        )  # 5 postes normalement TODO: check = 0
-
-    # to remove
-    reference_input_variable(
-        column = BoolCol(default = True),
-        entity_class = SurveyMenages,
-        name = "champm",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = FloatCol(default = 1),
-        entity_class = SurveyMenages,
-        label = u"Effectifs",
-        name = "wprm",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = FloatCol(),
-        entity_class = SurveyMenages,
-        label = u"Effectifs",
-        name = "wprm_init",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        name = "m_afeamam",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        name = "m_agedm",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        name = "m_clcam",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        name = "m_colcam",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        name = "m_mgamm",
-        # survey_only = True,
-        )
-
-    reference_input_variable(
-        column = IntCol(),
-        entity_class = SurveyMenages,
-        name = "m_mgdomm",
-        # survey_only = True,
-        )
+SurveyTaxBenefitSystem.input_variable(
+    column = FloatCol(default = 1),
+    entity_class = Menages,
+    label = u"Effectifs",
+    name = "wprm",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = FloatCol,
+    entity_class = Menages,
+    label = u"Effectifs",
+    name = "wprm_init",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    name = "m_afeamam",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    name = "m_agedm",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    name = "m_clcam",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    name = "m_colcam",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    name = "m_mgamm",
+    )
+SurveyTaxBenefitSystem.input_variable(
+    column = IntCol,
+    entity_class = Menages,
+    name = "m_mgdomm",
+    )
