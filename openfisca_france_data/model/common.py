@@ -190,7 +190,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 #            )
 #        )
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class champm_ind(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Individus
@@ -201,7 +201,7 @@ class champm_ind(SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(champm_holder)
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class champm_fam(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Familles
@@ -212,7 +212,7 @@ class champm_fam(SimpleFormulaColumn):
         return period, self.filter_role(champm_ind_holder, role = CHEF)
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class champm_foy(SimpleFormulaColumn):
     column = BoolCol
     entity_class = FoyersFiscaux
@@ -223,7 +223,7 @@ class champm_foy(SimpleFormulaColumn):
         return period, self.filter_role(champm_ind_holder, role = VOUS)
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class decile(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -262,7 +262,7 @@ class decile(SimpleFormulaColumn):
         return period, decile * champm
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class decile_net(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -292,7 +292,7 @@ class decile_net(SimpleFormulaColumn):
         return period, decile * champm
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class pauvre40(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -314,7 +314,7 @@ class pauvre40(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class pauvre50(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -336,7 +336,7 @@ class pauvre50(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class pauvre60(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -358,7 +358,7 @@ class pauvre60(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class weight_ind(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
@@ -369,7 +369,7 @@ class weight_ind(SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(wprm_holder)
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class weight_fam(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Familles
@@ -380,10 +380,10 @@ class weight_fam(SimpleFormulaColumn):
         return period, self.filter_role(weight_ind_holder, role = CHEF)
 
 
-@SurveyTaxBenefitSystem.fomula
+@SurveyTaxBenefitSystem.formula
 class weight_foy(SimpleFormulaColumn):
     column = FloatCol
-    entity = Individus
+    entity_class = Individus
     label = u"Poids de l'individu",
 
     def function(self, simulation, period):

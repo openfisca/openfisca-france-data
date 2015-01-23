@@ -30,22 +30,21 @@ from openfisca_core import reforms
 import openfisca_france
 
 
+ReferenceTaxBenefitSystem = openfisca_france.init_country()
+reference_tax_benefit_system = ReferenceTaxBenefitSystem()
+SurveyTaxBenefitSystem = reforms.new_simple_reform_class(
+    name = u"OpenFisca for survey data",
+    reference = reference_tax_benefit_system,
+    )
+
+from .model import input_variables  # Load input variables into entities. # noqa analysis:ignore
+from .model import model  # Load output variables into entities. # noqa analysis:ignore
+
+
 def init_country():
     """Create a country-specific TaxBenefitSystem for use with data."""
-    ReferenceTaxBenefitSystem = openfisca_france.init_country()
-    reference_tax_benefit_system = ReferenceTaxBenefitSystem()
-    SurveyTaxBenefitSystem = reforms.new_simple_reform_class(
-        name = u"OpenFisca for survey data",
-        reference = reference_tax_benefit_system,
-        )
-
-    from .model import input_variables  # Load input variables into entities. # noqa analysis:ignore
-    from .model import model  # Load output variables into entities. # noqa analysis:ignore
-
     return SurveyTaxBenefitSystem
 
-
-SurveyTaxBenefitSystem = init_country()
 
 AGGREGATES_DEFAULT_VARS = [
     'cotsoc_noncontrib',

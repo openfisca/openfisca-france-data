@@ -40,7 +40,7 @@ SurveyTaxBenefitSystem.input_variable(
 )
 SurveyTaxBenefitSystem.input_variable(
     column = IntCol,
-    entity_class = SurveyFamilles,
+    entity_class = Familles,
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
     name = "idfam_original",
 )

@@ -28,7 +28,7 @@ import numpy as np
 
 
 from openfisca_core import periods, reforms, simulations
-import openfisca_france
+import openfisca_france_data
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 
 
@@ -142,15 +142,7 @@ class SurveyScenario(AbstractSurveyScenario):
         assert input_data_frame is not None
         self.input_data_frame = input_data_frame
         if tax_benefit_system is None:
-            ReferenceTaxBenefitSystem = openfisca_france.init_country()
-            reference_tax_benefit_system = ReferenceTaxBenefitSystem()
-            SurveyTaxBenefitSystem = reforms.new_simple_reform_class(
-                name = u"OpenFisca for survey data",
-                reference = reference_tax_benefit_system,
-                )
-            from .model import model  # noqa analysis:ignore
-            tax_benefit_system = SurveyTaxBenefitSystem()
-
+            tax_benefit_system = openfisca_france_data.init_country()
         self.tax_benefit_system = tax_benefit_system
         assert year is not None
         self.year = year

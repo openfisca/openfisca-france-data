@@ -27,20 +27,24 @@
 #import functools
 #
 #from openfisca_core.accessors import law
-#from openfisca_core.columns import (AgeCol, BoolCol, build_column, DateCol, EnumCol, FixedStrCol, FloatCol, IntCol,
+from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol
+
+#from openfisca_core.columns import (AgeCol,  build_column, DateCol, EnumCol, FixedStrCol,  IntCol,
 #    PeriodSizeIndependentIntCol, reference_input_variable, StrCol)
 
 from openfisca_core.enumerations import Enum
-from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
-    make_reference_formula_decorator, PersonToEntityColumn, SimpleFormulaColumn)
+from openfisca_core.formulas import SimpleFormulaColumn
+
+#from openfisca_core.formulas import (dated_function, DatedFormulaColumn, EntityToPersonColumn,
+#    make_reference_formula_decorator, PersonToEntityColumn, SimpleFormulaColumn)
 
 from openfisca_france.entities import Familles, FoyersFiscaux, Individus, Menages
-
+from openfisca_france_data import SurveyTaxBenefitSystem
 
 __all__ = [
 #    'AgeCol',
 #    'build_column',
-#    'BoolCol',
+    'BoolCol',
 #    'CAT',
     'CHEF',
 #    'CONJ',
@@ -51,14 +55,14 @@ __all__ = [
 #    'DatedFormulaColumn',
     'ENFS',
 #    'EntityToPersonColumn',
-#    'Enum',
-#    'EnumCol',
+    'Enum',
+    'EnumCol',
     'Familles',
 #    'FixedStrCol',
-#    'FloatCol',
+    'FloatCol',
     'FoyersFiscaux',
     'Individus',
-#    'IntCol',
+    'IntCol',
 #    'law',
     'Menages',
 #    'PAC1',
@@ -73,8 +77,9 @@ __all__ = [
 #    'QUIMEN',
 #    'reference_formula',
 #    'reference_input_variable',
-#    'SimpleFormulaColumn',
+    'SimpleFormulaColumn',
 #    'StrCol',
+    'SurveyTaxBenefitSystem',
 #    'TAUX_DE_PRIME',
     'VOUS',
     ]
