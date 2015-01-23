@@ -39,7 +39,7 @@ from openfisca_core.formulas import SimpleFormulaColumn
 #    make_reference_formula_decorator, PersonToEntityColumn, SimpleFormulaColumn)
 
 from openfisca_france.entities import Familles, FoyersFiscaux, Individus, Menages
-from openfisca_france_data import SurveyTaxBenefitSystem
+from openfisca_france_data import reference_tax_benefit_system, SurveyTaxBenefitSystem
 
 __all__ = [
 #    'AgeCol',
@@ -77,6 +77,7 @@ __all__ = [
 #    'QUIMEN',
 #    'reference_formula',
 #    'reference_input_variable',
+    'reference_tax_benefit_system',
     'SimpleFormulaColumn',
 #    'StrCol',
     'SurveyTaxBenefitSystem',

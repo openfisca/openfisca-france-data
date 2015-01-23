@@ -27,16 +27,15 @@ from __future__ import division
 
 import logging
 
-from openfisca_core import formulas
+from ..base import *  # noqa analysis:ignore
 
-from openfisca_france.model.input_variables import travail_base
 from openfisca_france.model.cotisations_sociales import travail_prive
 
 
 log = logging.getLogger(__name__)
 
 
-class taille_entreprise(formulas.SimpleFormulaColumn):
+class taille_entreprise(SimpleFormulaColumn):
     reference = travail_prive.taille_entreprise
 
     def function(self, simulation, period):
@@ -50,8 +49,8 @@ class taille_entreprise(formulas.SimpleFormulaColumn):
         return period, 0 + 1 * (nbsala >= 1) + 1 * (nbsala >= 4) + 1 * (nbsala >= 5) + 1 * (nbsala >= 7)
 
 
-class type_sal(formulas.SimpleFormulaColumn):
-    reference = travail_base.type_sal
+class type_sal(SimpleFormulaColumn):
+    reference = reference_tax_benefit_system.column_by_name['type_sal']
 
     def function(self, simulation, period):
         cadre = simulation.calcultae('cadre', period)
