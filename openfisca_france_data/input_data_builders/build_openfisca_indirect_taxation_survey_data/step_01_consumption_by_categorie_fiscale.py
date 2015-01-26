@@ -133,6 +133,67 @@ def get_transfert_data_frames(year = None):
     return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
 
 
+# normalize_coicop permet d'harmoniser la colonne posteCOICOP de la table matrice_passage_data_frame
+# en la transformant en une string de 5 caractères
+
+def normalize_coicop(code):
+  if len(code) == 3:
+    normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
+  elif len(code) == 4:
+    if not code.startswith("1") and not code.startswith("9"):
+      normalized_code = "0" + code
+    elif code in ["1151", "1181"]:
+      normalized_code = "0" + code
+    else:
+      normalized_code = code + "0"
+  elif len(code) == 5:
+    normalized_code = code
+  else:
+    raise()
+  return normalized_code
+
+# normalize_coicop_cn permet de récupérer pour chaque poste COICOP sa nomenclature dans la CN
+
+def normalize_coicop_cn(code):
+  if code.startswith("01") :
+    normalized_code_cn = 1
+  elif code.startswith("02"):
+    normalized_code_cn = 2
+  elif code.startswith("03"):
+    normalized_code_cn = 3
+  elif code.startswith("04"):
+    normalized_code_cn = 4
+  elif code.startswith("05"):
+    normalized_code_cn = 5
+  elif code.startswith("06"):
+    normalized_code_cn = 6
+  elif code.startswith("07"):
+    if not code.startswith("073"):
+      normalized_code_cn = 7
+    else:
+      normalized_code_cn = 8
+  elif code.startswith("08"):
+    normalized_code_cn = 8
+  elif code.startswith("09"):
+    normalized_code_cn = 9
+  elif code.startswith("10"):
+    normalized_code_cn = 9
+  elif code.startswith("11"):
+    normalized_code_cn = 10
+  elif code.startswith("12"):
+    normalized_code_cn = 11
+  elif code.startswith("99"):
+    normalized_code_cn = 12
+
+  return normalized_code_cn
+
+x = matrice_passage_data_frame.posteCOICOP.astype('str')
+y = x.apply(normalize_coicop)
+z = y.apply(normalize_coicop_cn)
+
+
+
+
 if __name__ == '__main__':
     import sys
     import time
@@ -142,3 +203,5 @@ if __name__ == '__main__':
     build_menage_consumption_by_categorie_fiscale(year = year)
 
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
+
+
