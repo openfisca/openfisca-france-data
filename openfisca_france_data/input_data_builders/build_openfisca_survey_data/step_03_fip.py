@@ -105,9 +105,9 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     fip.set_index(["declaration", "pac_number"], inplace = True)
     fip = fip.reset_index()
     fip.drop(['pac_number'], axis = 1, inplace = True)
-
-    assert fip.type_pac.isin(["F", "J", "G", "H", "R", "N"]).all(), "Certains type de PAC sont inconnus" # TODO: find a more explicitmessage
-
+    #TODO: rajouter la case I : "Dont enfants titulaires de la carte d’invalidité"
+    assert fip.type_pac.isin(["F", "G", "H","I", "J", "N", "R"]).all(), "Certains type de PAC sont inconnus" # TODO: find a more explicitmessage
+    
 #    control(fip, debug=True, verbose=True, verbose_columns=['naia'])
 
     log.info(u"    1.3 : on enlève les individus F pour lesquels il existe un individu G")
@@ -171,13 +171,13 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 
     del pac_ind1['key1'], pac_ind2['key2']
 
-    if pac_ind1.index == []:
-        if pac_ind2.index == []:
+    if len(pac_ind1.index) == 0:
+        if len(pac_ind2.index) == 0:
                 log.info(u"Warning : no link between pac and noindiv for both pacInd1&2")
         else:
             log.info(u"Warning : pacInd1 is an empty data frame")
             pacInd = pac_ind2
-    elif pac_ind2.index == []:
+    elif len(pac_ind2.index) == 0:
         log.info(u"Warning : pacInd2 is an empty data frame")
         pacInd = pac_ind1
     else:
