@@ -93,7 +93,8 @@ def create_indivim(year = None):
         'forter',
         'lien',
         'mrec',
-        'naia',
+#        'naia',
+#TODO: fix this error on naia for 2007 (TypeError: invalid type comparison)
         'noicon',
         'noimer',
         'noiper',
@@ -127,7 +128,8 @@ def create_indivim(year = None):
     # la même nomenclatue à été adopée
 
 #    3: contrat a durée déterminée
-    indivim['actrec'][indivim['acteu'] == 1] = 3  # TODO: check what is done
+    indivim['actrec'][indivim['acteu'] == 1] = 3  
+    # TODO: check what is done
 
 #    8 : femme (homme) au foyer, autre inactif
     indivim['actrec'][indivim['acteu'] == 3] = 8
@@ -187,9 +189,10 @@ def create_indivim(year = None):
     gc.collect()
 
 
-def create_enfants_a_naitre(year = 2006):
+def create_enfants_a_naitre(year = None):
     '''
     '''
+    assert year is not None
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
     survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
@@ -222,7 +225,6 @@ def create_enfants_a_naitre(year = 2006):
     eeccmp1 = survey.get_values(table = "eec_cmp_1", variables = individual_vars)
     eeccmp2 = survey.get_values(table = "eec_cmp_2", variables = individual_vars)
     eeccmp3 = survey.get_values(table = "eec_cmp_3", variables = individual_vars)
-
     tmp = eeccmp1.merge(eeccmp2, how = "outer")
     enfants_a_naitre = tmp.merge(eeccmp3, how = "outer")
 
