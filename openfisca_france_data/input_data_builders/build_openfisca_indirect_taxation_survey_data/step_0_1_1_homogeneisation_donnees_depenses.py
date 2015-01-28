@@ -44,8 +44,15 @@ def build_depenses_homogenisees(year = None):
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
 
     if year == 2005:
-        pass
+        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+        c05d = survey.get_values(table = "c05d")
+        c05d.rename(columns = {'c' : 'depense'}, inplace = True)
+        nomen = temporary_store['nomen_{}'.format(year)]
+        c05d.merge(nomen, on = ['poste_{}'.format(year)], )
+
+
     return None
+
 
 
 if __name__ == '__main__':
