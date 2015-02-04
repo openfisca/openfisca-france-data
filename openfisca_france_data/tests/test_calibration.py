@@ -26,8 +26,6 @@ import pkg_resources
 import os
 
 
-import openfisca_france
-from openfisca_france_data.reforms import adapt_to_survey
 from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
@@ -39,12 +37,8 @@ openfisca_france_data_location = pkg_resources.get_distribution('openfisca-franc
 def test_calibration():
     year = 2006
     input_data_frame = get_input_data_frame(year)
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
-    survey_tax_benefit_system = adapt_to_survey.build_reform(tax_benefit_system)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system = survey_tax_benefit_system,
         year = year,
         )
     survey_scenario.initialize_weights()

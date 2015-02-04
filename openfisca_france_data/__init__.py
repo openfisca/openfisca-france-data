@@ -74,7 +74,7 @@ AGGREGATES_DEFAULT_VARS = [
     'api',
 #    'majo_rsa',
     'psa',
-    'logt',
+    'aides_logement',
     'alf',
     'als',
     'apl',
