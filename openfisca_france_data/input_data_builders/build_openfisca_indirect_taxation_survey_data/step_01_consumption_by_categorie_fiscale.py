@@ -32,7 +32,7 @@ import pkg_resources
 import pandas as pd
 from pandas import read_excel
 
-
+from openfisca_france_data import config_files_directory
 from openfisca_survey_manager.surveys import SurveyCollection
 
 log = logging.getLogger(__name__)
@@ -115,8 +115,6 @@ def build_menage_consumption_by_categorie_fiscale(year = None):
 def get_transfert_data_frames(year = None):
     assert year is not None
     parser = SafeConfigParser()
-    openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
-    config_files_directory = os.path.join(openfisca_france_data_location)
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
     parser.read([config_ini, config_local_ini])
@@ -203,5 +201,3 @@ if __name__ == '__main__':
     build_menage_consumption_by_categorie_fiscale(year = year)
 
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
-
-

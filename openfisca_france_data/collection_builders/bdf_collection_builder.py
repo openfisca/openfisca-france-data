@@ -30,8 +30,7 @@ import os
 
 from openfisca_survey_manager.surveys import Survey, SurveyCollection
 
-openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
-config_files_directory = os.path.join(openfisca_france_data_location)
+from openfisca_france_data import config_files_directory
 
 log = logging.getLogger(__name__)
 
