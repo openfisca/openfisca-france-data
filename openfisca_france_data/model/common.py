@@ -191,7 +191,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 #        )
 
 @SurveyTaxBenefitSystem.formula
-class champm_ind(SimpleFormulaColumn):
+class champm_individus(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Individus
     label = u"L'individu est dans un ménage du champ ménage",
@@ -202,25 +202,25 @@ class champm_ind(SimpleFormulaColumn):
 
 
 @SurveyTaxBenefitSystem.formula
-class champm_fam(SimpleFormulaColumn):
+class champm_familles(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Familles
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
 
     def function(self, simulation, period):
-        champm_ind_holder = simulation.calculate('champm_ind_holder', period)
-        return period, self.filter_role(champm_ind_holder, role = CHEF)
+        champm_individus = simulation.calculate('champm_individus', period)
+        return period, self.filter_role(champm_individus, role = CHEF)
 
 
 @SurveyTaxBenefitSystem.formula
-class champm_foy(SimpleFormulaColumn):
+class champm_foyers_fiscaux(SimpleFormulaColumn):
     column = BoolCol
     entity_class = FoyersFiscaux
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
     def function(self, simulation, period):
-        champm_ind_holder = simulation.calculate(' champm_ind_holder', period)
-        return period, self.filter_role(champm_ind_holder, role = VOUS)
+        champm_individus = simulation.calculate('champm_individus', period)
+        return period, self.filter_role(champm_individus, role = VOUS)
 
 
 @SurveyTaxBenefitSystem.formula
@@ -365,7 +365,7 @@ class weight_ind(SimpleFormulaColumn):
     label = u"Poids de l'individu"
 
     def function(self, simulation, period):
-        wprm_holder = simulation.calculate('wprm_holder', period)
+        wprm_holder = simulation.calculate('wprm', period)
         return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
 
 
@@ -376,16 +376,16 @@ class weight_fam(SimpleFormulaColumn):
     label = u"Poids de la famille"
 
     def function(self, simulation, period):
-        weight_ind_holder = simulation.calculate('weight_ind_holder', period)
-        return period, self.filter_role(weight_ind_holder, role = CHEF)
+        weight_ind_holder = simulation.calculate('weight_ind', period)
+        return period, self.filter_role(weight_ind_holder, entity = "famille", role = CHEF)
 
 
 @SurveyTaxBenefitSystem.formula
 class weight_foy(SimpleFormulaColumn):
     column = FloatCol
-    entity_class = Individus
-    label = u"Poids de l'individu",
+    entity_class = FoyersFiscaux
+    label = u"Poids du foyer fiscal",
 
     def function(self, simulation, period):
-        weight_ind_holder = simulation.calculate('weight_ind_holder', period)
-        return period, self.filter_role(weight_ind_holder, role = VOUS)
+        weight_ind_holder = simulation.calculate('weight_ind', period)
+        return period, self.filter_role(weight_ind_holder, entity = "foyer_fiscal", role = VOUS)
