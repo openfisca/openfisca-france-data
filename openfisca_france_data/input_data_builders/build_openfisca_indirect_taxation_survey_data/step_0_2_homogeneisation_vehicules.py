@@ -90,8 +90,6 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		save "$datadir\automobile.dta", replace
 #	}
 
-
-
 def build_homogeneisation_vehicule(year = None):
     """Build menage consumption by categorie fiscale dataframe """
 
@@ -99,8 +97,38 @@ def build_homogeneisation_vehicule(year = None):
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
 
+    if year ==2000:
+        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+        vehicule = survey.get_values(table=depmen)
+        kept_variables=['IDENT', 'CARBU', 'CARBU01', 'CARBU02']
+        vehicule = vehicule[kept_variables]
+        vehicule.rename(columns = {'IDENT' : 'ident_men'}, inplace = True)
+        vehicule.rename(columns = {'CARBU01' : 'carbu1'}, inplace = True)
+        vehicule.rename(columns = {'CARBU02' : 'carbu2'}, inplace = True)
+        vehicule["veh_tot"]='1'
+        vehicule["veh_essence"]=(vehicule['carbu']='1')
+        vehicule["veh_diesel"]=(vehicule['carbu']='2')
+        automobile = temporary_store['automobile_{}'.format(year)]
+        save automobile
+
+      return data_frame
+
     if year == 2005:
         survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+        vehicule = survey.get_values(table = automobile)
+        kept_variables = ['ident_men', 'carbu', 'vag']
+        vehicule = vehicule[kept_variables]
+        vehicule["veh_tot"]='1'
+        vehicule["veh_essence"]=(vehicule['carbu']='1')
+        vehicule["veh_diesel"]=(vehicule['carbu']='2')
+        automobile = temporary_store['automobile_{}'.format(year)]
+        save automobile
+
+      return data_frame
+
+
+
+
         # TODO
 
 
