@@ -58,7 +58,12 @@ def build_sauvegarde_depnses(year = None):
 
     if year == 2005:
         survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        # TODO
+        depense = survey.get_values(table=depenses)
+        kept_variables=['ident_men','pondmen','posteCOICOP','poste13','grosposte','depense','description','supplementaire','nondurable','semidurable','durable','servicenondurable','servicedurable','loyer','depensenonconso']
+        depense = depense[kept_variables]
+        depense.update(depense)
+
+    return data_frame
 
 
 if __name__ == '__main__':
