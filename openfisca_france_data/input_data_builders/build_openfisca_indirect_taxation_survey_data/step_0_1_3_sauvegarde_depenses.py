@@ -49,7 +49,7 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #	save "${datadir}\dépenses_BdF.dta", replace
 
 
-def build_sauvegarde_depnses(year = None):
+def build_sauvegarde_depenses(year = None):
     """Build menage consumption by categorie fiscale dataframe """
 
     assert year is not None
@@ -58,12 +58,11 @@ def build_sauvegarde_depnses(year = None):
 
     if year == 2005:
         survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        depense = survey.get_values(table=depenses)
-        kept_variables=['ident_men','pondmen','posteCOICOP','poste13','grosposte','depense','description','supplementaire','nondurable','semidurable','durable','servicenondurable','servicedurable','loyer','depensenonconso']
-        depense = depense[kept_variables]
-        depense.update(depense)
-
-    return data_frame
+        print survey
+        depenses = survey.get_values(table="depenses")
+        kept_variables = ['ident_men','pondmen','posteCOICOP','poste13','grosposte','depense','description','supplementaire','nondurable','semidurable','durable','servicenondurable','servicedurable','loyer','depensenonconso']
+        depenses = depenses[kept_variables]
+        temporary_store['depenses_bdf'] = depenses
 
 
 if __name__ == '__main__':
@@ -72,6 +71,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2005
-    build_other_menage_variables(year = year)
+    build_sauvegarde_depenses(year = year)
 
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
