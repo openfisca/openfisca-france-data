@@ -179,9 +179,7 @@ def build_imputation_loyers_proprietaires(year = None):
         temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
         depenses = temporary_store['depenses_{}'.format(year)]
         depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'],  )
-
-    return data_frame
-
+        temporary_store['depenses'] = depenses
 
     if year == 2005:
         survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
@@ -193,8 +191,7 @@ def build_imputation_loyers_proprietaires(year = None):
         temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
         depenses = temporary_store['depenses_{}'.format(year)]
         depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'],  )
-
-    return data_frame
+        temporary_store['depenses'] = depenses
 
 
 if __name__ == '__main__':
