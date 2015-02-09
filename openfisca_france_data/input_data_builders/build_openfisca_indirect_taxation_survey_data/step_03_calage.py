@@ -26,6 +26,7 @@
 
 import os
 import logging
+import np
 
 from ConfigParser import SafeConfigParser
 
@@ -90,14 +91,32 @@ def collapsesum(dataframe, groupe, var):
     return var_weighted_grouped
 
 # TODO: finir cette fonction qui sélectionne la data d'input automatiquement en fonction de l'année de simulation (calage)
-#def define_year_data(year_data_list, year_calage):
-#    diff=[]
-#    for i in range(0,len(year_data_list)-1):
-#        print year_data_list[1]
-##        diff[i] = year_calage - year_data_list[i]
-#    return diff
-#    define_year_data([2005,2010], 2011)
-#    year_data_list = [2005,2010]
+def define_year_data(year_data_list, year_calage):
+    diff=[]
+    for i in range(0,len(year_data_list)-1):
+        diff[i] = year_calage - year_data_list[i]
+    return diff
+   
+    for i in range(0,len(year_data_list)-1):
+        if diff[i]<0:
+            diff[i] = 10
+        return diff
+    return
+   
+    minimum = np.argmin(diff)
+   
+    for i in range(0,len(year_data_list)-1):
+        if diff[i] == minimum:
+            numero=i
+        return numero
+    return
+   
+    defined_year_data=year_data_list(numero)
+    print(defined_year_data)
+    return  defined_year_data
+    
+year_data_list = [2005,2010]  
+define_year_data(year_data_list.transpose, 2007)
 
 
 if __name__ == '__main__':
