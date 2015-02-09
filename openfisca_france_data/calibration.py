@@ -82,9 +82,9 @@ class Calibration(object):
         self.survey_scenario = survey_scenario
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
-        self.entity = 'men'  # TODO: shoud not be france specific
+        # self.entity = 'men'  # TODO: shoud not be france specific
         self.champm = survey_scenario.simulation.calculate("champm")
-        weight_name = self.survey_scenario.weight_column_name_by_entity_symbol[self.entity]
+        weight_name = self.survey_scenario.weight_column_name_by_entity_key_plural['menages']
         self.initial_weights = survey_scenario.simulation.calculate(weight_name)
         self.initial_total_population = sum(self.initial_weights * self.champm)
         self.weight_name = weight_name

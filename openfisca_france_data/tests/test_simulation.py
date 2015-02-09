@@ -24,20 +24,18 @@
 
 
 from openfisca_core.formulas import NaNCreationError
-import openfisca_france
-from openfisca_france_data.surveys import SurveyScenario
+
+
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.input_data_builders.fake_openfisca_data_builder import get_fake_input_data_frame
+from openfisca_france_data.surveys import SurveyScenario
 
 
 def test_fake_survey_simulation():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system = tax_benefit_system,
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -47,11 +45,8 @@ def test_fake_survey_simulation():
 def test_survey_simulation():
     year = 2006
     input_data_frame = get_input_data_frame(year)
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system = tax_benefit_system,
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -76,18 +71,9 @@ def test_survey_simulation():
             )
         simulation_debug.calculate(column_name)
 
-#    return DataFrame({
-#        "idmen": simulation.calculate('idmen'),
-#        "quimen": simulation.calculate('quimen'),
-#        "idfoy": simulation.calculate('idmen'),
-#        "quifoy": simulation.calculate('quimen'),
-#        "idfam": simulation.calculate('idmen'),
-#        "quifam": simulation.calculate('quimen'),
-#        "sali": simulation.calculate('sali'),
-#        })
-    return DataFrame(
-        dict([
-            (name, simulation.calculate(name)) for name in [
+    data_frame_by_entity_key_plural = dict(
+        individus = DataFrame(
+            dict([(name, simulation.calculate(name)) for name in [
                 'idmen',
                 'quimen',
                 'idfoy',
@@ -95,21 +81,28 @@ def test_survey_simulation():
                 'idfam',
                 'quifam',
                 'age',
+                'champm_ind',
                 'sal',
-#                'revdisp',
-                ]
-            ])
+                'salnet',
+                'txtppb',
+                # salsuperbrut # TODO bug in 2006
+                ]])
+            ),
+        menages = DataFrame(
+            dict([(name, simulation.calculate(name)) for name in [
+                'revdisp'
+                ]])
+            ),
         )
+
+    return data_frame_by_entity_key_plural
 
 
 def test_weights_building():
     year = 2006
     input_data_frame = get_input_data_frame(year)
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        tax_benefit_system= tax_benefit_system,
         year = year,
         )
     survey_scenario.new_simulation()
@@ -122,5 +115,8 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     test_fake_survey_simulation()
 
-    df = test_survey_simulation()
-    print df
+    df_by_entity = test_survey_simulation()
+    df_i = df_by_entity['individus']
+    df_m = df_by_entity['menages']
+    print df_i
+    print df_m

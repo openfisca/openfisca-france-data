@@ -27,17 +27,11 @@ from __future__ import division
 
 from numpy import arange, argsort, asarray, cumsum, linspace, logical_and as and_, repeat
 
-from openfisca_france.model.base import QUIFAM, QUIFOY
-
-
-CHEF = QUIFAM['chef']
-ENFS = [QUIFAM['enf{}'.format(i)] for i in range(1, 10)]
-PART = QUIFAM['part']
-VOUS = QUIFOY['vous']
+from .base import *  # noqa analysis:ignore
 
 
 def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False):
-# from http://pastebin.com/KTLip9ee
+    # from http://pastebin.com/KTLip9ee
     # a is an input array of values.
     # weights is an input array of weights, so weights[i] goes with a[i]
     # labels are the names you want to give to the xtiles
@@ -108,7 +102,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             upper = quantiles[i + 1]
             ret[and_(a >= lower, a < upper)] = labels[i]
 
-        #make sure upper and lower indices are marked
+        # make sure upper and lower indices are marked
         ret[a <= quantiles[0]] = labels[0]
         ret[a >= quantiles[-1]] = labels[-1]
 
@@ -176,7 +170,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             upper = quantiles[i + 1]
             ret[and_(a >= lower, a < upper)] = labels[i]
 
-        #make sure upper and lower indices are marked
+        # make sure upper and lower indices are marked
         ret[a <= quantiles[0]] = labels[0]
         ret[a >= quantiles[-1]] = labels[-1]
 
@@ -186,91 +180,212 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
             return ret
 
 
-def _champm_ind(self, champm_holder):
-    return self.cast_from_entity_to_roles(champm_holder)
+#    build_survey_simple_formula(
+#        'nb_ageq0',
+#        IntCol(
+#            function = cl._nb_ageq0,
+#            entity = 'men',
+#            label = u"Effectifs des tranches d'âge quiquennal",
+#            survey_only = True,
+#            )
+#        )
+
+@SurveyTaxBenefitSystem.formula
+class champm_individus(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = Individus
+    label = u"L'individu est dans un ménage du champ ménage",
+
+    def function(self, simulation, period):
+        champm_holder = simulation.calculate("champm", period)
+        return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
 
 
-def _champm_fam(self, champm_ind_holder):
-    return self.filter_role(champm_ind_holder, role = CHEF)
+@SurveyTaxBenefitSystem.formula
+class champm_familles(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = Familles
+    label = u"Le premier parent de la famille est dans un ménage du champ ménage",
+
+    def function(self, simulation, period):
+        champm_individus = simulation.calculate('champm_individus', period)
+        return period, self.filter_role(champm_individus, role = CHEF)
 
 
-def _champm_foy(self, champm_ind_holder):
-    return self.filter_role(champm_ind_holder, role = VOUS)
+@SurveyTaxBenefitSystem.formula
+class champm_foyers_fiscaux(SimpleFormulaColumn):
+    column = BoolCol
+    entity_class = FoyersFiscaux
+    label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
+
+    def function(self, simulation, period):
+        champm_individus = simulation.calculate('champm_individus', period)
+        return period, self.filter_role(champm_individus, role = VOUS)
 
 
-def _decile(nivvie, champm, wprm):
-    '''
-    Décile de niveau de vie disponible
-    'men'
-    '''
-    labels = arange(1, 11)
-    method = 2
-    decile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-#    print values
-#    print len(values)
-#    print (nivvie*champm).min()
-#    print (nivvie*champm).max()
-#    print decile.min()
-#    print decile.max()
-#    print (nivvie*(decile==1)*champm*wprm).sum()/( ((decile==1)*champm*wprm).sum() )
-    del values
-    return decile * champm
+@SurveyTaxBenefitSystem.formula
+class decile(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Hors champ"
+            u"1er décile",
+            u"2nd décile",
+            u"3e décile",
+            u"4e décile",
+            u"5e décile",
+            u"6e décile",
+            u"7e décile",
+            u"8e décile",
+            u"9e décile",
+            u"10e décile"
+            ])
+        )
+
+    entity_class = Menages
+    label = u"Décile de niveau de vie disponible"
+
+    def function(self, simulation, period):
+        champm = simulation.calculate('champm', period)
+        nivvie = simulation.calculate('nivvie', period)
+        wprm = simulation.calculate('wprm', period)
+        labels = arange(1, 11)
+        method = 2
+        decile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        # print values
+        # print len(values)
+        # print (nivvie*champm).min()
+        # print (nivvie*champm).max()
+        # print decile.min()
+        # print decile.max()
+        # print (nivvie*(decile==1)*champm*wprm).sum()/( ((decile==1)*champm*wprm).sum() )
+        del values
+        return period, decile * champm
 
 
-def _decile_net(nivvie_net, champm, wprm):
-    '''
-    Décile de niveau de vie net
-    'men'
-    '''
-    labels = arange(1, 11)
-    method = 2
-    decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * champm, method, return_quantiles = True)
-    return decile * champm
+@SurveyTaxBenefitSystem.formula
+class decile_net(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Hors champ"
+            u"1er décile",
+            u"2nd décile",
+            u"3e décile",
+            u"4e décile",
+            u"5e décile",
+            u"6e décile",
+            u"7e décile",
+            u"8e décile",
+            u"9e décile",
+            u"10e décile",
+            ])
+        )
+    entity_class = Menages
+    label = u"Décile de niveau de vie net"
+
+    def function(self, simulation, period):
+        champm = simulation.calculate('champm', period)
+        nivvie_net = simulation.calculate('nivvie_net', period)
+        wprm = simulation.calculate('wprm', period)
+        labels = arange(1, 11)
+        method = 2
+        decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * champm, method, return_quantiles = True)
+        return period, decile * champm
 
 
-def _pauvre40(nivvie, champm, wprm):
-    '''
-    Indicatrice de pauvreté à 50% du niveau de vie median
-    'men'
-    '''
-    labels = arange(1, 3)
-    method = 2
-    percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-    threshold = .4 * values[1]
-    return (nivvie <= threshold) * champm
+@SurveyTaxBenefitSystem.formula
+class pauvre40(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Ménage au dessus du seuil de pauvreté à 40%",
+            u"Ménage en dessous du seuil de pauvreté à 40%",
+            ])
+        )
+    entity_class = Menages
+    label = u"Pauvreté monétaire au seuil de 40%"
+
+    def function(self, simulation, period):
+        champm = simulation.calculate('champm', period)
+        nivvie = simulation.calculate('nivvie', period)
+        wprm = simulation.calculate('wprm', period)
+        labels = arange(1, 3)
+        method = 2
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        threshold = .4 * values[1]
+        return period, (nivvie <= threshold) * champm
 
 
-def _pauvre50(nivvie, champm, wprm):
-    '''
-    Indicatrice de pauvreté à 50% du niveau de vie median
-    'men'
-    '''
-    labels = arange(1, 3)
-    method = 2
-    percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-    threshold = .5 * values[1]
-    return (nivvie <= threshold) * champm
+@SurveyTaxBenefitSystem.formula
+class pauvre50(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Ménage au dessus du seuil de pauvreté à 50%",
+            u"Ménage en dessous du seuil de pauvreté à 50%",
+            ])
+        )
+    entity_class = Menages
+    label = u"Pauvreté monétaire au seuil de 50%"
+
+    def function(self, simulation, period):
+        champm = simulation.calculate('champm', period)
+        nivvie = simulation.calculate('nivvie', period)
+        wprm = simulation.calculate('wprm', period)
+        labels = arange(1, 3)
+        method = 2
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        threshold = .5 * values[1]
+        return period, (nivvie <= threshold) * champm
 
 
-def _pauvre60(nivvie, champm, wprm):
-    '''
-    Indicatrice de pauvreté à 60% du niveau de vie median
-    'men'
-    '''
-    labels = arange(1, 3)
-    method = 2
-    percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-    threshold = .6 * values[1]
-    return (nivvie <= threshold) * champm
+@SurveyTaxBenefitSystem.formula
+class pauvre60(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Ménage au dessus du seuil de pauvreté à 60%",
+            u"Ménage en dessous du seuil de pauvreté à 60%",
+            ])
+        )
+    entity_class = Menages
+    label = u"Pauvreté monétaire au seuil de 60%"
+
+    def function(self, simulation, period):
+        champm = simulation.calculate('champm', period)
+        nivvie = simulation.calculate('nivvie', period)
+        wprm = simulation.calculate('wprm', period)
+        labels = arange(1, 3)
+        method = 2
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        threshold = .6 * values[1]
+        return period, (nivvie <= threshold) * champm
 
 
-def _weight_ind(self, wprm_holder):
-    return self.cast_from_entity_to_roles(wprm_holder)
+@SurveyTaxBenefitSystem.formula
+class weight_ind(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Individus
+    label = u"Poids de l'individu"
+
+    def function(self, simulation, period):
+        wprm_holder = simulation.calculate('wprm', period)
+        return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
 
 
-def _weight_fam(self, weight_ind_holder):
-    return self.filter_role(weight_ind_holder, role = CHEF)
+@SurveyTaxBenefitSystem.formula
+class weight_fam(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = Familles
+    label = u"Poids de la famille"
+
+    def function(self, simulation, period):
+        weight_ind_holder = simulation.calculate('weight_ind', period)
+        return period, self.filter_role(weight_ind_holder, entity = "famille", role = CHEF)
 
 
-def _weight_foy(self, weight_ind_holder):
-    return self.filter_role(weight_ind_holder, role = VOUS)
+@SurveyTaxBenefitSystem.formula
+class weight_foy(SimpleFormulaColumn):
+    column = FloatCol
+    entity_class = FoyersFiscaux
+    label = u"Poids du foyer fiscal",
+
+    def function(self, simulation, period):
+        weight_ind_holder = simulation.calculate('weight_ind', period)
+        return period, self.filter_role(weight_ind_holder, entity = "foyer_fiscal", role = VOUS)

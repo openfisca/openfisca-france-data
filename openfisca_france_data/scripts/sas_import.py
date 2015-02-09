@@ -57,8 +57,6 @@ def extract_from_sas(file_to_import):
     convertFile(f, outFile, delimiter=',', stepSize=100000)
 
 
-
-
 if __name__ == '__main__':
 
     import pkg_resources

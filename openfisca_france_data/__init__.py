@@ -26,9 +26,24 @@
 import os
 import pkg_resources
 
+from openfisca_core import reforms
+import openfisca_france
 
-openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
-default_config_files_directory = os.path.join(openfisca_france_location)
+
+ReferenceTaxBenefitSystem = openfisca_france.init_country()
+reference_tax_benefit_system = ReferenceTaxBenefitSystem()
+SurveyTaxBenefitSystem = reforms.new_simple_reform_class(
+    name = u"OpenFisca for survey data",
+    reference = reference_tax_benefit_system,
+    )
+
+from .model import input_variables  # Load input variables into entities. # noqa analysis:ignore
+from .model import model  # Load output variables into entities. # noqa analysis:ignore
+
+
+def init_country():
+    """Create a country-specific TaxBenefitSystem for use with data."""
+    return SurveyTaxBenefitSystem
 
 
 AGGREGATES_DEFAULT_VARS = [
@@ -59,13 +74,17 @@ AGGREGATES_DEFAULT_VARS = [
     'api',
 #    'majo_rsa',
     'psa',
-    'logt',
+    'aides_logement',
     'alf',
     'als',
     'apl',
     ]
     # ajouter csgd pour le calcul des agrégats erfs
     # ajouter rmi pour le calcul des agrégats erfs
+
+openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
+default_config_files_directory = os.path.join(openfisca_france_location)
+
 COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
 FILTERING_VARS = ["champm"]
 PLUGINS_DIR = os.path.join(COUNTRY_DIR, 'plugins')
