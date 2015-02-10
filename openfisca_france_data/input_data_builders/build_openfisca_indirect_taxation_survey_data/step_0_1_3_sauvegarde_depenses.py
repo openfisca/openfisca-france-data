@@ -58,11 +58,15 @@ def build_sauvegarde_depenses(year = None):
 
     if year == 2005:
         survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        print survey
-        depenses = survey.get_values(table="depenses")
-        kept_variables = ['ident_men','pondmen','posteCOICOP','poste13','grosposte','depense','description','supplementaire','nondurable','semidurable','durable','servicenondurable','servicedurable','loyer','depensenonconso']
-        depenses = depenses[kept_variables]
-        temporary_store['depenses_bdf'] = depenses
+        depense = survey.get_values(table = "depenses")
+        kept_variables = [
+            'ident_men', 'pondmen', 'posteCOICOP', 'poste13', 'grosposte', 'depense', 'description', 'supplementaire',
+            'nondurable', 'semidurable', 'durable', 'servicenondurable', 'servicedurable', 'loyer', 'depensenonconso'
+            ]
+        depense = depense[kept_variables]
+
+    # Save in temporary store
+    temporary_store['depenses_ bdf_{}'.format(year)] = depense
 
 
 if __name__ == '__main__':
@@ -71,6 +75,5 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2005
-    build_sauvegarde_depenses(year = year)
-
-    log.info("step 01 demo duration is {}".format(time.clock() - deb))
+    build_sauvegarde_depnses(year = year)
+    log.info("step 0_1_3_build_sauvegarde_depnses duration is {}".format(time.clock() - deb))

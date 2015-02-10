@@ -36,6 +36,13 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
+def build_depenses_homogenisees(year = None):
+    """Build menage consumption by categorie fiscale dataframe """
+
+    assert year is not None
+    # Load data
+    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 
 #
 #		* CE CODE APPELLE LE TABLEAU DE PASSAGE DE LA NOMENCLATURE BDF A LA NOMENCLATURE COICOP MODIFIEE
@@ -71,6 +78,27 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #			rename PONDERRD pondmen
 #
 #			}
+
+    if year == 1995:
+        socioscm = survey.get_values(table = "socioscm")
+        socioscm = socioscm.iloc(socioscm.EXDEP == 1 & socioscm.EXREV == 1, ["MENA", "PONDERD"]).copy()
+        temporary_store['ponder_{}'.format(year)] = socioscm
+
+        depnom = survey.get_values(tabe = "depnom")
+        import pandas
+        depnom = pandas.DataFrame()
+        depnom = depnom(["VALEUR", "MONTANT", "MENA", "NOMEN5"])
+        depnom = depnom.groupby(["MENA", "NOMEN5"]).sum()
+        depnom.rename({
+            "NOMEN5": "poste{}".format(year),
+            "VALEUR": "depense".format(year),
+            "MONTANT": "depense_avt_imput".format(year),
+            })
+        # Passage à l'euro
+        depnom.depense = depnom.depense / 6.55957
+        depnom.depense_avt_imput = depnom.depense_avt_imput / 6.55957
+        ponder = temporary_store['ponder_{}'.format(year)]
+        depnom.merge(ponder) # TODO: finish
 #
 #		if ${yearrawdata} == 2000 {
 #			use "$rawdatadir\consomen.dta", clear
@@ -83,6 +111,9 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #			rename PONDMEN pondmen
 #		}
 #
+    if year == 2000:
+        consomen = survey.get_values(table = "consomen")
+
 #		if ${yearrawdata} == 2005 {
 #			use "$rawdatadir\c05d.dta", clear
 #			order _all, alpha
@@ -92,6 +123,15 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #			rename c depense
 #			sort ident_men poste
 #		}
+
+    if year == 2005:
+        c05d = survey.get_values(table = "c05d")
+        c05d.rename(columns = {'c' : 'depense'}, inplace = True)
+        nomen = temporary_store['nomen_{}'.format(year)]
+        c05d.merge(nomen, on = ['poste_{}'.format(year)], )
+
+    return None
+
 #
 #	order ident pondmen poste depense
 #	sort poste
@@ -149,27 +189,6 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #	sort ident posteCOICOP
 #	tempfile depenses
 #	save "`depenses'"
-
-
-
-
-def build_depenses_homogenisees(year = None):
-    """Build menage consumption by categorie fiscale dataframe """
-
-    assert year is not None
-    # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-
-    if year == 2005:
-        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        c05d = survey.get_values(table = "c05d")
-        c05d.rename(columns = {'c' : 'depense'}, inplace = True)
-        nomen = temporary_store['nomen_{}'.format(year)]
-        c05d.merge(nomen, on = ['poste_{}'.format(year)], )
-
-
-    return None
-
 
 
 if __name__ == '__main__':

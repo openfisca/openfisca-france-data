@@ -409,6 +409,7 @@ def build_homogeneisation_revenus_menages(year = None):
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
         # TODO save to temporary_store
+
         #	sort ident_men
         #	save "${datadir}\revenus.dta", replace
         #

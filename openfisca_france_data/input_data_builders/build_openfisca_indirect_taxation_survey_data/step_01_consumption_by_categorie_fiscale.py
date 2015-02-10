@@ -26,22 +26,20 @@
 
 import os
 
+
 import logging
-import pkg_resources
+import pandas
+from ConfigParser import SafeConfigParser
 
-import pandas as pd
-from pandas import read_excel
 
-from openfisca_france_data import config_files_directory
+from openfisca_france_data import config_files_directory, TemporaryStore
 from openfisca_survey_manager.surveys import SurveyCollection
+
 
 log = logging.getLogger(__name__)
 
-from openfisca_france_data.temporary import TemporaryStore
 
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
-
-from ConfigParser import SafeConfigParser
 
 
 def build_menage_consumption_by_categorie_fiscale(year = None):
@@ -77,7 +75,7 @@ def build_menage_consumption_by_categorie_fiscale(year = None):
         for poste_bdf in c05d.columns
         ]
     tuples = zip(coicop_labels, c05d.columns)
-    c05d.columns = pd.MultiIndex.from_tuples(tuples, names=['coicop', 'poste{}'.format(year)])
+    c05d.columns = pandas.MultiIndex.from_tuples(tuples, names=['coicop', 'poste{}'.format(year)])
 
     coicop_data_frame = c05d.groupby(level = 0, axis = 1).sum()
     # print coicop_data_frame
@@ -95,7 +93,7 @@ def build_menage_consumption_by_categorie_fiscale(year = None):
         ]
     # print categorie_fiscale_labels
     tuples = zip(categorie_fiscale_labels, coicop_data_frame.columns)
-    coicop_data_frame.columns = pd.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
+    coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
     # print coicop_data_frame
 
     categorie_fiscale_data_frame = coicop_data_frame.groupby(level = 0, axis = 1).sum()
@@ -118,78 +116,78 @@ def get_transfert_data_frames(year = None):
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
     parser.read([config_ini, config_local_ini])
-    directory_path  = os.path.normpath(
+    directory_path = os.path.normpath(
         parser.get("openfisca_france_indirect_taxation", "assets")
         )
     matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
-    matrice_passage_data_frame = read_excel(matrice_passage_file_path)
-    parametres_fiscalite_data_frame = read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
+    matrice_passage_data_frame = pandas.read_excel(matrice_passage_file_path)
+    parametres_fiscalite_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
     # print parametres_fiscalite_data_frame
     selected_parametres_fiscalite_data_frame = \
         parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
     return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
 
 
-# normalize_coicop permet d'harmoniser la colonne posteCOICOP de la table matrice_passage_data_frame
-# en la transformant en une string de 5 caractères
-
 def normalize_coicop(code):
-  if len(code) == 3:
-    normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
-  elif len(code) == 4:
-    if not code.startswith("1") and not code.startswith("9"):
-      normalized_code = "0" + code
-    elif code in ["1151", "1181"]:
-      normalized_code = "0" + code
+    '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
+matrice_passage_data_frame en la transformant en une chaine de 5 caractères
+    '''
+    # TODO il faut préciser ce que veut dire harmoniser
+    if len(code) == 3:
+        normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
+    elif len(code) == 4:
+        if not code.startswith("1") and not code.startswith("9"):
+            normalized_code = "0" + code
+        elif code in ["1151", "1181"]:
+            normalized_code = "0" + code
+        else:
+            normalized_code = code + "0"
+    elif len(code) == 5:
+        normalized_code = code
     else:
-      normalized_code = code + "0"
-  elif len(code) == 5:
-    normalized_code = code
-  else:
-    raise()
-  return normalized_code
+        raise()
+    return normalized_code
 
-# normalize_coicop_cn permet de récupérer pour chaque poste COICOP sa nomenclature dans la CN
 
 def normalize_coicop_cn(code):
-  if code.startswith("01") :
-    normalized_code_cn = 1
-  elif code.startswith("02"):
-    normalized_code_cn = 2
-  elif code.startswith("03"):
-    normalized_code_cn = 3
-  elif code.startswith("04"):
-    normalized_code_cn = 4
-  elif code.startswith("05"):
-    normalized_code_cn = 5
-  elif code.startswith("06"):
-    normalized_code_cn = 6
-  elif code.startswith("07"):
-    if not code.startswith("073"):
-      normalized_code_cn = 7
-    else:
-      normalized_code_cn = 8
-  elif code.startswith("08"):
-    normalized_code_cn = 8
-  elif code.startswith("09"):
-    normalized_code_cn = 9
-  elif code.startswith("10"):
-    normalized_code_cn = 9
-  elif code.startswith("11"):
-    normalized_code_cn = 10
-  elif code.startswith("12"):
-    normalized_code_cn = 11
-  elif code.startswith("99"):
-    normalized_code_cn = 12
+    '''Normalize_coicop_cn permet de récupérer pour chaque poste COICOP sa nomenclature dans la CN
+    '''
+    if code.startswith("01"):
+        normalized_code_cn = 1
+    elif code.startswith("02"):
+        normalized_code_cn = 2
+    elif code.startswith("03"):
+        normalized_code_cn = 3
+    elif code.startswith("04"):
+        normalized_code_cn = 4
+    elif code.startswith("05"):
+        normalized_code_cn = 5
+    elif code.startswith("06"):
+        normalized_code_cn = 6
+    elif code.startswith("07"):
+        if not code.startswith("073"):
+            normalized_code_cn = 7
+        else:
+            normalized_code_cn = 8
+    elif code.startswith("08"):
+        normalized_code_cn = 8
+    elif code.startswith("09"):
+        normalized_code_cn = 9
+    elif code.startswith("10"):
+        normalized_code_cn = 9
+    elif code.startswith("11"):
+        normalized_code_cn = 10
+    elif code.startswith("12"):
+        normalized_code_cn = 11
+    elif code.startswith("99"):
+        normalized_code_cn = 12
 
-  return normalized_code_cn
+    return normalized_code_cn
 
 x = matrice_passage_data_frame.posteCOICOP.astype('str')
 y = x.apply(normalize_coicop)
 z = y.apply(normalize_coicop_cn)
-
-
 
 
 if __name__ == '__main__':
