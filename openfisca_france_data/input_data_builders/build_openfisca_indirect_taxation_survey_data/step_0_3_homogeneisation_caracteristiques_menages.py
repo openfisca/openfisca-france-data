@@ -25,7 +25,8 @@
 
 
 import logging
-
+import numpy
+import pandas
 
 from openfisca_survey_manager.surveys import SurveyCollection
 
@@ -36,7 +37,15 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-#**************************************************************************************************************************
+def build_homogeneisation_caracterisituqes_sociales(year = None):
+    """HOMOGENEISATION DES CARACTERISTIQUES SOCIALES DES MENAGES """
+
+    assert year is not None
+    # Load data
+    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+
+
 #**************************************************************************************************************************
 #* Etape n° 0-3 : HOMOGENEISATION DES CARACTERISTIQUES SOCIALES DES MENAGES
 #**************************************************************************************************************************
@@ -392,6 +401,38 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		replace ocde10 = ocde10 / 10
 #		sort ident_men
 #		save "`menages'", replace
+
+    if year == 2005:
+        menage = survey.get_values(table = "menage")
+        # données socio-démographiques
+        socio_demo_variables = ['agpr', 'agcj', 'couplepr', 'ident_men', 'nactifs', 'nenfants', 'nenfhors', 'npers',
+            'ocde10', 'pondmen', 'sexecj', 'sexepr', 'typmen5', 'vag', 'zeat']
+        socio_demo_variables += [column for column in menage.columns if column.startswith('dip14')]
+        socio_demo_variables += [column for column in menage.columns if column.startswith('natio7')]
+        # activité professionnelle
+        activite_prof_variables = ['situacj', 'situapr']
+        activite_prof_variables += [column for column in menage.columns if column.startswith('cs42')]
+        # logement
+        logement_variables = ['htl', 'strate']
+        menage = menage[socio_demo_variables + activite_prof_variables + logement_variables]
+
+        menage.rename(
+            {
+                "agpr": "agepr",
+                "agcj": "agecj",
+                },
+            inplace = True,
+            )
+        menage['nadultes'] = menage.npers - menage.nenfants
+        for person in ['pr', 'cj']:
+            menage['natio' + person] = (menage['natio7' + person] > 2) # TODO: changer de convention ?
+            del menage['natio7' + person]
+
+        menage.couplepr = menage.couplepr > 2 # TODO: changer de convention ?
+        menage.ocde10 = menage.ocde10 / 10
+        menage.set_index('ident_men', inplace = True)
+        temporary_store['menage_'.format(year)] = menage
+
 #		use "$rawdatadir\depmen.dta", clear
 #		tempfile stalog
 #		keep ident_men stalog
@@ -419,6 +460,30 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		label var agecj    "Age du conjoint au 31/12/${yearrawdata}"
 #		sort ident_men
 #		save "`menages'", replace
+
+        stalog = survey.get_values(table = "depmen", variables = ['ident_men', 'stalog'])
+        stalog['stalog'] = stalog.stalog.astype('int').copy()
+        stalog['new_stalog'] = 0
+        stalog.loc[stalog.stalog == 2, 'new_stalog'] = 1
+        stalog.loc[stalog.stalog == 1, 'new_stalog'] = 2
+        stalog.loc[stalog.stalog == 4, 'new_stalog'] = 3
+        stalog.loc[stalog.stalog == 5, 'new_stalog'] = 4
+        stalog.loc[stalog.stalog.isin([3, 6]), 'new_stalog'] = 5
+        stalog.stalog = stalog.new_stalog.copy()
+        del stalog['new_stalog']
+
+        assert stalog.stalog.isin(range(1, 6)).all()
+        stalog.set_index('ident_men', inplace = True)
+        menage = menage.merge(stalog, left_index = True, right_index = True)
+        menage['typlog'] = 2
+        menage.loc[menage.htl.isin(['1', '5']), 'typlog'] = 1
+        assert menage.typlog.isin([1, 2]).all()
+        del menage['htl']
+        for variable_to_destring in ['typmen5', 'situapr', 'situacj', 'dip14pr', 'dip14cj']:
+            menage[variable_to_destring].replace(to_replace = {'': '0'}, inplace = True)
+            menage[variable_to_destring] = menage[variable_to_destring].astype('int').copy() # TODO: define as a catagory ?
+        temporary_store['menage_'.format(year)] = menage
+
 #		use "$rawdatadir\individu.dta", clear
 #		tempfile individus
 #		* Il y a un problème sur l'année de naissance, donc on le recalcule avec l'année de naissance et la vague d'enquête
@@ -430,11 +495,30 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		destring etamatri, replace
 #		sort ident_men
 #		save "`individus'", replace
-#		use "`menages'", clear
+#
+#           use "`menages'", clear
 #		merge ident_men using "`individus'"
 #		drop _m
 #		sort ident_men
 #		save "`menages'", replace
+#
+        individus = survey.get_values(table = 'individu')
+        # Il y a un problème sur l'année de naissance,
+        # donc on le recalcule avec l'année de naissance et la vague d'enquête
+        individus['agepr'] = 2005 - individus.anais
+        individus.loc[individus.vag == "6", ['agepr']] = 2006 - individus.anais
+        individus = individus[individus.lienpref == "00"].copy()
+        kept_variables = ['ident_men', 'etamatri', 'agepr']
+        individus = individus[kept_variables].copy()
+        individus['etamatri'].replace(to_replace = {'': '0'}, inplace = True)
+        individus['etamatri'] = individus['etamatri'].astype('int').copy() # TODO: define as a catagory ?
+        individus.set_index('ident_men', inplace = True)
+
+        temporary_store['individus_'.format(year)] = individus
+        menage = menage.merge(individus, left_index = True, right_index = True)
+        temporary_store['menage_'.format(year)] = menage
+
+
 #		use "$rawdatadir\individu.dta", clear
 #		drop age
 #		gen age = 2005 - anais
@@ -459,8 +543,31 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		drop _m
 #		sort ident_men
 #		save "`menages'", replace
-#
-#		use $rawdatadir\individu.dta, clear
+
+        individus = survey.get_values(
+            table = 'individu',
+            variables = ['ident_men', 'ident_ind', 'age', 'anais', 'vag', 'lienpref'],
+            )
+        # Il y a un problème sur l'année de naissance,
+        # donc on le recalcule avec l'année de naissance et la vague d'enquête
+        individus['age'] = 2005 - individus.anais
+        individus.loc[individus.vag == "6", ['age']] = 2006 - individus.anais
+        # Garder toutes les personnes du ménage qui ne sont pas la personne de référence et le conjoint
+        individus = individus[(individus.lienpref != "00") & (individus.lienpref != "01")].copy()
+        individus.sort(columns = ['ident_men', 'ident_ind'], inplace = True)
+
+        # Inspired by http://stackoverflow.com/questions/17228215/enumerate-each-row-for-each-group-in-a-dataframe
+        def add_col_numero(data_frame):
+            data_frame['numero'] = numpy.arange(len(data_frame)) + 3
+            return data_frame
+
+        individus = individus.groupby(by = 'ident_men').apply(add_col_numero)
+        pivoted = individus.pivot(index = 'ident_men', columns = "numero", values = 'age')
+        pivoted.columns = ["age{}".format(column) for column in pivoted.columns]
+        menage = menage.merge(pivoted, left_index = True, right_index = True)
+        temporary_store['menage_'.format(year)] = menage
+
+#           use $rawdatadir\individu.dta, clear
 #		keep ident_men ident_ind agfinetu lienpref
 #		destring lienpref, replace
 #		gen agfinetu_cj= agfinetu if lienpref==1
@@ -475,6 +582,18 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		save "$datadir\données_socio_demog.dta", replace
 #
 #	}
+
+        individus = survey.get_values(
+            table = 'individu',
+            variables = ['ident_men', 'ident_ind', 'agfinetu', 'lienpref'],
+            )
+        individus.set_index('ident_men', inplace = True)
+        pr = individus.loc[individus.lienpref == "00", 'agfinetu'].copy()
+        conjoint = individus.loc[individus.lienpref == "01", 'agfinetu'].copy()
+        conjoint.name = 'agfinetu_cj'
+        agfinetu_merged = pandas.concat([pr, conjoint], axis = 1)
+        menage = menage.merge(agfinetu_merged, left_index = True, right_index = True)
+        temporary_store['donnes_socio_demog_'.format(year)] = menage
 #
 #	label var agepr "Age de la personne de référence au 31/12/${yearrawdata}"
 #	label var agecj "Age du conjoint de la PR au 31/12/${yearrawdata}"
@@ -635,16 +754,6 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
 
-def build_homogeneisation_vehicule(year = None):
-    """Build menage consumption by categorie fiscale dataframe """
-
-    assert year is not None
-    # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-
-    if year == 2005:
-        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        # TODO
 
 
 if __name__ == '__main__':

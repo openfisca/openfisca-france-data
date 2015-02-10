@@ -164,32 +164,29 @@ def build_imputation_loyers_proprietaires(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 
     if year == 2000:
-        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
         loyers_imputes = survey.get_values(table = "menage")
         kept_variables = ['IDENT', 'REV81']
         loyers_imputes = loyers_imputes[kept_variables]
         loyers_imputes.rename(columns = {'IDENT': 'ident_men'}, inplace = True)
-        loyers_imputes["posteCOICOP"] = '0421'
-        loyers_imputes.rename(columns = {'REV81': 'depense'}, inplace = True)
-        temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
-        depenses = temporary_store['depenses_{}'.format(year)]
-
-        depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'])
-        temporary_store['depenses'] = depenses
+        loyers_imputes.rename(columns = {'REV81': '0421'}, inplace = True)
 
     if year == 2005:
-        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
         loyers_imputes = survey.get_values(table = "menage")
         kept_variables = ['ident_men', 'rev801_d']
         loyers_imputes = loyers_imputes[kept_variables]
-        loyers_imputes["posteCOICOP"] = '0421'
-        loyers_imputes.rename(columns = {'rev801_d': 'depense'}, inplace = True)
-        temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
-        depenses = temporary_store['depenses_{}'.format(year)]
-        depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'])
-        temporary_store['depenses'] = depenses
+        loyers_imputes.rename(columns = {'rev801_d': '0421'}, inplace = True)
+
+    # Joindre à la table des dépenses par COICOP
+    loyers_imputes.set_index('ident_men', inplace = True)
+    temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
+    depenses = temporary_store['depenses_{}'.format(year)]
+    depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
+
+    # Sauvegarde de la base depenses mise à jour
+    temporary_store['depenses_{}'.format(year)] = depenses
 
 
 if __name__ == '__main__':
@@ -199,4 +196,4 @@ if __name__ == '__main__':
     deb = time.clock()
     year = 2005
     build_imputation_loyers_proprietaires(year = year)
-    log.info("step 01 demo duration is {}".format(time.clock() - deb))
+    log.info("step 0_1_2_build_imputation_loyers_proprietaires duration is {}".format(time.clock() - deb))

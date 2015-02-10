@@ -23,17 +23,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import os
 import logging
+import pandas
+from ConfigParser import SafeConfigParser
 
-
-from openfisca_survey_manager.surveys import SurveyCollection
-
-log = logging.getLogger(__name__)
 
 from openfisca_france_data.temporary import TemporaryStore
+from openfisca_survey_manager.surveys import SurveyCollection
 
+
+log = logging.getLogger(__name__)
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
+
+
+from openfisca_france_data import default_config_files_directory as config_files_directory
 
 
 def build_depenses_homogenisees(year = None):
@@ -51,6 +55,10 @@ def build_depenses_homogenisees(year = None):
 #		sort poste${yearrawdata}
 #		save "`nomen'"
 #
+
+            # On utilise les matrice de passages directement plus bas
+
+
 #		* HOMOGENEISATION DES BASES DE DONNEES DE DEPENSES
 #		if ${yearrawdata} == 1995 {
 #			tempfile ponder
@@ -84,21 +92,19 @@ def build_depenses_homogenisees(year = None):
         socioscm = socioscm.iloc(socioscm.EXDEP == 1 & socioscm.EXREV == 1, ["MENA", "PONDERD"]).copy()
         temporary_store['ponder_{}'.format(year)] = socioscm
 
-        depnom = survey.get_values(tabe = "depnom")
-        import pandas
-        depnom = pandas.DataFrame()
-        depnom = depnom(["VALEUR", "MONTANT", "MENA", "NOMEN5"])
-        depnom = depnom.groupby(["MENA", "NOMEN5"]).sum()
-        depnom.rename({
+        conso = survey.get_values(tabe = "depnom")
+        conso = conso(["VALEUR", "MONTANT", "MENA", "NOMEN5"])
+        conso = conso.groupby(["MENA", "NOMEN5"]).sum()
+        conso.rename({
             "NOMEN5": "poste{}".format(year),
             "VALEUR": "depense".format(year),
             "MONTANT": "depense_avt_imput".format(year),
             })
         # Passage à l'euro
-        depnom.depense = depnom.depense / 6.55957
-        depnom.depense_avt_imput = depnom.depense_avt_imput / 6.55957
+        conso.depense = conso.depense / 6.55957
+        conso.depense_avt_imput = conso.depense_avt_imput / 6.55957
         ponder = temporary_store['ponder_{}'.format(year)]
-        depnom.merge(ponder) # TODO: finish
+        conso.merge(ponder) # TODO: finish
 #
 #		if ${yearrawdata} == 2000 {
 #			use "$rawdatadir\consomen.dta", clear
@@ -112,25 +118,19 @@ def build_depenses_homogenisees(year = None):
 #		}
 #
     if year == 2000:
-        consomen = survey.get_values(table = "consomen")
-
-#		if ${yearrawdata} == 2005 {
-#			use "$rawdatadir\c05d.dta", clear
-#			order _all, alpha
-#			*keep if _n < 100
-#			order ident pondmen, first
-#			reshape long c, i(ident) j(poste${yearrawdata}, s)
-#			rename c depense
-#			sort ident_men poste
-#		}
+        conso = survey.get_values(table = "consomen")
+        #		if ${yearrawdata} == 2005 {
+        #			use "$rawdatadir\c05d.dta", clear
+        #			order _all, alpha
+        #			*keep if _n < 100
+        #			order ident pondmen, first
+        #			reshape long c, i(ident) j(poste${yearrawdata}, s)
+        #			rename c depense
+        #			sort ident_men poste
+        #		}
 
     if year == 2005:
-        c05d = survey.get_values(table = "c05d")
-        c05d.rename(columns = {'c' : 'depense'}, inplace = True)
-        nomen = temporary_store['nomen_{}'.format(year)]
-        c05d.merge(nomen, on = ['poste_{}'.format(year)], )
-
-    return None
+        conso = survey.get_values(table = "c05d")
 
 #
 #	order ident pondmen poste depense
@@ -190,6 +190,79 @@ def build_depenses_homogenisees(year = None):
 #	tempfile depenses
 #	save "`depenses'"
 
+    # Grouping by coicop
+    #
+    poids = conso[['ident_men', 'pondmen']].copy()
+    poids.set_index('ident_men', inplace = True)
+
+    conso.drop('pondmen', axis = 1, inplace = True)
+    conso.set_index('ident_men', inplace = True)
+
+    matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = \
+        get_transfert_data_frames(year)
+
+    coicop_poste_bdf = matrice_passage_data_frame[['poste{}'.format(year), 'posteCOICOP']]
+    coicop_poste_bdf.set_index('poste{}'.format(year), inplace = True)
+    coicop_by_poste_bdf = coicop_poste_bdf.to_dict()['posteCOICOP']
+    del coicop_poste_bdf
+
+    def reformat_consumption_column_coicop(coicop):
+        try:
+            return int(coicop.replace('c', '').lstrip('0'))
+        except:
+            return None
+
+    coicop_labels = [
+        coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf))
+        for poste_bdf in conso.columns
+        ]
+    tuples = zip(coicop_labels, conso.columns)
+    conso.columns = pandas.MultiIndex.from_tuples(tuples, names=['coicop', 'poste{}'.format(year)])
+    coicop_data_frame = conso.groupby(level = 0, axis = 1).sum()
+
+    depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
+    temporary_store['depenses_{}'.format(year)] = depenses
+
+
+def normalize_coicop(code):
+    '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
+matrice_passage_data_frame en la transformant en une chaine de 5 caractères
+    '''
+    # TODO il faut préciser ce que veut dire harmoniser
+    if len(code) == 3:
+        normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
+    elif len(code) == 4:
+        if not code.startswith("1") and not code.startswith("9"):
+            normalized_code = "0" + code
+        elif code in ["1151", "1181"]:
+            normalized_code = "0" + code
+        else:
+            normalized_code = code + "0"
+    elif len(code) == 5:
+        normalized_code = code
+    else:
+        raise()
+    return normalized_code
+
+
+def get_transfert_data_frames(year = None):
+    assert year is not None
+    parser = SafeConfigParser()
+    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+    config_ini = os.path.join(config_files_directory, 'config.ini')
+    parser.read([config_ini, config_local_ini])
+    directory_path = os.path.normpath(
+        parser.get("openfisca_france_indirect_taxation", "assets")
+        )
+    matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
+    parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
+    matrice_passage_data_frame = pandas.read_excel(matrice_passage_file_path)
+    parametres_fiscalite_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
+    # print parametres_fiscalite_data_frame
+    selected_parametres_fiscalite_data_frame = \
+        parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
+    return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
+
 
 if __name__ == '__main__':
     import sys
@@ -198,5 +271,4 @@ if __name__ == '__main__':
     deb = time.clock()
     year = 2005
     build_depenses_homogenisees(year = year)
-
     log.info("duration is {}".format(time.clock() - deb))
