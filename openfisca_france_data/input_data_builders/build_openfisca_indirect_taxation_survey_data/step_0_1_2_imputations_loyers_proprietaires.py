@@ -158,8 +158,6 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #	}
 
 
-
-
 def build_imputation_loyers_proprietaires(year = None):
     """Build menage consumption by categorie fiscale dataframe """
 
@@ -167,18 +165,18 @@ def build_imputation_loyers_proprietaires(year = None):
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
 
-
     if year == 2000:
-        survey = bdf_survey_collecton.surveys['budget_des_familles_{}'.format(year)]
+        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
         loyers_imputes = survey.get_values(table = "menage")
         kept_variables = ['IDENT', 'REV81']
         loyers_imputes = loyers_imputes[kept_variables]
-        loyers_imputes.rename(columns = {'IDENT' : 'ident_men'}, inplace = True)
+        loyers_imputes.rename(columns = {'IDENT': 'ident_men'}, inplace = True)
         loyers_imputes["posteCOICOP"] = '0421'
-        loyers_imputes.rename(columns = {'REV81' : 'depense'}, inplace = True)
+        loyers_imputes.rename(columns = {'REV81': 'depense'}, inplace = True)
         temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
         depenses = temporary_store['depenses_{}'.format(year)]
-        depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'],  )
+
+        depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'])
         temporary_store['depenses'] = depenses
 
     if year == 2005:
@@ -190,7 +188,7 @@ def build_imputation_loyers_proprietaires(year = None):
         loyers_imputes.rename(columns = {'rev801_d': 'depense'}, inplace = True)
         temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
         depenses = temporary_store['depenses_{}'.format(year)]
-        depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'],  )
+        depenses.merge(loyers_imputes, on = ['ident_men', 'posteCOICOP'])
         temporary_store['depenses'] = depenses
 
 
@@ -200,6 +198,5 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2005
-    build_other_menage_variables(year = year)
-
+    build_imputation_loyers_proprietaires(year = year)
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
