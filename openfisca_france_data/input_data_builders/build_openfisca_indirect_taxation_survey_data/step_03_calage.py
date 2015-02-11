@@ -38,84 +38,94 @@ log = logging.getLogger(__name__)
 
 from openfisca_france_data import config_files_directory
 
-def get_CN_data_frames(year = None,year_calage=None):
-    '''
 
-    '''
+def get_CN_data_frames(year = None, year_calage = None):
+
     assert year is not None
     parser = SafeConfigParser()
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
     parser.read([config_ini, config_local_ini])
-    directory_path  = os.path.normpath(
+    directory_path = os.path.normpath(
         parser.get("openfisca_france_indirect_taxation", "assets")
         )
 
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     conso_cn_data_frame = read_excel(parametres_fiscalite_file_path, sheetname = "consommation_CN")
 
-    selected_conso_cn_data_frame = conso_cn_data_frame[['Code',year,year_calage]]
+    selected_conso_cn_data_frame = conso_cn_data_frame[['Code', year, year_calage]]
 
-    selected_conso_cn_data_frame['code_unicode']= selected_conso_cn_data_frame.Code.astype(unicode)
+    selected_conso_cn_data_frame['code_unicode'] = selected_conso_cn_data_frame.Code.astype(unicode)
     selected_conso_cn_data_frame['len_code'] = selected_conso_cn_data_frame['code_unicode'].apply(lambda x: len(x))
 
-    selected_conso_cn_data_frame = selected_conso_cn_data_frame[selected_conso_cn_data_frame['len_code']==6]
-    selected_conso_cn_data_frame = selected_conso_cn_data_frame.drop(['len_code','code_unicode'],1)
+    selected_conso_cn_data_frame = selected_conso_cn_data_frame[selected_conso_cn_data_frame['len_code'] == 6]
+    selected_conso_cn_data_frame = selected_conso_cn_data_frame.drop(['len_code', 'code_unicode'], 1)
 
-    if year_calage <> year:
-        selected_conso_cn_data_frame.rename(columns={
-            year: 'consoCN_COICOP_{}'.format(year),
-            year_calage: 'consoCN_COICOP_{}'.format(year_calage),
-            'Code': 'poste'}, inplace=True)
+    if year_calage != year:
+        selected_conso_cn_data_frame.rename(
+            columns = {
+                year: 'consoCN_COICOP_{}'.format(year),
+                year_calage: 'consoCN_COICOP_{}'.format(year_calage),
+                'Code': 'poste'
+                },
+            inplace = True,
+            )
     else:
-        selected_conso_cn_data_frame.rename(columns={
-            year: 'consoCN_COICOP_{}'.format(year),
-            'Code': 'poste'}, inplace=True)
+        selected_conso_cn_data_frame.rename(
+            columns = {
+                year: 'consoCN_COICOP_{}'.format(year),
+                'Code': 'poste'
+                },
+            inplace = True,
+            )
     return selected_conso_cn_data_frame
 
 
-def wsum(groupe, var):
+def weighted_sum(groupe, var):
     '''
     Fonction qui calcule la moyenne pondérée par groupe d'une variable
     '''
-    d = groupe[var]
-    w = groupe['pondmen']
-    return (d * w).sum()
+    data = groupe[var]
+    weights = groupe['pondmen']
+    return (data * weights).sum()
 
-def collapsesum(dataframe, groupe, var):
+
+def collapsesum(data_frame, by = None, var = None):
     '''
     Pour une variable, fonction qui calcule la moyenne pondérée au sein de chaque groupe.
     '''
-    grouped = dataframe.groupby([groupe])
-    var_weighted_grouped = grouped.apply(lambda x: wsum(groupe = x,var =var))
-    return var_weighted_grouped
+    assert by is not None
+    assert var is not None
+    grouped = data_frame.groupby([by])
+    return grouped.apply(lambda x: weighted_sum(groupe = x, var =var))
 
-# TODO: finir cette fonction qui sélectionne la data d'input automatiquement en fonction de l'année de simulation (calage)
+
 def define_year_data(year_data_list, year_calage):
-    diff=[]
-    for i in range(0,len(year_data_list)-1):
+    # TODO: finir cette fonction qui sélectionne la data d'input automatiquement en fonction de l'année de simulation (calage)
+    diff = []
+    for i in range(0, len(year_data_list)-1):
         diff[i] = year_calage - year_data_list[i]
     return diff
-   
-    for i in range(0,len(year_data_list)-1):
-        if diff[i]<0:
+
+    for i in range(0, len(year_data_list) - 1):
+        if diff[i] < 0:
             diff[i] = 10
         return diff
     return
-   
+
     minimum = np.argmin(diff)
-   
-    for i in range(0,len(year_data_list)-1):
+
+    for i in range(0, len(year_data_list) - 1):
         if diff[i] == minimum:
             numero=i
         return numero
     return
-   
-    defined_year_data=year_data_list(numero)
+
+    defined_year_data = year_data_list(numero)
     print(defined_year_data)
     return  defined_year_data
-    
-year_data_list = [2005,2010]  
+
+year_data_list = [2005, 2010]
 define_year_data(year_data_list.transpose, 2007)
 
 

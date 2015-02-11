@@ -186,7 +186,26 @@ def build_imputation_loyers_proprietaires(year = None):
     depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
 
     # Sauvegarde de la base depenses mise à jour
-    temporary_store['depenses_{}'.format(year)] = depenses
+
+
+#**************************************************************************************************************************
+#* Etape n° 0-1-3 : SAUVER LES BASES DE DEPENSES HOMOGENEISEES DANS LE BON DOSSIER
+#**************************************************************************************************************************
+#
+#
+#	sort posteCOICOP
+#	save "`depenses'", replace
+#
+#	keep  ident_men pondmen posteCOICOP poste13 grosposte depense description supplementaire nondurable semidurable durable servicenondurable servicedurable loyer depensenonconso
+#	order ident_men pondmen posteCOICOP poste13 grosposte depense description supplementaire nondurable semidurable durable servicenondurable servicedurable loyer depensenonconso
+#	save "${datadir}\dépenses_BdF.dta", replace
+
+
+
+    # Save in temporary store
+    temporary_store['depenses_bdf_{}'.format(year)] = depenses
+
+
 
 
 if __name__ == '__main__':
