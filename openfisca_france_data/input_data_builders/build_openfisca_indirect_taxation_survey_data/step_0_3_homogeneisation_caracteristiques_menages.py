@@ -37,7 +37,7 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def build_homogeneisation_caracterisituqes_sociales(year = None):
+def build_homogeneisation_caracteristiques_sociales(year = None):
     """HOMOGENEISATION DES CARACTERISTIQUES SOCIALES DES MENAGES """
 
     assert year is not None
@@ -417,12 +417,13 @@ def build_homogeneisation_caracterisituqes_sociales(year = None):
         menage = menage[socio_demo_variables + activite_prof_variables + logement_variables]
 
         menage.rename(
-            {
-                "agpr": "agepr",
+            columns = {
+                # "agpr": "agepr",
                 "agcj": "agecj",
                 },
             inplace = True,
             )
+        del menage['agpr']
         menage['nadultes'] = menage.npers - menage.nenfants
         for person in ['pr', 'cj']:
             menage['natio' + person] = (menage['natio7' + person] > 2) # TODO: changer de convention ?
@@ -711,6 +712,37 @@ def build_homogeneisation_caracterisituqes_sociales(year = None):
 #	replace cs24pr=82 if cs42pr=="**"
 #	replace cs24pr=82 if cs42pr=="00"
 #
+
+        menage['cs24pr'] = 0
+        csp42s_by_csp24 = {
+            10: ["11", "12", "13"],
+            21: ["21"],
+            22: ["22"],
+            23: ["23"],
+            31: ["31"],
+            32: ["32", "33", "34", "35"],
+            36: ["37", "38"],
+            41: ["42", "43", "44", "45"],
+            46: ["46"],
+            47: ["47"],
+            48: ["48"],
+            51: ["52", "53"],
+            54: ["54"],
+            55: ["55"],
+            56: ["56"],
+            61: ["62", "63", "64", "65"],
+            66: ["67", "68"],
+            69: ["69"],
+            71: ["71"],
+            72: ["72"],
+            73: ["74", "75"],
+            76: ["77", "78"],
+            81: ["81"],
+            82: ["83", "84", "85", "86", "**", "00"],
+            }
+        for csp24, csp42s in csp42s_by_csp24.items():
+            menage.loc[menage.cs42pr.isin(csp42s), 'cs24pr'] = csp24
+        assert menage.cs24pr.isin(csp42s_by_csp24.keys()).all()
 #
 #	gen cs8pr=0
 #	replace cs8pr=1 if cs24pr==10
@@ -738,7 +770,10 @@ def build_homogeneisation_caracterisituqes_sociales(year = None):
 #	replace cs8pr=8 if cs24pr==81
 #	replace cs8pr=8 if cs24pr==82
 #	replace cs8pr=. if cs24pr==.
-#
+
+        menage['cs8pr'] = numpy.floor(menage.cs24pr / 10)
+        assert menage.cs8pr.isin(range(1, 9)).all()
+
 #	order ident_men pondmen npers nenfants nenfhors nadultes nactifs ocde typmen5 ///
 #	sexepr agepr etamatri couplepr situapr dip14pr cs42pr cs24pr cs8pr natiopr ///
 #	sexecj agecj situacj dip14cj cs42cj natiocj ///
@@ -749,11 +784,22 @@ def build_homogeneisation_caracterisituqes_sociales(year = None):
 #	5 "Employés" 6 "Ouvriers" 7 "Retraités" 8 "Inactifs"
 #	label values cs8pr cs8pr
 #	sort ident_men
-#	save "$datadir\données_socio_demog.dta", replace
-#
 
+        variables = [
+            'pondmen', 'npers', 'nenfants', 'nenfhors', 'nadultes', 'nactifs', 'ocde10', 'typmen5',
+            'sexepr', 'agepr', 'etamatri', 'couplepr', 'situapr', 'dip14pr', 'cs42pr', 'cs24pr', 'cs8pr', 'natiopr',
+            'sexecj', 'agecj', 'situacj', 'dip14cj', 'cs42cj', 'natiocj', 'typlog', 'stalog'
+            ] + ["age{}".format(age) for age in range(3, 14)]
 
+        for variable in variables:
+            assert variable in menage.columns, "{} is not a column of menage data frame".format(variable)
 
+        # TODO: assert menage.index.name == 'ident_men'
+
+        # save "$datadir\données_socio_demog.dta", replace
+        #
+
+        temporary_store['donnes_socio_demog_'.format(year)] = menage
 
 
 if __name__ == '__main__':
@@ -762,6 +808,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2005
-    build_other_menage_variables(year = year)
+    build_homogeneisation_caracteristiques_sociales(year = year)
 
-    log.info("step 01 demo duration is {}".format(time.clock() - deb))
+    log.info("step_0_3_homogeneisation_caracteristiques_sociales {}".format(time.clock() - deb))
