@@ -223,6 +223,19 @@ def build_depenses_homogenisees(year = None):
     depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
     temporary_store['depenses_{}'.format(year)] = depenses
 
+#    Création de gros postes, les 12 postes sur lesquels le calage se fera
+#   TODO: gérer le fait que cette méthode ne permet pas de gérer les postes 10, 11 et 12
+    grospostes = [
+        (int(unicode(coicop_label)[0]))
+        for coicop_label in coicop_data_frame.columns
+        ]
+    tuples_gros_poste = zip(coicop_data_frame.columns, grospostes)
+    coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
+    
+    depenses_by_grosposte = coicop_data_frame.groupby(level = 1, axis = 1).sum()
+    depenses_by_grosposte=depenses_by_grosposte.merge(poids, left_index = True, right_index = True)  
+
+    temporary_store['depenses_by_grosposte_{}'.format(year)] = depenses_by_grosposte
 
 def normalize_coicop(code):
     '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
