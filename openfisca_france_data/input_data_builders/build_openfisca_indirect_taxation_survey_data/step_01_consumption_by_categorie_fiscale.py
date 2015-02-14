@@ -32,7 +32,8 @@ import pandas
 from ConfigParser import SafeConfigParser
 
 
-from openfisca_france_data import config_files_directory, TemporaryStore
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.temporary import TemporaryStore
 from openfisca_survey_manager.surveys import SurveyCollection
 
 
@@ -185,9 +186,9 @@ def normalize_coicop_cn(code):
 
     return normalized_code_cn
 
-x = matrice_passage_data_frame.posteCOICOP.astype('str')
-y = x.apply(normalize_coicop)
-z = y.apply(normalize_coicop_cn)
+#x = matrice_passage_data_frame.posteCOICOP.astype('str')
+#y = x.apply(normalize_coicop)
+#z = y.apply(normalize_coicop_cn)
 
 
 if __name__ == '__main__':
