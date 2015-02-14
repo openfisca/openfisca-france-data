@@ -26,7 +26,8 @@
 import logging
 import os
 
-from openfisca_survey_manager.surveys import Survey, SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_01_consumption_by_categorie_fiscale \
     import build_menage_consumption_by_categorie_fiscale
 
@@ -34,7 +35,6 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
     import build_other_menage_variables
 
 log = logging.getLogger(__name__)
-
 
 
 def run_all(year = 2005, filename = "test_indirect_taxation"):

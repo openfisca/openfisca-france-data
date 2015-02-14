@@ -32,8 +32,9 @@ import pandas
 from ConfigParser import SafeConfigParser
 
 
-from openfisca_france_data import config_files_directory, TemporaryStore
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.temporary import TemporaryStore
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def build_menage_consumption_by_categorie_fiscale(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
     c05d = survey.get_values(table = "c05d")
     c05d.drop('pondmen', axis = 1, inplace = True)
@@ -185,9 +186,9 @@ def normalize_coicop_cn(code):
 
     return normalized_code_cn
 
-x = matrice_passage_data_frame.posteCOICOP.astype('str')
-y = x.apply(normalize_coicop)
-z = y.apply(normalize_coicop_cn)
+#x = matrice_passage_data_frame.posteCOICOP.astype('str')
+#y = x.apply(normalize_coicop)
+#z = y.apply(normalize_coicop_cn)
 
 
 if __name__ == '__main__':
