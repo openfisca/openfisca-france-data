@@ -224,10 +224,19 @@ def build_depenses_homogenisees(year = None):
     temporary_store['depenses_{}'.format(year)] = depenses
 
 #    Création de gros postes, les 12 postes sur lesquels le calage se fera
-#   TODO: gérer le fait que cette méthode ne permet pas de gérer les postes 10, 11 et 12
+    def select_gros_postes(coicop):
+        coicop_as_unicode = unicode(coicop)
+        if len(coicop_as_unicode)==3:
+            grosposte = int(coicop_as_unicode[0])
+        elif len(coicop_as_unicode)==4:
+            grosposte = int(coicop_as_unicode[0:2])
+        else:
+            grosposte = None
+        return grosposte
+
     grospostes = [
-        (int(unicode(coicop_label)[0]))
-        for coicop_label in coicop_data_frame.columns
+        select_gros_postes(coicop)
+        for coicop in coicop_data_frame.columns
         ]
     tuples_gros_poste = zip(coicop_data_frame.columns, grospostes)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
