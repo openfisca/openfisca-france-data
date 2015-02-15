@@ -432,7 +432,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.couplepr = menage.couplepr > 2 # TODO: changer de convention ?
         menage.ocde10 = menage.ocde10 / 10
         menage.set_index('ident_men', inplace = True)
-        temporary_store['menage_'.format(year)] = menage
+        temporary_store['menage_{}'.format(year)] = menage
 
 #		use "$rawdatadir\depmen.dta", clear
 #		tempfile stalog
@@ -483,7 +483,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         for variable_to_destring in ['typmen5', 'situapr', 'situacj', 'dip14pr', 'dip14cj']:
             menage[variable_to_destring].replace(to_replace = {'': '0'}, inplace = True)
             menage[variable_to_destring] = menage[variable_to_destring].astype('int').copy() # TODO: define as a catagory ?
-        temporary_store['menage_'.format(year)] = menage
+        temporary_store['menage_{}'.format(year)] = menage
 
 #		use "$rawdatadir\individu.dta", clear
 #		tempfile individus
@@ -515,9 +515,9 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus['etamatri'] = individus['etamatri'].astype('int').copy() # TODO: define as a catagory ?
         individus.set_index('ident_men', inplace = True)
 
-        temporary_store['individus_'.format(year)] = individus
+        temporary_store['individus_{}'.format(year)] = individus
         menage = menage.merge(individus, left_index = True, right_index = True)
-        temporary_store['menage_'.format(year)] = menage
+        temporary_store['menage_{}'.format(year)] = menage
 
 
 #		use "$rawdatadir\individu.dta", clear
@@ -566,7 +566,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         pivoted = individus.pivot(index = 'ident_men', columns = "numero", values = 'age')
         pivoted.columns = ["age{}".format(column) for column in pivoted.columns]
         menage = menage.merge(pivoted, left_index = True, right_index = True)
-        temporary_store['menage_'.format(year)] = menage
+        temporary_store['menage_{}'.format(year)] = menage
 
 #           use $rawdatadir\individu.dta, clear
 #		keep ident_men ident_ind agfinetu lienpref
@@ -594,7 +594,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         conjoint.name = 'agfinetu_cj'
         agfinetu_merged = pandas.concat([pr, conjoint], axis = 1)
         menage = menage.merge(agfinetu_merged, left_index = True, right_index = True)
-        temporary_store['donnes_socio_demog_'.format(year)] = menage
+        temporary_store['donnes_socio_demog_{}'.format(year)] = menage
 #
 #	label var agepr "Age de la personne de référence au 31/12/${yearrawdata}"
 #	label var agecj "Age du conjoint de la PR au 31/12/${yearrawdata}"
@@ -799,7 +799,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # save "$datadir\données_socio_demog.dta", replace
         #
 
-        temporary_store['donnes_socio_demog_'.format(year)] = menage
+        temporary_store['donnes_socio_demog_{}'.format(year)] = menage
 
 
 if __name__ == '__main__':
