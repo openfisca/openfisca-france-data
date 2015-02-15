@@ -25,6 +25,7 @@
 
 import os
 import logging
+import numpy
 import pandas
 from ConfigParser import SafeConfigParser
 
@@ -210,7 +211,7 @@ def build_depenses_homogenisees(year = None):
         try:
             return int(coicop.replace('c', '').lstrip('0'))
         except:
-            return None
+            return numpy.NaN
 
     coicop_labels = [
         coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf))
@@ -226,12 +227,12 @@ def build_depenses_homogenisees(year = None):
 #    Création de gros postes, les 12 postes sur lesquels le calage se fera
     def select_gros_postes(coicop):
         coicop_as_unicode = unicode(coicop)
-        if len(coicop_as_unicode)==3:
+        if len(coicop_as_unicode) == 3:
             grosposte = int(coicop_as_unicode[0])
-        elif len(coicop_as_unicode)==4:
+        elif len(coicop_as_unicode) == 4:
             grosposte = int(coicop_as_unicode[0:2])
         else:
-            grosposte = None
+            grosposte = numpy.NaN
         return grosposte
 
     grospostes = [
@@ -240,11 +241,13 @@ def build_depenses_homogenisees(year = None):
         ]
     tuples_gros_poste = zip(coicop_data_frame.columns, grospostes)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
-    
+
     depenses_by_grosposte = coicop_data_frame.groupby(level = 1, axis = 1).sum()
-    depenses_by_grosposte=depenses_by_grosposte.merge(poids, left_index = True, right_index = True)  
+    depenses_by_grosposte = depenses_by_grosposte.merge(poids, left_index = True, right_index = True)
 
     temporary_store['depenses_by_grosposte_{}'.format(year)] = depenses_by_grosposte
+    temporary_store.close()
+
 
 def normalize_coicop(code):
     '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
