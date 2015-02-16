@@ -61,15 +61,15 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
     selected_parametres_fiscalite_data_frame.set_index('posteCOICOP', inplace = True)
     categorie_fiscale_by_coicop = selected_parametres_fiscalite_data_frame.to_dict()['categoriefiscale']
 
-#    print categorie_fiscale_by_coicop
+    # print categorie_fiscale_by_coicop
     categorie_fiscale_labels = [
         categorie_fiscale_by_coicop.get(coicop)
         for coicop in coicop_data_frame.columns
         ]
-#    print categorie_fiscale_labels
+    # print categorie_fiscale_labels
     tuples = zip(categorie_fiscale_labels, coicop_data_frame.columns)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
-#    print coicop_data_frame.columns
+    # print coicop_data_frame.columns
 
     categorie_fiscale_data_frame = coicop_data_frame.groupby(level = 0, axis = 1).sum()
     rename_columns = dict(
@@ -82,7 +82,7 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
     categorie_fiscale_data_frame['role_menage'] = 0
     temporary_store["menage_consumption_by_categorie_fiscale"] = categorie_fiscale_data_frame
     categorie_fiscale_data_frame.reset_index(inplace = True)
-    
+
     return categorie_fiscale_data_frame
 
 
@@ -111,6 +111,5 @@ if __name__ == '__main__':
     deb = time.clock()
     year_data = 2005
     year_calage = 2007
-#    build_menage_consumption_by_categorie_fiscale(year_data = year)
     build_menage_consumption_by_categorie_fiscale(year_data, year_calage)
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
