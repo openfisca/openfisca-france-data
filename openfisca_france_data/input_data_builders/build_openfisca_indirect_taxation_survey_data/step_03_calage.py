@@ -146,16 +146,8 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
-
-if __name__ == '__main__':
-    import sys
-    import time
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    deb = time.clock()
-
+def run_calage_vieillissement_depenses(year_calage, year_data_list):
 #   Quelle base de données choisir pour le calage ?
-    year_calage = 2007
-    year_data_list = [2005, 2010]
     year_data = find_nearest_inferior(year_data_list, year_calage)
 
 #   Masses de calage provenant de la comptabilité nationale
@@ -168,16 +160,27 @@ if __name__ == '__main__':
 #   Calcul des ratios de calage :
     masses = calcul_ratios_calage(year_data, year_calage, data_bdf = df_bdf_weighted_sum_by_grosposte, data_cn = masses_cn_12postes_data_frame)
 
-    depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
-
 # Application des ratios de calage 
+    depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
     depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
 
 # Vérification des résultats du calage :
-    print 'depenses', depenses.shape
-    print 'depenses_calees', depenses_calees.shape
+#    print 'depenses', depenses.shape
+#    print 'depenses_calees', depenses_calees.shape
 
 # Sauvegarde de la base calée
     temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
+    return depenses_calees
+
+if __name__ == '__main__':
+    import sys
+    import time
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    deb = time.clock()
+
+    year_calage = 2007
+    year_data_list = [2005, 2010]
+    
+    run_calage_vieillissement_depenses(year_calage, year_data_list)
 
     log.info("step 03 calage duration is {}".format(time.clock() - deb))
