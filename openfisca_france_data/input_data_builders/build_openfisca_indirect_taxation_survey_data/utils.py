@@ -23,14 +23,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def weighted_sum(groupe, var):
-    '''
-    Fonction qui calcule la moyenne pondérée par groupe d'une variable
-    '''
-    data = groupe[var]
-    weights = groupe['pondmen']
-    return (data * weights).sum()
-
 
 def collapsesum(data_frame, by = None, var = None):
     '''
@@ -47,3 +39,11 @@ def find_nearest_inferior(years, year):
         available_year for available_year in years if available_year <= year
         ]
     return max(anterior_years)
+
+def weighted_sum(groupe, var):
+    '''
+    Fonction qui calcule la moyenne pondérée par groupe d'une variable
+    '''
+    data = groupe[var]
+    weights = groupe['pondmen']
+    return (data * weights).sum()
