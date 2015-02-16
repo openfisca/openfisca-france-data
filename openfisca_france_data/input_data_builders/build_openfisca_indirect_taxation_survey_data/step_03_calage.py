@@ -38,27 +38,31 @@ from openfisca_france_data import default_config_files_directory as config_files
 from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils import find_nearest_inferior
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import find_nearest_inferior
 
 
 def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
     depenses_calees = pandas.DataFrame()
     for column in depenses.columns:
         if type(column) == int:
-            if len(unicode(column))==3:
+            if len(unicode(column)) == 3:
                 grosposte = int(unicode(column)[0])
-            if len(unicode(column))==4:
+            if len(unicode(column)) == 4:
                 grosposte = int(unicode(column)[0:2])
             if grosposte != 22 and grosposte != 45 and grosposte != 99:
                 ratio_bdf_cn = masses.at[
-                                        grosposte,'ratio_bdf{}_cn{}'.format(year_data, year_data)
-                                        ]
+                    grosposte, 'ratio_bdf{}_cn{}'.format(year_data, year_data)
+                    ]
                 ratio_cn_cn = masses.at[
-                                        grosposte,'ratio_cn{}_cn{}'.format(year_data, year_calage)
-                                        ]
-                depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn     
-#                print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
+                    grosposte, 'ratio_cn{}_cn{}'.format(year_data, year_calage)
+                    ]
+                depenses_calees[column] = depenses[column] * ratio_bdf_cn * ratio_cn_cn
+                # print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, \
+                # le ratio de calage sur la cn pour l\'annee {} est {}'.format(
+                #    grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
     return depenses_calees
+
 
 def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
     '''
@@ -77,9 +81,10 @@ def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
         )
     return masses
 
-def get_bdf_data_frames(year_data): 
+
+def get_bdf_data_frames(year_data):
     '''
-    Fonction qui récupère les dépenses de budget des familles 
+    Fonction qui récupère les dépenses de budget des familles
     et les agrège par poste (en tenant compte des poids respectifs des ménages)
     '''
     depenses_by_grosposte = temporary_store.extract('depenses_by_grosposte_{}'.format(year_data))
@@ -99,6 +104,7 @@ def get_bdf_data_frames(year_data):
             )
         )
     return df_bdf_weighted_sum_by_grosposte
+
 
 def get_cn_data_frames(year_data = None, year_calage = None):
     assert year_data is not None
@@ -146,29 +152,35 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
+
 def run_calage_vieillissement_depenses(year_calage, year_data_list):
-#   Quelle base de données choisir pour le calage ?
+    # Quelle base de données choisir pour le calage ?
     year_data = find_nearest_inferior(year_data_list, year_calage)
 
-#   Masses de calage provenant de la comptabilité nationale
+    # Masses de calage provenant de la comptabilité nationale
     masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)
 
-#   Enquête agrégée au niveau des gros postes de COICOP (12)
+    # Enquête agrégée au niveau des gros postes de COICOP (12)
     df_bdf_weighted_sum_by_grosposte = get_bdf_data_frames(year_data)
-    #TODO: check that the grospostes correspond to the wright category (what are the 22, 45, 99 categories ?)
+    # TODO: check that the grospostes correspond to the right category (what are the 22, 45, 99 categories ?)
 
-#   Calcul des ratios de calage :
-    masses = calcul_ratios_calage(year_data, year_calage, data_bdf = df_bdf_weighted_sum_by_grosposte, data_cn = masses_cn_12postes_data_frame)
+    # Calcul des ratios de calage :
+    masses = calcul_ratios_calage(
+        year_data,
+        year_calage,
+        data_bdf = df_bdf_weighted_sum_by_grosposte,
+        data_cn = masses_cn_12postes_data_frame
+        )
 
-# Application des ratios de calage 
+    # Application des ratios de calage
     depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
     depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
 
-# Vérification des résultats du calage :
-#    print 'depenses', depenses.shape
-#    print 'depenses_calees', depenses_calees.shape
+    # Vérification des résultats du calage :
+    # print 'depenses', depenses.shape
+    # print 'depenses_calees', depenses_calees.shape
 
-# Sauvegarde de la base calée
+    # Sauvegarde de la base calée
     temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
     return depenses_calees
 
@@ -177,10 +189,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-
     year_calage = 2007
     year_data_list = [2005, 2010]
-    
     run_calage_vieillissement_depenses(year_calage, year_data_list)
-
     log.info("step 03 calage duration is {}".format(time.clock() - deb))

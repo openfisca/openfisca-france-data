@@ -36,10 +36,9 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 log = logging.getLogger(__name__)
 
 
-
 def run_all(year = 2005, filename = "test_indirect_taxation"):
 
-#    df = build_other_menage_variables(year = year)
+    # df = build_other_menage_variables(year = year)
     consumption = build_menage_consumption_by_categorie_fiscale(year = year)
     menage = build_other_menage_variables(year = year)
     data_frame = menage.merge(consumption, copy = True)
