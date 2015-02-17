@@ -27,11 +27,21 @@ import logging
 import os
 
 from openfisca_survey_manager.surveys import Survey, SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_01_consumption_by_categorie_fiscale \
-    import build_menage_consumption_by_categorie_fiscale
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
+    import build_depenses_homogenisees
 
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_02_other_menage_variables \
-    import build_other_menage_variables
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_2_imputations_loyers_proprietaires \
+    import build_imputation_loyers_proprietaires
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_2_homogeneisation_vehicules \
+    import build_homogeneisation_vehicules
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_3_homogeneisation_caracteristiques_menages \
+    import build_homogeneisation_caracteristiques_sociales
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_4_homogeneisation_revenus_menages \
+    import build_homogeneisation_revenus_menages
+
 
 log = logging.getLogger(__name__)
 
@@ -39,9 +49,16 @@ log = logging.getLogger(__name__)
 def run_all(year = 2005, filename = "test_indirect_taxation"):
 
     # df = build_other_menage_variables(year = year)
-    consumption = build_menage_consumption_by_categorie_fiscale(year = year)
-    menage = build_other_menage_variables(year = year)
-    data_frame = menage.merge(consumption, copy = True)
+    # consumption = build_menage_consumption_by_categorie_fiscale(year = year)
+    # menage = build_other_menage_variables(year = year)
+    # data_frame = menage.merge(consumption, copy = True)
+
+    build_depenses_homogenisees(year = year)
+    build_imputation_loyers_proprietaires(year = year)
+    build_homogeneisation_vehicules(year = year)
+    build_homogeneisation_caracteristiques_sociales(year = year)
+    build_homogeneisation_revenus_menages(year = year)
+
 
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection(name = "openfisca_indirect_taxation")
