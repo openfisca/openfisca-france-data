@@ -34,6 +34,12 @@ from ConfigParser import SafeConfigParser
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import find_nearest_inferior
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
+    import normalize_coicop
+
 
 log = logging.getLogger(__name__)
 
@@ -41,15 +47,16 @@ log = logging.getLogger(__name__)
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage = None):
+def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data_list = None):
     """Build menage consumption by categorie fiscale dataframe """
+    year_data = find_nearest_inferior(year_data_list, year_calage)
 
     assert year_calage is not None
     assert year_data is not None
 
     # Load matrices de passage
     matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = \
-        get_transfert_data_frames(year_data)
+        get_transfert_data_frames(year = year_data)
 
     # Load data
     coicop_data_frame = temporary_store.extract('depenses_calees_{}'.format(year_calage))
@@ -59,6 +66,13 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
         selected_parametres_fiscalite_data_frame[['posteCOICOP', 'categoriefiscale']]
     # print selected_parametres_fiscalite_data_frame
     selected_parametres_fiscalite_data_frame.set_index('posteCOICOP', inplace = True)
+
+    # Normalisation des coicop de la feuille excel pour être cohérent avec depenses_calees
+    normalized_coicop = [
+        normalize_coicop(coicop)
+        for coicop in selected_parametres_fiscalite_data_frame.index
+        ]
+    selected_parametres_fiscalite_data_frame.index = normalized_coicop
     categorie_fiscale_by_coicop = selected_parametres_fiscalite_data_frame.to_dict()['categoriefiscale']
 
     # print categorie_fiscale_by_coicop
@@ -66,7 +80,8 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
         categorie_fiscale_by_coicop.get(coicop)
         for coicop in coicop_data_frame.columns
         ]
-    # print categorie_fiscale_labels
+    #TODO: gérer les catégorie fiscales "None" = dépenses énergétiques (4) & tabac (2)
+#    print categorie_fiscale_labels
     tuples = zip(categorie_fiscale_labels, coicop_data_frame.columns)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
     # print coicop_data_frame.columns
@@ -80,10 +95,8 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
         inplace = True,
         )
     categorie_fiscale_data_frame['role_menage'] = 0
-    temporary_store["menage_consumption_by_categorie_fiscale"] = categorie_fiscale_data_frame
-    categorie_fiscale_data_frame.reset_index(inplace = True)
-
-    return categorie_fiscale_data_frame
+#    categorie_fiscale_data_frame.reset_index(inplace = True)
+    temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)] = categorie_fiscale_data_frame
 
 
 def get_transfert_data_frames(year = None):
@@ -109,7 +122,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year_data = 2005
     year_calage = 2007
-    build_menage_consumption_by_categorie_fiscale(year_data, year_calage)
+    year_data_list = [2005, 2010]
+    build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
     log.info("step 01 demo duration is {}".format(time.clock() - deb))
