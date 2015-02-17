@@ -55,15 +55,15 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
+def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], filename = "test_indirect_taxation"):
 
-def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010],  filename = "test_indirect_taxation"):
+    # 4 étape parallèles d'homogénéisation des données sources :
 
-# 4 étape parallèles d'homogénéisation des données sources :
     # Gestion des dépenses de consommation:
     build_depenses_homogenisees(year = year)
     build_imputation_loyers_proprietaires(year = year)
     build_depenses_calees(year_calage, year_data_list)
-    build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)    
+    build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
     categorie_fiscale_data_frame = temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)]
 
     # Gestion des véhicules:
@@ -73,21 +73,16 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010],  fil
     # Gestion des variables socio démographiques:
     build_homogeneisation_caracteristiques_sociales(year = year)
     menage = temporary_store['donnes_socio_demog_{}'.format(year)]
-    
+
     # Gestion des variables revenues:
     build_homogeneisation_revenus_menages(year = year)
     revenus = temporary_store["revenus_{}".format(year)]
 
-# DataFrame résultant de ces 4 étapes
-    data_frame = pandas.concat([revenus, vehicule, categorie_fiscale_data_frame], axis = 1)
-    revenus.shape
-    vehicule.shape
-    categorie_fiscale_data_frame.shape
-    data_frame.shape
+    # DataFrame résultant de ces 4 étapes
+    data_frame = pandas.concat([revenus, vehicule, categorie_fiscale_data_frame, menage], axis = 1)
 
-    #TODO: merger avec la base ménage également, mais elle n'a pas le même nb de ligne    
-    #Un pb dans l'homogénéisation des caractéristiques socio-démographique ?
-    menage.shape # (4627, 42)
+    data_frame.index.name = "ident_men"
+    data_frame.reset_index(inplace = True)
 
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection(name = "openfisca_indirect_taxation")
@@ -97,7 +92,7 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010],  fil
     table = "input"
     hdf5_file_path = os.path.join(
         os.path.dirname(output_data_directory),
-        "{}{}".format(survey_name, ".h5"),
+        "{}.h5".format(survey_name),
         )
     survey = Survey(
         name = survey_name,
