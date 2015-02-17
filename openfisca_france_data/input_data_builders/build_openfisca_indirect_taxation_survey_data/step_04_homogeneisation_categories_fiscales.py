@@ -76,12 +76,8 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
         categorie_fiscale_by_coicop.get(coicop)
         for coicop in coicop_data_frame.columns
         ]
-<<<<<<< HEAD
-    # print categorie_fiscale_labels
-=======
     #TODO: gérer les catégorie fiscales "None" = dépenses énergétiques (4) & tabac (2)
 #    print categorie_fiscale_labels
->>>>>>> Apply normalization to categories fiscales
     tuples = zip(categorie_fiscale_labels, coicop_data_frame.columns)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
     # print coicop_data_frame.columns
