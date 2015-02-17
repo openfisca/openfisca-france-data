@@ -34,6 +34,9 @@ from ConfigParser import SafeConfigParser
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
+    import normalize_coicop
+
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +62,13 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
         selected_parametres_fiscalite_data_frame[['posteCOICOP', 'categoriefiscale']]
     # print selected_parametres_fiscalite_data_frame
     selected_parametres_fiscalite_data_frame.set_index('posteCOICOP', inplace = True)
+
+    # Normalisation des coicop de la feuille excel pour être cohérent avec depenses_calees
+    normalized_coicop = [
+        normalize_coicop(coicop)
+        for coicop in selected_parametres_fiscalite_data_frame.index
+        ]
+    selected_parametres_fiscalite_data_frame.index = normalized_coicop
     categorie_fiscale_by_coicop = selected_parametres_fiscalite_data_frame.to_dict()['categoriefiscale']
 
     # print categorie_fiscale_by_coicop
@@ -66,7 +76,12 @@ def build_menage_consumption_by_categorie_fiscale(year_data = None, year_calage 
         categorie_fiscale_by_coicop.get(coicop)
         for coicop in coicop_data_frame.columns
         ]
+<<<<<<< HEAD
     # print categorie_fiscale_labels
+=======
+    #TODO: gérer les catégorie fiscales "None" = dépenses énergétiques (4) & tabac (2)
+#    print categorie_fiscale_labels
+>>>>>>> Apply normalization to categories fiscales
     tuples = zip(categorie_fiscale_labels, coicop_data_frame.columns)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples, names=['categoriefiscale', 'coicop'])
     # print coicop_data_frame.columns
