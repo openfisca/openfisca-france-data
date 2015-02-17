@@ -145,6 +145,16 @@ def build_depenses_homogenisees(year = None):
     if year == 2005:
         conso = survey.get_values(table = "c05d")
 
+
+    if year == 2011:
+        conso = survey.get_values(table = "c05")
+        conso.rename(
+            columns = {
+                'ident_me': 'ident_men',
+                },
+            inplace = True,
+            )
+
 #
 #	order ident pondmen poste depense
 #	sort poste
@@ -211,8 +221,7 @@ def build_depenses_homogenisees(year = None):
     conso.drop('pondmen', axis = 1, inplace = True)
     conso.set_index('ident_men', inplace = True)
 
-    matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = \
-        get_transfert_data_frames(year)
+    matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = get_transfert_data_frames(year)
 
     coicop_poste_bdf = matrice_passage_data_frame[['poste{}'.format(year), 'posteCOICOP']]
     coicop_poste_bdf.set_index('poste{}'.format(year), inplace = True)
