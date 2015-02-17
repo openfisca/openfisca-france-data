@@ -226,7 +226,7 @@ def build_depenses_homogenisees(year = None):
             return numpy.NaN
 
     coicop_labels = [
-        coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf))
+        normalize_coicop(coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf)))
         for poste_bdf in conso.columns
         ]
     tuples = zip(coicop_labels, conso.columns)

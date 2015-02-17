@@ -34,7 +34,8 @@ import pandas
 log = logging.getLogger(__name__)
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses import normalize_coicop
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
+    import normalize_coicop
 
 from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
@@ -50,6 +51,7 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
     for column in coicop_list:
         coicop = normalize_coicop(column)
         grosposte = int(coicop[0:2])
+#        print column, coicop, grosposte
 # RAPPEL : 12 postes CN et COICOP
 #    01 Produits alimentaires et boissons non alcoolisées
 #    02 Boissons alcoolisées et tabac
@@ -72,7 +74,7 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
                                     ]
             depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn     
 #                print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
-    return depenses_calees.columns
+    return depenses_calees
 
 
 def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
@@ -163,9 +165,8 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
-
-def run_calage_vieillissement_depenses(year_calage, year_data_list):
-    # Quelle base de données choisir pour le calage ?
+def build_depenses_calees(year_calage, year_data_list):
+#   Quelle base de données choisir pour le calage ?
     year_data = find_nearest_inferior(year_data_list, year_calage)
 
     # Masses de calage provenant de la comptabilité nationale
@@ -195,7 +196,6 @@ def run_calage_vieillissement_depenses(year_calage, year_data_list):
     
 # Sauvegarde de la base calée
     temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
-    return depenses_calees
 
 if __name__ == '__main__':
     import sys
@@ -204,5 +204,7 @@ if __name__ == '__main__':
     deb = time.clock()
     year_calage = 2007
     year_data_list = [2005, 2010]
-    run_calage_vieillissement_depenses(year_calage, year_data_list)
+    
+    build_depenses_calees(year_calage, year_data_list)
+
     log.info("step 03 calage duration is {}".format(time.clock() - deb))
