@@ -278,7 +278,7 @@ matrice_passage_data_frame en la transformant en une chaine de 5 caractères
             # 022.. = cigarettes et tabacs => on les range avec l'alcool (021.0)
         elif code.startswith("0"):
             normalized_code = code + "0"
-        elif code in ["1151", "1181","4522","4511"]:
+        elif code in ["1151", "1181", "4522", "4511"]:
             # 1151 = Margarines et autres graisses végétales
             # 1181 = Confiserie
             # 04522 = Achat de butane, propane
