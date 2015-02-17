@@ -95,8 +95,8 @@ def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data_
         inplace = True,
         )
     categorie_fiscale_data_frame['role_menage'] = 0
-    categorie_fiscale_data_frame.reset_index(inplace = True)
-    temporary_store["menage_consumption_by_categorie_fiscale"] = categorie_fiscale_data_frame
+#    categorie_fiscale_data_frame.reset_index(inplace = True)
+    temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)] = categorie_fiscale_data_frame
 
 
 def get_transfert_data_frames(year = None):
