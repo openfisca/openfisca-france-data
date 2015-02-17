@@ -226,7 +226,7 @@ def build_depenses_homogenisees(year = None):
             return numpy.NaN
 
     coicop_labels = [
-        coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf))
+        normalize_coicop(coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf)))
         for poste_bdf in conso.columns
         ]
     tuples = zip(coicop_labels, conso.columns)
@@ -238,15 +238,14 @@ def build_depenses_homogenisees(year = None):
 
 #    Création de gros postes, les 12 postes sur lesquels le calage se fera
     def select_gros_postes(coicop):
-        coicop_as_unicode = unicode(coicop)
-        if len(coicop_as_unicode) == 3:
-            grosposte = int(coicop_as_unicode[0])
-        elif len(coicop_as_unicode) == 4:
-            grosposte = int(coicop_as_unicode[0:2])
-        else:
-            grosposte = numpy.NaN
-        return grosposte
-
+        try:
+            coicop = unicode(coicop)
+        except:
+            coicop = coicop
+        normalized_coicop = normalize_coicop(coicop)
+        grosposte = normalized_coicop[0:2]
+        return int(grosposte)
+        
     grospostes = [
         select_gros_postes(coicop)
         for coicop in coicop_data_frame.columns
@@ -266,14 +265,27 @@ def normalize_coicop(code):
 matrice_passage_data_frame en la transformant en une chaine de 5 caractères
     '''
     # TODO il faut préciser ce que veut dire harmoniser
+    # Cf. Nomenclature_commune.xls
+    try:
+        code = unicode(code)
+    except:
+        code = code
     if len(code) == 3:
         normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
     elif len(code) == 4:
-        if not code.startswith("1") and not code.startswith("9"):
+        if not code.startswith("0") and not code.startswith("1") and not code.startswith("45") and not code.startswith("9"):
             normalized_code = "0" + code
-        elif code in ["1151", "1181"]:
+            # 022.. = cigarettes et tabacs => on les range avec l'alcool (021.0)
+        elif code.startswith("0"):
+            normalized_code = code + "0"
+        elif code in ["1151", "1181", "4522", "4511"]:
+            # 1151 = Margarines et autres graisses végétales
+            # 1181 = Confiserie
+            # 04522 = Achat de butane, propane
+            # 04511 = Facture EDF GDF non dissociables
             normalized_code = "0" + code
         else:
+            # 99 = loyer, impots et taxes, cadeaux...
             normalized_code = code + "0"
     elif len(code) == 5:
         normalized_code = code
