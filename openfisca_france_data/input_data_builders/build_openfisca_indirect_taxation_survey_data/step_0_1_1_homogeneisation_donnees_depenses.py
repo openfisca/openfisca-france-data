@@ -120,6 +120,18 @@ def build_depenses_homogenisees(year = None):
 #
     if year == 2000:
         conso = survey.get_values(table = "consomen")
+        conso.rename(
+            columns = {
+                'ident': 'ident_men',
+                'pondmen': 'pondmen',
+                },
+            inplace = True,
+            )
+        for variable in ['ctotale', 'c99', 'c99999'] + \
+                        ["c0{}".format(i) for i in range(1, 10)] + \
+                        ["c{}".format(i) for i in range(10, 14)]:
+            del conso[variable]
+
         #		if ${yearrawdata} == 2005 {
         #			use "$rawdatadir\c05d.dta", clear
         #			order _all, alpha
@@ -294,6 +306,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 2000
     build_depenses_homogenisees(year = year)
     log.info("duration is {}".format(time.clock() - deb))
