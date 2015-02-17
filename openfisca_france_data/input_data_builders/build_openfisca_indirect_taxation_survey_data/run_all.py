@@ -42,11 +42,16 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_4_homogeneisation_revenus_menages \
     import build_homogeneisation_revenus_menages
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_03_calage\
+    import build_depenses_calees
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_04_homogeneisation_categories_fiscales\
+    import build_menage_consumption_by_categorie_fiscale
 
 log = logging.getLogger(__name__)
 
 
-def run_all(year = 2005, filename = "test_indirect_taxation"):
+def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010],  filename = "test_indirect_taxation"):
 
     # df = build_other_menage_variables(year = year)
     # consumption = build_menage_consumption_by_categorie_fiscale(year = year)
@@ -58,8 +63,9 @@ def run_all(year = 2005, filename = "test_indirect_taxation"):
     build_homogeneisation_vehicules(year = year)
     build_homogeneisation_caracteristiques_sociales(year = year)
     build_homogeneisation_revenus_menages(year = year)
-
-
+    build_depenses_calees(year_calage, year_data_list)
+    build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
+    
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection(name = "openfisca_indirect_taxation")
     openfisca_survey_collection.set_config_files_directory()
@@ -83,5 +89,5 @@ def run_all(year = 2005, filename = "test_indirect_taxation"):
 if __name__ == '__main__':
     import time
     start = time.time()
-    run_all(year = 2005)
+    run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010])
     log.info("{}".format(time.time() - start))
