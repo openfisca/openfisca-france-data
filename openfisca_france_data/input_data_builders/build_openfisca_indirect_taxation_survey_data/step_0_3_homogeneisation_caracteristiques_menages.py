@@ -565,7 +565,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus = individus.groupby(by = 'ident_men').apply(add_col_numero)
         pivoted = individus.pivot(index = 'ident_men', columns = "numero", values = 'age')
         pivoted.columns = ["age{}".format(column) for column in pivoted.columns]
-        menage = menage.merge(pivoted, left_index = True, right_index = True)
+        menage = menage.merge(pivoted, left_index = True, right_index = True, how = 'outer')
         temporary_store['menage_{}'.format(year)] = menage
 
 #           use $rawdatadir\individu.dta, clear
