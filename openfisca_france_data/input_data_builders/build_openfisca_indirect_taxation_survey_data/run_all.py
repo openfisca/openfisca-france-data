@@ -25,24 +25,64 @@
 
 import logging
 import os
+import pandas
 
 from openfisca_survey_manager.surveys import Survey, SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_01_consumption_by_categorie_fiscale \
-    import build_menage_consumption_by_categorie_fiscale
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
+    import build_depenses_homogenisees
 
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_02_other_menage_variables \
-    import build_other_menage_variables
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_2_imputations_loyers_proprietaires \
+    import build_imputation_loyers_proprietaires
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_2_homogeneisation_vehicules \
+    import build_homogeneisation_vehicules
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_3_homogeneisation_caracteristiques_menages \
+    import build_homogeneisation_caracteristiques_sociales
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_4_homogeneisation_revenus_menages \
+    import build_homogeneisation_revenus_menages
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_03_calage\
+    import build_depenses_calees
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_04_homogeneisation_categories_fiscales\
+    import build_menage_consumption_by_categorie_fiscale
 
 log = logging.getLogger(__name__)
 
+from openfisca_france_data.temporary import TemporaryStore
+temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def run_all(year = 2005, filename = "test_indirect_taxation"):
+def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], filename = "test_indirect_taxation"):
 
-#    df = build_other_menage_variables(year = year)
-    consumption = build_menage_consumption_by_categorie_fiscale(year = year)
-    menage = build_other_menage_variables(year = year)
-    data_frame = menage.merge(consumption, copy = True)
+    # 4 étape parallèles d'homogénéisation des données sources :
+
+    # Gestion des dépenses de consommation:
+    build_depenses_homogenisees(year = year)
+    build_imputation_loyers_proprietaires(year = year)
+    build_depenses_calees(year_calage, year_data_list)
+    build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
+    categorie_fiscale_data_frame = temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)]
+
+    # Gestion des véhicules:
+    build_homogeneisation_vehicules(year = year)
+    vehicule = temporary_store['automobile_{}'.format(year)]
+
+    # Gestion des variables socio démographiques:
+    build_homogeneisation_caracteristiques_sociales(year = year)
+    menage = temporary_store['donnes_socio_demog_{}'.format(year)]
+
+    # Gestion des variables revenues:
+    build_homogeneisation_revenus_menages(year = year)
+    revenus = temporary_store["revenus_{}".format(year)]
+
+    # DataFrame résultant de ces 4 étapes
+    data_frame = pandas.concat([revenus, vehicule, categorie_fiscale_data_frame, menage], axis = 1)
+
+    data_frame.index.name = "ident_men"
+    data_frame.reset_index(inplace = True)
 
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection(name = "openfisca_indirect_taxation")
@@ -52,7 +92,7 @@ def run_all(year = 2005, filename = "test_indirect_taxation"):
     table = "input"
     hdf5_file_path = os.path.join(
         os.path.dirname(output_data_directory),
-        "{}{}".format(survey_name, ".h5"),
+        "{}.h5".format(survey_name),
         )
     survey = Survey(
         name = survey_name,
@@ -67,5 +107,8 @@ def run_all(year = 2005, filename = "test_indirect_taxation"):
 if __name__ == '__main__':
     import time
     start = time.time()
-    run_all(year = 2005)
+    year = 2005
+    year_calage = 2007
+    year_data_list = [2005, 2010]
+    run_all(year, year_calage, year_data_list)
     log.info("{}".format(time.time() - start))

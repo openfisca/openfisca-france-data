@@ -90,46 +90,38 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		save "$datadir\automobile.dta", replace
 #	}
 
-def build_homogeneisation_vehicule(year = None):
-    """Build menage consumption by categorie fiscale dataframe """
+def build_homogeneisation_vehicules(year = None):
+    """Compute vehicule numbers by type"""
 
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 
-    if year ==2000:
-        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        vehicule = survey.get_values(table=depmen)
-        kept_variables=['IDENT', 'CARBU', 'CARBU01', 'CARBU02']
+    if year == 2000:
+        vehicule = survey.get_values(table = "depmen")
+        kept_variables = ['IDENT', 'CARBU', 'CARBU01', 'CARBU02']
         vehicule = vehicule[kept_variables]
-        vehicule.rename(columns = {'IDENT' : 'ident_men'}, inplace = True)
-        vehicule.rename(columns = {'CARBU01' : 'carbu1'}, inplace = True)
-        vehicule.rename(columns = {'CARBU02' : 'carbu2'}, inplace = True)
-        vehicule["veh_tot"]='1'
-        vehicule["veh_essence"]=(vehicule['carbu']='1')
-        vehicule["veh_diesel"]=(vehicule['carbu']='2')
-        automobile = temporary_store['automobile_{}'.format(year)]
-        save automobile
-
-      return data_frame
+        vehicule.rename(columns = {'IDENT': 'ident_men'}, inplace = True)
+        vehicule.rename(columns = {'CARBU01': 'carbu1'}, inplace = True)
+        vehicule.rename(columns = {'CARBU02': 'carbu2'}, inplace = True)
+        vehicule["veh_tot"] = '1'
+        vehicule["veh_essence"] = (vehicule['carbu'] == '1')
+        vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
 
     if year == 2005:
-        survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-        vehicule = survey.get_values(table = automobile)
-        kept_variables = ['ident_men', 'carbu', 'vag']
+        vehicule = survey.get_values(table = "automobile")
+        kept_variables = ['ident_men', 'carbu', 'vag']  # TODO: on ne fait rien de vag
         vehicule = vehicule[kept_variables]
-        vehicule["veh_tot"]='1'
-        vehicule["veh_essence"]=(vehicule['carbu']='1')
-        vehicule["veh_diesel"]=(vehicule['carbu']='2')
-        automobile = temporary_store['automobile_{}'.format(year)]
-        save automobile
+        vehicule["veh_tot"] = 1
+        vehicule["veh_essence"] = (vehicule['carbu'] == '1')
+        vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
 
-      return data_frame
+    # Compute the number of cars by category
+    vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()
 
-
-
-
-        # TODO
+    # Save in temporary store
+    temporary_store['automobile_{}'.format(year)] = vehicule
 
 
 if __name__ == '__main__':
@@ -138,6 +130,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2005
-    build_other_menage_variables(year = year)
+    build_homogeneisation_vehicules(year = year)
 
-    log.info("step 01 demo duration is {}".format(time.clock() - deb))
+    log.info("step 0_2_homogeneisation_vehicules duration is {}".format(time.clock() - deb))
