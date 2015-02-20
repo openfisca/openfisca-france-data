@@ -118,6 +118,8 @@ def build_depenses_homogenisees(year = None):
 #			rename PONDMEN pondmen
 #		}
 #
+        
+## Why c14 as well? (stata code only to C13)
     if year == 2000:
         conso = survey.get_values(table = "consomen")
         conso.rename(
@@ -129,7 +131,7 @@ def build_depenses_homogenisees(year = None):
             )
         for variable in ['ctotale', 'c99', 'c99999'] + \
                         ["c0{}".format(i) for i in range(1, 10)] + \
-                        ["c{}".format(i) for i in range(10, 14)]:
+                        ["c{}".format(i) for i in range(10, 13)]:
             del conso[variable]
 
         #		if ${yearrawdata} == 2005 {
@@ -270,8 +272,8 @@ def build_depenses_homogenisees(year = None):
 
 
 def normalize_coicop(code):
-    '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
-matrice_passage_data_frame en la transformant en une chaine de 5 caractères
+    '''Normalize_coicop harmonise la colonne d'entiers posteCOICOP de la table 
+    matrice_passage_data_frame: toutes les valeurs sont désormais à 5 caractères.
     '''
     # TODO il faut préciser ce que veut dire harmoniser
     # Cf. Nomenclature_commune.xls
@@ -327,6 +329,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2000
+    year = 2005
     build_depenses_homogenisees(year = year)
     log.info("duration is {}".format(time.clock() - deb))
