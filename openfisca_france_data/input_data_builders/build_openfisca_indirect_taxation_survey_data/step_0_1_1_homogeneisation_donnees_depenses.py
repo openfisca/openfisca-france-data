@@ -327,6 +327,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2000
+    year = 2005
     build_depenses_homogenisees(year = year)
     log.info("duration is {}".format(time.clock() - deb))
