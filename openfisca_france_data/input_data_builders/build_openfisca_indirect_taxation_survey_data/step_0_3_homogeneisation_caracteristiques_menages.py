@@ -405,7 +405,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
     if year == 2005:
         menage = survey.get_values(table = "menage")
         # données socio-démographiques
-        socio_demo_variables = ['agpr', 'agcj', 'couplepr', 'ident_men', 'nactifs', 'nenfants', 'nenfhors', 'npers',
+        socio_demo_variables = ['agpr', 'agcj', 'couplepr', 'decuc', 'ident_men', 'nactifs', 'nenfants', 'nenfhors', 'npers',
             'ocde10', 'pondmen', 'sexecj', 'sexepr', 'typmen5', 'vag', 'zeat']
         socio_demo_variables += [column for column in menage.columns if column.startswith('dip14')]
         socio_demo_variables += [column for column in menage.columns if column.startswith('natio7')]
