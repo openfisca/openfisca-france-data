@@ -32,7 +32,7 @@ import openfisca_france
 
 ReferenceTaxBenefitSystem = openfisca_france.init_country()
 reference_tax_benefit_system = ReferenceTaxBenefitSystem()
-SurveyTaxBenefitSystem = reforms.new_simple_reform_class(
+SurveyTaxBenefitSystem = reforms.make_reform(
     name = u"OpenFisca for survey data",
     reference = reference_tax_benefit_system,
     )
