@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from openfisca_core.formulas import NaNCreationError
+import pandas
 
 
 from openfisca_france_data.input_data_builders import get_input_data_frame
@@ -50,29 +50,9 @@ def test_survey_simulation():
         year = year,
         )
     simulation = survey_scenario.new_simulation()
-    try:
-        from pandas import DataFrame
-        simulation.calculate('revdisp')
-    except NaNCreationError as error:
-        index = error.index
-        entity = error.entity
-        column_name = error.column_name
-        input_data_frame_debug = filter_input_data_frame(
-            simulation.input_data_frame,
-            entity,
-            index[:10],
-            )
-        survey_scenario_debug = SurveyScenario()
-        simulation_debug = survey_scenario_debug.new_simulation(
-            debug = True,
-            input_data_frame = input_data_frame_debug,
-            tax_benefit_system = tax_benefit_system,
-            year = year,
-            )
-        simulation_debug.calculate(column_name)
 
     data_frame_by_entity_key_plural = dict(
-        individus = DataFrame(
+        individus = pandas.DataFrame(
             dict([(name, simulation.calculate(name)) for name in [
                 'idmen',
                 'quimen',
@@ -88,7 +68,7 @@ def test_survey_simulation():
                 # salsuperbrut # TODO bug in 2006
                 ]])
             ),
-        menages = DataFrame(
+        menages = pandas.DataFrame(
             dict([(name, simulation.calculate(name)) for name in [
                 'revdisp'
                 ]])
