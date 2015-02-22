@@ -252,7 +252,7 @@ def build_depenses_homogenisees(year = None):
         except:
             coicop = coicop
         normalized_coicop = normalize_coicop(coicop)
-        grosposte = normalized_coicop[0:2]
+        grosposte = normalize_coicop_cn(normalized_coicop)
         return int(grosposte)
         
     grospostes = [
@@ -271,7 +271,8 @@ def build_depenses_homogenisees(year = None):
 
 def normalize_coicop(code):
     '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
-matrice_passage_data_frame en la transformant en une chaine de 5 caractères
+matrice_passage_data_frame en la transformant en une chaine de 5 caractères correspondant à la CN. Ceci 
+permet par la suite de récupérer grâce à la fonction normalize_coicop_cn la consommation par poste agrégée de la CN.
     '''
     # TODO il faut préciser ce que veut dire harmoniser
     # Cf. Nomenclature_commune.xls
@@ -301,6 +302,42 @@ matrice_passage_data_frame en la transformant en une chaine de 5 caractères
     else:
         raise()
     return normalized_code
+
+
+def normalize_coicop_cn(code):
+    '''Normalize_coicop_cn permet de récupérer pour chaque poste COICOP harmonisé sa nomenclature dans la CN (postes agrégés)
+    '''
+    if code.startswith("01"):
+        grosposte = 1
+    elif code.startswith("02"):
+        grosposte = 2
+    elif code.startswith("03"):
+        grosposte = 3
+    elif code.startswith("04"):
+        grosposte = 4
+    elif code.startswith("05"):
+        grosposte = 5
+    elif code.startswith("06"):
+        grosposte = 6
+    elif code.startswith("07"):
+        if not code.startswith("073"):
+            grosposte = 7
+        else:
+            grosposte = 8
+    elif code.startswith("08"):
+        grosposte = 8
+    elif code.startswith("09"):
+        grosposte = 9
+    elif code.startswith("10"):
+        grosposte = 9
+    elif code.startswith("11"):
+        grosposte = 10
+    elif code.startswith("12"):
+        grosposte = 11
+    elif code.startswith("99"):
+        grosposte = 12
+
+    return grosposte
 
 
 def get_transfert_data_frames(year = None):
