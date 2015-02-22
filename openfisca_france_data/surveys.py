@@ -36,19 +36,16 @@ log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
-    def init_from_data_frame(
-            self,
-            input_data_frame = None,
-            tax_benefit_system = None,
-            year = None):
+    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, year = None):
 
-        assert input_data_frame is not None
-        self.input_data_frame = input_data_frame
         if tax_benefit_system is None:
             TaxBenefitSystem = openfisca_france_data.init_country()
-        self.tax_benefit_system = TaxBenefitSystem()
-        assert year is not None
-        self.year = year
+            tax_benefit_system = TaxBenefitSystem()
+
+        super(SurveyScenario, self).init_from_data_frame(
+            input_data_frame = input_data_frame,
+            tax_benefit_system = tax_benefit_system,
+            year = year)
         return self
 
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
