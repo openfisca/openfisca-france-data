@@ -183,6 +183,27 @@ def build_depenses_calees(year_calage, year_data_list):
     # Application des ratios de calage
     depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
     depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
+    temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
+    
+    ###
+    def select_gros_postes(coicop):
+        try:
+            coicop = unicode(coicop)
+        except:
+            coicop = coicop
+        normalized_coicop = normalize_coicop(coicop)
+        grosposte = normalized_coicop[0:2]
+        return int(grosposte)
+        
+    grospostes = [
+        select_gros_postes(coicop)
+        for coicop in depenses_calees.columns
+        ]
+    tuples_gros_poste = zip(depenses_calees.columns, grospostes)
+    depenses_calees.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
+
+    depenses_calees_by_grosposte = depenses_calees.groupby(level = 1, axis = 1).sum()
+    ###
 
 # Vérification des résultats du calage :
     print 'depenses', depenses.shape
@@ -190,8 +211,8 @@ def build_depenses_calees(year_calage, year_data_list):
 #    La différence du nombre de colonne vient du fait que l'on ne garde pas 
 #    les postes 99... qui sont des dépenses en impôts, taxes, loyers...
     
-# Sauvegarde de la base calée
-    temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
+# Sauvegarde des bases calées
+    temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
 
 if __name__ == '__main__':
     import sys
