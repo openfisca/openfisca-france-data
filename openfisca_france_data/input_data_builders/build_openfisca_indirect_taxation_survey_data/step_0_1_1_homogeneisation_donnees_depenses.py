@@ -245,7 +245,7 @@ def build_depenses_homogenisees(year = None):
     depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
     temporary_store['depenses_{}'.format(year)] = depenses
 
-#    Création de gros postes, les 12 postes sur lesquels le calage se fera
+    # Création de gros postes, les 12 postes sur lesquels le calage se fera
     def select_gros_postes(coicop):
         try:
             coicop = unicode(coicop)

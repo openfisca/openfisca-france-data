@@ -167,11 +167,15 @@ def build_imputation_loyers_proprietaires(year = None):
     survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 
     if year == 2000:
-        loyers_imputes = survey.get_values(table = "menage")
-        kept_variables = ['IDENT', 'REV81']
-        loyers_imputes = loyers_imputes[kept_variables]
-        loyers_imputes.rename(columns = {'IDENT': 'ident_men'}, inplace = True)
-        loyers_imputes.rename(columns = {'REV81': '0421'}, inplace = True)
+        loyers_imputes = survey.get_values(table = "menage", variables = ['ident', 'rev81'])
+        loyers_imputes.rename(
+            columns = {
+                'ident': 'ident_men',
+                'rev81': '0421',
+                },
+            inplace = True,
+            )
+        
 
     if year == 2005:
         loyers_imputes = survey.get_values(table = "menage")
