@@ -39,6 +39,13 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #**************************************************************************************************************************
 #* Etape n° 0-1-2 : IMPUTATION DE LOYERS POUR LES MENAGES PROPRIETAIRES
 #**************************************************************************************************************************
+def build_imputation_loyers_proprietaires(year = None):
+    """Build menage consumption by categorie fiscale dataframe """
+
+    assert year is not None
+    # Load data
+    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
 #
 #	if ${yearrawdata} == 1995 {
 #		* L'enquête BdF 1995 ne contient pas de loyer imputés, donc Super-Roy les calcule!
@@ -70,7 +77,7 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
         kept_variables = ['MENA', 'STALOG', 'SURFHAB', 'CONFORT1', 'CONFORT2', 'CONFORT3', 'CONFORT4', 'ANCONS', 'SITLOG', 'PONDERRD', 'NBPHAB', 'RG', 'CC']
         imput00 = imput00[kept_variables]
         imput00.rename(columns = {'MENA' : 'ident_men'}, inplace = True)
-        imput00 = imput00[imput00.PONDERRD != .].copy()
+        imput00 = imput00[imput00.PONDERRD != '.'].copy()
         depenses = depenses[depenses.posteCOICOP == "0411"].copy()
         kept_variables = ['ident_men', 'posteCOICOP', 'depense']
         imput00.set_index('ident_men', inplace = True)
@@ -183,14 +190,6 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #	}
 
 
-def build_imputation_loyers_proprietaires(year = None):
-    """Build menage consumption by categorie fiscale dataframe """
-
-    assert year is not None
-    # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-
     if year == 2000:
         loyers_imputes = survey.get_values(table = "menage", variables = ['ident', 'rev81'])
         loyers_imputes.rename(
@@ -211,7 +210,7 @@ def build_imputation_loyers_proprietaires(year = None):
     # Joindre à la table des dépenses par COICOP
     loyers_imputes.set_index('ident_men', inplace = True)
     temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
-    temporary_store['depenses_{}'.format(year)] = depenses
+    depenses = temporary_store['depenses_{}'.format(year)]
     depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
 
     # Sauvegarde de la base depenses mise à jour
