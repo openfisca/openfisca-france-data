@@ -175,7 +175,7 @@ def build_imputation_loyers_proprietaires(year = None):
                 },
             inplace = True,
             )
-        
+        depenses = survey.get_values(table = 'depmen')
 
     if year == 2005:
         loyers_imputes = survey.get_values(table = "menage")
@@ -186,7 +186,7 @@ def build_imputation_loyers_proprietaires(year = None):
     # Joindre à la table des dépenses par COICOP
     loyers_imputes.set_index('ident_men', inplace = True)
     temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
-    depenses = temporary_store['depenses_{}'.format(year)]
+    temporary_store['depenses_{}'.format(year)] = depenses
     depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
 
     # Sauvegarde de la base depenses mise à jour
