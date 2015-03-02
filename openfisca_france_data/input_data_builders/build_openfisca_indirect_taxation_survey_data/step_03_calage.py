@@ -55,7 +55,7 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
 # RAPPEL : 12 postes CN et COICOP
 #    01 Produits alimentaires et boissons non alcoolisées
 #    02 Boissons alcoolisées et tabac
-#    03 Articles d'habillement et chaussures        
+#    03 Articles d'habillement et chaussures
 #    04 Logement, eau, gaz, électricité et autres combustibles
 #    05 Meubles, articles de ménage et entretien courant de l'habitation
 #    06 Santé
@@ -68,7 +68,7 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
         if grosposte != 99:
             ratio_bdf_cn = masses.at[grosposte,'ratio_bdf{}_cn{}'.format(year_data, year_data)]
             ratio_cn_cn = masses.at[grosposte,'ratio_cn{}_cn{}'.format(year_data, year_calage)]
-            depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn     
+            depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn
 #            print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
     return depenses_calees
 
@@ -184,7 +184,7 @@ def build_depenses_calees(year_calage, year_data_list):
     depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
     depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
     temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
-    
+
     ###
     def select_gros_postes(coicop):
         try:
@@ -194,7 +194,7 @@ def build_depenses_calees(year_calage, year_data_list):
         normalized_coicop = normalize_coicop(coicop)
         grosposte = normalized_coicop[0:2]
         return int(grosposte)
-        
+
     grospostes = [
         select_gros_postes(coicop)
         for coicop in depenses_calees.columns
@@ -203,16 +203,22 @@ def build_depenses_calees(year_calage, year_data_list):
     depenses_calees.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
 
     depenses_calees_by_grosposte = depenses_calees.groupby(level = 1, axis = 1).sum()
-    ###
+
+    column_groposte = [
+        'coicop12_{}'.format(column)
+        for column in depenses_calees_by_grosposte.columns
+        ]
+    depenses_calees_by_grosposte.columns = column_groposte
+
+    # Sauvegarde de la base en coicop agrégée calée
+    temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
 
 # Vérification des résultats du calage :
     print 'depenses', depenses.shape
     print 'depenses_calees', depenses_calees.shape
-#    La différence du nombre de colonne vient du fait que l'on ne garde pas 
+#    La différence du nombre de colonne vient du fait que l'on ne garde pas
 #    les postes 99... qui sont des dépenses en impôts, taxes, loyers...
-    
-# Sauvegarde des bases calées
-    temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
+
 
 if __name__ == '__main__':
     import sys
@@ -221,7 +227,7 @@ if __name__ == '__main__':
     deb = time.clock()
     year_calage = 2007
     year_data_list = [2005, 2010]
-    
+
     build_depenses_calees(year_calage, year_data_list)
 
     log.info("step 03 calage duration is {}".format(time.clock() - deb))
