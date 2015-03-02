@@ -100,14 +100,14 @@ def build_homogeneisation_vehicules(year = None):
 
     if year == 2000:
         vehicule = survey.get_values(table = "depmen")
-        kept_variables = ['IDENT', 'CARBU', 'CARBU01', 'CARBU02']
+        kept_variables = ['ident', 'carbu01', 'carbu02']
         vehicule = vehicule[kept_variables]
-        vehicule.rename(columns = {'IDENT': 'ident_men'}, inplace = True)
-        vehicule.rename(columns = {'CARBU01': 'carbu1'}, inplace = True)
-        vehicule.rename(columns = {'CARBU02': 'carbu2'}, inplace = True)
+        vehicule.rename(columns = {'ident': 'ident_men'}, inplace = True)
+        vehicule.rename(columns = {'carbu01': 'carbu1'}, inplace = True)
+        vehicule.rename(columns = {'carbu02': 'carbu2'}, inplace = True)
         vehicule["veh_tot"] = '1'
-        vehicule["veh_essence"] = (vehicule['carbu'] == '1')
-        vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
+        vehicule["veh_essence"] = (vehicule['carbu1'] == '1') + (vehicule['carbu2'] == '1')
+        vehicule["veh_diesel"] = (vehicule['carbu1'] == '2') + (vehicule['carbu2'] == '2')
 
     if year == 2005:
         vehicule = survey.get_values(table = "automobile")
