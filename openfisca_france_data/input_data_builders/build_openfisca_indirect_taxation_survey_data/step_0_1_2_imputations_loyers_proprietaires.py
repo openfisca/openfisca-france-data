@@ -53,7 +53,6 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		sort ident_men
 #		des ident_men
 #		save "`imput00'", replace
-#
 #		* On récupère les loyers réels dans la base de consommation.
 #		tempfile loyers
 #		use "`depenses'", clear
@@ -65,7 +64,22 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		drop _m
 #		rename depense loyer_reel
 #		rename PONDERRD PONDMEN
-#
+
+    if year == 1995:
+        imput00 = survey.get_values(table = "socioscm")
+        kept_variables = ['MENA', 'STALOG', 'SURFHAB', 'CONFORT1', 'CONFORT2', 'CONFORT3', 'CONFORT4', 'ANCONS', 'SITLOG', 'PONDERRD', 'NBPHAB', 'RG', 'CC']
+        imput00 = imput00[kept_variables]
+        imput00.rename(columns = {'MENA' : 'ident_men'}, inplace = True)
+        imput00 = imput00[imput00.PONDERRD != .].copy()
+        depenses = depenses[depenses.posteCOICOP == "0411"].copy()
+        kept_variables = ['ident_men', 'posteCOICOP', 'depense']
+        imput00.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(imput00, left_index = True, right_index = True)
+        depenses.rename(columns = {'depense' : 'loyer_reel'}, inplace = True)
+        depenses.rename(columns = {'PONDERRD' : 'PONDMEN'}, inplace = True)
+
+        # TODO:
+
 #		* une indicatrice pour savoir si le loyer est connu et l'occupant est locataire
 #		gen observe = (loyer_reel != . & inlist(STALOG,"3","4"))
 #		gen loyer_impute = loyer_reel
@@ -88,6 +102,9 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #
 #		hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
 #		replace loyer_imput = . if observe == 1
+
+        # TODO:
+
 #		use "$rawdatadir\hotdeck1.dta", clear
 #		keep ident_men loyer_imput
 #		sort ident_men
@@ -97,6 +114,14 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #		merge ident_men using "$rawdatadir\hotdeck1.dta", update
 #		tab _m observe
 #		drop _m
+
+        hotdeck1 = survey.get_values(table = 'hotdeck1')
+        kept_variables = ['ident_men', 'loyer_imput']
+        hotdeck1 = hotdeck1[kept_variables]
+        hotdeck1.set_index('ident_men', inplace = True)
+        loyers = loyers.merge(hotdeck1, left_index = True, right_index = True)
+
+        # TODO:
 #
 #		replace loyer_impute = 0 if observe == 1
 #		gen imputation = (observe == 0)
