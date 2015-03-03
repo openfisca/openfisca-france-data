@@ -64,6 +64,9 @@ setup(
         'Babel >= 0.9.4',
         'numpy',
         'OpenFisca-France',
+        'pandas',
+        'scipy',
+        'tables',  # Needed by pandas.HDFStore
         ],
     message_extractors = {
         'openfisca_france_data': [
