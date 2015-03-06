@@ -227,12 +227,34 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			local w = lower("`v'")
 #			rename `v' `w'
 #		}
+
+    if year == 2000:
+        menage = survey.get_values(table = "menage", variables = ['ident', 'pondmen', 'nbact', 'nbenf1',\
+        'nbpers', 'ocde10', 'sitlog', 'stalog', 'strate', 'typmen1', 'zeat', 'stalog', 'vag', 'sexepr', 'sexecj',\
+        'agepr', 'agecj', 'napr', 'nacj', 'cs2pr', 'cs2cj', 'diegpr', 'dieppr', 'diespr', 'diegcj', 'diepcj',\
+        'diescj', 'hod_nb', 'matripr', 'cohabpr', 'occupapr', 'occupacj', 'occupbpr', 'occupbcj', 'occupcpr', 'occupccj'])
+        menage.rename(
+            columns = {
+                'ident': 'ident_men',
+                'rev81': '0421',
+                'cs2pr': 'cs42pr',
+                'cs2cj': 'cs42cj',
+                'ident': 'ident_men',
+                'nbact': 'nactifs',
+                'nbenf1': 'nenfants',
+                'nbpers': 'npers',
+                'hod_nb': 'nenfhors',
+                'matripr': 'etamatri',
+                'cohabpr': 'couplepr'
+                },
+                inplace = True,
+            )
+        menage.ocde10 =  menage.ocde10 / 10
 #		tempfile menages
 #		keep ident pondmen nbact nbenf1 nbpers ocde10 sitlog stalog strate typmen1 zeat stalog vag ///
 #		/*infos sur la personne de référence et conjoint*/ ///
 #		sexepr sexecj agepr agecj napr nacj cs2pr cs2cj diegpr dieppr diespr diegcj diepcj diescj ///
 #		hod_nb matripr cohabpr occupapr occupacj occupbpr occupbcj occupcpr occupccj
-#
 #		replace ocde10 = ocde10 / 10
 #		rename cs2pr cs42pr
 #		rename cs2cj cs42cj
@@ -243,17 +265,30 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #		rename hod_nb nenfhors
 #		rename matripr etamatri
 #		rename cohabpr couplepr
+#         codage fonction destring à faire
 #		destring couplepr, replace
 #		destring etamatri, replace
+        menage["nadultes"] = menage['npers'] - menage['nenfants'] 
 #		gen nadultes = npers - nenfants
+        menage["typmen5"] = 0
 #		gen typmen5 = 0
 #		label var typmen5  "Type de ménage"
 #		replace typmen5 = 1 if typmen1 == "1"
 #		replace typmen5 = 2 if typmen1 == "6"
 #		replace typmen5 = 3 if typmen1 == "2"
-#		replace typmen5 = 4 if inlist(typmen1,"3","4","5")
 #		replace typmen5 = 5 if typmen1 == "7"
-#		drop typmen1
+#		replace typmen5 = 4 if inlist(typmen1,"3","4","5")
+       for i in [1,2,6,7]:
+            if menage["typmen1"] == i : 
+                menage["typmen5"] = 1
+            elif menage["typmen1"] == i : 
+                menage["typmen5"] = 2
+            elif menage["typmen1"] == i : 
+                menage["typmen5"] = 3
+            elif menage["typmen1"] == i : 
+                menage["typmen5"] = 5
+            else: menage["typmen5"] = 4     
+#        drop typmen1
 #		foreach x in "cj" "pr" {
 #			gen situa`x' = 0
 #			replace situa`x' = 1 if occupa`x' == "1"
