@@ -210,15 +210,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #		drop if _m == 2
 #		drop _m
 #		sort ident_men
-#
-#
-#
 #	}
-#
-#
-#
 #	if ${yearrawdata} == 2000 {
-#
 #		use "$rawdatadir\menage.dta", clear
 #		foreach v of var * {
 #			local L`v' : variable label `v'
@@ -227,6 +220,33 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			local w = lower("`v'")
 #			rename `v' `w'
 #		}
+    if year == 2000:
+        menage = survey.get_values(
+            table = "menage",
+            variables = [
+                'ident', 'pondmen', 'nbact', 'nbenf1', 'nbpers', 'ocde10', 'sitlog', 'stalog', 'strate', 'typmen1',
+                'zeat', 'stalog', 'vag', 'sexepr', 'sexecj', 'agepr', 'agecj', 'napr', 'nacj', 'cs2pr', 'cs2cj',
+                'diegpr', 'dieppr', 'diespr', 'diegcj', 'diepcj', 'diescj', 'hod_nb', 'matripr', 'cohabpr', 'occupapr',
+                'occupacj', 'occupbpr', 'occupbcj', 'occupcpr', 'occupccj'
+                ]
+            )
+        menage.rename(
+            columns = {
+                'ident': 'ident_men',
+                'rev81': '0421',
+                'cs2pr': 'cs42pr',
+                'cs2cj': 'cs42cj',
+                'ident': 'ident_men',
+                'nbact': 'nactifs',
+                'nbenf1': 'nenfants',
+                'nbpers': 'npers',
+                'hod_nb': 'nenfhors',
+                'matripr': 'etamatri',
+                'cohabpr': 'couplepr'
+                },
+            inplace = True,
+            )
+        menage.ocde10 = menage.ocde10 / 10
 #		tempfile menages
 #		keep ident pondmen nbact nbenf1 nbpers ocde10 sitlog stalog strate typmen1 zeat stalog vag ///
 #		/*infos sur la personne de référence et conjoint*/ ///
@@ -245,6 +265,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #		rename cohabpr couplepr
 #		destring couplepr, replace
 #		destring etamatri, replace
+
+        menage.couplepr = menage.couplepr.astype('int')
+        menage.etamatri = menage.etamatri.astype('int')
+        menage["nadultes"] = menage['npers'] - menage['nenfants']
 #		gen nadultes = npers - nenfants
 #		gen typmen5 = 0
 #		label var typmen5  "Type de ménage"
@@ -254,6 +278,17 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #		replace typmen5 = 4 if inlist(typmen1,"3","4","5")
 #		replace typmen5 = 5 if typmen1 == "7"
 #		drop typmen1
+        menage.typmen1= menage.typmen1.astype('int')
+        menage["typmen5"] = 0
+        menage.typmen5[menage.typmen1 == 1] = 1
+        menage.typmen5[menage.typmen1 == 2] = 2
+        menage.typmen5[menage.typmen1 == 6] = 3
+        menage.typmen5[menage.typmen1 == 7] = 4
+        menage.typmen5[menage.typmen1 == 3] = 5
+        menage.typmen5[menage.typmen1 == 4] = 5
+        menage.typmen5[menage.typmen1 == 5] = 5
+
+
 #		foreach x in "cj" "pr" {
 #			gen situa`x' = 0
 #			replace situa`x' = 1 if occupa`x' == "1"
@@ -268,6 +303,36 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			drop occupa`x' occupb`x' occupc`x'
 #		}
 #
+    menage["situacj"] = 0
+    menage.situacj[menage.occupacj == "1"] = 1
+    menage.situacj[menage.occupccj == "3"] = 3
+    menage.situacj[menage.occupccj == "2"] = 4
+    menage.situacj[menage.occupccj == "5"] = 5
+    menage.situacj[menage.occupccj == "6"] = 5
+    menage.situacj[menage.occupccj == "7"] = 6
+    menage.situacj[menage.occupccj == "8"] = 7
+    menage.situacj[menage.occupccj == "4"] = 8
+
+
+    menage["situapr"] = 0
+    if menage["occupapr"] == 1 :
+        menage["situapr"] = 1
+    elif menage["occupapr"] == 3 :
+        menage["situapr"] = 3
+    elif menage["occupapr"] == 2 :
+        menage["situapr"] = 4
+    elif menage["occupapr"] == 5 :
+        menage["situapr"] = 5
+    elif menage["occupapr"] == 6 :
+        menage["situapr"] = 5
+    elif menage["occupapr"] == 7 :
+        menage["situapr"] = 6
+    elif menage["occupapr"] == 8 :
+        menage["situapr"] = 7
+    elif menage["occupapr"] == 4 :
+        menage["situapr"] = 8
+
+
 #		foreach x in "cj" "pr" {
 #			destring dieg`x' diep`x' dies`x', replace
 #			egen dipmax`x' = rowmax(dieg`x' diep`x' dies`x')
@@ -289,6 +354,72 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			drop dieg`x' diep`x' dies`x' dipmax`x'
 #		}
 #
+        replace menage["diegcj"] = chaine.encode(menage['diegcj'])
+        replace menage["diegpr"] = chaine.encode(menage['diegpr'])
+        replace menage["diepcj"] = chaine.encode(menage['diepcj'])
+        replace menage["dieppr"] = chaine.encode(menage['dieppr'])
+        replace menage["diescj"] = chaine.encode(menage['diescj'])
+        replace menage["diespr"] = chaine.encode(menage['diespr'])
+        menage["dipmaxcj"] =
+        menage["dipmaxpr"] =
+        if menage["dipmaxcj"] == 47:
+            menage["dp14cj"] = 10
+        elif menage["dipmaxcj"] == 48:
+            menage["dp14cj"] = 12
+        elif menage["dipmaxcj"] == 46:
+            menage["dp14cj"] = 20
+        elif menage["dipmaxcj"] == 41 or menage["dipmaxcj"] == 45 :
+            menage["dp14cj"] = 30
+        elif menage["dipmaxcj"] == 42 or menage["dipmaxcj"] == 43 :
+            menage["dp14cj"] = 31
+        elif menage["dipmaxcj"] == 44:
+            menage["dp14cj"] = 33
+        elif menage["dipmaxcj"] == 16 or menage["dipmaxcj"] == 17 or menage["dipmaxcj"] == 18 or menage["dipmaxcj"] == 19 :
+            menage["dp14cj"] = 41
+        elif menage["dipmaxcj"] == 32 or menage["dipmaxcj"] == 36 :
+            menage["dp14cj"] = 42
+        elif menage["dipmaxcj"] == 34:
+            menage["dp14cj"] = 43
+        elif menage["dipmaxcj"] == 39:
+            menage["dp14cj"] = 44
+        elif menage["dipmaxcj"] == 21 or menage["dipmaxcj"] == 23 or menage["dipmaxcj"] == 25 or menage["dipmaxcj"] == 27 or menage["dipmaxcj"] == 29:
+            menage["dp14cj"] = 50
+        elif menage["dipmaxcj"] == 15:
+            menage["dp14cj"] = 60
+        elif menage["dipmaxcj"] == 2:
+            menage["dp14cj"] = 70
+        elif menage["dipmaxcj"] == 0 or menage["dipmaxcj"] == .:
+            menage["dp14cj"] = 71
+
+        if menage["dipmaxpr"] == 47:
+            menage["dp14pr"] = 10
+        elif menage["dipmaxpr"] == 48:
+            menage["dp14pr"] = 12
+        elif menage["dipmaxpr"] == 46:
+            menage["dp14pr"] = 20
+        elif menage["dipmaxpr"] == 41 or menage["dipmaxpr"] == 45 :
+            menage["dp14pr"] = 30
+        elif menage["dipmaxpr"] == 42 or menage["dipmaxpr"] == 43 :
+            menage["dp14pr"] = 31
+        elif menage["dipmaxpr"] == 44:
+            menage["dp14pr"] = 33
+        elif menage["dipmaxpr"] == 16 or menage["dipmaxpr"] == 17 or menage["dipmaxpr"] == 18 or menage["dipmaxpr"] == 19 :
+            menage["dp14pr"] = 41
+        elif menage["dipmaxpr"] == 32 or menage["dipmaxpr"] == 36 :
+            menage["dp14pr"] = 42
+        elif menage["dipmaxpr"] == 34:
+            menage["dp14pr"] = 43
+        elif menage["dipmaxpr"] == 39:
+            menage["dp14pr"] = 44
+        elif menage["dipmaxpr"] == 21 or menage["dipmaxpr"] == 23 or menage["dipmaxpr"] == 25 or menage["dipmaxpr"] == 27 or menage["dipmaxpr"] == 29:
+            menage["dp14pr"] = 50
+        elif menage["dipmaxpr"] == 15:
+            menage["dp14pr"] = 60
+        elif menage["dipmaxpr"] == 2:
+            menage["dp14pr"] = 70
+        elif menage["dipmaxpr"] == 0 or menage["dipmaxpr"] == .:
+            menage["dp14pr"] = 71
+
 #		foreach x in "cj" "pr" {
 #			destring na`x', replace
 #			gen natio`x' = 0
@@ -297,13 +428,32 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			drop na`x'
 #		}
 #
+        menage["diescj"] = chaine.encode(menage['diescj'])
+        menage["diespr"] = chaine.encode(menage['diespr'])
+        menage["natiocj"] = 0
+        menage["natiopr"] = 0
+        if menage["nacj"] == 1 or menage["nacj"] == 2 :
+            menage["natiocj"] = 1
+        elif menage["nacj"] == 3:
+            menage["natiocj"] = 2
+        if menage["napr"] == 1 or menage["napr"] == 2 :
+            menage["natiopr"] = 1
+        elif menage["napr"] == 3:
+            menage["natiopr"] = 2
+
 #		gen typlog = 0
 #		replace typlog = 1 if sitlog == "1"
 #		replace typlog = 2 if typlog == 0
 #		drop sitlog
 #
+        menage["typlog"] = 0
+        if menage["sitlog"] == 1:
+            menage["typlog"] = 1
+        else menage["tplog"] = 2
+
 #		destring stalog, replace
 #
+        menage["statlog"] = chaine.encode(menage["statlog"])
 #		sort ident_men
 #		save "`menages'", replace
 #
@@ -365,6 +515,9 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #
 #	}
 #
+        individus = survey.get_values(table = 'individu')
+
+
 #	if ${yearrawdata} == 2005 {
 #
 #		use "$rawdatadir\menage.dta", clear
