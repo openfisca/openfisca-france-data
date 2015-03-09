@@ -29,23 +29,97 @@ import logging
 
 from ConfigParser import SafeConfigParser
 
-import numpy as np
-import pandas as pd
-from pandas import merge
+import pandas
 
 log = logging.getLogger(__name__)
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
+    import normalize_coicop
 
 from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import find_nearest_inferior
 
-def get_cn_data_frames(year = None, year_calage = None):
-    assert year is not None
+
+def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
+    depenses_calees = pandas.DataFrame()
+    coicop_list = set(depenses.columns)
+    coicop_list.remove('pondmen')
+    for column in coicop_list:
+        coicop = normalize_coicop(column)
+        grosposte = int(coicop[0:2])
+#        print column, coicop, grosposte
+# RAPPEL : 12 postes CN et COICOP
+#    01 Produits alimentaires et boissons non alcoolisées
+#    02 Boissons alcoolisées et tabac
+#    03 Articles d'habillement et chaussures
+#    04 Logement, eau, gaz, électricité et autres combustibles
+#    05 Meubles, articles de ménage et entretien courant de l'habitation
+#    06 Santé
+#    07 Transports
+#    08 Communication
+#    09 Loisir et culture
+#    10 Education
+#    11 Hotels, cafés, restaurants
+#    12 Biens et services divers
+        if grosposte != 99:
+            ratio_bdf_cn = masses.at[grosposte,'ratio_bdf{}_cn{}'.format(year_data, year_data)]
+            ratio_cn_cn = masses.at[grosposte,'ratio_cn{}_cn{}'.format(year_data, year_calage)]
+            depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn
+#            print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
+    return depenses_calees
+
+
+def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
+    '''
+    Fonction qui calcule les ratios de calage (bdf sur cn pour année de données) et de vieillissement
+    à partir des masses de comptabilité nationale et des masses de consommation de bdf.
+    '''
+    masses = data_cn.merge(
+        data_bdf, left_index = True, right_index = True
+        )
+    masses.rename(columns = {0: 'conso_bdf{}'.format(year_data)}, inplace = True)
+    masses['ratio_cn{}_cn{}'.format(year_data, year_calage)] = (
+        masses['consoCN_COICOP_{}'.format(year_calage)] / masses['consoCN_COICOP_{}'.format(year_data)]
+        )
+    masses['ratio_bdf{}_cn{}'.format(year_data, year_data)] = (
+        1000000 * masses['consoCN_COICOP_{}'.format(year_data)] / masses['conso_bdf{}'.format(year_data)]
+        )
+    return masses
+
+
+def get_bdf_data_frames(year_data):
+    '''
+    Fonction qui récupère les dépenses de budget des familles
+    et les agrège par poste (en tenant compte des poids respectifs des ménages)
+    '''
+    depenses_by_grosposte = temporary_store.extract('depenses_by_grosposte_{}'.format(year_data))
+    grospostes_list = set(depenses_by_grosposte.columns)
+    grospostes_list.remove('pondmen')
+
+    dict_bdf_weighted_sum_by_grosposte = {}
+    for grosposte in grospostes_list:
+        depenses_by_grosposte['{}pond'.format(grosposte)] = (
+            depenses_by_grosposte[grosposte] * depenses_by_grosposte['pondmen']
+            )
+        dict_bdf_weighted_sum_by_grosposte[grosposte] = depenses_by_grosposte['{}pond'.format(grosposte)].sum()
+    df_bdf_weighted_sum_by_grosposte = pandas.DataFrame(
+        pandas.Series(
+            data = dict_bdf_weighted_sum_by_grosposte,
+            index = dict_bdf_weighted_sum_by_grosposte.keys()
+            )
+        )
+    return df_bdf_weighted_sum_by_grosposte
+
+
+def get_cn_data_frames(year_data = None, year_calage = None):
+    assert year_data is not None
     if year_calage is None:
-        year_calage = year
-    
+        year_calage = year_data
+
     parser = SafeConfigParser()
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
@@ -56,20 +130,21 @@ def get_cn_data_frames(year = None, year_calage = None):
         )
 
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
-    masses_cn_data_frame = pd.read_excel(parametres_fiscalite_file_path, sheetname = "consommation_CN")
-    masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year, year_calage]]
+    masses_cn_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "consommation_CN")
+
+    masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year_data, year_calage]]
     masses_cn_12postes_data_frame['code_unicode'] = masses_cn_12postes_data_frame.Code.astype(unicode)
     masses_cn_12postes_data_frame['len_code'] = masses_cn_12postes_data_frame['code_unicode'].apply(lambda x: len(x))
 
 #    On ne garde que les 12 postes sur lesquels on cale:
     masses_cn_12postes_data_frame = masses_cn_12postes_data_frame[masses_cn_12postes_data_frame['len_code'] == 6]
     masses_cn_12postes_data_frame['code'] = masses_cn_12postes_data_frame.Code.astype(int)
-    masses_cn_12postes_data_frame = masses_cn_12postes_data_frame.drop(['len_code', 'code_unicode','Code'], 1)
+    masses_cn_12postes_data_frame = masses_cn_12postes_data_frame.drop(['len_code', 'code_unicode', 'Code'], 1)
 
-    if year_calage != year:
+    if year_calage != year_data:
         masses_cn_12postes_data_frame.rename(
             columns = {
-                year: 'consoCN_COICOP_{}'.format(year),
+                year_data: 'consoCN_COICOP_{}'.format(year_data),
                 year_calage: 'consoCN_COICOP_{}'.format(year_calage),
                 'code': 'poste'
                 },
@@ -78,51 +153,71 @@ def get_cn_data_frames(year = None, year_calage = None):
     else:
         masses_cn_12postes_data_frame.rename(
             columns = {
-                year: 'consoCN_COICOP_{}'.format(year),
+                year_data: 'consoCN_COICOP_{}'.format(year_data),
                 'code': 'poste'
                 },
             inplace = True,
             )
-            
-#    nomenclature_commune_file_path = os.path.join(directory_path, "Nomenclature commune.xls")
-#    nomenclature_commune = pd.read_excel(nomenclature_commune_file_path, sheetname = "nomenclature")
-
+    masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
-def weighted_sum(groupe, var):
-    '''
-    Fonction qui calcule la moyenne pondérée par groupe d'une variable
-    '''
-    data = groupe[var]
-    weights = groupe['pondmen']
-    return (data * weights).sum()
+def build_depenses_calees(year_calage, year_data_list):
+#   Quelle base de données choisir pour le calage ?
+    year_data = find_nearest_inferior(year_data_list, year_calage)
 
+    # Masses de calage provenant de la comptabilité nationale
+    masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)
 
-def collapsesum(data_frame, by = None, var = None):
-    '''
-    Pour une variable, fonction qui calcule la moyenne pondérée au sein de chaque groupe.
-    '''
-    assert by is not None
-    assert var is not None
-    grouped = data_frame.groupby([by])
-    return grouped.apply(lambda x: weighted_sum(groupe = x, var =var))
+    # Enquête agrégée au niveau des gros postes de COICOP (12)
+    df_bdf_weighted_sum_by_grosposte = get_bdf_data_frames(year_data)
+    # TODO: check that the grospostes correspond to the right category (what are the 22, 45, 99 categories ?)
 
+    # Calcul des ratios de calage :
+    masses = calcul_ratios_calage(
+        year_data,
+        year_calage,
+        data_bdf = df_bdf_weighted_sum_by_grosposte,
+        data_cn = masses_cn_12postes_data_frame
+        )
 
-def define_year_data(year_data_list, year_calage):
-    diff=[]
-    for i in range(0,len(year_data_list)):
-        diff.append(year_calage - year_data_list[i])
-   
-    for i in range(0,len(year_data_list)):
-        if diff[i]<0:
-            diff[i] = 10
+    # Application des ratios de calage
+    depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
+    depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
+    temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
 
-    minimum = np.argmin(diff)
-    year_to_keep = year_data_list[minimum]
-    
-    #Todo: gérer les exceptions : années avant 2005...
-    return  year_to_keep
+    ###
+    def select_gros_postes(coicop):
+        try:
+            coicop = unicode(coicop)
+        except:
+            coicop = coicop
+        normalized_coicop = normalize_coicop(coicop)
+        grosposte = normalized_coicop[0:2]
+        return int(grosposte)
 
+    grospostes = [
+        select_gros_postes(coicop)
+        for coicop in depenses_calees.columns
+        ]
+    tuples_gros_poste = zip(depenses_calees.columns, grospostes)
+    depenses_calees.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
+
+    depenses_calees_by_grosposte = depenses_calees.groupby(level = 1, axis = 1).sum()
+
+    column_groposte = [
+        'coicop12_{}'.format(column)
+        for column in depenses_calees_by_grosposte.columns
+        ]
+    depenses_calees_by_grosposte.columns = column_groposte
+
+    # Sauvegarde de la base en coicop agrégée calée
+    temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
+
+# Vérification des résultats du calage :
+    print 'depenses', depenses.shape
+    print 'depenses_calees', depenses_calees.shape
+#    La différence du nombre de colonne vient du fait que l'on ne garde pas
+#    les postes 99... qui sont des dépenses en impôts, taxes, loyers...
 
 
 if __name__ == '__main__':
@@ -130,43 +225,9 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-
-    # Quelle base de données choisir pour le calage ?
-    year_calage=2007
+    year_calage = 2007
     year_data_list = [2005, 2010]
-    year_data = define_year_data(year_data_list, year_calage)
 
-    # Masses de calage provenant de la comptabilité nationale
-    masses_cn_12postes_data_frame = get_cn_data_frames(year = year_data, year_calage = year_calage)
-    masses_cn_12postes_data_frame.set_index('poste', inplace = True)
-
-    # Enquête agrégée au niveau des gros postes de COICOP (12)
-    depenses_by_grosposte = temporary_store['depenses_by_grosposte_{}'.format(year_data)]
-
-    dict_bdf_weighted_sum_by_grosposte = {}
-    for grosposte in range(1,10):
-        depenses_by_grosposte['{}pond'.format(grosposte)] = depenses_by_grosposte[grosposte]*depenses_by_grosposte['pondmen']
-        dict_bdf_weighted_sum_by_grosposte[grosposte] = depenses_by_grosposte['{}pond'.format(grosposte)].sum()
-    df_bdf_weighted_sum_by_grosposte = pd.DataFrame(pd.Series(data = dict_bdf_weighted_sum_by_grosposte, index = dict_bdf_weighted_sum_by_grosposte.keys()))
-
-#   Calcul des ratios de calage :     
-    masses = masses_cn_12postes_data_frame.merge(df_bdf_weighted_sum_by_grosposte, left_index = True, right_index = True)
-    masses.rename(columns= {0:'conso_bdf{}'.format(year_data)}, inplace = True)
-    masses['ratio_cn{}_cn{}'.format(year_data, year_calage)] = masses['consoCN_COICOP_{}'.format(year_calage)]/masses['consoCN_COICOP_{}'.format(year_data)]
-    masses['ratio_bdf{}_cn{}'.format(year_data,year_data)] = 1000000 * masses['consoCN_COICOP_{}'.format(year_data)]/masses['conso_bdf{}'.format(year_data)]
-
-# Application des ratios de calage 
-    depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
-#
-#    bygrosposte_df = pd.DataFrame(collapsesum(depenses,"grosposte","depense"))
-#    bygrosposte_df.rename(columns = {0:'conso_bdf{}'.format(year)}, inplace = True)
-#
-#    bygrosposte_df['poste'] = bygrosposte_df.index.astype(int)
-#    df_cn = get_CN_data_frames(year=2005,year_calage =2010)
-#    df_cn['poste']=df_cn['poste'].astype(int)
-#    depenses_cn_df = merge(left = df_cn, right=bygrosposte_df, on='poste')
-#    depenses_cn_df['ratio_cn{}_cn{}'.format(year, year_calage)] = depenses_cn_df['consoCN_COICOP_{}'.format(year_calage)]/depenses_cn_df['consoCN_COICOP_{}'.format(year)]
-#    depenses_cn_df['ratio_bdf{}_cn{}'.format(year,year)] = 1000000 * depenses_cn_df['consoCN_COICOP_{}'.format(year)]/depenses_cn_df['conso_bdf{}'.format(year)]
-#    print depenses_cn_df
+    build_depenses_calees(year_calage, year_data_list)
 
     log.info("step 03 calage duration is {}".format(time.clock() - deb))

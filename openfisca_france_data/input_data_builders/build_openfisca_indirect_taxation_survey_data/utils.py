@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
@@ -16,26 +17,33 @@
 #
 # OpenFisca is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
+def collapsesum(data_frame, by = None, var = None):
+    '''
+    Pour une variable, fonction qui calcule la moyenne pondérée au sein de chaque groupe.
+    '''
+    assert by is not None
+    assert var is not None
+    grouped = data_frame.groupby([by])
+    return grouped.apply(lambda x: weighted_sum(groupe = x, var =var))
 
-from openfisca_france_data.read_dbf import read_dbf
-current_dir = os.path.dirname(os.path.realpath(__file__))
 
+def find_nearest_inferior(years, year):
+    anterior_years = [
+        available_year for available_year in years if available_year <= year
+        ]
+    return max(anterior_years)
 
-def test():
-    dbf_file_path = os.path.join("/home/benjello/data/INSEE/Enquetes_emploi/emploi06/donnees/INDIV061.dbf")
-    data_frame = read_dbf(dbf_file_path)
-    print data_frame.info()
-
-if __name__ == '__main__':
-    import time
-    deb = time.clock()
-    test()
-    print time.clock() - deb
+def weighted_sum(groupe, var):
+    '''
+    Fonction qui calcule la moyenne pondérée par groupe d'une variable
+    '''
+    data = groupe[var]
+    weights = groupe['pondmen']
+    return (data * weights).sum()

@@ -230,14 +230,14 @@ def final(year = 2006, filename = "test", check = True):
 
 #     assert final.act5.notnull().all(), 'there are NaN inside final.act5'
 # final$wprm <- NULL # with the intention to extract wprm from menage to deal with FIPs
-# final$tax_hab <- final$zthabm # rename zthabm to tax_hab
+# final$taxe_habitation <- final$zthabm # rename zthabm to taxe_habitation
 # final$zthabm <- NULL
 #
 # final2 <- merge(final, loyersMenages, by="idmen", all.x=TRUE)
     log.info('    création de final2')
     del final["wprm"]
     gc.collect()
-    final.rename(columns = dict(zthabm = "tax_hab"), inplace = True)  # rename zthabm to tax_hab
+    final.rename(columns = dict(zthabm = "taxe_habitation"), inplace = True)  # rename zthabm to taxe_habitation
     final2 = final.merge(loyersMenages, on = "idmen", how = "left")  # TODO: Check
     log.info("{}".format( loyersMenages.head()))
     gc.collect()

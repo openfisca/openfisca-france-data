@@ -1,0 +1,4 @@
+-e git+https://github.com/openfisca/openfisca-core.git#egg=OpenFisca-Core
+-e git+https://github.com/openfisca/openfisca-france.git#egg=OpenFisca-France
+-e git+https://github.com/openfisca/openfisca-survey-manager.git#egg=OpenFisca-Survey-Manager
+-e .

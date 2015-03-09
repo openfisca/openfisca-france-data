@@ -30,7 +30,7 @@ import os
 
 from openfisca_survey_manager.surveys import Survey, SurveyCollection
 
-from openfisca_france_data import config_files_directory
+from openfisca_france_data import default_config_files_directory as config_files_directory
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +46,11 @@ def build_empty_bdf_survey_collection(years = None):
     output_data_directory = bdf_survey_collection.config.get('data', 'output_directory')
 
     tables_by_year = {
+        1995: [
+            "sociosm",
+            "depnom",
+            #TODO: continuer de rajouter les bases qui manquent
+            ],
         2000: [
             "biensdur",
             "consomen",
@@ -137,17 +142,20 @@ def build_empty_bdf_survey_collection(years = None):
 
 if __name__ == '__main__':
 
-    try:
-        years = [2000, 2005, 2011]
-        bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    except:
-        bdf_survey_collection = build_empty_bdf_survey_collection(years = years)
+#    try:
+#        years = [2000, 2005, 2011]
+#        bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+#    except:
+#        bdf_survey_collection = build_empty_bdf_survey_collection(years = years)
+    years = [1995, 2000, 2005, 2011]
+    bdf_survey_collection = build_empty_bdf_survey_collection(years = years)
 
-    fill_years = [2000]
+    fill_years = [1995, 2000, 2005]
 
     for year in fill_years:
         if year != 2011:
             bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
         else:
             bdf_survey_collection.fill_hdf_from_sas(surveys_name = ["budget_des_familles_{}".format(year)])
-    bdf_survey_collection.dump(collection = "budget_des_familles")
+    file_path = '/Users/malkaguillot/Documents/data/openfisca/collections/budget_des_familles.json'
+    bdf_survey_collection.dump(collection = "budget_des_familles", file_path = file_path)

@@ -25,6 +25,7 @@
 
 import os
 import logging
+import numpy
 import pandas
 from ConfigParser import SafeConfigParser
 
@@ -119,6 +120,18 @@ def build_depenses_homogenisees(year = None):
 #
     if year == 2000:
         conso = survey.get_values(table = "consomen")
+        conso.rename(
+            columns = {
+                'ident': 'ident_men',
+                'pondmen': 'pondmen',
+                },
+            inplace = True,
+            )
+        for variable in ['ctotale', 'c99', 'c99999'] + \
+                        ["c0{}".format(i) for i in range(1, 10)] + \
+                        ["c{}".format(i) for i in range(10, 14)]:
+            del conso[variable]
+
         #		if ${yearrawdata} == 2005 {
         #			use "$rawdatadir\c05d.dta", clear
         #			order _all, alpha
@@ -131,6 +144,16 @@ def build_depenses_homogenisees(year = None):
 
     if year == 2005:
         conso = survey.get_values(table = "c05d")
+
+
+    if year == 2011:
+        conso = survey.get_values(table = "c05")
+        conso.rename(
+            columns = {
+                'ident_me': 'ident_men',
+                },
+            inplace = True,
+            )
 
 #
 #	order ident pondmen poste depense
@@ -198,8 +221,7 @@ def build_depenses_homogenisees(year = None):
     conso.drop('pondmen', axis = 1, inplace = True)
     conso.set_index('ident_men', inplace = True)
 
-    matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = \
-        get_transfert_data_frames(year)
+    matrice_passage_data_frame, selected_parametres_fiscalite_data_frame = get_transfert_data_frames(year)
 
     coicop_poste_bdf = matrice_passage_data_frame[['poste{}'.format(year), 'posteCOICOP']]
     coicop_poste_bdf.set_index('poste{}'.format(year), inplace = True)
@@ -210,10 +232,10 @@ def build_depenses_homogenisees(year = None):
         try:
             return int(coicop.replace('c', '').lstrip('0'))
         except:
-            return None
+            return numpy.NaN
 
     coicop_labels = [
-        coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf))
+        normalize_coicop(coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf)))
         for poste_bdf in conso.columns
         ]
     tuples = zip(coicop_labels, conso.columns)
@@ -223,33 +245,56 @@ def build_depenses_homogenisees(year = None):
     depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
     temporary_store['depenses_{}'.format(year)] = depenses
 
-#    Création de gros postes, les 12 postes sur lesquels le calage se fera
-#   TODO: gérer le fait que cette méthode ne permet pas de gérer les postes 10, 11 et 12
+    # Création de gros postes, les 12 postes sur lesquels le calage se fera
+    def select_gros_postes(coicop):
+        try:
+            coicop = unicode(coicop)
+        except:
+            coicop = coicop
+        normalized_coicop = normalize_coicop(coicop)
+        grosposte = normalized_coicop[0:2]
+        return int(grosposte)
+
     grospostes = [
-        (int(unicode(coicop_label)[0]))
-        for coicop_label in coicop_data_frame.columns
+        select_gros_postes(coicop)
+        for coicop in coicop_data_frame.columns
         ]
     tuples_gros_poste = zip(coicop_data_frame.columns, grospostes)
     coicop_data_frame.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
-    
+
     depenses_by_grosposte = coicop_data_frame.groupby(level = 1, axis = 1).sum()
-    depenses_by_grosposte=depenses_by_grosposte.merge(poids, left_index = True, right_index = True)  
+    depenses_by_grosposte = depenses_by_grosposte.merge(poids, left_index = True, right_index = True)
 
     temporary_store['depenses_by_grosposte_{}'.format(year)] = depenses_by_grosposte
+    temporary_store.close()
+
 
 def normalize_coicop(code):
     '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
 matrice_passage_data_frame en la transformant en une chaine de 5 caractères
     '''
     # TODO il faut préciser ce que veut dire harmoniser
+    # Cf. Nomenclature_commune.xls
+    try:
+        code = unicode(code)
+    except:
+        code = code
     if len(code) == 3:
         normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
     elif len(code) == 4:
-        if not code.startswith("1") and not code.startswith("9"):
+        if not code.startswith("0") and not code.startswith("1") and not code.startswith("45") and not code.startswith("9"):
             normalized_code = "0" + code
-        elif code in ["1151", "1181"]:
+            # 022.. = cigarettes et tabacs => on les range avec l'alcool (021.0)
+        elif code.startswith("0"):
+            normalized_code = code + "0"
+        elif code in ["1151", "1181", "4522", "4511"]:
+            # 1151 = Margarines et autres graisses végétales
+            # 1181 = Confiserie
+            # 04522 = Achat de butane, propane
+            # 04511 = Facture EDF GDF non dissociables
             normalized_code = "0" + code
         else:
+            # 99 = loyer, impots et taxes, cadeaux...
             normalized_code = code + "0"
     elif len(code) == 5:
         normalized_code = code

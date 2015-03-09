@@ -23,50 +23,30 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import os
-import gc
-
-from sas7bdat import SAS7BDAT
+from openfisca_france_data.input_data_builders.fake_openfisca_data_builder import get_fake_input_data_frame
+from openfisca_france_data.surveys import SurveyScenario
 
 
-#current_dir = os.path.dirname(os.path.realpath(__file__))
-
-
-def test(table):
-    data_directory = "/home/benjello/data/INSEE/"
-    sas_file_path = os.path.join(
-        data_directory,
-        'budget_des_familles',
-        '2011',
-        'sas',
-        table + '.sas7bdat',
+def test_fake_survey_simulation():
+    year = 2006
+    input_data_frame = get_fake_input_data_frame(year)
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        year = year,
         )
-    return SAS7BDAT(sas_file_path).to_data_frame()
+    simulation = survey_scenario.new_simulation()
+    simulation.calculate('revdisp')
 
 
 if __name__ == '__main__':
+    import logging
+    log = logging.getLogger(__name__)
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    test_fake_survey_simulation()
 
-    tables = [
-#        "a04",
-#        "abocom",
-#        "assu",
-#        "autvehic",
-#        "automobile",
-#        "bienscult",
-#        "biensdur",
-#        "c05",
-#        "carnets",
-#        "compl_sante",
-        "depindiv",  # test
-#        "depmen",    # test
-##        "enfanthorsdom",
-##        "garage",
-##        "individu",
-#        "menage",   # test
-#        "revind_dom",  # test
-#        "revmen_dom",  # test
-        ]
-    for table in tables:
-        print table
-        df = test(table)
-        gc.collect()
+    df_by_entity = test_fake_survey_simulation()
+    df_i = df_by_entity['individus']
+    df_m = df_by_entity['menages']
+    print df_i
+    print df_m
