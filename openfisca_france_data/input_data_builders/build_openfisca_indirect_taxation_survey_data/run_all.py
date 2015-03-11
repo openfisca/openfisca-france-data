@@ -75,16 +75,12 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], file
     build_homogeneisation_caracteristiques_sociales(year = year)
     menage = temporary_store['donnes_socio_demog_{}'.format(year)]
 
-<<<<<<< HEAD
-def run_all(year = 2005, filename = "test_indirect_taxation"):
-=======
     # Gestion des variables revenues:
     build_homogeneisation_revenus_menages(year = year)
     revenus = temporary_store["revenus_{}".format(year)]
 
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat([revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
->>>>>>> master
 
     data_frame.index.name = "ident_men"
     data_frame.reset_index(inplace = True)
