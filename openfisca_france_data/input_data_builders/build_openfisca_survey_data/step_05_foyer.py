@@ -40,7 +40,7 @@ from pandas import concat, DataFrame, Series
 import re
 
 
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data import save_temp, show_temp
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id
 
@@ -49,7 +49,7 @@ log = logging.getLogger(__name__)
 
 def sif(year = 2006):
     erfs_survey_collection = SurveyCollection.load(collection='erfs')
-    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 
     log.info("05_foyer: extraction des données foyer")
     ## TODO Comment choisir le rfr n -2 pour éxonération de TH ?
@@ -161,7 +161,7 @@ def foyer_all(year = 2006):
 
     ## On ajoute les cases de la déclaration
     erfs_survey_collection = SurveyCollection.load(collection='erfs')
-    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
     foyer_all = data.get_values(table = "foyer")
     ## on ne garde que les cases de la déclaration ('fxzz')
     vars = foyer_all.columns

@@ -39,16 +39,34 @@ import numpy as np
 from pandas import DataFrame
 
 #problem with rpy last version is not working
-import pandas.rpy.common as com
+try:
+    import pandas.rpy.common as com
+except ImportError:
+    com = None
+try:
+    import rpy2.rpy_classic as rpy2
+except ImportError:
+    rpy = None
+
+try:
+    from rpy2.robjects.packages import importr
+except ImportError:
+    importr = None
 
 
-from rpy2.robjects.packages import importr
-import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
-import rpy2.robjects.vectors as vectors
-
+#try:
+#    import rpy2.robjects.pandas2ri
+#    # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
+#except:
+#    rpy2.robjects.pandas2ri = None
+#
+#try:
+#    import rpy2.robjects.vectors as vectors
+#except:
+#    rpy2.robjects.vectors = None
 
 from openfisca_france_data.model.common import mark_weighted_percentiles
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
 

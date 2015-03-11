@@ -29,7 +29,7 @@ import gc
 import numpy as np
 import logging
 
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data import save_temp
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
 
@@ -39,7 +39,6 @@ log = logging.getLogger(__name__)
 
 # Menages et Individus
 
-
 def create_indivim(year = None):
     """
     Création de la table individus concaténée (merged)
@@ -47,8 +46,8 @@ def create_indivim(year = None):
     assert year is not None
     # load data
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
-    erfmen = survey.get_values(table = "erf_menage")
+    survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    erfmen = survey.get_values(table = "menage")
 
     start_time = datetime.datetime.now()
     eecmen = survey.get_values(table = "eec_menage")
@@ -128,7 +127,7 @@ def create_indivim(year = None):
     # la même nomenclatue à été adopée
 
 #    3: contrat a durée déterminée
-    indivim['actrec'][indivim['acteu'] == 1] = 3  
+    indivim['actrec'][indivim['acteu'] == 1] = 3
     # TODO: check what is done
 
 #    8 : femme (homme) au foyer, autre inactif
@@ -195,7 +194,7 @@ def create_enfants_a_naitre(year = None):
     assert year is not None
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 #   Enfant à naître (NN pour nouveaux nés)
     individual_vars = [
         'acteu',
