@@ -32,7 +32,7 @@ import numpy as np
 from numpy import where
 
 
-from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, control
 
@@ -47,7 +47,7 @@ def create_totals(year = 2006):
     log.info(u"Etape 1 : Chargement des données")
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     indivim = load_temp(name = "indivim", year = year)
 

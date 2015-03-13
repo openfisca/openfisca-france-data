@@ -33,7 +33,7 @@ import logging
 from pandas import DataFrame, MultiIndex, concat
 import numpy as np
 
-from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import SurveyCollection
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
 
 
@@ -49,7 +49,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     # We add them to ensure consistency between concepts.
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    df = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    df = erfs_survey_collection.surveys['erfs_{}'.format(year)]
 
     log.info(u"Démarrage de 03_fip")
 
@@ -107,7 +107,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     fip.drop(['pac_number'], axis = 1, inplace = True)
     #TODO: rajouter la case I : "Dont enfants titulaires de la carte d’invalidité"
     assert fip.type_pac.isin(["F", "G", "H","I", "J", "N", "R"]).all(), "Certains type de PAC sont inconnus" # TODO: find a more explicitmessage
-
+    
 #    control(fip, debug=True, verbose=True, verbose_columns=['naia'])
 
     log.info(u"    1.3 : on enlève les individus F pour lesquels il existe un individu G")
