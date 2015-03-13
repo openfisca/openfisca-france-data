@@ -85,8 +85,6 @@ def build_imputation_loyers_proprietaires(year = None):
         depenses.rename(columns = {'depense' : 'loyer_reel'}, inplace = True)
         depenses.rename(columns = {'PONDERRD' : 'PONDMEN'}, inplace = True)
 
-        # TODO:
-
 #		* une indicatrice pour savoir si le loyer est connu et l'occupant est locataire
 #		gen observe = (loyer_reel != . & inlist(STALOG,"3","4"))
 #		gen loyer_impute = loyer_reel
@@ -104,6 +102,23 @@ def build_imputation_loyers_proprietaires(year = None):
 #		replace maison  = 0 if CC == "5" & catsurf == 8 & maison == 1
 #		replace maison  = 0 if CC == "4" & catsurf == 1 & maison == 1
 # 		sort ident_men
+        imput00['observe'] = imput00[imput00.loyer_reel != "." && ]
+        imput00['loyer_impute'] = imput00['loyer_reel']
+        imput00['maison_appart'] = imput00[imput00.SITLOG == 1]
+        imput00['catsurf'] = 1*imput00[imput00.SURF<16]
+        imput00.catsurf[imput00.SURF > 15 && imput00.SURF < 31] = 1
+        imput00.catsurf[imput00.SURF > 30 && imput00.SURF < 41] = 3
+        imput00.catsurf[imput00.SURF > 40 && imput00.SURF < 61] = 4
+        imput00.catsurf[imput00.SURF > 60 && imput00.SURF < 81] = 5
+        imput00.catsurf[imput00.SURF > 80 && imput00.SURF < 101] = 6
+        imput00.catsurf[imput00.SURF > 100 && imput00.SURF < 151] = 7
+        imput00.catsurf[imput00.SURF > 150] = 8
+        imput00.maison[imput00.CC == 5 && imput00.catsurf == 1 && imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 5 && imput00.catsurf == 3 && imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 5 && imput00.catsurf == 8 && imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 4 && imput00.catsurf == 1 && imput00.maison == 1] = 0
+
+        # TODO:
 #
 #		save "`loyers'", replace
 #
@@ -128,9 +143,7 @@ def build_imputation_loyers_proprietaires(year = None):
         hotdeck1.set_index('ident_men', inplace = True)
         loyers = loyers.merge(hotdeck1, left_index = True, right_index = True)
 
-        # TODO:
-#
-#		replace loyer_impute = 0 if observe == 1
+#        replace loyer_impute = 0 if observe == 1
 #		gen imputation = (observe == 0)
 #		label var imputation "Un loyer a été imputé (oui = 1, non = 0)"
 #		rename STALOG stalog
@@ -140,6 +153,18 @@ def build_imputation_loyers_proprietaires(year = None):
 #		use "`depenses'", clear
 #		sort ident_men posteCOICOP
 #		merge m:1 ident_men using "`loyers'"
+
+        imput00.loyer_impute[imput00.observe == 1] = 0
+        imput00['imputation']=imput00.observe[imput00.observe == 0]
+        imput00.rename(columns = {'STALOG' : 'stalog'}, inplace = True)
+        kept_variables = ['ident_men', 'loyer_imp', 'imputation', 'observe', 'stalog']
+        imput00 = imput00[kept_variables]
+        imput00.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(loyers, left_index = True, right_index = True)
+
+
+        # TODO:
+
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
