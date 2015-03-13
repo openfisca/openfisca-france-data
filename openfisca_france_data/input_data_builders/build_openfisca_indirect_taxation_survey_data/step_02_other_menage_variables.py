@@ -27,7 +27,7 @@
 import logging
 
 
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def build_other_menage_variables(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
     c05d = survey.get_values(table = "c05d")
     kept_variables = [u'ident_men', u'pondmen']
