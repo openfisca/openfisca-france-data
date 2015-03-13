@@ -303,25 +303,25 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			drop occupa`x' occupb`x' occupc`x'
 #		}
 #
-    menage["situacj"] = 0
-    menage.situacj[menage.occupacj == "1"] = 1
-    menage.situacj[menage.occupccj == "3"] = 3
-    menage.situacj[menage.occupccj == "2"] = 4
-    menage.situacj[menage.occupccj == "5"] = 5
-    menage.situacj[menage.occupccj == "6"] = 5
-    menage.situacj[menage.occupccj == "7"] = 6
-    menage.situacj[menage.occupccj == "8"] = 7
-    menage.situacj[menage.occupccj == "4"] = 8
+        menage["situacj"] = 0
+        menage.situacj[menage.occupacj == "1"] = 1
+        menage.situacj[menage.occupccj == "3"] = 3
+        menage.situacj[menage.occupccj == "2"] = 4
+        menage.situacj[menage.occupccj == "5"] = 5
+        menage.situacj[menage.occupccj == "6"] = 5
+        menage.situacj[menage.occupccj == "7"] = 6
+        menage.situacj[menage.occupccj == "8"] = 7
+        menage.situacj[menage.occupccj == "4"] = 8
 
-    menage["situapr"] = 0
-    menage.situapr[menage.occupapr == "1"] = 1
-    menage.situapr[menage.occupapr == "3"] = 3
-    menage.situapr[menage.occupapr == "2"] = 4
-    menage.situapr[menage.occupapr == "5"] = 5
-    menage.situapr[menage.occupapr == "6"] = 5
-    menage.situapr[menage.occupapr == "7"] = 6
-    menage.situapr[menage.occupapr == "8"] = 7
-    menage.situapr[menage.occupapr == "4"] = 8
+        menage["situapr"] = 0
+        menage.situapr[menage.occupapr == "1"] = 1
+        menage.situapr[menage.occupapr == "3"] = 3
+        menage.situapr[menage.occupapr == "2"] = 4
+        menage.situapr[menage.occupapr == "5"] = 5
+        menage.situapr[menage.occupapr == "6"] = 5
+        menage.situapr[menage.occupapr == "7"] = 6
+        menage.situapr[menage.occupapr == "8"] = 7
+        menage.situapr[menage.occupapr == "4"] = 8
 
 #   ancien code:
 #    menage["situapr"] = 0
@@ -369,14 +369,14 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.dieppr = menage.dieppr.astype('float')
         menage.diescj = menage.diescj.astype('float')
         menage.diespr = menage.diescj.astype('float')
-        
+
         menage.diegcj = menage.diegcj.astype('long')
         menage.diegpr = menage.diegcj.astype('long')
         menage.diepcj = menage.diepcj.astype('long')
         menage.dieppr = menage.dieppr.astype('long')
         menage.diescj = menage.diescj.astype('long')
         menage.diespr = menage.diescj.astype('int')
-        
+
  #      construction de dipmaxcj maximum de diegcj, diepcj et diescj
         if menage["diegcj"] > menage["diepcj"]:
             menage["dipmaxcj"] = menage["diegcj"]
@@ -384,15 +384,15 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             menage["dipmaxcj"] = menage["diepcj"]
         if menage["diescj"] > menage["dipmaxcj"]:
             menage["dipmaxcj"] = menage["diescj"]
-        
- #      construction de dipmaxpr maximum de diegpr, dieppr et diespr       
+
+ #      construction de dipmaxpr maximum de diegpr, dieppr et diespr
         if menage["diegpr"] > menage["dieppr"]:
             menage["dipmaxpr"] = menage["diegpr"]
         else :
             menage["dipmaxpr"] = menage["dieppr"]
         if menage["diespr"] > menage["dipmaxpr"]:
             menage["dipmaxpr"] = menage["diespr"]
-      
+
         menage["dp14cj"] = 0
         menage.dp14cj[menage.dipmaxcj == "47"] = 10
         menage.dp14cj[menage.dipmaxcj == "48"] = 12
@@ -418,7 +418,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.dp14cj[menage.dipmaxcj == "2"] = 70
         menage.dp14cj[menage.dipmaxcj == "0"] = 71
         menage.dp14cj[menage.dipmaxcj == "."] = 71
-        
+
 #          ancien code:
 #        if menage["dipmaxcj"] == 47:
 #            menage["dp14cj"] = 10
@@ -473,7 +473,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.dp14pr[menage.dipmaxpr == "2"] = 70
         menage.dp14pr[menage.dipmaxpr == "0"] = 71
         menage.dp14pr[menage.dipmaxpr == "."] = 71
-        
+
 #       ancien code
 #        if menage["dipmaxpr"] == 47:
 #            menage["dp14pr"] = 10
@@ -522,7 +522,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.natiopr[menage.napr == "1"] = 1
         menage.natiopr[menage.napr == "2"] = 1
         menage.natiopr[menage.napr == "3"] = 2
-#       ancien code: 
+#       ancien code:
 #       if menage["nacj"] == 1 or menage["nacj"] == 2 :
 #            menage["natiocj"] = 1
 #        elif menage["nacj"] == 3:
@@ -540,7 +540,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage["typlog"] = 0
         menage.typlog[menage.sitlog == "1"] = 1
         menage.typlog[menage.sitlog != "1"] = 2
-        
+
 #        ancien code:
 #        if menage["sitlog"] == 1:
 #            menage["typlog"] = 1
