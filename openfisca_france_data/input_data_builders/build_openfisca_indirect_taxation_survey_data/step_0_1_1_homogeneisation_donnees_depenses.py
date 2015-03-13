@@ -90,7 +90,7 @@ def build_depenses_homogenisees(year = None):
 
     if year == 1995:
         socioscm = survey.get_values(table = "socioscm")
-        socioscm = socioscm.iloc(socioscm.EXDEP == 1 & socioscm.EXREV == 1, ["MENA", "PONDERD"]).copy()
+        socioscm = socioscm.loc[socioscm.EXDEP == 1 & socioscm.EXREV == 1, ["MENA", "PONDERD"]].copy()
         temporary_store['ponder_{}'.format(year)] = socioscm
 
         conso = survey.get_values(tabe = "depnom")
