@@ -126,7 +126,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 },
             inplace = True,
             )
-        menage = menage[(menage.ponderrd != ".").copy()
+        menage = menage[(menage.ponderrd != ".")].copy()
 
         menage = menage.merge(vague, left_index = True, right_index = True)
 
@@ -331,6 +331,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			local w = lower("`v'")
 #			rename `v' `w'
 #		}
+    boom
     if year == 2000:
         menage = survey.get_values(
             table = "menage",
@@ -1166,7 +1167,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 1995
     build_homogeneisation_caracteristiques_sociales(year = year)
 
     log.info("step_0_3_homogeneisation_caracteristiques_sociales {}".format(time.clock() - deb))
