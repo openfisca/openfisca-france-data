@@ -29,7 +29,7 @@ import logging
 
 from ..base import *  # noqa analysis:ignore
 
-from openfisca_france.model.cotisations_sociales import travail_prive
+from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotisations_sociales import travail_prive
 
 
 log = logging.getLogger(__name__)
