@@ -117,12 +117,12 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             columns = {
                 'ponderrd':'pondmen',
                 'mena': 'identmen',
-                'nbpers':'npers'
-                'nm14a':'nenfants'
-                'nbenf':'nenfhors'
-                'nbact':'nactifs'
-                'cohab':'couplepr'
-                'matripr':'etamatri'
+                'nbpers':'npers',
+                'nm14a':'nenfants',
+                'nbenf':'nenfhors',
+                'nbact':'nactifs',
+                'cohab':'couplepr',
+                'matripr':'etamatri',
                 },
             inplace = True,
             )
@@ -228,33 +228,50 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			rename `v' `w'
 #		}
 #		tempfile individus
+
+        individus = survey.get_values(
+            table = "individu",
+            variables = [
+                'mena','v'
+                ]
+            )
+        vague.rename(
+            columns = {
+                'mena': 'identmen',
+
+                },
+            inplace = True,
+            )
 #		rename mena ident_men
+
 #		keep if lien == "1" | lien == "2"
 #		gen lettre = "pr" if lien == "1"
 #		replace lettre = "cj" if lien == "2"
 #		rename natio nationalite
 #		gen natio = 1 if inlist(nationalite,"01","02")
 #		replace natio = 2 if natio != 1
+
 #		destring dieg diep dies, replace
 #		replace dies = 0 if dies == 99
 #		replace diep = 0 if diep == 99
 #		replace dieg = 0 if dieg == 99
-#		egen dipmax = rowmax(dieg diep dies)
-#		gen dip14 = 0
-#		replace dip14 = 10 if dipmax == 47
-#		replace dip14 = 12 if dipmax == 48
-#		replace dip14 = 20 if dipmax == 46
-#		replace dip14 = 30 if inlist(dipmax,41,45)
-#		replace dip14 = 31 if inlist(dipmax,42,43)
-#		replace dip14 = 33 if dipmax == 44
-#		replace dip14 = 41 if inlist(dipmax,16,17,18,19)
-#		replace dip14 = 42 if inlist(dipmax,32,36)
-#		replace dip14 = 43 if dipmax == 34
-#		replace dip14 = 44 if dipmax == 39
-#		replace dip14 = 50 if inlist(dipmax,21,23,25,27,29)
-#		replace dip14 = 60 if inlist(dipmax,15)
-#		replace dip14 = 70 if dipmax == 2
-#		replace dip14 = 71 if inlist(dipmax,0,.)
+#
+#		            egen dipmax = rowmax(dieg diep dies)
+#		            gen dip14 = 0
+# ne pas faire		replace dip14 = 10 if dipmax == 47
+#		            replace dip14 = 12 if dipmax == 48
+#		            replace dip14 = 20 if dipmax == 46
+#		            replace dip14 = 30 if inlist(dipmax,41,45)
+#		            replace dip14 = 31 if inlist(dipmax,42,43)
+#		            replace dip14 = 33 if dipmax == 44
+#		            replace dip14 = 41 if inlist(dipmax,16,17,18,19)
+#		            replace dip14 = 42 if inlist(dipmax,32,36)
+#		            replace dip14 = 43 if dipmax == 34
+#		            replace dip14 = 44 if dipmax == 39
+#		            replace dip14 = 50 if inlist(dipmax,21,23,25,27,29)
+#		            replace dip14 = 60 if inlist(dipmax,15)
+#		            replace dip14 = 70 if dipmax == 2
+#		            replace dip14 = 71 if inlist(dipmax,0,.)
 #		keep ident_men natio dip14 lettre pcs sexe
 #		rename pcs cs42
 #		reshape wide natio dip14 cs42 sexe, i(ident_men) j(lettre) string
