@@ -27,7 +27,8 @@ import logging
 import os
 import pandas
 
-from openfisca_survey_manager.surveys import Survey, SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import build_depenses_homogenisees
 
@@ -39,7 +40,6 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_3_homogeneisation_caracteristiques_menages \
     import build_homogeneisation_caracteristiques_sociales
-
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_4_homogeneisation_revenus_menages \
     import build_homogeneisation_revenus_menages
 
