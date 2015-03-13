@@ -102,21 +102,21 @@ def build_imputation_loyers_proprietaires(year = None):
 #		replace maison  = 0 if CC == "5" & catsurf == 8 & maison == 1
 #		replace maison  = 0 if CC == "4" & catsurf == 1 & maison == 1
 # 		sort ident_men
-        imput00['observe'] = imput00[imput00.loyer_reel != "." && ]
+        imput00['observe'] = (imput00.loyer_reel != ".") * (imput00.stalog.isin(['3', '4']))
         imput00['loyer_impute'] = imput00['loyer_reel']
         imput00['maison_appart'] = imput00[imput00.SITLOG == 1]
         imput00['catsurf'] = 1*imput00[imput00.SURF<16]
-        imput00.catsurf[imput00.SURF > 15 && imput00.SURF < 31] = 1
-        imput00.catsurf[imput00.SURF > 30 && imput00.SURF < 41] = 3
-        imput00.catsurf[imput00.SURF > 40 && imput00.SURF < 61] = 4
-        imput00.catsurf[imput00.SURF > 60 && imput00.SURF < 81] = 5
-        imput00.catsurf[imput00.SURF > 80 && imput00.SURF < 101] = 6
-        imput00.catsurf[imput00.SURF > 100 && imput00.SURF < 151] = 7
+        imput00.catsurf[imput00.SURF > 15 & imput00.SURF < 31] = 1
+        imput00.catsurf[imput00.SURF > 30 & imput00.SURF < 41] = 3
+        imput00.catsurf[imput00.SURF > 40 & imput00.SURF < 61] = 4
+        imput00.catsurf[imput00.SURF > 60 & imput00.SURF < 81] = 5
+        imput00.catsurf[imput00.SURF > 80 & imput00.SURF < 101] = 6
+        imput00.catsurf[imput00.SURF > 100 & imput00.SURF < 151] = 7
         imput00.catsurf[imput00.SURF > 150] = 8
-        imput00.maison[imput00.CC == 5 && imput00.catsurf == 1 && imput00.maison == 1] = 0
-        imput00.maison[imput00.CC == 5 && imput00.catsurf == 3 && imput00.maison == 1] = 0
-        imput00.maison[imput00.CC == 5 && imput00.catsurf == 8 && imput00.maison == 1] = 0
-        imput00.maison[imput00.CC == 4 && imput00.catsurf == 1 && imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 5 & imput00.catsurf == 1 & imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 5 & imput00.catsurf == 3 & imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 5 & imput00.catsurf == 8 & imput00.maison == 1] = 0
+        imput00.maison[imput00.CC == 4 & imput00.catsurf == 1 & imput00.maison == 1] = 0
 
         # TODO:
 #
