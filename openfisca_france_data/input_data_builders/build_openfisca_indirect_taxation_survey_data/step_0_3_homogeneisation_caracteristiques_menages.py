@@ -606,7 +606,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			drop na`x'
 #		}
 #
-
         menage.diescj = menage.diescj.astype('int')
         menage.diespr = menage.diespr.astype('int')
         menage["natiocj"] = 0
@@ -633,7 +632,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #		drop sitlog
 #
         menage["typlog"] = 0
-
         menage.typlog[menage.sitlog == "1"] = 1
         menage.typlog[menage.sitlog != "1"] = 2
 
