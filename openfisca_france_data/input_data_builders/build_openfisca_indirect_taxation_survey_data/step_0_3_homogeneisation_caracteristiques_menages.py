@@ -435,25 +435,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.situapr[menage.occupapr == "8"] = 7
         menage.situapr[menage.occupapr == "4"] = 8
 
-#   ancien code:
-#    menage["situapr"] = 0
-#    if menage["occupapr"] == 1 :
-#        menage["situapr"] = 1
-#    elif menage["occupapr"] == 3 :
-#        menage["situapr"] = 3
-#    elif menage["occupapr"] == 2 :
-#        menage["situapr"] = 4
-#    elif menage["occupapr"] == 5 :
-#        menage["situapr"] = 5
-#    elif menage["occupapr"] == 6 :
-#        menage["situapr"] = 5
-#    elif menage["occupapr"] == 7 :
-#        menage["situapr"] = 6
-#    elif menage["occupapr"] == 8 :
-#        menage["situapr"] = 7
-#    elif menage["occupapr"] == 4 :
-#        menage["situapr"] = 8
-
 
 #		foreach x in "cj" "pr" {
 #			destring dieg`x' diep`x' dies`x', replace
@@ -475,157 +456,84 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			replace dip14`x' = 71 if inlist(dipmax`x',0,.)
 #			drop dieg`x' diep`x' dies`x' dipmax`x'
 #		}
-        menage.diegcj = menage.diegcj.astype('float')
-        menage.diegpr = menage.diegcj.astype('float')
-        menage.diepcj = menage.diepcj.astype('float')
-        menage.dieppr = menage.dieppr.astype('float')
-        menage.diescj = menage.diescj.astype('float')
-        menage.diespr = menage.diescj.astype('float')
+#        menage.diegcj = menage.diegcj.astype('float')
+#        menage.diegpr = menage.diegcj.astype('float')
+#        menage.diepcj = menage.diepcj.astype('float')
+#        menage.dieppr = menage.dieppr.astype('float')
+#        menage.diescj = menage.diescj.astype('float')
+#        menage.diespr = menage.diescj.astype('float')
+#
+#        menage.diegcj = menage.diegcj.astype('long')
+#        menage.diegpr = menage.diegcj.astype('long')
+#        menage.diepcj = menage.diepcj.astype('long')
+#        menage.dieppr = menage.dieppr.astype('long')
+#        menage.diescj = menage.diescj.astype('long')
+#        menage.diespr = menage.diescj.astype('int')
+#
+#
+#        menage["dp14cj"] = 0
+#        menage.dp14cj[menage.dipmaxcj == "47"] = 10
+#        menage.dp14cj[menage.dipmaxcj == "48"] = 12
+#        menage.dp14cj[menage.dipmaxcj == "46"] = 20
+#        menage.dp14cj[menage.dipmaxcj == "41"] = 30
+#        menage.dp14cj[menage.dipmaxcj == "45"] = 30
+#        menage.dp14cj[menage.dipmaxcj == "42"] = 31
+#        menage.dp14cj[menage.dipmaxcj == "43"] = 31
+#        menage.dp14cj[menage.dipmaxcj == "44"] = 33
+#        menage.dp14cj[menage.dipmaxcj == "16"] = 41
+#        menage.dp14cj[menage.dipmaxcj == "17"] = 41
+#        menage.dp14cj[menage.dipmaxcj == "18"] = 41
+#        menage.dp14cj[menage.dipmaxcj == "19"] = 41
+#        menage.dp14cj[menage.dipmaxcj == "32"] = 42
+#        menage.dp14cj[menage.dipmaxcj == "38"] = 42
+#        menage.dp14cj[menage.dipmaxcj == "34"] = 43
+#        menage.dp14cj[menage.dipmaxcj == "39"] = 44
+#        menage.dp14cj[menage.dipmaxcj == "21"] = 50
+#        menage.dp14cj[menage.dipmaxcj == "23"] = 50
+#        menage.dp14cj[menage.dipmaxcj == "25"] = 50
+#        menage.dp14cj[menage.dipmaxcj == "27"] = 50
+#        menage.dp14cj[menage.dipmaxcj == "15"] = 60
+#        menage.dp14cj[menage.dipmaxcj == "2"] = 70
+#        menage.dp14cj[menage.dipmaxcj == "0"] = 71
+#        menage.dp14cj[menage.dipmaxcj == "."] = 71
 
-        menage.diegcj = menage.diegcj.astype('long')
-        menage.diegpr = menage.diegcj.astype('long')
-        menage.diepcj = menage.diepcj.astype('long')
-        menage.dieppr = menage.dieppr.astype('long')
-        menage.diescj = menage.diescj.astype('long')
-        menage.diespr = menage.diescj.astype('int')
-
- #      construction de dipmaxcj maximum de diegcj, diepcj et diescj
-        if menage["diegcj"] > menage["diepcj"]:
-            menage["dipmaxcj"] = menage["diegcj"]
-        else :
-            menage["dipmaxcj"] = menage["diepcj"]
-        if menage["diescj"] > menage["dipmaxcj"]:
-            menage["dipmaxcj"] = menage["diescj"]
-
- #      construction de dipmaxpr maximum de diegpr, dieppr et diespr
-        if menage["diegpr"] > menage["dieppr"]:
-            menage["dipmaxpr"] = menage["diegpr"]
-        else :
-            menage["dipmaxpr"] = menage["dieppr"]
-        if menage["diespr"] > menage["dipmaxpr"]:
-            menage["dipmaxpr"] = menage["diespr"]
-
-        menage["dp14cj"] = 0
-        menage.dp14cj[menage.dipmaxcj == "47"] = 10
-        menage.dp14cj[menage.dipmaxcj == "48"] = 12
-        menage.dp14cj[menage.dipmaxcj == "46"] = 20
-        menage.dp14cj[menage.dipmaxcj == "41"] = 30
-        menage.dp14cj[menage.dipmaxcj == "45"] = 30
-        menage.dp14cj[menage.dipmaxcj == "42"] = 31
-        menage.dp14cj[menage.dipmaxcj == "43"] = 31
-        menage.dp14cj[menage.dipmaxcj == "44"] = 33
-        menage.dp14cj[menage.dipmaxcj == "16"] = 41
-        menage.dp14cj[menage.dipmaxcj == "17"] = 41
-        menage.dp14cj[menage.dipmaxcj == "18"] = 41
-        menage.dp14cj[menage.dipmaxcj == "19"] = 41
-        menage.dp14cj[menage.dipmaxcj == "32"] = 42
-        menage.dp14cj[menage.dipmaxcj == "38"] = 42
-        menage.dp14cj[menage.dipmaxcj == "34"] = 43
-        menage.dp14cj[menage.dipmaxcj == "39"] = 44
-        menage.dp14cj[menage.dipmaxcj == "21"] = 50
-        menage.dp14cj[menage.dipmaxcj == "23"] = 50
-        menage.dp14cj[menage.dipmaxcj == "25"] = 50
-        menage.dp14cj[menage.dipmaxcj == "27"] = 50
-        menage.dp14cj[menage.dipmaxcj == "15"] = 60
-        menage.dp14cj[menage.dipmaxcj == "2"] = 70
-        menage.dp14cj[menage.dipmaxcj == "0"] = 71
-        menage.dp14cj[menage.dipmaxcj == "."] = 71
-
-#          ancien code:
-#        if menage["dipmaxcj"] == 47:
-#            menage["dp14cj"] = 10
-#        elif menage["dipmaxcj"] == 48:
-#            menage["dp14cj"] = 12
-#        elif menage["dipmaxcj"] == 46:
-#            menage["dp14cj"] = 20
-#        elif menage["dipmaxcj"] == 41 or menage["dipmaxcj"] == 45 :
-#            menage["dp14cj"] = 30
-#        elif menage["dipmaxcj"] == 42 or menage["dipmaxcj"] == 43 :
-#            menage["dp14cj"] = 31
-#        elif menage["dipmaxcj"] == 44:
-#            menage["dp14cj"] = 33
-#        elif menage["dipmaxcj"] == 16 or menage["dipmaxcj"] == 17 or menage["dipmaxcj"] == 18 or menage["dipmaxcj"] == 19 :
-#            menage["dp14cj"] = 41
-#        elif menage["dipmaxcj"] == 32 or menage["dipmaxcj"] == 36 :
-#            menage["dp14cj"] = 42
-#        elif menage["dipmaxcj"] == 34:
-#            menage["dp14cj"] = 43
-#        elif menage["dipmaxcj"] == 39:
-#            menage["dp14cj"] = 44
-#        elif menage["dipmaxcj"] == 21 or menage["dipmaxcj"] == 23 or menage["dipmaxcj"] == 25 or menage["dipmaxcj"] == 27 or menage["dipmaxcj"] == 29:
-#            menage["dp14cj"] = 50
-#        elif menage["dipmaxcj"] == 15:
-#            menage["dp14cj"] = 60
-#        elif menage["dipmaxcj"] == 2:
-#            menage["dp14cj"] = 70
-#        elif menage["dipmaxcj"] == 0 or menage["dipmaxcj"] == .:
-#            menage["dp14cj"] = 71
-        menage["dp14pr"] = 0
-        menage.dp14pr[menage.dipmaxpr == "47"] = 10
-        menage.dp14pr[menage.dipmaxpr == "48"] = 12
-        menage.dp14pr[menage.dipmaxpr == "46"] = 20
-        menage.dp14pr[menage.dipmaxpr == "41"] = 30
-        menage.dp14pr[menage.dipmaxpr == "45"] = 30
-        menage.dp14pr[menage.dipmaxpr == "42"] = 31
-        menage.dp14pr[menage.dipmaxpr == "43"] = 31
-        menage.dp14pr[menage.dipmaxpr == "44"] = 33
-        menage.dp14pr[menage.dipmaxpr == "16"] = 41
-        menage.dp14pr[menage.dipmaxpr == "17"] = 41
-        menage.dp14pr[menage.dipmaxpr == "18"] = 41
-        menage.dp14pr[menage.dipmaxpr == "19"] = 41
-        menage.dp14pr[menage.dipmaxpr == "32"] = 42
-        menage.dp14pr[menage.dipmaxpr == "38"] = 42
-        menage.dp14pr[menage.dipmaxpr == "34"] = 43
-        menage.dp14pr[menage.dipmaxpr == "39"] = 44
-        menage.dp14pr[menage.dipmaxpr == "21"] = 50
-        menage.dp14pr[menage.dipmaxpr == "23"] = 50
-        menage.dp14pr[menage.dipmaxpr == "25"] = 50
-        menage.dp14pr[menage.dipmaxpr == "27"] = 50
-        menage.dp14pr[menage.dipmaxpr == "15"] = 60
-        menage.dp14pr[menage.dipmaxpr == "2"] = 70
-        menage.dp14pr[menage.dipmaxpr == "0"] = 71
-        menage.dp14pr[menage.dipmaxpr == "."] = 71
-
-#       ancien code
-#        if menage["dipmaxpr"] == 47:
-#            menage["dp14pr"] = 10
-#        elif menage["dipmaxpr"] == 48:
-#            menage["dp14pr"] = 12
-#        elif menage["dipmaxpr"] == 46:
-#            menage["dp14pr"] = 20
-#        elif menage["dipmaxpr"] == 41 or menage["dipmaxpr"] == 45 :
-#            menage["dp14pr"] = 30
-#        elif menage["dipmaxpr"] == 42 or menage["dipmaxpr"] == 43 :
-#            menage["dp14pr"] = 31
-#        elif menage["dipmaxpr"] == 44:
-#            menage["dp14pr"] = 33
-#        elif menage["dipmaxpr"] == 16 or menage["dipmaxpr"] == 17 or menage["dipmaxpr"] == 18 or menage["dipmaxpr"] == 19 :
-#            menage["dp14pr"] = 41
-#        elif menage["dipmaxpr"] == 32 or menage["dipmaxpr"] == 36 :
-#            menage["dp14pr"] = 42
-#        elif menage["dipmaxpr"] == 34:
-#            menage["dp14pr"] = 43
-#        elif menage["dipmaxpr"] == 39:
-#            menage["dp14pr"] = 44
-#        elif menage["dipmaxpr"] == 21 or menage["dipmaxpr"] == 23 or menage["dipmaxpr"] == 25 or menage["dipmaxpr"] == 27 or menage["dipmaxpr"] == 29:
-#            menage["dp14pr"] = 50
-#        elif menage["dipmaxpr"] == 15:
-#            menage["dp14pr"] = 60
-#        elif menage["dipmaxpr"] == 2:
-#            menage["dp14pr"] = 70
-#        elif menage["dipmaxpr"] == 0 or menage["dipmaxpr"] == .:
-#            menage["dp14pr"] = 71
-
+#        menage["dp14pr"] = 0
+#        menage.dp14pr[menage.dipmaxpr == "47"] = 10
+#        menage.dp14pr[menage.dipmaxpr == "48"] = 12
+#        menage.dp14pr[menage.dipmaxpr == "46"] = 20
+#        menage.dp14pr[menage.dipmaxpr == "41"] = 30
+#        menage.dp14pr[menage.dipmaxpr == "45"] = 30
+#        menage.dp14pr[menage.dipmaxpr == "42"] = 31
+#        menage.dp14pr[menage.dipmaxpr == "43"] = 31
+#        menage.dp14pr[menage.dipmaxpr == "44"] = 33
+#        menage.dp14pr[menage.dipmaxpr == "16"] = 41
+#        menage.dp14pr[menage.dipmaxpr == "17"] = 41
+#        menage.dp14pr[menage.dipmaxpr == "18"] = 41
+#        menage.dp14pr[menage.dipmaxpr == "19"] = 41
+#        menage.dp14pr[menage.dipmaxpr == "32"] = 42
+#        menage.dp14pr[menage.dipmaxpr == "38"] = 42
+#        menage.dp14pr[menage.dipmaxpr == "34"] = 43
+#        menage.dp14pr[menage.dipmaxpr == "39"] = 44
+#        menage.dp14pr[menage.dipmaxpr == "21"] = 50
+#        menage.dp14pr[menage.dipmaxpr == "23"] = 50
+#        menage.dp14pr[menage.dipmaxpr == "25"] = 50
+#        menage.dp14pr[menage.dipmaxpr == "27"] = 50
+#        menage.dp14pr[menage.dipmaxpr == "15"] = 60
+#        menage.dp14pr[menage.dipmaxpr == "2"] = 70
+#        menage.dp14pr[menage.dipmaxpr == "0"] = 71
+#        menage.dp14pr[menage.dipmaxpr == "."] = 71
+#
+##
 #		foreach x in "cj" "pr" {
 #			destring na`x', replace
 #			gen natio`x' = 0
 #			replace natio`x' = 1 if inlist(na`x',1,2)
 #			replace natio`x' = 2 if inlist(na`x',3)
 #			drop na`x'
-#		}
-#
-        menage.diescj = menage.diescj.astype('int')
-        menage.diespr = menage.diespr.astype('int')
+##		}
+##
+#        menage.diescj = menage.diescj.astype('int')
+#        menage.diespr = menage.diespr.astype('int')
         menage["natiocj"] = 0
         menage["natiopr"] = 0
         menage.natiocj[menage.nacj == "1"] = 1
@@ -634,16 +542,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.natiopr[menage.napr == "1"] = 1
         menage.natiopr[menage.napr == "2"] = 1
         menage.natiopr[menage.napr == "3"] = 2
-#       ancien code:
-#       if menage["nacj"] == 1 or menage["nacj"] == 2 :
-#            menage["natiocj"] = 1
-#        elif menage["nacj"] == 3:
-#            menage["natiocj"] = 2
-#        if menage["napr"] == 1 or menage["napr"] == 2 :
-#            menage["natiopr"] = 1
-#        elif menage["napr"] == 3:
-#            menage["natiopr"] = 2
-
+#
 #		gen typlog = 0
 #		replace typlog = 1 if sitlog == "1"
 #		replace typlog = 2 if typlog == 0
@@ -653,17 +552,19 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.typlog[menage.sitlog == "1"] = 1
         menage.typlog[menage.sitlog != "1"] = 2
 
-#        ancien code:
-#        if menage["sitlog"] == 1:
-#            menage["typlog"] = 1
-#        else menage["tplog"] = 2
-
 #		destring stalog, replace
 #
         menage.statlog = menage.statlog.astype('int')
+        menage.set_index('ident_men', inplace = True)
 #		sort ident_men
 #		save "`menages'", replace
-#
+
+        individus = survey.get_values(
+            table = "individus",
+            variables = [
+                'ident','matri', 'lien'
+                ]
+            )
 #		use "$rawdatadir\individus.dta", clear
 #		foreach v of var * {
 #			local L`v' : variable label `v'
@@ -672,6 +573,16 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #			local w = lower("`v'")
 #			rename `v' `w'
 #		}
+         individus = individus.loc[individus.lien == 1].copy()
+         individus.rename(
+            columns = {
+                'ident': 'ident_men',
+                'matri': 'etamatri',
+                },
+            inplace = True,
+            )
+         individus.set_index('ident_men', inplace = True)
+         menage = menage.merge(individus, left_index = True, right_index = True)
 #		tempfile individus
 #		keep if lien == "1"
 #		keep ident matri
@@ -683,6 +594,11 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #		merge ident_men using "`individus'"
 #		drop _m
 #		sort ident_men
+         menage.set_index('ident_men', inplace = True)
+         individus = survey.get_values(table = 'individus')
+         individus['agepr'] = 2005 - individus.anais
+         individus.set_index('ident_men', inplace = True)
+         menage = menage.merge(individus, left_index = True, right_index = True)
 #		save "`menages'", replace
 #
 #		use "$rawdatadir\individus.dta", clear
@@ -722,9 +638,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #
 #	}
 #
-        individus = survey.get_values(table = 'individu')
-
-
 #	if ${yearrawdata} == 2005 {
 #
 #		use "$rawdatadir\menage.dta", clear

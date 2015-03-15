@@ -56,7 +56,7 @@ def build_imputation_loyers_proprietaires(year = None):
 #		* On sélectionne les variables sur les ménages nécessaires au calcul des loyers imputés.
 #		keep MENA STALOG SURFHAB CONFORT1 CONFORT2 CONFORT3 CONFORT4 ANCONS SITLOG PONDERRD NBPHAB RG CC
 #		rename MENA ident_men
-#		keep if PONDERRD != .
+#		gtf PONDERRD != .
 #		sort ident_men
 #		des ident_men
 #		save "`imput00'", replace
