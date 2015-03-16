@@ -113,12 +113,12 @@ def build_empty_bdf_survey_collection(years = None):
 
         sas_data_directory = os.path.join(
             os.path.dirname(input_data_directory),
-            'INSEE/budget_des_familles/{}/sas'.format(year)
+            'budget_des_familles/{}/sas'.format(year)
             )
 
         stata_data_directory = os.path.join(
             os.path.dirname(input_data_directory),
-            'INSEE/budget_des_familles/{}/stata'.format(year)
+            'budget_des_familles/{}/stata'.format(year)
             )
 
         for table_name in tables_by_year[year]:
@@ -126,13 +126,15 @@ def build_empty_bdf_survey_collection(years = None):
             sas_file = os.path.join(sas_data_directory, "{}.sas7bdat".format(table_name))
             stata_file = os.path.join(stata_data_directory, "{}.dta".format(table_name))
 
-            if os.path.isfile(sas_file) or year == 2011:
+#            if os.path.isfile(sas_file) or year == 2011:
+            if os.path.isfile(sas_file):
                 survey.insert_table(name = table_name,
                                     year = year,
                                     sas_file = sas_file,
                                     clean = True,
                                     )
-            elif os.path.isfile(stata_file) and year != 2011:
+#            elif os.path.isfile(stata_file) and year != 2011:
+            elif os.path.isfile(stata_file):
                 survey.insert_table(name = table_name,
                                     year = year,
                                     stata_file = stata_file,
@@ -150,12 +152,13 @@ if __name__ == '__main__':
     years = [1995, 2000, 2005, 2011]
     bdf_survey_collection = build_empty_bdf_survey_collection(years = years)
 
-    fill_years = [1995, 2000, 2005]
+    fill_years = [1995, 2000, 2005, 2011]
 
     for year in fill_years:
-        if year != 2011:
-            bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
-        else:
-            bdf_survey_collection.fill_hdf_from_sas(surveys_name = ["budget_des_familles_{}".format(year)])
+        bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
+#        if year != 2011:
+#            bdf_survey_collection.fill_hdf_from_stata(surveys_name = ["budget_des_familles_{}".format(year)])
+#        else:
+#            bdf_survey_collection.fill_hdf_from_sas(surveys_name = ["budget_des_familles_{}".format(year)])
     file_path = '/Users/malkaguillot/Documents/data/openfisca/collections/budget_des_familles.json'
     bdf_survey_collection.dump(collection = "budget_des_familles", file_path = file_path)
