@@ -103,6 +103,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 'nbact': 'nactifs',
                 'cohab': 'couplepr',
                 'matripr': 'etamatri',
+                'natio' : 'nationalite',
+                'pcs' : 'cs42'
                 },
             inplace = True,
             )
@@ -201,12 +203,15 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             )
         # rename mena ident_men
 
-        # keep if lien == "1" | lien == "2"
-        # gen lettre = "pr" if lien == "1"
-        # replace lettre = "cj" if lien == "2"
+#nepasfaire        # keep if lien == "1" | lien == "2"
+                   # gen lettre = "pr" if lien == "1"
+                   # replace lettre = "cj" if lien == "2"
+
         # rename natio nationalite
+
         # gen natio = 1 if inlist(nationalite,"01","02")
         # replace natio = 2 if natio != 1
+
         # destring dieg diep dies, replace
         # replace dies = 0 if dies == 99
         # replace diep = 0 if diep == 99
@@ -228,6 +233,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # replace dip14 = 60 if inlist(dipmax,15)
         # replace dip14 = 70 if dipmax == 2
         # replace dip14 = 71 if inlist(dipmax,0,.)
+
+
         # keep ident_men natio dip14 lettre pcs sexe
         # rename pcs cs42
         # reshape wide natio dip14 cs42 sexe, i(ident_men) j(lettre) string
@@ -243,6 +250,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # sort ident_men
         # save "`menages'", replace
         #
+
+
         # use "$rawdatadir\individu.dta", clear
         # foreach v of var * {
         # local L`v' : variable label `v'
@@ -278,6 +287,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # drop _m
         # sort ident_men
         # }
+
+
         # if ${yearrawdata} == 2000 {
         # use "$rawdatadir\menage.dta", clear
         # foreach v of var * {
@@ -287,7 +298,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # local w = lower("`v'")
         # rename `v' `w'
         # }
-        boom
+
     if year == 2000:
         menage = survey.get_values(
             table = "menage",
