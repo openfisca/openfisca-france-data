@@ -31,7 +31,7 @@ from ConfigParser import SafeConfigParser
 
 
 from openfisca_france_data.temporary import TemporaryStore
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ def build_depenses_homogenisees(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
 #
 #		* CE CODE APPELLE LE TABLEAU DE PASSAGE DE LA NOMENCLATURE BDF A LA NOMENCLATURE COICOP MODIFIEE
@@ -90,6 +90,7 @@ def build_depenses_homogenisees(year = None):
 
     if year == 1995:
         socioscm = survey.get_values(table = "socioscm")
+
         socioscm = socioscm.loc[socioscm.EXDEP == 1 & socioscm.EXREV == 1, ["MENA", "PONDERD"]].copy()
         temporary_store['ponder_{}'.format(year)] = socioscm
 
@@ -327,6 +328,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 1995
     build_depenses_homogenisees(year = year)
     log.info("duration is {}".format(time.clock() - deb))
