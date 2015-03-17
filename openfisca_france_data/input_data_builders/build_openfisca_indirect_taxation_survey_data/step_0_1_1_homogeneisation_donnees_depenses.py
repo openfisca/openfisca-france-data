@@ -90,24 +90,38 @@ def build_depenses_homogenisees(year = None):
 
     if year == 1995:
         socioscm = survey.get_values(table = "socioscm")
+        poids = socioscm[['mena', 'ponderrd', 'exdep', 'exrev']]
+        poids = poids[(poids.exdep == 1) & (poids.exrev == 1)]
+        del poids['exdep'], poids['exrev']
+        poids.rename(
+            columns = {
+                'mena': 'ident_men',
+                'ponderrd': 'pondmen',
+                },
+            inplace = True
+            )
+        poids.set_index('ident_men', inplace = True)
 
-        socioscm = socioscm.loc[socioscm.EXDEP == 1 & socioscm.EXREV == 1, ["MENA", "PONDERD"]].copy()
-        temporary_store['ponder_{}'.format(year)] = socioscm
+        conso = survey.get_values(table = "depnom")
+        conso = conso[["valeur", "montant", "mena", "nomen5"]]
+        conso = conso.groupby(["mena", "nomen5"]).sum()
+        conso = conso.reset_index()
+        conso.rename(
+            columns = {
+                'mena': 'ident_men',
+                'nomen5': 'poste{}'.format(year),
+                'valeur': 'depense',
+                'montant': 'depense_avt_imput',
+                },
+            inplace = True
+            )
 
-        conso = survey.get_values(tabe = "depnom")
-        conso = conso(["VALEUR", "MONTANT", "MENA", "NOMEN5"])
-        conso = conso.groupby(["MENA", "NOMEN5"]).sum()
-        conso.rename({
-            "NOMEN5": "poste{}".format(year),
-            "VALEUR": "depense".format(year),
-            "MONTANT": "depense_avt_imput".format(year),
-            })
         # Passage à l'euro
         conso.depense = conso.depense / 6.55957
         conso.depense_avt_imput = conso.depense_avt_imput / 6.55957
-        ponder = temporary_store['ponder_{}'.format(year)]
-        conso.merge(ponder) # TODO: finish
-#
+        conso_small=conso[[u'ident_men', u'poste1995', u'depense']]
+        conso_unstacked = conso_small.set_index(['ident_men', 'poste1995']).unstack('poste1995')
+        conso_unstacked = conso_unstacked.fillna(0)
 #		if ${yearrawdata} == 2000 {
 #			use "$rawdatadir\consomen.dta", clear
 #			order IDENT PONDMEN CTOTALE  C01 C02 C03 C04 C05 C06 C07 C08 C09 C10 C11 C12 C13, first
@@ -118,7 +132,20 @@ def build_depenses_homogenisees(year = None):
 #			rename IDENT ident_men
 #			rename PONDMEN pondmen
 #		}
-#
+        levels = conso_unstacked.columns.levels[1]
+        labels = conso_unstacked.columns.labels[1]
+        conso_unstacked.columns = levels[labels]
+        conso_unstacked.rename(index = {0: 'ident_men'}, inplace = True)
+#        conso_unstacked.set_index('ident_men', inplace = True)
+        conso = conso_unstacked.merge(poids, left_index = True, right_index = True)
+        conso = conso.reset_index()
+#        conso.rename(
+#            columns = {
+#                'index': 'ident_men',
+#                },
+#            inplace = True
+#            )
+
     if year == 2000:
         conso = survey.get_values(table = "consomen")
         conso.rename(
@@ -145,7 +172,6 @@ def build_depenses_homogenisees(year = None):
 
     if year == 2005:
         conso = survey.get_values(table = "c05d")
-
 
     if year == 2011:
         conso = survey.get_values(table = "c05")
@@ -215,10 +241,9 @@ def build_depenses_homogenisees(year = None):
 #	save "`depenses'"
 
     # Grouping by coicop
-    #
+
     poids = conso[['ident_men', 'pondmen']].copy()
     poids.set_index('ident_men', inplace = True)
-
     conso.drop('pondmen', axis = 1, inplace = True)
     conso.set_index('ident_men', inplace = True)
 
@@ -235,10 +260,19 @@ def build_depenses_homogenisees(year = None):
         except:
             return numpy.NaN
 
-    coicop_labels = [
-        normalize_coicop(coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf)))
-        for poste_bdf in conso.columns
-        ]
+    if year == 1995:
+#        levels = conso.columns.levels[1]
+#        labels = conso.columns.labels[1]
+#        conso.columns = levels[labels]
+        coicop_labels = [
+            normalize_coicop(coicop_by_poste_bdf.get(poste_bdf))
+            for poste_bdf in conso.columns
+            ]
+    else:
+        coicop_labels = [
+            normalize_coicop(coicop_by_poste_bdf.get(reformat_consumption_column_coicop(poste_bdf)))
+            for poste_bdf in conso.columns
+            ]
     tuples = zip(coicop_labels, conso.columns)
     conso.columns = pandas.MultiIndex.from_tuples(tuples, names=['coicop', 'poste{}'.format(year)])
     coicop_data_frame = conso.groupby(level = 0, axis = 1).sum()

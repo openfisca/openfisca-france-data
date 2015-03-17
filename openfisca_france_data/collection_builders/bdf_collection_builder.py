@@ -77,6 +77,6 @@ def build_bdf_survey_collection(years = None, erase = False):
 
 if __name__ == '__main__':
 
-    years = [1995]
+    years = [1995, 2000, 2005, 2011]
 
     bdf_survey_collection = build_bdf_survey_collection(years = years, erase = True)
