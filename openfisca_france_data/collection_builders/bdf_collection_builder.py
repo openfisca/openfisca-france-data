@@ -24,15 +24,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ConfigParser import NoOptionError
+import ConfigParser
+import getpass
 import logging
 import os
 
-from openfisca_survey_manager.config import get_config
+
 from openfisca_survey_manager.scripts.surv import add_survey_to_collection, create_data_file_by_format
 from openfisca_survey_manager.survey_collections import SurveyCollection
-
 from openfisca_france_data import default_config_files_directory as config_files_directory
+
 
 log = logging.getLogger(__name__)
 
@@ -43,34 +44,40 @@ def build_bdf_survey_collection(years = None, erase = False):
         log.error("A list of years to process is needed")
 
     if erase:
-        bdf_survey_collection = SurveyCollection(name = "budget_des_familles")
+        bdf_survey_collection = SurveyCollection(
+            name = "budget_des_familles", config_files_directory = config_files_directory)
     else:
         try:
-            bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-        except NoOptionError:
-            bdf_survey_collection = SurveyCollection(name = "budget_des_familles")
+            bdf_survey_collection = SurveyCollection.load(
+                collection = 'budget_des_familles', config_files_directory = config_files_directory)
+        except ConfigParser.NoOptionError:
+            bdf_survey_collection = SurveyCollection(
+                name = "budget_des_familles", config_files_directory = config_files_directory)
 
-    config = get_config(config_files_directory = config_files_directory)
-    input_data_directory = config.get('data', 'input_directory')
+        input_data_directory = bdf_survey_collection.config.get('data', 'input_directory')
+        if getpass.getuser() == 'benjello':
+            input_data_directory = os.path.join(os.path.dirname(input_data_directory), 'INSEE')
+        else:
+            input_data_directory = os.path.dirname(input_data_directory)
 
     for year in years:
         data_directory_path = os.path.join(
-            os.path.dirname(input_data_directory),
-            # 'INSEE',
+            input_data_directory,
             'budget_des_familles/{}'.format(year)
             )
         data_file_by_format = create_data_file_by_format(data_directory_path)
         survey_name = 'budget_des_familles_{}'.format(year)
+
         add_survey_to_collection(
             survey_name = survey_name,
             survey_collection = bdf_survey_collection,
             stata_files = data_file_by_format['stata'],
             )
 
-        collections_directory = config.get('collections', 'collections_directory')
+        collections_directory = bdf_survey_collection.config.get('collections', 'collections_directory')
         collection_json_path = os.path.join(collections_directory, "budget_des_familles" + ".json")
         bdf_survey_collection.dump(json_file_path = collection_json_path)
-        surveys = [survey for survey in bdf_survey_collection.surveys if survey_name.endswith(str(year))]
+        surveys = [survey for survey in bdf_survey_collection.surveys if survey.name.endswith(str(year))]
         bdf_survey_collection.fill_hdf(source_format = 'stata', surveys = surveys)
     return bdf_survey_collection
 
@@ -78,5 +85,4 @@ def build_bdf_survey_collection(years = None, erase = False):
 if __name__ == '__main__':
 
     years = [1995, 2000, 2005, 2011]
-
     bdf_survey_collection = build_bdf_survey_collection(years = years, erase = True)
