@@ -136,15 +136,8 @@ def build_depenses_homogenisees(year = None):
         labels = conso_unstacked.columns.labels[1]
         conso_unstacked.columns = levels[labels]
         conso_unstacked.rename(index = {0: 'ident_men'}, inplace = True)
-#        conso_unstacked.set_index('ident_men', inplace = True)
         conso = conso_unstacked.merge(poids, left_index = True, right_index = True)
         conso = conso.reset_index()
-#        conso.rename(
-#            columns = {
-#                'index': 'ident_men',
-#                },
-#            inplace = True
-#            )
 
     if year == 2000:
         conso = survey.get_values(table = "consomen")
@@ -261,9 +254,6 @@ def build_depenses_homogenisees(year = None):
             return numpy.NaN
 
     if year == 1995:
-#        levels = conso.columns.levels[1]
-#        labels = conso.columns.labels[1]
-#        conso.columns = levels[labels]
         coicop_labels = [
             normalize_coicop(coicop_by_poste_bdf.get(poste_bdf))
             for poste_bdf in conso.columns
