@@ -31,6 +31,7 @@ from ConfigParser import SafeConfigParser
 
 
 from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
@@ -38,7 +39,6 @@ log = logging.getLogger(__name__)
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-from openfisca_france_data import default_config_files_directory as config_files_directory
 
 
 def build_depenses_homogenisees(year = None):
@@ -46,7 +46,8 @@ def build_depenses_homogenisees(year = None):
 
     assert year is not None
     # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    bdf_survey_collection = SurveyCollection.load(
+        collection = 'budget_des_familles', config_files_directory = config_files_directory)
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
 #

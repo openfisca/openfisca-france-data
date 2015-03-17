@@ -54,11 +54,11 @@ def build_bdf_survey_collection(years = None, erase = False):
             bdf_survey_collection = SurveyCollection(
                 name = "budget_des_familles", config_files_directory = config_files_directory)
 
-        input_data_directory = bdf_survey_collection.config.get('data', 'input_directory')
-        if getpass.getuser() == 'benjello':
-            input_data_directory = os.path.join(os.path.dirname(input_data_directory), 'INSEE')
-        else:
-            input_data_directory = os.path.dirname(input_data_directory)
+    input_data_directory = bdf_survey_collection.config.get('data', 'input_directory')
+    if getpass.getuser() == 'benjello':
+        input_data_directory = os.path.join(os.path.dirname(input_data_directory), 'INSEE')
+    else:
+        input_data_directory = os.path.dirname(input_data_directory)
 
     for year in years:
         data_directory_path = os.path.join(

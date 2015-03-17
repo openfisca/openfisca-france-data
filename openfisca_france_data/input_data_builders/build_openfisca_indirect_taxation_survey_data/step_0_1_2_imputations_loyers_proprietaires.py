@@ -26,8 +26,8 @@
 
 import logging
 
-
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
@@ -36,16 +36,17 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-#**************************************************************************************************************************
-#* Etape n° 0-1-2 : IMPUTATION DE LOYERS POUR LES MENAGES PROPRIETAIRES
-#**************************************************************************************************************************
+# **************************************************************************************************************************
+# * Etape n° 0-1-2 : IMPUTATION DE LOYERS POUR LES MENAGES PROPRIETAIRES
+# **************************************************************************************************************************
 def build_imputation_loyers_proprietaires(year = None):
     """Build menage consumption by categorie fiscale dataframe """
 
     assert year is not None
     # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+    bdf_survey_collection = SurveyCollection.load(
+        collection = 'budget_des_familles', config_files_directory = config_files_directory)
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 #
 #	if ${yearrawdata} == 1995 {
 #		* L'enquête BdF 1995 ne contient pas de loyer imputés, donc Super-Roy les calcule!
@@ -73,13 +74,15 @@ def build_imputation_loyers_proprietaires(year = None):
 #		rename PONDERRD PONDMEN
 
     if year == 1995:
-        imput00 = survey.get_values(table = "socioscm")
-        kept_variables = ['MENA', 'STALOG', 'SURFHAB', 'CONFORT1', 'CONFORT2', 'CONFORT3', 'CONFORT4', 'ANCONS', 'SITLOG', 'PONDERRD', 'NBPHAB', 'RG', 'CC']
-        imput00 = imput00[kept_variables]
-        imput00.rename(columns = {'MENA' : 'ident_men'}, inplace = True)
-        imput00 = imput00[imput00.PONDERRD != '.'].copy()
-        depenses = depenses[depenses.posteCOICOP == "0411"].copy()
-        kept_variables = ['ident_men', 'posteCOICOP', 'depense']
+        imput00 = survey.get_values(
+            table = "socioscm",
+            variables = ['mena', 'stalog', 'surfhab', 'confort1', 'confort2', 'confort3', 'confort4', 'ancons', 'sitlog',
+                'ponderd', 'nbphab', 'rg', 'cc']
+            )
+        imput00.rename(columns = {'mena' : 'ident_men'}, inplace = True)
+        depenses = temporary_store['depenses_{}'.format(year)]
+        # TODO: restart her pb with posteCOICOP not found in depense
+        depenses = depenses.loc[depenses.posteCOICOP == "0411", ['ident_men', 'posteCOICOP', 'depense']].copy()
         imput00.set_index('ident_men', inplace = True)
         depenses = depenses.merge(imput00, left_index = True, right_index = True)
         depenses.rename(columns = {'depense' : 'loyer_reel'}, inplace = True)
@@ -266,6 +269,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 1995
     build_imputation_loyers_proprietaires(year = year)
     log.info("step 0_1_2_build_imputation_loyers_proprietaires duration is {}".format(time.clock() - deb))
