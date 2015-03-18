@@ -27,7 +27,7 @@
 import logging
 import pandas
 
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def build_homogeneisation_revenus_menages(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
 # **********************************************************************************************************************
 # ********************************* HOMOGENEISATION DES DONNEES SUR LES REVENUS DES MENAGES ****************************
@@ -181,11 +181,12 @@ def build_homogeneisation_revenus_menages(year = None):
 #
 #	if ${yearrawdata} == 2000 {
     elif year == 2000:
+    # TODO: récupérer plutôt les variables qui viennent de la table dépenses (dans temporary_store)
         consomen = survey.get_values(
             table = "consomen",
-            variables = ['C13141', 'C13111', 'C13121', 'C13131', 'PONDMEN', 'IDENT'],
+#            variables = ['C13141', 'C13111', 'C13121', 'C13131', 'PONDMEN', 'IDENT'],
             )
-        rev_disp = consomen.sort(columns = ['IDENT'])
+        rev_disp = consomen.sort(columns = ['ident'])
         del consomen
 
 # tempfile rev_disp2
@@ -198,62 +199,39 @@ def build_homogeneisation_revenus_menages(year = None):
 # save "`rev_disp2'"
         menage = survey.get_values(
             table = "menage",
-            variables = ['IDENT', 'REVTOT', 'REVACT', 'REVSOC', 'REVPAT', 'REV70', 'REV71', 'REVT_D', 'PODMEN', 'REV10', 'REV11', 'REV20', 'REV21'],
-            ).sort(columns = ['IDENT'])
+# TODO: mettre en minuscules
+#            variables = ['ie', 'REVTOT', 'REVACT', 'REVSOC', 'REVPAT', 'REV70', 'REV71', 'REVT_D', 'PODMEN', 'REV10', 'REV11', 'REV20', 'REV21'],
+            ).sort(columns = ['ident'])
 
-# use "$rawdatadir\menage.dta", clear
-# keep REVTOT REVACT REVSOC REVPAT REV70 REV71 REVT_D PONDMEN IDENT REV10 REV11 REV20 REV21
-        rev_disp.IDENT = rev_disp.IDENT.astype("int64")
-        menage.IDENT = menage.IDENT.astype("int64")
-        rev_disp.set_index('IDENT', inplace = True)
-        menage.set_index('IDENT', inplace = True)
+#        rev_disp.IDENT = rev_disp.IDENT.astype("int64")
+#        menage.IDENT = menage.IDENT.astype("int64")
+#        rev_disp.set_index('IDENT', inplace = True)
+#        menage.set_index('IDENT', inplace = True)
         revenus = menage.join(rev_disp, how = "outer", rsuffix = "rev_disp")
-# joinby IDENT using "`rev_disp2'"
-# rename C13111 impot_res_ppal
-# rename C13141 impot_revenu
-# rename REVTOT revtot
-# rename REVACT revact
-# rename REVSOC revsoc
-# rename REVPAT revpat
-# rename REV70 somme_obl_recue
-# rename REV71 somme_libre_recue
-# rename REVT_D autres_ress
-# rename PONDMEN pondmen
-# rename IDENT ident_men
-# rename REV10 act_indpt
-# rename REV11 autoverses
-# rename REV20 salaires
-# rename REV21 autres_rev
-        revenus.rename(
-            columns = dict(
-                c13111 = "impot_res_ppal",
-                c13141 = "impot_revenu",
-                c13121 = "impot_autres_res",
-                C13111= "impot_res_ppal",
-                C13141= "impot_revenu",
-                REVTOT= "revtot",
-                REVACT= "revact",
-                REVSOC= "revsoc",
-                REVPAT= "revpat",
-                REV70= "somme_obl_recue",
-                REV71= "somme_libre_recue",
-                REVT_D= "autres_ress",
-                PONDMEN= "pondmen",
-                IDENT= "ident_men",
-                REV10= "act_indpt",
-                REV11= "autoverses",
-                REV20= "salaires",
-                REV21= "autres_rev",
-                ),
-            inplace = True
-            )
+#        revenus.rename(
+#            columns = dict(
+#                c13111 = "impot_res_ppal",
+#                c13141 = "impot_revenu",
+#                c13121 = "impot_autres_res",
+#                C13111= "impot_res_ppal",
+#                C13141= "impot_revenu",
+#                REVTOT= "revtot",
+#                REVACT= "revact",
+#                REVSOC= "revsoc",
+#                REVPAT= "revpat",
+#                REV70= "somme_obl_recue",
+#                REV71= "somme_libre_recue",
+#                REVT_D= "autres_ress",
+#                PONDMEN= "pondmen",
+#                IDENT= "ident_men",
+#                REV10= "act_indpt",
+#                REV11= "autoverses",
+#                REV20= "salaires",
+#                REV21= "autres_rev",
+#                ),
+#            inplace = True
+#            )
 
-# * Ces pondérations (0.65 0.35) viennent de l'enquête BdF 1995 qui distingue taxe d'habitation et impôts fonciers. A partir de BdF 1995,
-# * on a calculé que la taxe d'habitation représente en moyenne 65% des impôts locaux, et que les impôts fonciers en représentenr 35%.
-# * On applique ces taux aux enquêtes 2000 et 2005.
-# gen imphab= 0.65*(impot_res_ppal + impot_autres_res)
-# gen impfon= 0.35*(impot_res_ppal + impot_autres_res)
-# drop impot_autres_res impot_res_ppal
 
         revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
         revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
@@ -297,8 +275,6 @@ def build_homogeneisation_revenus_menages(year = None):
             )
         rev_disp = c05d.sort(columns = ['ident_men'])
         del c05d
-        # use "$rawdatadir\menage.dta", clear
-        # keep ident_men revtot revact revsoc revpat rev700 rev701 rev999 rev100 rev101 rev200 rev201
         menage = survey.get_values(
             table = "menage",
             variables = ['ident_men', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700_d', 'rev701_d',
@@ -310,17 +286,6 @@ def build_homogeneisation_revenus_menages(year = None):
         rev_disp.set_index('ident_men', inplace = True)
         menage.set_index('ident_men', inplace = True)
         revenus = pandas.concat([menage, rev_disp], axis = 1)
-        # joinby ident_men using "`rev_disp'"
-        # rename rev100_d act_indpt
-        # rename rev101_d autoverses
-        # rename rev200_d salaires
-        # rename rev201_d autres_rev
-        # rename rev700_d somme_obl_recue
-        # rename rev701_d somme_libre_recue
-        # rename rev999_d autres_ress
-        # rename c13111 impot_res_ppal
-        # rename c13141 impot_revenu
-        # rename c13121 impot_autres_res
         revenus.rename(
             columns = dict(
                 rev100_d = "act_indpt",
