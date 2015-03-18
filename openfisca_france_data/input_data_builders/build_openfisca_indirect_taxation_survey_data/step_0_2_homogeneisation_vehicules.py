@@ -31,7 +31,9 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
+
 
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -95,7 +97,8 @@ def build_homogeneisation_vehicules(year = None):
 
     assert year is not None
     # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    bdf_survey_collection = SurveyCollection.load(
+        collection = 'budget_des_familles', config_files_directory = config_files_directory)
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
     if year == 2000:

@@ -29,7 +29,6 @@ import pandas
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager.config import get_config
 from openfisca_france_data import default_config_files_directory as config_files_directory
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
@@ -83,7 +82,8 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], file
     revenus = temporary_store["revenus_{}".format(year)]
 
     # DataFrame résultant de ces 4 étapes
-    data_frame = pandas.concat([revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
+    data_frame = pandas.concat(
+        [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
 
     data_frame.index.name = "ident_men"
     data_frame.reset_index(inplace = True)
@@ -92,22 +92,17 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], file
     openfisca_survey_collection = SurveyCollection.load(
         collection = 'budget_des_familles', config_files_directory = config_files_directory)
 
-    config = get_config(config_files_directory = config_files_directory)
-    output_data_directory = config.get('data', 'output_directory')
+    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_indirect_taxation_data_{}".format(year)
     table = "input"
-    hdf5_file_path = os.path.join(
-        os.path.dirname(output_data_directory),
-        "{}.h5".format(survey_name),
-        )
+    hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
     survey = Survey(
         name = survey_name,
         hdf5_file_path = hdf5_file_path,
         )
-    survey.insert_table(name = table)
-    survey.fill_hdf(data_frame = data_frame, table = table)
-    openfisca_survey_collection.surveys[survey_name] = survey
-    openfisca_survey_collection.dump(collection = "openfisca_indirect_taxation")
+    survey.insert_table(name = table, data_frame = data_frame)
+    openfisca_survey_collection.surveys.append(survey)
+    openfisca_survey_collection.dump()
 
 
 if __name__ == '__main__':

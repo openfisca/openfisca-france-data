@@ -28,14 +28,13 @@ import logging
 import numpy
 import pandas
 
-from numpy import minimum as min_, maximum as max_
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
-
-log = logging.getLogger(__name__)
-
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
 
+
+log = logging.getLogger(__name__)
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
@@ -44,7 +43,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 
     assert year is not None
     # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    bdf_survey_collection = SurveyCollection.load(
+        collection = 'budget_des_familles', config_files_directory = config_files_directory)
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
     # ******************************************************************************************************************
     # * Etape n° 0-3 : HOMOGENEISATION DES CARACTERISTIQUES SOCIALES DES MENAGES
@@ -111,7 +111,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # gen ocde10 = 1 + 0.5 * max(0, nadultes - 1) + 0.3 * nenfants
         # gen typmen5 = 0
         menage['nadultes'] = menage['npers'] - menage['nenfants']
-        menage['ocde10'] = 1 + 0.5 * max_(0, menage['nadultes'] - 1) + 0.3 * menage['nenfants']
+        menage['ocde10'] = 1 + 0.5 * numpy.max_(0, menage['nadultes'] - 1) + 0.3 * menage['nenfants']
         # replace typmen5 = 1 if typmen1 == "1"
         # replace typmen5 = 2 if typmen1 == "6"
         # replace typmen5 = 3 if typmen1 == "2"
