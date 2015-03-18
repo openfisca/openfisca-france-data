@@ -519,7 +519,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.typlog[menage.sitlog != "1"] = 2
         # destring stalog, replace
         #
-        menage.statlog = menage.statlog.astype('int')
+#        menage.statlog = menage.statlog.astype('int')
         menage.set_index('ident_men', inplace = True)
         # sort ident_men
         # save "`menages'", replace
@@ -553,10 +553,11 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # merge ident_men using "`individus'"
         # drop _m
         # sort ident_men
-        menage.set_index('ident_men', inplace = True)
         individus = survey.get_values(table = 'individus')
+        variables_to_destring = ['anais']
+        for variable_to_destring in variables_to_destring:
+            individus[variable_to_destring] = individus[variable_to_destring].astype('int').copy()  # TODO: define as a catagory ?
         individus['agepr'] = 2005 - individus.anais
-        individus.set_index('ident_men', inplace = True)
         menage = menage.merge(individus, left_index = True, right_index = True)
         # save "`menages'", replace
         #
@@ -1021,7 +1022,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # save "$datadir\données_socio_demog.dta", replace
         #
 
-        temporary_store['donnes_socio_demog_{}'.format(year)] = menage
+    temporary_store['donnes_socio_demog_{}'.format(year)] = menage
 
 
 if __name__ == '__main__':

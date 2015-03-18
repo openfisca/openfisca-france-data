@@ -338,11 +338,11 @@ def get_transfert_data_frames(year = None):
     directory_path = os.path.normpath(
         parser.get("openfisca_france_indirect_taxation", "assets")
         )
+    #TODO: faire un fichier équivalent pour 2010
     matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     matrice_passage_data_frame = pandas.read_excel(matrice_passage_file_path)
     parametres_fiscalite_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
-    # print parametres_fiscalite_data_frame
     selected_parametres_fiscalite_data_frame = \
         parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
     return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
