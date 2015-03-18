@@ -34,23 +34,19 @@ from __future__ import division
 
 import gc
 import logging
-import numpy as np
-
-from pandas import DataFrame
+import numpy
 
 #problem with rpy last version is not working
-import pandas.rpy.common as com
-
-
 from rpy2.robjects.packages import importr
 import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
 import rpy2.robjects.vectors as vectors
 
 
-from openfisca_france_data.model.common import mark_weighted_percentiles
-from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
+from openfisca_france_data.temporary import TemporaryStore
+from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
@@ -61,9 +57,11 @@ def create_comparable_erf_data_frame(year):
     '''
     Imputation des loyers
     '''
+    temporary_store = TemporaryStore.create(file_name = "erfs")
+    assert year is not None
 
     # Préparation des variables qui serviront à l'imputation
-
+    replace = create_replace(year)
     menm_vars = [
         "aai1",
         "agpr",
@@ -91,24 +89,22 @@ def create_comparable_erf_data_frame(year):
 
     if year == 2008:  # Tau99 not present
         menm_vars = menm_vars.pop('tau99')
+
     indm_vars = ["dip11", 'ident', "lpr", "noi"]
     ## Travail sur la base ERF
     #Preparing ERF menages tables
-    erfmenm = load_temp(name = "menagem", year = year)
-#     erfmenm = df.get_values(table="erf_menage",variables=menm_vars)
+    erfmenm = temporary_store.select('menagem_{}'.format(year))
+
     erfmenm['revtot'] = (
-        erfmenm['ztsam'] + erfmenm['zperm'] + erfmenm['zragm'] +
-        erfmenm['zricm'] + erfmenm['zrncm'] + erfmenm['zracm']
+        erfmenm.ztsam + erfmenm.zperm + erfmenm.zragm + erfmenm.zricm + erfmenm.zrncm + erfmenm.zracm
         )
     # Niveau de vie de la personne de référence
-    erfmenm['nvpr'] = erfmenm['revtot'].astype(np.float64) / erfmenm['nb_uci'].astype("float")
+    erfmenm['nvpr'] = erfmenm.revtot.astype(numpy.float64) / erfmenm.nb_uci.astype("float")
+    erfmenm.nvpr[erfmenm.nvpr < 0] = 0
+    erfmenm['logt'] = erfmenm.so
 
-    erfmenm['nvpr'][erfmenm['nvpr'] < 0] = 0
-    erfmenm['logt'] = erfmenm['so']
-
-    #Preparing ERF individuals table
-    erfindm = load_temp(name = "indivim", year = year)
-#     erfindm = df.get_values(table = "eec_indivi", variables = indm_vars)
+    # Preparing ERF individuals table
+    erfindm = temporary_store['indivim_{}'.format(year)]
 
     # TODO: clean this later
     erfindm['dip11'] = 0
@@ -121,33 +117,32 @@ def create_comparable_erf_data_frame(year):
     erf = erf.drop_duplicates('ident')
 
     dec, values = mark_weighted_percentiles(
-        erf['nvpr'].values,
-        np.arange(1, 11),
-        erf['wprm'].values,
+        erf.nvpr.values,
+        numpy.arange(1, 11),
+        erf.wprm.values,
         2,
         return_quantiles = True
         )
     values.sort()
     erf['deci'] = (
         1 +
-        (erf['nvpr'] > values[1]) +
-        (erf['nvpr'] > values[2]) +
-        (erf['nvpr'] > values[3]) +
-        (erf['nvpr'] > values[4]) +
-        (erf['nvpr'] > values[5]) +
-        (erf['nvpr'] > values[6]) +
-        (erf['nvpr'] > values[7]) +
-        (erf['nvpr'] > values[8]) +
-        (erf['nvpr'] > values[9])
+        (erf.nvpr > values[1]) +
+        (erf.nvpr > values[2]) +
+        (erf.nvpr > values[3]) +
+        (erf.nvpr > values[4]) +
+        (erf.nvpr > values[5]) +
+        (erf.nvpr > values[6]) +
+        (erf.nvpr > values[7]) +
+        (erf.nvpr > values[8]) +
+        (erf.nvpr > values[9])
         )
-#    erf['deci'] = 1 + sum( (erf['nvpr'] > values[i]) for i in range(1,10) )
-    # Problème : tous les individus sont soit dans le premier, soit dans le dernier décile. WTF
     assert_variable_in_range('deci', [1, 11], erf)
     count_NA('deci', erf)
     del dec, values
     gc.collect()
 
-    #TODO: faire le lien avec men_vars, il manque "pol99","reg","tau99" et ici on a en plus logt, 'nvpr','revtot','dip11','deci'
+    # TODO: faire le lien avec men_vars,
+    # il manque "pol99","reg","tau99" et ici on a en plus logt, 'nvpr','revtot','dip11','deci'
     erf = erf[
         [
             'ident',
@@ -176,43 +171,44 @@ def create_comparable_erf_data_frame(year):
             ]
         ][erf['so'].isin(range(3, 6))]
 
-    erf.rename(columns = {
-        'aai1': 'iaat',
-        'dip11': 'mdiplo',
-        'nbpiec': 'hnph2',
-        'nat28pr': 'mnatio',
-        'nbpiec': 'hnph2',
-        }, inplace = True)
-
-    # TODO: ne traite pas les types comme dans R teste-les pour voir comment pandas les gère
+    erf.rename(
+        columns = {
+            'aai1': 'iaat',
+            'dip11': 'mdiplo',
+            'nbpiec': 'hnph2',
+            'nat28pr': 'mnatio',
+            'nbpiec': 'hnph2',
+            },
+        inplace = True)
 
     count_NA('agpr', erf)
+    if (erf.agpr == '.').any():
+        erf = erf[erf.agpr != '.'].copy()
+
     erf['agpr'] = erf['agpr'].astype('int64')
     # TODO: moche, pourquoi créer deux variables quand une suffit ?
     erf['magtr'] = 3
-    erf['magtr'][erf['agpr'] < 65] = 2
-    erf['magtr'][erf['agpr'] < 40] = 1
+    erf.magtr[erf.agpr < 65] = 2
+    erf.magtr[erf.agpr < 40] = 1
     count_NA('magtr', erf)
-    assert erf['magtr'].isin(range(1, 5)).all()
+    assert erf.magtr.isin(range(1, 5)).all()
 
     count_NA('cstotpr', erf)
-    erf['mcs8'] = erf['cstotpr'].astype('float') / 10.0
-    erf['mcs8'] = np.floor(erf['mcs8'])
+    erf['mcs8'] = erf.cstotpr.astype('float') / 10.0
+    erf.mcs8 = numpy.floor(erf.mcs8)
     count_NA('mcs8', erf)
 
-    # TODO il reste 41 NA's 2003
-    erf['mtybd'] = np.nan
-    erf['mtybd'][(erf['typmen5'] == 1) & (erf['spr'] != 2)] = 1
-    erf['mtybd'][(erf['typmen5'] == 1) & (erf['spr'] == 2)] = 2
-    erf['mtybd'][erf['typmen5'] == 5] = 3
-    erf['mtybd'][erf['typmen5'] == 3] = 7
-    erf['mtybd'][erf['nbenfc'] == 1] = 4
-    erf['mtybd'][erf['nbenfc'] == 2] = 5
-    erf['mtybd'][erf['nbenfc'] >= 3] = 6
-    count_NA('mtybd', erf)
+    erf['mtybd'] = numpy.nan
+    erf.mtybd[(erf.typmen5 == 1) & (erf.spr != 2)] = 1
+    erf.mtybd[(erf.typmen5 == 1) & (erf.spr == 2)] = 2
+    erf.mtybd[erf.typmen5 == 5] = 3
+    erf.mtybd[erf.typmen5 == 3] = 7
+    erf.mtybd[erf.nbenfc == 1] = 4
+    erf.mtybd[erf.nbenfc == 2] = 5
+    erf.mtybd[erf.nbenfc >= 3] = 6
+    count_NA('mtybd', erf)     # TODO il reste 41 NA's 2003, 40 en 2009
 
-#     print erf['mtybd'].dtype.fields
-    #assert_variable_inrange('mtybd', [1,7], erf) # bug, on trouve 7.0 qui fait assert
+    #TODO: assert erf.mtybd.isin(range(1,8)).all() # bug,
 
     # TODO : 3 logements ont 0 pièces !!
     erf['hnph2'][erf['hnph2'] < 1] = 1
@@ -361,7 +357,7 @@ def create_comparable_logement_data_frame(year):
     count_NA('qex', Lgtmen)
     dec, values = mark_weighted_percentiles(
         Lgtmen['nvpr'].values,
-        np.arange(1, 11),
+        numpy.arange(1, 11),
         Lgtmen['qex'].values,
         2,
         return_quantiles = True,
@@ -489,7 +485,7 @@ def create_comparable_logement_data_frame(year):
     count_NA('mcs8', Logement)
     assert_variable_in_range('mcs8', [1, 6], Logement)
 
-    Logement['logloy'] = np.log(Logement['lmlm'].values)
+    Logement['logloy'] = numpy.log(Logement['lmlm'].values)
 #    Logement.dropna(
 #        axis = 0,
 #        subset = ['mdiplo', 'mtybd', 'magtr', 'mcs8', 'maa1at'],
