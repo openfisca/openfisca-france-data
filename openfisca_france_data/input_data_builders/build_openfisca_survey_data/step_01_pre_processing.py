@@ -25,7 +25,7 @@
 
 
 import gc
-import numpy as np
+import numpy
 import logging
 
 
@@ -39,18 +39,13 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base 
 
 log = logging.getLogger(__name__)
 
-temporary_store = TemporaryStore.create(file_name = "erfs")
-
 
 # Prepare the some useful merged tables
-
-# Menages et Individus
-
-
-def create_indivim(year = None):
+def create_indivim_menagem(year = None):
     """
-    Création de la table individus concaténée (merged)
+    Création des tables ménages et individus concaténée (merged)
     """
+    temporary_store = TemporaryStore.create(file_name = "erfs")
     assert year is not None
     # load data
     erfs_survey_collection = SurveyCollection.load(
@@ -63,24 +58,16 @@ def create_indivim(year = None):
     erfind = survey.get_values(table = replace["erf_indivi"])
     eecind = survey.get_values(table = replace["eec_indivi"])
 
-
-#normalement l'option faire passer en lowercase et de remplacer tout "Ident"+yr par ident à été ajoutée dans une méthode de classe get_values survey.py
-#    for table in [erfmen, eecmen, erfind, eecind]:
-#        for column_name in table:
-##            table.rename(columns = {column_name: column_name.lower()}, inplace = True)
-#            if column_name == "ident08" :
-#                table.rename(columns = {column_name: "ident"}, inplace = True)
-
     # travail sur la cohérence entre les bases
-    noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
+    noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))].copy()
 
-    noappar_i = eecmen[~(eecmen.ident.isin(erfmen.ident.values))]
+    noappar_i = eecmen[~(eecind.ident.isin(erfind.ident.values))].copy()
     noappar_i = noappar_i.drop_duplicates(subset = 'ident', take_last = True)
     # TODO: vérifier qu'il n'y a théoriquement pas de doublon
 
     difference = set(noappar_i.ident).symmetric_difference(noappar_m.ident)
     intersection = set(noappar_i.ident) & set(noappar_m.ident)
-    log.info("There are {} diffenrents entries and {} intrsections".format(len(difference), len(intersection)))
+    log.info("There are {} differences and {} intersections".format(len(difference), len(intersection)))
     del noappar_i, noappar_m, difference, intersection
     gc.collect()
 
@@ -100,8 +87,7 @@ def create_indivim(year = None):
         'forter',
         'lien',
         'mrec',
-#        'naia',
-#TODO: fix this error on naia for 2007 (TypeError: invalid type comparison)
+        'naia',
         'noicon',
         'noimer',
         'noiper',
@@ -114,67 +100,57 @@ def create_indivim(year = None):
         'txtppb',
         ])
 
-#    for indivim.columns in indivim:
-#     for var in indivim:
     for var in var_list:
-        if indivim[var].dtype != 'float64' and indivim[var].dtype != 'float32':
-            filter00 = ((indivim[var] == "") | (indivim[var] ==  ".")) #  crée un filtre pour les valeurs manquantes, ne marche pas si type en float
-            indivim[var][filter00] = np.nan
-        try:
-            indivim[var] = indivim[var].astype("float32")
-        except Exception as e:
-            log.info("{} {}".format(e, var))
+        assert indivim[var].dtype == numpy.dtype('int')
 
-########################
-# création de variables#
-########################
+    ########################
+    # création de variables#
+    ########################
 
 #   actrec : activité recodée comme preconisé par l'INSEE p84 du guide utilisateur
-    indivim["actrec"] = np.nan
+    indivim["actrec"] = numpy.nan
     # Attention : Q: pas de 6 ?!! A : Non pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
     # la même nomenclatue à été adopée
 
-#    3: contrat a durée déterminée
-    indivim['actrec'][indivim['acteu'] == 1] = 3
-    # TODO: check what is done
-
-#    8 : femme (homme) au foyer, autre inactif
-    indivim['actrec'][indivim['acteu'] == 3] = 8
-
-
-#    1 : actif occupé non salarié
+    # 3: contrat a durée déterminée
+    indivim['actrec'][indivim.acteu == 1] = 3
+    # 8 : femme (homme) au foyer, autre inactif
+    indivim['actrec'][indivim.acteu == 3] = 8
+    # 1 : actif occupé non salarié
     filter1 = (indivim.acteu == 1) & (indivim.stc.isin([1, 3]))  # actifs occupés non salariés à son compte ou pour un
     indivim["actrec"][filter1] = 1                                # membre de sa famille
-#   2 : salarié pour une durée non limitée
-    filter2 = (indivim['acteu'] == 1) & (((indivim['stc'] == 2) & (indivim['contra'] == 1)) | (indivim['titc'] == 2))
+    # 2 : salarié pour une durée non limitée
+    filter2 = (indivim.acteu == 1) & (((indivim.stc == 2) & (indivim.contra == 1)) | (indivim.titc == 2))
     indivim['actrec'][filter2] = 2
-#   4 : au chomage
-    filter4 = (indivim['acteu'] == 2) | ((indivim['acteu'] == 3) & (indivim['mrec'] == 1))
+    # 4 : au chomage
+    filter4 = (indivim.acteu == 2) | ((indivim.acteu == 3) & (indivim.mrec == 1))
     indivim['actrec'][filter4] = 4
-#   5 : élève étudiant , stagiaire non rémunéré
-    filter5 = (indivim['acteu'] == 3) & ((indivim['forter'] == 2) | (indivim['rstg'] == 1))
+    # 5 : élève étudiant , stagiaire non rémunéré
+    filter5 = (indivim.acteu == 3) & ((indivim.forter == 2) | (indivim.rstg == 1))
     indivim['actrec'][filter5] = 5
-#   7 : retraité, préretraité, retiré des affaires unchecked
-    filter7 = (indivim['acteu'] == 3) & ((indivim['retrai'] == 1) | (indivim['retrai'] == 2))
+    # 7 : retraité, préretraité, retiré des affaires unchecked
+    filter7 = (indivim.acteu == 3) & ((indivim.retrai == 1) | (indivim.retrai == 2))
     indivim['actrec'][filter7] = 7
-#   9 : probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
-    indivim['actrec'][indivim['acteu'].isnull()] = 9
+    # 9 : probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
+    indivim['actrec'][indivim.acteu == 0] = 9
 
     indivim.actrec = indivim.actrec.astype("int8")
-    assert_dtype(indivim['actrec'], "int8")
+    assert_dtype(indivim.actrec, "int8")
+    assert indivim.actrec.isin(range(1, 10)).all(), 'actrec values are outside the interval [1, 9]'
+
 #   TODO : compare the result with results provided by Insee
 #   tu99
     if year == 2009:
         erfind['tu99'] = None  # TODO: why ?
 
-#   locataire
+    # Locataire
     menagem["locataire"] = menagem.so.isin([3, 4, 5])
-    menagem["locataire"] = menagem["locataire"].astype("bool")
+    assert_dtype(menagem.locataire, "bool")
 
-    transfert = indivim.ix[indivim['lpr'] == 1, ['ident', 'ddipl']]
+    transfert = indivim.loc[indivim.lpr == 1, ['ident', 'ddipl']].copy()
     menagem = menagem.merge(transfert)
 
-    # correction
+    # Correction
     def _manually_remove_errors():
         '''
         This method is here because some oddities can make it through the controls throughout the procedure
@@ -187,23 +163,25 @@ def create_indivim(year = None):
 
     _manually_remove_errors()
 
-    # save
-    save_temp(menagem, name="menagem", year=year)
+    temporary_store['menagem_{}'.format(year)] = menagem
     del eecmen, erfmen, menagem, transfert
     gc.collect()
-    save_temp(indivim, name="indivim", year=year)
+    temporary_store['indivim_{}'.format(year)] = indivim
     del erfind, eecind
     gc.collect()
+    temporary_store.close()
 
 
 def create_enfants_a_naitre(year = None):
     '''
     '''
     assert year is not None
+    temporary_store = TemporaryStore.create(file_name = "erfs")
 
-    erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
-#   Enfant à naître (NN pour nouveaux nés)
+    erfs_survey_collection = SurveyCollection.load(
+        collection = 'erfs', config_files_directory = config_files_directory)
+    survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    # Enfant à naître (NN pour nouveaux nés)
     individual_vars = [
         'acteu',
         'agepr',
@@ -228,10 +206,10 @@ def create_enfants_a_naitre(year = None):
         'stc',
         'titc',
         ]
-
-    eeccmp1 = survey.get_values(table = "eec_cmp_1", variables = individual_vars)
-    eeccmp2 = survey.get_values(table = "eec_cmp_2", variables = individual_vars)
-    eeccmp3 = survey.get_values(table = "eec_cmp_3", variables = individual_vars)
+    replace = create_replace(year)
+    eeccmp1 = survey.get_values(table = replace["eec_cmp_1"], variables = individual_vars)
+    eeccmp2 = survey.get_values(table = replace["eec_cmp_2"], variables = individual_vars)
+    eeccmp3 = survey.get_values(table = replace["eec_cmp_3"], variables = individual_vars)
     tmp = eeccmp1.merge(eeccmp2, how = "outer")
     enfants_a_naitre = tmp.merge(eeccmp3, how = "outer")
 
@@ -239,8 +217,9 @@ def create_enfants_a_naitre(year = None):
     # pourquoi pas des int quand c'est possible
     # TODO: minimal dtype TODO: shoudln't be here
     for var in individual_vars:
-        enfants_a_naitre[var] = enfants_a_naitre[var].astype('float')
-#    del eeccmp1, eeccmp2, eeccmp3, individual_vars  #TODO: Adrien: me fait planter python
+        assert_dtype(enfants_a_naitre[var], 'float')
+    del eeccmp1, eeccmp2, eeccmp3, individual_vars, tmp  #TODO: Adrien: me fait planter python
+    gc.collect()
 
     # création de variables
     enfants_a_naitre['declar1'] = ''
@@ -267,7 +246,8 @@ def create_enfants_a_naitre(year = None):
                 )
         ].copy()
 
-    save_temp(enfants_a_naitre, name = "enfants_a_naitre", year = year)
+    temporary_store["enfants_a_naitre_{}".format(year)] = enfants_a_naitre
+    temporary_store.close()
     gc.collect()
 
 
@@ -278,6 +258,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2009
-    create_indivim(year = year)
+    create_indivim_menagem(year = year)
     create_enfants_a_naitre(year = year)
     log.info("etape 01 pre-processing terminee en {}".format(time.clock() - deb))
