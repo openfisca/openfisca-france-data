@@ -57,10 +57,9 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], filename = "test_indirect_taxation"):
+def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
 
     # 4 étape parallèles d'homogénéisation des données sources :
-
     # Gestion des dépenses de consommation:
     build_depenses_homogenisees(year = year)
     build_imputation_loyers_proprietaires(year = year)
@@ -87,6 +86,11 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], file
 
     data_frame.index.name = "ident_men"
     data_frame.reset_index(inplace = True)
+    # Remove duplicated colums causing bug with HDFStore
+    # according to https://github.com/pydata/pandas/issues/6240
+    # using solution form stackoverflow
+    # http://stackoverflow.com/questions/16938441/how-to-remove-duplicate-columns-from-a-dataframe-using-python-pandas
+    data_frame = data_frame.T.groupby(level=0).first().T
 
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection.load(
