@@ -27,7 +27,7 @@
 import logging
 
 
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def build_homogeneisation_vehicules(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
     if year == 2000:
         vehicule = survey.get_values(table = "depmen")
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 2000
     build_homogeneisation_vehicules(year = year)
 
     log.info("step 0_2_homogeneisation_vehicules duration is {}".format(time.clock() - deb))

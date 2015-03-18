@@ -23,17 +23,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
 
 import gc
 import numpy as np
 import logging
 
-from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import save_temp
+
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.temporary import TemporaryStore
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
+from openfisca_survey_manager.survey_collections import SurveyCollection
+
+
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 
 log = logging.getLogger(__name__)
+
+temporary_store = TemporaryStore.create(file_name = "erfs")
+
 
 # Prepare the some useful merged tables
 
@@ -46,15 +53,15 @@ def create_indivim(year = None):
     """
     assert year is not None
     # load data
-    erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    survey = erfs_survey_collection.surveys['erfs_{}'.format(year)]
-    erfmen = survey.get_values(table = "erf_menage")
+    erfs_survey_collection = SurveyCollection.load(
+        collection = 'erfs', config_files_directory = config_files_directory)
 
-    start_time = datetime.datetime.now()
-    eecmen = survey.get_values(table = "eec_menage")
-    log.info(u"La table eecmen a été récupérée en : {}".format(datetime.datetime.now() - start_time))
-    erfind = survey.get_values(table = "erf_indivi")
-    eecind = survey.get_values(table = "eec_indivi")
+    replace = create_replace(year)
+    survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    erfmen = survey.get_values(table = replace["erf_menage"])
+    eecmen = survey.get_values(table = replace["eec_menage"])
+    erfind = survey.get_values(table = replace["erf_indivi"])
+    eecind = survey.get_values(table = replace["eec_indivi"])
 
 
 #normalement l'option faire passer en lowercase et de remplacer tout "Ident"+yr par ident à été ajoutée dans une méthode de classe get_values survey.py
@@ -128,7 +135,7 @@ def create_indivim(year = None):
     # la même nomenclatue à été adopée
 
 #    3: contrat a durée déterminée
-    indivim['actrec'][indivim['acteu'] == 1] = 3  
+    indivim['actrec'][indivim['acteu'] == 1] = 3
     # TODO: check what is done
 
 #    8 : femme (homme) au foyer, autre inactif
@@ -270,7 +277,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2006
+    year = 2009
     create_indivim(year = year)
     create_enfants_a_naitre(year = year)
     log.info("etape 01 pre-processing terminee en {}".format(time.clock() - deb))

@@ -29,6 +29,9 @@ import pandas
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.config import get_config
+from openfisca_france_data import default_config_files_directory as config_files_directory
+
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import build_depenses_homogenisees
 
@@ -86,9 +89,11 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010], file
     data_frame.reset_index(inplace = True)
 
     # Saving the data_frame
-    openfisca_survey_collection = SurveyCollection(name = "openfisca_indirect_taxation")
-    openfisca_survey_collection.set_config_files_directory()
-    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    openfisca_survey_collection = SurveyCollection.load(
+        collection = 'budget_des_familles', config_files_directory = config_files_directory)
+
+    config = get_config(config_files_directory = config_files_directory)
+    output_data_directory = config.get('data', 'output_directory')
     survey_name = "openfisca_indirect_taxation_data_{}".format(year)
     table = "input"
     hdf5_file_path = os.path.join(

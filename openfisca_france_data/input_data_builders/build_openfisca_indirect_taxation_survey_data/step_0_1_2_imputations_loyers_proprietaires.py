@@ -27,7 +27,7 @@
 import logging
 
 
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
@@ -36,54 +36,38 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-#**************************************************************************************************************************
-#* Etape n° 0-1-2 : IMPUTATION DE LOYERS POUR LES MENAGES PROPRIETAIRES
-#**************************************************************************************************************************
+# **************************************************************************************************************************
+# * Etape n° 0-1-2 : IMPUTATION DE LOYERS POUR LES MENAGES PROPRIETAIRES
+# **************************************************************************************************************************
 def build_imputation_loyers_proprietaires(year = None):
     """Build menage consumption by categorie fiscale dataframe """
 
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
-    survey = bdf_survey_collection.surveys['budget_des_familles_{}'.format(year)]
-#
-#	if ${yearrawdata} == 1995 {
-#		* L'enquête BdF 1995 ne contient pas de loyer imputés, donc Super-Roy les calcule!
-#
-#		use "$rawdatadir\socioscm.dta", clear
-#		tempfile imput00
-#
-#		* On sélectionne les variables sur les ménages nécessaires au calcul des loyers imputés.
-#		keep MENA STALOG SURFHAB CONFORT1 CONFORT2 CONFORT3 CONFORT4 ANCONS SITLOG PONDERRD NBPHAB RG CC
-#		rename MENA ident_men
-#		gtf PONDERRD != .
-#		sort ident_men
-#		des ident_men
-#		save "`imput00'", replace
-#		* On récupère les loyers réels dans la base de consommation.
-#		tempfile loyers
-#		use "`depenses'", clear
-#		keep if posteCOICOP=="0411"
-#		keep ident_men posteCOICOP depense
-#		sort ident_men
-#		merge 1:1 ident_men using "`imput00'"
-#		tab _m
-#		drop _m
-#		rename depense loyer_reel
-#		rename PONDERRD PONDMEN
+    survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
     if year == 1995:
         imput00 = survey.get_values(table = "socioscm")
-        kept_variables = ['MENA', 'STALOG', 'SURFHAB', 'CONFORT1', 'CONFORT2', 'CONFORT3', 'CONFORT4', 'ANCONS', 'SITLOG', 'PONDERRD', 'NBPHAB', 'RG', 'CC']
+
+        imput00 = imput00[(imput00.exdep == 1) & (imput00.exrev == 1)]
+        kept_variables = ['mena', 'stalog', 'surfhab', 'confort1', 'confort2', 'confort3', 'confort4', 'ancons', 'sitlog', 'nbphab', 'rg', 'cc']
         imput00 = imput00[kept_variables]
-        imput00.rename(columns = {'MENA' : 'ident_men'}, inplace = True)
-        imput00 = imput00[imput00.PONDERRD != '.'].copy()
-        depenses = depenses[depenses.posteCOICOP == "0411"].copy()
-        kept_variables = ['ident_men', 'posteCOICOP', 'depense']
-        imput00.set_index('ident_men', inplace = True)
-        depenses = depenses.merge(imput00, left_index = True, right_index = True)
-        depenses.rename(columns = {'depense' : 'loyer_reel'}, inplace = True)
-        depenses.rename(columns = {'PONDERRD' : 'PONDMEN'}, inplace = True)
+        imput00.rename(columns = {'mena' : 'ident_men'}, inplace = True)
+
+        #TODO: continue variable cleaning
+        var_to_filnas = ['surfhab']
+        for var_to_filna in var_to_filnas:
+            imput00[var_to_filna] = imput00[var_to_filna].fillna(0)
+        var_to_ints = ['sitlog', 'confort1', 'stalog', 'surfhab']
+        for var_to_int in var_to_ints:
+            imput00[var_to_int] = imput00[var_to_int].astype(int)
+
+        depenses = temporary_store['depenses_{}'.format(year)]
+        depenses.reset_index(inplace = True)
+        depenses_small = depenses[['ident_men', '04110', 'pondmen']]
+        imput00 = depenses_small.merge(imput00, on = 'ident_men').set_index('ident_men')
+        imput00.rename(columns = {'04110' : 'loyer_reel'}, inplace = True)
 
 #		* une indicatrice pour savoir si le loyer est connu et l'occupant est locataire
 #		gen observe = (loyer_reel != . & inlist(STALOG,"3","4"))
@@ -102,23 +86,23 @@ def build_imputation_loyers_proprietaires(year = None):
 #		replace maison  = 0 if CC == "5" & catsurf == 8 & maison == 1
 #		replace maison  = 0 if CC == "4" & catsurf == 1 & maison == 1
 # 		sort ident_men
-        imput00['observe'] = (imput00.loyer_reel != ".") * (imput00.stalog.isin(['3', '4']))
-        imput00['loyer_impute'] = imput00['loyer_reel']
-        imput00['maison_appart'] = imput00[imput00.SITLOG == 1]
-        imput00['catsurf'] = 1*imput00[imput00.SURF<16]
-        imput00.catsurf[imput00.SURF > 15 & imput00.SURF < 31] = 1
-        imput00.catsurf[imput00.SURF > 30 & imput00.SURF < 41] = 3
-        imput00.catsurf[imput00.SURF > 40 & imput00.SURF < 61] = 4
-        imput00.catsurf[imput00.SURF > 60 & imput00.SURF < 81] = 5
-        imput00.catsurf[imput00.SURF > 80 & imput00.SURF < 101] = 6
-        imput00.catsurf[imput00.SURF > 100 & imput00.SURF < 151] = 7
-        imput00.catsurf[imput00.SURF > 150] = 8
-        imput00.maison[imput00.CC == 5 & imput00.catsurf == 1 & imput00.maison == 1] = 0
-        imput00.maison[imput00.CC == 5 & imput00.catsurf == 3 & imput00.maison == 1] = 0
-        imput00.maison[imput00.CC == 5 & imput00.catsurf == 8 & imput00.maison == 1] = 0
-        imput00.maison[imput00.CC == 4 & imput00.catsurf == 1 & imput00.maison == 1] = 0
+        imput00['observe'] = (imput00.loyer_reel > 0) & (imput00.stalog.isin([3, 4]))
+#        imput00['loyer_impute'] = imput00['loyer_reel']
+        imput00['maison_appart'] = imput00.sitlog == 1
+        imput00['catsurf'] = imput00.surfhab < 16
+        imput00.catsurf = 1 * ((imput00.surfhab > 15) & (imput00.surfhab < 31))
+        imput00.catsurf = 3 * ((imput00.surfhab > 30) & (imput00.surfhab < 41))
+        imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
+#        TODO: continuer sur le modèle des lignes précédentes
+#        imput00.catsurf[imput00.surfhab > 40 & imput00.surfhab < 61] = 4
+#        imput00.catsurf[imput00.surfhab > 60 & imput00.surfhab < 81] = 5
+#        imput00.catsurf[imput00.surfhab > 80 & imput00.surfhab < 101] = 6
+#        imput00.catsurf[imput00.surfhab > 100 & imput00.surfhab < 151] = 7
+#        imput00.catsurf[imput00.surfhab > 150] = 8
+#        imput00.maison[imput00.CC == 5 & imput00.catsurf == 3 & imput00.maison == 1] = 0
+#        imput00.maison[imput00.CC == 5 & imput00.catsurf == 8 & imput00.maison == 1] = 0
+#        imput00.maison[imput00.CC == 4 & imput00.catsurf == 1 & imput00.maison == 1] = 0
 
-        # TODO:
 #
 #		save "`loyers'", replace
 #
@@ -137,11 +121,11 @@ def build_imputation_loyers_proprietaires(year = None):
 #		tab _m observe
 #		drop _m
 
-        hotdeck1 = survey.get_values(table = 'hotdeck1')
-        kept_variables = ['ident_men', 'loyer_imput']
-        hotdeck1 = hotdeck1[kept_variables]
-        hotdeck1.set_index('ident_men', inplace = True)
-        loyers = loyers.merge(hotdeck1, left_index = True, right_index = True)
+        hotdeck = survey.get_values(table = 'hotdeck_result')
+        kept_variables = ['ident_men', 'loyer_impute']
+        hotdeck = hotdeck[kept_variables]
+        imput00.reset_index(inplace = True)
+        imput00 = imput00.merge(hotdeck, on = 'ident_men').set_index('ident_men')
 
 #        replace loyer_impute = 0 if observe == 1
 #		gen imputation = (observe == 0)
@@ -155,14 +139,9 @@ def build_imputation_loyers_proprietaires(year = None):
 #		merge m:1 ident_men using "`loyers'"
 
         imput00.loyer_impute[imput00.observe == 1] = 0
-        imput00['imputation']=imput00.observe[imput00.observe == 0]
-        imput00.rename(columns = {'STALOG' : 'stalog'}, inplace = True)
-        kept_variables = ['ident_men', 'loyer_imp', 'imputation', 'observe', 'stalog']
-        imput00 = imput00[kept_variables]
-        imput00.set_index('ident_men', inplace = True)
-        depenses = depenses.merge(loyers, left_index = True, right_index = True)
-
-
+        imput00['imputation'] = imput00.observe == 0
+        imput00.reset_index(inplace = True)
+        loyers_imputes = imput00[['ident_men', 'loyer_impute']]
         # TODO:
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
@@ -266,6 +245,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 1995
     build_imputation_loyers_proprietaires(year = year)
     log.info("step 0_1_2_build_imputation_loyers_proprietaires duration is {}".format(time.clock() - deb))
