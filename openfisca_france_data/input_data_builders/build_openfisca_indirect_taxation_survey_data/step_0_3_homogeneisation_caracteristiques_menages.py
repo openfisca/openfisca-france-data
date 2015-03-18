@@ -298,10 +298,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # local w = lower("`v'")
         # rename `v' `w'
         # }
-<<<<<<< HEAD
 
-=======
->>>>>>> 1995: correction step 0_3
     if year == 2000:
         menage = survey.get_values(
             table = "menage",
