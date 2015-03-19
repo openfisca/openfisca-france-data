@@ -27,7 +27,7 @@ import logging
 from pandas import concat, DataFrame
 
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.temporary import TemporaryStore
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)
@@ -55,9 +55,11 @@ def subset_base(base, famille):
 
 def famille(year = 2006):
 
+    temporary_store = TemporaryStore.create(file_name = "erfs")
+
     log.info('step_04_famille: construction de la table famille')
 
-### On suit la méthode décrite dans le Guide ERF_2002_rétropolée page 135
+    # On suit la méthode décrite dans le Guide ERF_2002_rétropolée page 135
     # TODO: extraire ces valeurs d'un fichier de paramètres de législation
     if year == 2006:
         smic = 1254
@@ -70,20 +72,20 @@ def famille(year = 2006):
     else:
         log.info("smic non défini")
 
-## TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
+    # TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
 
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
-    indivi = load_temp(name="indivim", year=year)
+    indivi = temporary_store['indivim_{}'.format(year)]
 
     indivi['year'] = year
-    indivi["noidec"] = indivi["declar1"].str[0:2].copy() # Not converted to int because some NaN are present
+    indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
     indivi["agepf"] = (
         (indivi.naim < 7) * (indivi.year - indivi.naia)
         + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
         ).astype(object)  # TODO: naia has some NaN but naim do not and then should be an int
 
-    indivi = indivi[ ~(
+    indivi = indivi[~(
         (indivi.lien == 6) & (indivi.agepf < 16) & (indivi.quelfic == "EE")
         )].copy()
 
@@ -124,7 +126,7 @@ def famille(year = 2006):
         'year',
         'ztsai',
         ]
-    enfants_a_naitre = load_temp(name = 'enfants_a_naitre', variables = individual_variables, year = year)
+    enfants_a_naitre = temporary_store['enfants_a_naitre_{}'.format(year)][individual_variables].copy()
     enfants_a_naitre.drop_duplicates('noindiv', inplace = True)
     log.info(u""""
     Il y a {} enfants à naitre avant de retirer ceux qui ne sont pas enfants
@@ -151,7 +153,7 @@ def famille(year = 2006):
     for series_name in ['kid', 'm15', 'p16m20', 'p21', 'smic55']:
         assert_dtype(base[series_name], "bool")
     assert_dtype(base.famille, "int")
-    assert_dtype(base.ztsai, "int")
+    # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
 
     log.info(u"Etape 2 : On cherche les enfants ayant père et/ou mère")
     personne_de_reference = base[['ident', 'noi']][base.lpr == 1].copy()
@@ -317,7 +319,7 @@ def famille(year = 2006):
     pere['famille'] = 45
     famille = famille[~(famille.noindiv.isin(pere.noindiv.values))].copy()
 
-    #On récupère les conjoints des pères
+    # On récupère les conjoints des pères
     conj_pereid = pere[['ident', 'noicon', 'noifam']].copy()[pere.noicon.notnull()].copy()
     conj_pereid['noindiv'] = (100 * conj_pereid.ident + conj_pereid.noicon).astype(int)
     conj_pereid = conj_pereid[['noindiv', 'noifam']].copy()
@@ -337,8 +339,13 @@ def famille(year = 2006):
 
     log.info(u"    4.3 : enfants avec déclarant")
     avec_dec = subset_base(base, famille)
-    avec_dec = avec_dec[(avec_dec.persfip == "pac") & (avec_dec.lpr == 4) &
-                    ( (avec_dec.p16m20 & ~(avec_dec.smic55)) | (avec_dec.m15 == 1 ))]
+    avec_dec = avec_dec[
+        (avec_dec.persfip == "pac") &
+        (avec_dec.lpr == 4) &
+        (
+            (avec_dec.p16m20 & ~(avec_dec.smic55)) | (avec_dec.m15 == 1)
+            )
+        ]
     avec_dec['noifam'] = (100 * avec_dec.ident + avec_dec.noidec.astype('int')).astype('int')
     avec_dec['famille'] = 47
     avec_dec['kid'] = True
@@ -346,7 +353,7 @@ def famille(year = 2006):
         assert_dtype(avec_dec[series_name], "int")
     assert_dtype(avec_dec.kid, "bool")
     control_04(avec_dec, base)
-    #on récupère les déclarants pour leur attribuer une famille propre
+    # on récupère les déclarants pour leur attribuer une famille propre
     declarant_id = DataFrame(avec_dec['noifam'].copy()).rename(columns={'noifam': 'noindiv'})
     declarant_id.drop_duplicates(inplace = True)
     dec = declarant_id.merge(base)
@@ -393,7 +400,7 @@ def famille(year = 2006):
         'year',
         'ztsai',
         ]
-    fip = load_temp(name = 'fipDat', variables = individual_variables_fip, year = year)
+    fip = temporary_store['fipDat_{}'.format(year)][individual_variables_fip].copy()
     # Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
     # WARNING les noindiv des fip sont construits sur les ident des déclarants
     # pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
@@ -459,10 +466,10 @@ def famille(year = 2006):
     control_04(parent_fip, base)
     control_04(famille, base)
     famille = famille.merge(parent_fip, how='outer')
- #   duplicated_individuals = famille.noindiv.duplicated()
+    # duplicated_individuals = famille.noindiv.duplicated()
     # TODO: How to prevent failing in the next assert and avoiding droppping duplicates ?
- #   assert not duplicated_individuals.any(), "{} duplicated individuals in famille".format(
- #       duplicated_individuals.sum())
+    # assert not duplicated_individuals.any(), "{} duplicated individuals in famille".format(
+    # duplicated_individuals.sum())
     famille = famille.drop_duplicates(cols = 'noindiv', take_last = True)
     control_04(famille, base)
     del enfant_fip, fip, parent_fip
@@ -543,7 +550,8 @@ def famille(year = 2006):
 
     famille['rang'] = famille.kid.astype('int')
     while any(famille[(famille.rang != 0)].duplicated(cols = ['rang', 'noifam'])):
-        famille["rang"][famille.rang != 0] += famille[famille.rang != 0].copy().duplicated(cols = ["rang", 'noifam']).values
+        famille["rang"][famille.rang != 0] += famille[famille.rang != 0].copy().duplicated(
+            cols = ["rang", 'noifam']).values
         log.info(u"nb de rangs différents : {}".format(len(set(famille.rang.values))))
 
     log.info(u"    7.3 : création de la colonne quifam et troncature")
@@ -551,35 +559,35 @@ def famille(year = 2006):
     log.info(u"value_counts kid :' \n {}".format(famille['kid'].value_counts()))
 
     famille['quifam'] = -1
- #   famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
+    # famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
     # ATTENTTION : ^ stands for XOR
     famille.quifam = (0 +
         ((~famille['chef']) & (~famille['kid'])).astype(int) +
         famille.kid * famille.rang
         ).astype('int')
 
-# TODO: Test a groupby to improve the following this (should be placed )
-#    assert famille['chef'].sum() == len(famille.noifam.unique()), \
-#      'The number of family chiefs {} is different from the number of families {}'.format(
-#          famille['chef'].sum(),
-#          len(famille.idfam.unique())
-#          )
+    # TODO: Test a groupby to improve the following this (should be placed )
+    #    assert famille['chef'].sum() == len(famille.noifam.unique()), \
+    #      'The number of family chiefs {} is different from the number of families {}'.format(
+    #          famille['chef'].sum(),
+    #          len(famille.idfam.unique())
+    #          )
 
-#    famille['noifam'] = famille['noifam'].astype('int')
+    #    famille['noifam'] = famille['noifam'].astype('int')
     log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts()))
     famille = famille[['noindiv', 'quifam', 'noifam']].copy()
     famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
     log.info(u"Vérifications sur famille")
     # TODO: we drop duplicates if any
     log.info(u"There are {} duplicates of quifam inside famille, we drop them".format(
-          famille.duplicated(cols = ['idfam', 'quifam']).sum())
-          )
+        famille.duplicated(cols = ['idfam', 'quifam']).sum())
+        )
     famille.drop_duplicates(cols = ['idfam', 'quifam'], inplace = True)
-#    assert not(famille.duplicated(cols=['idfam', 'quifam']).any()), \
-#      'There are {} duplicates of quifam inside famille'.format(
-#          famille.duplicated(cols=['idfam', 'quifam']).sum())
+    # assert not(famille.duplicated(cols=['idfam', 'quifam']).any()), \
+    #   'There are {} duplicates of quifam inside famille'.format(
+    #       famille.duplicated(cols=['idfam', 'quifam']).sum())
 
-    save_temp(famille, name="famc", year=year)
+    temporary_store["famc_{}".format(year)] = famille
     del indivi, enfants_a_naitre
 
 if __name__ == '__main__':

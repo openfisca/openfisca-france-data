@@ -32,10 +32,10 @@ import logging
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
-
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 
 log = logging.getLogger(__name__)
 

@@ -24,9 +24,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-## This step requires to have R installed with StatMatch library
-## You'll also need rpy2 2.3x available at  https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
-###(the version on python website is not compatible, working correctly for the debian's testing version)
+# This step requires to have R installed with StatMatch library
+# You'll also need rpy2 2.3x available at
+# https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
+# (the version on python website is not compatible, working correctly for the debian's testing version)
 
 
 from __future__ import division
@@ -36,12 +37,13 @@ import gc
 import logging
 import numpy
 
-#problem with rpy last version is not working
+# problem with rpy last version is not working
 from rpy2.robjects.packages import importr
 import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
 import rpy2.robjects.vectors as vectors
 
 
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_variable_in_range, count_NA
 from openfisca_france_data.temporary import TemporaryStore
@@ -59,7 +61,6 @@ def create_comparable_erf_data_frame(year):
     '''
     temporary_store = TemporaryStore.create(file_name = "erfs")
     assert year is not None
-
     # Préparation des variables qui serviront à l'imputation
     replace = create_replace(year)
     menm_vars = [
@@ -91,8 +92,8 @@ def create_comparable_erf_data_frame(year):
         menm_vars = menm_vars.pop('tau99')
 
     indm_vars = ["dip11", 'ident', "lpr", "noi"]
-    ## Travail sur la base ERF
-    #Preparing ERF menages tables
+    # Travail sur la base ERF
+    # Preparing ERF menages tables
     erfmenm = temporary_store.select('menagem_{}'.format(year))
 
     erfmenm['revtot'] = (
@@ -208,64 +209,62 @@ def create_comparable_erf_data_frame(year):
     erf.mtybd[erf.nbenfc >= 3] = 6
     count_NA('mtybd', erf)     # TODO il reste 41 NA's 2003, 40 en 2009
 
-    #TODO: assert erf.mtybd.isin(range(1,8)).all() # bug,
+    # TODO:
+    # assert erf.mtybd.isin(range(1,8)).all() # bug,
 
     # TODO : 3 logements ont 0 pièces !!
-    erf['hnph2'][erf['hnph2'] < 1] = 1
-    erf['hnph2'][erf['hnph2'] >= 6] = 6
+    erf.hnph2[erf.hnph2 < 1] = 1
+    erf.hnph2[erf.hnph2 >= 6] = 6
     count_NA('hnph2', erf)
-    assert_variable_in_range('hnph2', [1, 7], erf)
+    assert erf.hnph2.isin(range(1,7)).all()
 
-# # TODO: il reste un NA 2003
-# #       il rest un NA en 2008
+    # TODO: il reste un NA 2003
+    #       il rest un NA en 2008  (Not rechecked)
 
-    erf['mnatio'][erf['mnatio'] == 10] = 1
+    erf.mnatio[erf.mnatio == 10] = 1
     mnatio_range = range(11, 16) + range(21, 30) + range(31, 33) + range(41, 49) + range(51, 53) + [60] + [62]
-    erf['mnatio'][erf['mnatio'].isin(mnatio_range)] = 2
-
+    erf.mnatio[erf.mnatio.isin(mnatio_range)] = 2
     count_NA('mnatio', erf)
-    assert_variable_in_range('mnatio', [1, 3], erf)
+    assert erf.mnatio.isin(range(1, 3)).all()
 
-    erf['iaat'][erf['mnatio'].isin([1, 2, 3])] = 1
-    erf['iaat'][erf['mnatio'] == 4] = 2
-    erf['iaat'][erf['mnatio'] == 5] = 3
-    erf['iaat'][erf['mnatio'] == 6] = 4
-    erf['iaat'][erf['mnatio'] == 7] = 5
-    erf['iaat'][erf['mnatio'] == 8] = 6
+    erf.iaat[erf.mnatio.isin([1, 2, 3])] = 1
+    erf.iaat[erf.mnatio == 4] = 2
+    erf.iaat[erf.mnatio == 5] = 3
+    erf.iaat[erf.mnatio == 6] = 4
+    erf.iaat[erf.mnatio == 7] = 5
+    erf.iaat[erf.mnatio == 8] = 6
     count_NA('iaat', erf)
-    assert_variable_in_range('iaat', [1, 7], erf)
+    assert erf.iaat.isin(range(1, 7)).all()
 
-# # Il reste un NA en 2003
-# #    reste un NA en 2008
-# table(erf$iaat, useNA="ifany")
-    # TODO: comparer logement et erf pour ?tre sur que cela colle
+    # Il reste un NA en 2003
+    # reste un NA en 2008
+    # TODO: comparer logement et erf pour être sur que cela colle
 
-    erf['mdiplo'][erf['mdiplo'].isin([71, ""])] = 1
-    erf['mdiplo'][erf['mdiplo'].isin([70, 60, 50])] = 2
-    erf['mdiplo'][erf['mdiplo'].isin([41, 42, 31, 33])] = 3
-    erf['mdiplo'][erf['mdiplo'].isin([10, 11, 30])] = 4
+    # TODO: assert erf.mdiplo.unique() != 0
+    erf.mdiplo[erf.mdiplo.isin([71, ""])] = 1
+    erf.mdiplo[erf.mdiplo.isin([70, 60, 50])] = 2
+    erf.mdiplo[erf.mdiplo.isin([41, 42, 31, 33])] = 3
+    erf.mdiplo[erf.mdiplo.isin([10, 11, 30])] = 4
     count_NA('mdiplo', erf)
-    #assert_variable_inrange('mdiplo', [1,5], erf) # On a un 99 qui se balade
+    # assert_variable_inrange('mdiplo', [1,5], erf) # On a un 99 qui se balade
     erf['tu99_recoded'] = erf['tu99'].copy()
-    erf['tu99_recoded'][erf['tu99'] == 0] = 1
-    erf['tu99_recoded'][erf['tu99'].isin([1, 2, 3])] = 2
-    erf['tu99_recoded'][erf['tu99'].isin([4, 5, 6])] = 3
-    erf['tu99_recoded'][erf['tu99'] == 7] = 4
-    erf['tu99_recoded'][erf['tu99'] == 8] = 5
+    erf.tu99_recoded[erf['tu99'] == 0] = 1
+    erf.tu99_recoded[erf['tu99'].isin([1, 2, 3])] = 2
+    erf.tu99_recoded[erf['tu99'].isin([4, 5, 6])] = 3
+    erf.tu99_recoded[erf['tu99'] == 7] = 4
+    erf.tu99_recoded[erf['tu99'] == 8] = 5
     count_NA('tu99_recoded', erf)
-    assert_variable_in_range('tu99_recoded', [1, 6], erf)
+    assert erf.tu99_recoded.isin(range(1, 6)).all()
 
-    erf.mcs8[erf['mcs8'].isin([4, 8])] = 4
-    erf.mcs8[erf['mcs8'].isin([5, 6, 7])] = 5
+    erf.mcs8[erf.mcs8.isin([4, 8])] = 4
+    erf.mcs8[erf.mcs8.isin([5, 6, 7])] = 5
     count_NA('mcs8', erf)
 
-    nb_out_of_range_mcs8 = (~(erf.mcs8.isin(range(1, 6)))).sum()
-    if nb_out_of_range_mcs8 > 0:
-        log.info(u"{} valeurs de mcs8 sont hors de la plage allant de 1 à 5 ".format(nb_out_of_range_mcs8))
-        log.info(u"Ces entrées sont éliminées")
-        erf.dropna(subset = ['mcs8'], inplace = True)
+    # Drop NA = 0 values
+    if not erf.mcs8.isin(range(1, 6)).all():
+        erf = erf[erf.mcs8 != 0].copy()
 
-    erf['wprm'] = erf['wprm'].astype('int64')
+    erf.wprm = erf.wprm.astype('int64')
     count_NA('wprm', erf)
 
     for dropped_variable in ['agpr', 'cstotpr', 'nbenfc', 'spr', 'tu99', 'typmen5']:
@@ -284,31 +283,28 @@ def create_comparable_erf_data_frame(year):
         'tu99_recoded',
         ]
 
+    non_integer_variables_to_filter = list()
+    integer_variables_to_filter = list()
     for check_variable in check_variables:
         if erf[check_variable].isnull().any():
             log.info("Des valeurs NaN sont encore présentes dans la variable {} la table ERF".format(check_variable))
+            non_integer_variables_to_filter.append(check_variable)
+        if (erf[check_variable] == 0).any():
+            if numpy.issubdtype(erf[check_variable].dtype, numpy.integer):
+                log.info(
+                    "Des valeurs nulles sont encore présentes dans la variable {} la table ERF".format(check_variable))
+                integer_variables_to_filter.append(check_variable)
 
-    erf = erf.dropna(subset = [
-        'logt',
-        'magtr',
-        'mcs8',
-        'mtybd',
-        'hnph2',
-        'mnatio',
-        'iaat',
-        'mdiplo',
-        'tu99_recoded',
-        ])
+    erf = erf.dropna(subset = non_integer_variables_to_filter)
     # On vérifie au final que l'on n'a pas de doublons d'individus
-    assert ~(erf['ident'].duplicated().any()), 'Il y a {} doublons'.format(erf['ident'].duplicated().sum())
+    assert not erf['ident'].duplicated().any(), 'Il y a {} doublons'.format(erf['ident'].duplicated().sum())
     return erf
 
 
 def create_comparable_logement_data_frame(year):
 
-    LgtAdrVars = ["gzc2"]
-
-    LgtMenVars = [
+    logement_adresse_variables = ["gzc2"]
+    logement_menage_variables = [
         "maa1at",
         "magtr",
         "mcs8",
@@ -324,14 +320,14 @@ def create_comparable_logement_data_frame(year):
         ]
 
     if year == 2003:
-        LgtMenVars.extend(["hnph2", "ident", "lmlm", "mnatior", "typse"])
-        LgtAdrVars.extend(["iaat", "ident", "tu99"])
+        logement_menage_variables.extend(["hnph2", "ident", "lmlm", "mnatior", "typse"])
+        logement_adresse_variables.extend(["iaat", "ident", "tu99"])
     if year < 2010 and year > 2005:
-        LgtMenVars.extend(["idlog", "mnatio"])
-        LgtAdrVars.extend(["idlog"])  # pas de typse en 2006
-        LgtLgtVars = ["hnph2", "iaat", "idlog", "lmlm", "tu99"]  # pas de typse en 2006
+        logement_menage_variables.extend(["idlog", "mnatio"])
+        logement_adresse_variables.extend(["idlog"])  # pas de typse en 2006
+        logement_logement_variables = ["hnph2", "iaat", "idlog", "lmlm", "tu99"]  # pas de typse en 2006
 
-    ## Travail sur la table logement
+    # Travail sur la table logement
     # Table menage
     if year == 2003:
         year_lgt = 2003
@@ -343,7 +339,7 @@ def create_comparable_logement_data_frame(year):
 
     log.info("Preparing logement menage table")
 #     Lgtmen = load_temp(name = "indivim",year = year) # Je rajoute une étape bidon
-    Lgtmen = logement_survey.get_values(table = "lgt_menage", variables = LgtMenVars)
+    Lgtmen = logement_survey.get_values(table = "lgt_menage", variables = logement_menage_variables)
     Lgtmen.rename(columns = {'idlog': 'ident'}, inplace = True)
 
     Lgtmen['mrcho'].fillna(0, inplace = True)
@@ -365,15 +361,15 @@ def create_comparable_logement_data_frame(year):
     values.sort()
     Lgtmen['deci'] = (
         1 +
-        (Lgtmen['nvpr'] > values[1]) +
-        (Lgtmen['nvpr'] > values[2]) +
-        (Lgtmen['nvpr'] > values[3]) +
-        (Lgtmen['nvpr'] > values[4]) +
-        (Lgtmen['nvpr'] > values[5]) +
-        (Lgtmen['nvpr'] > values[6]) +
-        (Lgtmen['nvpr'] > values[7]) +
-        (Lgtmen['nvpr'] > values[8]) +
-        (Lgtmen['nvpr'] > values[9])
+        (Lgtmen.nvpr > values[1]) +
+        (Lgtmen.nvpr > values[2]) +
+        (Lgtmen.nvpr > values[3]) +
+        (Lgtmen.nvpr > values[4]) +
+        (Lgtmen.nvpr > values[5]) +
+        (Lgtmen.nvpr > values[6]) +
+        (Lgtmen.nvpr > values[7]) +
+        (Lgtmen.nvpr > values[8]) +
+        (Lgtmen.nvpr > values[9])
         )
 
     del dec, values
@@ -382,7 +378,7 @@ def create_comparable_logement_data_frame(year):
 
     if year_lgt == 2006:
         log.info('Preparing logement logement table')
-        lgtlgt = logement_survey.get_values(table = "lgt_logt", variables = LgtLgtVars)
+        lgtlgt = logement_survey.get_values(table = "lgt_logt", variables = logement_logement_variables)
         lgtlgt.rename(columns = {'idlog': 'ident'}, inplace = True)
         Lgtmen = Lgtmen.merge(lgtlgt, left_on = 'ident', right_on = 'ident', how = 'inner')
         del lgtlgt
@@ -408,7 +404,7 @@ def create_comparable_logement_data_frame(year):
 # ## Table adresse
     log.info(u"Préparation de la table adresse de l'enquête logement")
 
-    Lgtadr = logement_survey.get_values(table = "adresse", variables = LgtAdrVars)
+    Lgtadr = logement_survey.get_values(table = "adresse", variables = logement_adresse_variables)
     Lgtadr.rename(columns = {'idlog': 'ident'}, inplace = True)
 
     log.info(u"Fusion des tables logement et ménage de l'enquête logement")
@@ -429,19 +425,19 @@ def create_comparable_logement_data_frame(year):
     count_NA('mnatior', Logement)
     assert_variable_in_range('mnatior', [1, 3], Logement)
 
-    Logement.iaat[Logement['iaat'].isin([1, 2, 3, 4, 5])] = 1
-    Logement.iaat[Logement['iaat'] == 6] = 2
-    Logement.iaat[Logement['iaat'] == 7] = 3
-    Logement.iaat[Logement['iaat'] == 8] = 4
-    Logement.iaat[Logement['iaat'] == 9] = 5
-    Logement.iaat[Logement['iaat'] == 10] = 6
+    Logement.iaat[Logement.iaat.isin([1, 2, 3, 4, 5])] = 1
+    Logement.iaat[Logement.iaat == 6] = 2
+    Logement.iaat[Logement.iaat == 7] = 3
+    Logement.iaat[Logement.iaat == 8] = 4
+    Logement.iaat[Logement.iaat == 9] = 5
+    Logement.iaat[Logement.iaat == 10] = 6
     count_NA('iaat', Logement)
     assert_variable_in_range('iaat', [1, 7], Logement)
 
-    Logement.mdiplo[Logement['mdiplo'] == 1] = 1
-    Logement.mdiplo[Logement['mdiplo'].isin([2, 3, 4])] = 2
-    Logement.mdiplo[Logement['mdiplo'].isin([5, 6, 7, 8])] = 3
-    Logement.mdiplo[Logement['mdiplo'] == 9] = 4
+    Logement.mdiplo[Logement.mdiplo == 1] = 1
+    Logement.mdiplo[Logement.mdiplo.isin([2, 3, 4])] = 2
+    Logement.mdiplo[Logement.mdiplo.isin([5, 6, 7, 8])] = 3
+    Logement.mdiplo[Logement.mdiplo == 9] = 4
     count_NA('mdiplo', Logement)
     assert_variable_in_range('mdiplo', [1, 5], Logement)
 
@@ -486,11 +482,11 @@ def create_comparable_logement_data_frame(year):
     assert_variable_in_range('mcs8', [1, 6], Logement)
 
     Logement['logloy'] = numpy.log(Logement['lmlm'].values)
-#    Logement.dropna(
-#        axis = 0,
-#        subset = ['mdiplo', 'mtybd', 'magtr', 'mcs8', 'maa1at'],
-#        inplace = True)
-    ## Imputation des loyers proprement dite
+    #    Logement.dropna(
+    #        axis = 0,
+    #        subset = ['mdiplo', 'mtybd', 'magtr', 'mcs8', 'maa1at'],
+    #        inplace = True)
+    # Imputation des loyers proprement dite
     log.info('Compute imputed rents')
     kept_variables = [
         'lmlm',

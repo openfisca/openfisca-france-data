@@ -39,28 +39,34 @@ import numpy
 from pandas import concat, DataFrame, Series
 import re
 
-
-from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import save_temp, show_temp
+from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
 
-def sif(year = 2006):
-    erfs_survey_collection = SurveyCollection.load(collection='erfs')
-    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+def sif(year):
+
+    temporary_store = TemporaryStore.create(file_name = "erfs")
+
+    replace = create_replace(year)
+
+    erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
+    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 
     log.info("05_foyer: extraction des données foyer")
-    ## TODO Comment choisir le rfr n -2 pour éxonération de TH ?
-    ## mnrvka  Revenu TH n-2
-    ## mnrvkh  revenu TH (revenu fiscal de référence)
+    # TODO Comment choisir le rfr n -2 pour éxonération de TH ?
+    # mnrvka  Revenu TH n-2
+    # mnrvkh  revenu TH (revenu fiscal de référence)
     #
-    ## On récupère les variables du code sif
-    #vars <- c("noindiv", 'sif', "nbptr", "mnrvka")
+    # On récupère les variables du code sif
+    # vars <- c("noindiv", 'sif', "nbptr", "mnrvka")
     vars = ["noindiv", 'sif', "nbptr", "mnrvka", "rbg", "tsrvbg"]
-    sif = data.get_values(variables = vars, table = "foyer")
-    #sif$statmarit <- 0
+    sif = data.get_values(variables = vars, table = replace["foyer"])
+
     sif['statmarit'] = 0
 
     if year == 2009:
@@ -152,18 +158,20 @@ def sif(year = 2006):
         "Number of distinct individuals after removing duplicates is not correct"
 
     log.info(u"Saving sif")
-    save_temp(sif, name = "sif", year = year)
+    temporary_store['sif_{}'.format(year)] = sif
     del sif
     gc.collect()
 
 
-def foyer_all(year = 2006):
+def foyer_all(year):
 
-    ## On ajoute les cases de la déclaration
-    erfs_survey_collection = SurveyCollection.load(collection='erfs')
-    data = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    temporary_store = TemporaryStore.create(file_name = "erfs")
+
+    # On ajoute les cases de la déclaration
+    erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
+    data = erfs_survey_collection.get_surveys('erfs_{}'.format(year))
     foyer_all = data.get_values(table = "foyer")
-    ## on ne garde que les cases de la déclaration ('fxzz')
+    # on ne garde que les cases de la déclaration ('fxzz')
     vars = foyer_all.columns
     regex = re.compile("^f[0-9]")
     vars = [x for x in vars if regex.match(x)]
@@ -172,11 +180,11 @@ def foyer_all(year = 2006):
     del foyer_all
     gc.collect()
 
-    ## On aggrège les déclarations dans le cas où un individu a fait plusieurs déclarations
+    # On aggrège les déclarations dans le cas où un individu a fait plusieurs déclarations
     foyer = foyer.groupby("noindiv", as_index=False).aggregate(numpy.sum)
     print_id(foyer)
 
-    ## On récupère les variables individualisables
+    # On récupère les variables individualisables
     var_dict = {
         'sali': ['f1aj', 'f1bj', 'f1cj', 'f1dj', 'f1ej'],
         'choi': ['f1ap', 'f1bp', 'f1cp', 'f1dp', 'f1ep'],
@@ -238,8 +246,8 @@ def foyer_all(year = 2006):
         'abnc_defi': ['f5qe', 'f5re', 'f5se'],
         'nbnc_impo': ['f5qi', 'f5ri', 'f5si'],
         'nbnc_defi': ['f5qk', 'f5rk', 'f5sk'],
-#      'ebic_impv' : ['f5ta','f5ua', 'f5va'],
-#      'ebic_imps' : ['f5tb','f5ub', 'f5vb'],
+        # 'ebic_impv' : ['f5ta','f5ua', 'f5va'],
+        # 'ebic_imps' : ['f5tb','f5ub', 'f5vb'],
         'mbic_mvct': ['f5hu'],
         'macc_mvct': ['f5iu'],
         'mncn_mvct': ['f5ju'],
@@ -270,7 +278,7 @@ def foyer_all(year = 2006):
         'demenage': ['f1ar', 'f1br', 'f1cr', 'f1dr', 'f1er']}  # (déménagement) uniquement en 2006
 
     vars_sets = [set(var_list) for var_list in var_dict.values()]
-    eligible_vars = (set().union(*vars_sets)).intersection( set(list(foyer.columns)))
+    eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))
 
     log.info(
         u"From {} variables, we keep {} eligibles variables".format(
@@ -280,8 +288,8 @@ def foyer_all(year = 2006):
         )
 
     qui = ['vous', 'conj', 'pac1', 'pac2', 'pac3']
-    err = 0
-    err_vars = {}
+    #    err = 0
+    #    err_vars = {}
 
     foy_ind = DataFrame()
     for individual_var, foyer_vars in var_dict.iteritems():
@@ -317,7 +325,7 @@ def foyer_all(year = 2006):
     foy_ind.reset_index(inplace=True)
 
     ind_vars_to_remove = Series(list(eligible_vars))
-    save_temp(ind_vars_to_remove, name='ind_vars_to_remove', year=year)
+    temporary_store['ind_vars_to_remove_{}'.format(year)] = ind_vars_to_remove
     foy_ind.rename(columns = {"noindiv": "idfoy"}, inplace = True)
 
     print_id(foy_ind)
@@ -331,13 +339,13 @@ def foyer_all(year = 2006):
 
     log.info('saving foy_ind')
     print_id(foy_ind)
-    save_temp(foy_ind, name = "foy_ind", year = year)
-    show_temp()
+    temporary_store['foy_ind_{}'.format(year)] = foy_ind
+
     return
 
 
 if __name__ == '__main__':
     year = 2006
-    sif(year=year)
-    foyer_all(year=year)
+    sif(year = year)
+    foyer_all(year = year)
     log.info(u"étape 05 foyer terminée")

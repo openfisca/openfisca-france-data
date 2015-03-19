@@ -33,14 +33,19 @@ import logging
 from pandas import DataFrame, MultiIndex, concat
 import numpy as np
 
-from openfisca_survey_manager.surveys import SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.temporary import TemporaryStore
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
 
 
-def create_fip(year = 2006): #fip : fichier d'imposition des personnes
+def create_fip(year = None):
+    assert year is not None
+    # fip : fichier d'imposition des personnes
     """
     Creates a 'fipDat' table containing all these 'fip individuals'
     """
@@ -48,25 +53,30 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     # but are not present in the erf or eec tables.
     # We add them to ensure consistency between concepts.
 
-    erfs_survey_collection = SurveyCollection.load(collection = 'erfs')
-    df = erfs_survey_collection.surveys['erfs_{}'.format(year)]
+    temporary_store = TemporaryStore.create(file_name = "erfs")
+
+    replace = create_replace(year)
+
+    erfs_survey_collection = SurveyCollection.load(
+        collection = 'erfs', config_files_directory = config_files_directory)
+    survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 
     log.info(u"Démarrage de 03_fip")
 
     # anaisenf is a string containing letter code of pac (F,G,H,I,J,N,R) and year of birth (example: 'F1990H1992')
     # when a child is invalid, he appears twice in anaisenf (example: F1900G1900 is a single invalid child born in 1990)
     erfFoyVar = ['declar', 'anaisenf']
-    foyer = df.get_values(table = "foyer", variables = erfFoyVar)
+    foyer = survey.get_values(table = replace["foyer"], variables = erfFoyVar)
     foyer.replace({'anaisenf': {'NA': np.nan}}, inplace = True)
 
     log.info(u"Etape 1 : on récupere les personnes à charge des foyers")
     log.info(u"    1.1 : Création des codes des enfants")
     foyer['anaisenf'] = foyer['anaisenf'].astype('string')
-    nb_pac_max = len(max(foyer['anaisenf'], key=len))/5
-    log.info(u"il ya a au maximum %s pac par foyer" %nb_pac_max)
+    nb_pac_max = len(max(foyer['anaisenf'], key=len)) / 5
+    log.info(u"il ya a au maximum {} pac par foyer".format(nb_pac_max))
 
-# Separating the string coding the pac of each "déclaration".
-# Creating a list containing the new variables.
+    # Separating the string coding the pac of each "déclaration".
+    # Creating a list containing the new variables.
 
     # Creating the multi_index for the columns
     multi_index_columns = []
@@ -98,16 +108,17 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     fip.drop(['level_0'], axis = 1, inplace = True)
 
     log.info(u"    1.2 : elimination des foyers fiscaux sans pac")
-    #Clearing missing values and changing data format
+    # Clearing missing values and changing data format
     fip = fip[(fip.type_pac.notnull()) & (fip.naia != 'an') & (fip.naia != '')].copy()
     fip = fip.sort(columns = ['declaration', 'naia', 'type_pac'])
     # TODO: check if useful
     fip.set_index(["declaration", "pac_number"], inplace = True)
     fip = fip.reset_index()
     fip.drop(['pac_number'], axis = 1, inplace = True)
-    #TODO: rajouter la case I : "Dont enfants titulaires de la carte d’invalidité"
-    assert fip.type_pac.isin(["F", "G", "H","I", "J", "N", "R"]).all(), "Certains type de PAC sont inconnus" # TODO: find a more explicitmessage
-    
+    # TODO: rajouter la case I : "Dont enfants titulaires de la carte d’invalidité"
+    assert fip.type_pac.isin(["F", "G", "H", "I", "J", "N", "R"]).all(), "Certains type de PAC sont inconnus"
+    # TODO: find a more explicit message
+
 #    control(fip, debug=True, verbose=True, verbose_columns=['naia'])
 
     log.info(u"    1.3 : on enlève les individus F pour lesquels il existe un individu G")
@@ -116,7 +127,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     type_FG['same_pair'] = type_FG.duplicated(cols = ['declaration', 'naia'], take_last = True)
     type_FG['is_twin'] = type_FG.duplicated(cols = ['declaration', 'naia', 'type_pac'])
     type_FG['to_keep'] = ~(type_FG['same_pair']) | type_FG['is_twin']
-    #Note : On conserve ceux qui ont des couples déclar/naia différents et les jumeaux
+    # Note : On conserve ceux qui ont des couples déclar/naia différents et les jumeaux
     #       puis on retire les autres (à la fois F et G)
     log.info(u"longueur fip {}".format(len(fip)))
 
@@ -135,11 +146,11 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 
     indivifip = fip[fip['to_keep']].copy()
     del indivifip['to_keep'], fip, type_FG, type_HI
-#
-#    control(indivifip, debug=True)
+    #
+    # control(indivifip, debug=True)
 
     log.info(u"Step 2 : matching indivifip with eec file")
-    indivi = load_temp(name="indivim", year=year)
+    indivi = temporary_store['indivim_{}'.format(year)]
     pac = indivi[(indivi.persfip.notnull()) & (indivi.persfip == 'pac')].copy()
     assert indivifip.naia.notnull().all(), "Il y a des valeurs manquantes de la variable naia"
 
@@ -166,7 +177,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     log.info(u"longueur pacInd2 {}".format(len(pac_ind2)))
     log.info(u"pacInd1 & pacInd2 créés")
 
-    log.info("{}".format( pac_ind1.duplicated().sum()))
+    log.info("{}".format(pac_ind1.duplicated().sum()))
     log.info("{}".format(pac_ind2.duplicated().sum()))
 
     del pac_ind1['key1'], pac_ind2['key2']
@@ -182,7 +193,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
         pacInd = pac_ind1
     else:
         pacInd = concat([pac_ind2, pac_ind1])
-    log.info("{}{}{}".format( len(pac_ind1), len(pac_ind2), len(pacInd)))
+    log.info("{}{}{}".format(len(pac_ind1), len(pac_ind2), len(pacInd)))
     log.info("{}".format(pac_ind2.type_pac.isnull().sum()))
     log.info("{}".format(pacInd.type_pac.value_counts()))
 
@@ -194,10 +205,10 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 
     del pacInd["key"]
     pacIndiv = pacInd[~(pacInd.duplicated('noindiv'))].copy()
-#     pacIndiv.reset_index(inplace=True)
+    # pacIndiv.reset_index(inplace=True)
     log.info("{}".format(pacIndiv.columns))
 
-    save_temp(pacIndiv, name="pacIndiv", year=year)
+    temporary_store['pacIndiv_{}'.format(year)] = pacIndiv
 
     log.info("{}".format(pacIndiv.type_pac.value_counts()))
     gc.collect()
@@ -212,8 +223,8 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 # fip1       <- merge(fip,individec1)
 # indivi$noidec <- as.numeric(substr(indivi$declar1,1,2))
     log.info("{}".format(indivi['declar1'].str[0:2].value_counts()))
-    log.info("{}".format( indivi['declar1'].str[0:2].describe()))
-    log.info("{}".format( indivi['declar1'].str[0:2].notnull().all()))
+    log.info("{}".format(indivi['declar1'].str[0:2].describe()))
+    log.info("{}".format(indivi['declar1'].str[0:2].notnull().all()))
     log.info("{}".format(indivi.info()))
     selection = indivi['declar1'].str[0:2] != ""
     indivi['noidec'] = indivi.declar1[selection].str[0:2].astype('int32')  # To be used later to set idfoy
@@ -278,7 +289,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
 #   tmp <- fip[dup,"noi"]
 #   fip[dup, "noi"] <- (tmp-1)
 # }
-    #TODO: Le vecteur dup est-il correct
+    # TODO: Le vecteur dup est-il correct
     fip["noi"] = fip["noi"].astype("int64")
     fip["ident"] = fip["ident"].astype("int64")
 
@@ -288,7 +299,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
         fip_tmp = fip.loc[:, ['noi', 'ident']]
         dup = fip_tmp.duplicated()
         tmp = fip.loc[dup, 'noi']
-        log.info("{}".format( len(tmp)))
+        log.info("{}".format(len(tmp)))
         fip.loc[dup, 'noi'] = tmp.astype('int64') - 1
 
     fip['idfoy'] = 100 * fip['ident'] + fip['noidec']
@@ -297,7 +308,7 @@ def create_fip(year = 2006): #fip : fichier d'imposition des personnes
     fip['key'] = 0
 
     log.info("{}".format(fip.duplicated('noindiv').value_counts()))
-    save_temp(fip, name="fipDat", year=year)
+    temporary_store['fipDat_{}'.format(year)] = fip
     del fip, fip1, individec1, indivifip, indivi, pac
     log.info(u"fip sauvegardé")
 

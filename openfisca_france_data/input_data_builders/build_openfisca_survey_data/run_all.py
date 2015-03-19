@@ -26,8 +26,9 @@
 import logging
 import os
 
-from openfisca_survey_manager.surveys import Survey, SurveyCollection
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import (
+from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data import (  # analysis:ignore
     step_01_pre_processing as pre_processing,
     step_02_imputation_loyer as imputation_loyer,
     step_03_fip as fip,
@@ -43,9 +44,9 @@ log = logging.getLogger(__name__)
 
 def run_all(year = 2006, filename = "test", check = False):
 
-    pre_processing.create_indivim(year = year)
+    pre_processing.create_indivim_menagem(year = year)
     pre_processing.create_enfants_a_naitre(year = year)
- #   imputation_loyer.imputation_loyer(year = year)
+    # imputation_loyer.imputation_loyer(year = year)
     fip.create_fip(year = year)
     famille.famille(year = year)
     foyer.sif(year = year)
@@ -79,7 +80,7 @@ def run_all(year = 2006, filename = "test", check = False):
 if __name__ == '__main__':
     import time
     start = time.time()
-    run_all(year = 2006, check = False)
+    run_all(year = 2009, check = False)
     log.info("{}".format( time.time() - start ))
     # import pdb
     # pdb.set_trace()
