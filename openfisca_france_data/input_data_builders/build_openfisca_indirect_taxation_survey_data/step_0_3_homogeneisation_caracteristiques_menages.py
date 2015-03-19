@@ -82,6 +82,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 },
             inplace = True,
             )
+        vague = menage.copy()
         # use "$rawdatadir\socioscm.dta", clear
         # * Remettre en minuscule le nom et les labels de toutes les variables
         # foreach v of var * {
@@ -103,6 +104,29 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # merge 1:1 ident_men using `vague'
         # tab _m
         # drop _m
+        menage = survey.get_values(
+            table = "socioscm",
+            variables = ['ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr', 'agecj', 'matripr',
+                'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
+            )
+        menage.rename(
+            columns = {
+                'ponderrd': 'pondmen',
+                'mena': 'identmen',
+                'nbpers': 'npers',
+                'nm14a': 'nenfants',
+                'nbenf': 'nenfhors',
+                'nbact': 'nactifs',
+                'cohab': 'couplepr',
+                'matripr': 'etamatri',
+                'natio' : 'nationalite',
+                'pcs' : 'cs42'
+                },
+            inplace = True,
+            )
+        menage = menage[(menage.ponderrd != ".")].copy()
+        menage = menage.merge(vague, left_index = True, right_index = True)
+
         # rename nbpers npers
         # rename nm14a  nenfants
         # rename nbenf  nenfhors
