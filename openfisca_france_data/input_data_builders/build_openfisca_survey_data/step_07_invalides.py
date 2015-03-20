@@ -27,13 +27,17 @@
 import logging
 
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import control, print_id
+from openfisca_france_data.temporary import TemporaryStore
+
 
 log = logging.getLogger(__name__)
 
 
-def invalide(year = 2006):
+def invalide(year = None):
+
+    assert year is not None
+    temporary_store = TemporaryStore.create(file_name = "erfs")
 
     log.info(u"Entering 07_invalides: construction de la variable invalide")
 # # # Invalides
@@ -52,9 +56,10 @@ def invalide(year = 2006):
 
     log.info(u"Etape 1 : création de la df invalides")
     log.info(u"    1.1 : déclarants invalides")
-    final = load_temp(name = "final", year = year)
+    final = temporary_store['final_{}'.format(year)]
     if "inv" in final:
-        final.drop(["inv", "alt"], axis = 1, inplace = True)  # on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
+        # on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
+        final.drop(["inv", "alt"], axis = 1, inplace = True)
 
     invalides_vars = [
         "caseF",
@@ -131,32 +136,32 @@ def invalide(year = 2006):
     log.info(u"Il y a {} invalides conjoints".format(len(invalides[inv_conj_condition])))
     log.info(u" Il y a {} invalides déclarants et invalides conjoints".format(invalides["inv"].sum()))
 
-# # # Enfants invalides et garde alternée
-# #
-# # loadTmp("pacIndiv.Rdata")
-# # foy_inv_pac <- invalides[!(invalides$quifoy %in% c("vous","conj")),c("inv","noindiv")]
-# # foy_inv_pac <- merge(foy_inv_pac, pacIndiv[,c("noindiv","typ","naia")], by="noindiv",all.x =TRUE)
-# # names(foy_inv_pac)
-# # table(foy_inv_pac[,c("typ","naia")],useNA="ifany")
-# # table(foy_inv_pac[,c("typ")],useNA="ifany")
-# # foy_inv_pac <- within(foy_inv_pac,{
-# #   inv  <- (typ=="G") | (typ=="R") | (typ=="I") | (typ=="F" & (as.numeric(year)-naia>18))
-# #   alt  <- (typ=="H") | (typ=="I")
-# #   naia <- NULL
-# #   typ  <- NULL})
-# #
-# # table(foy_inv_pac[ ,c("inv")],useNA="ifany")
-# # table(foy_inv_pac[ ,c("alt")],useNA="ifany")
-# # invalides$alt <- 0
-# # foy_inv_pac[is.na(foy_inv_pac$alt),"alt"] <- 0
-# # invalides[!(invalides$quifoy %in% c("vous","conj")),c("noindiv","inv","alt")] <- foy_inv_pac
+    # Enfants invalides et garde alternée
+    # #
+    # # loadTmp("pacIndiv.Rdata")
+    # # foy_inv_pac <- invalides[!(invalides$quifoy %in% c("vous","conj")),c("inv","noindiv")]
+    # # foy_inv_pac <- merge(foy_inv_pac, pacIndiv[,c("noindiv","typ","naia")], by="noindiv",all.x =TRUE)
+    # # names(foy_inv_pac)
+    # # table(foy_inv_pac[,c("typ","naia")],useNA="ifany")
+    # # table(foy_inv_pac[,c("typ")],useNA="ifany")
+    # # foy_inv_pac <- within(foy_inv_pac,{
+    # #   inv  <- (typ=="G") | (typ=="R") | (typ=="I") | (typ=="F" & (as.numeric(year)-naia>18))
+    # #   alt  <- (typ=="H") | (typ=="I")
+    # #   naia <- NULL
+    # #   typ  <- NULL})
+    # #
+    # # table(foy_inv_pac[ ,c("inv")],useNA="ifany")
+    # # table(foy_inv_pac[ ,c("alt")],useNA="ifany")
+    # # invalides$alt <- 0
+    # # foy_inv_pac[is.na(foy_inv_pac$alt),"alt"] <- 0
+    # # invalides[!(invalides$quifoy %in% c("vous","conj")),c("noindiv","inv","alt")] <- foy_inv_pac
     log.info(u"    1.3 : enfants invalides et en garde alternée (variables inv et alt)")
-    pacIndiv = load_temp(name='pacIndiv', year=year)
-#    print pacIndiv.type_pac.value_counts()
+    pacIndiv = temporary_store['pacIndiv_{}'.format(year)]
+    # print pacIndiv.type_pac.value_counts()
     log.info(pacIndiv.type_pac.value_counts())
 
     foy_inv_pac = invalides[['noindiv', 'inv']][~(invalides.quifoy.isin([0, 1]))].copy()
-#     pac = pacIndiv.ix[:, ["noindiv", "type_pac", "naia"]]
+    # pac = pacIndiv.ix[:, ["noindiv", "type_pac", "naia"]]
     log.info("{}".format(len(foy_inv_pac)))
 
     log.info("{}".format(pacIndiv.columns))
@@ -177,21 +182,21 @@ def invalide(year = 2006):
     foy_inv_pac['alt'] = foy_inv_pac['alt'].fillna(False)
 
     log.info("{}".format(foy_inv_pac['inv'].describe()))
-    invalides.loc[:,'alt'] = False
+    invalides.loc[:, 'alt'] = False
     invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "inv"]] = foy_inv_pac[["alt", "inv"]].copy().values
     invalides = invalides[["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "inv", 'alt']].copy()
     invalides['alt'].fillna(False, inplace = True)
 
     log.info(invalides.inv.value_counts())
-#    invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
+    # invalides = invalides.drop_duplicates(['noindiv', 'inv', 'alt'], take_last = True)
     del foy_inv_pac, pacIndiv
 
-# # # Initialisation des NA sur alt et inv
-# # invalides[is.na(invalides$inv), "inv"] <- 0
-# # table(invalides[,c("alt","inv")],useNA="ifany")
-# #
-# # final <- merge(final, invalides[,c("noindiv","inv","alt")], by="noindiv",all.x=TRUE)
-# # table(final[, c("inv","alt")],useNA="ifany")
+    # Initialisation des NA sur alt et inv
+    # invalides[is.na(invalides$inv), "inv"] <- 0
+    # table(invalides[,c("alt","inv")],useNA="ifany")
+    #
+    # final <- merge(final, invalides[,c("noindiv","inv","alt")], by="noindiv",all.x=TRUE)
+    # table(final[, c("inv","alt")],useNA="ifany")
 
     log.info('Etape 2 : Initialisation des NA sur alt et inv')
     assert invalides["inv"].notnull().all() & invalides.alt.notnull().all()
@@ -201,13 +206,12 @@ def invalide(year = 2006):
     log.info("{}".format(final.inv.value_counts()))
     control(final, debug = True)
 
-    save_temp(final, name = 'final', year = year)
+    temporary_store['final_{}'.format(year)] = final
     log.info(u'final complétée et sauvegardée')
 
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
-    year = 2006
+    year = 2009
     invalide(year = year)
     log.info(u"étape 07 création des invalides terminée")

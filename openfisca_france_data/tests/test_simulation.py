@@ -43,7 +43,7 @@ def test_fake_survey_simulation():
 
 
 def test_survey_simulation():
-    year = 2006
+    year = 2009
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
@@ -61,7 +61,7 @@ def test_survey_simulation():
                 'idfam',
                 'quifam',
                 'age',
-                'champm_ind',
+                'champm_individus',
                 'sal',
                 'salnet',
                 'txtppb',
@@ -93,7 +93,6 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    test_fake_survey_simulation()
 
     df_by_entity = test_survey_simulation()
     df_i = df_by_entity['individus']

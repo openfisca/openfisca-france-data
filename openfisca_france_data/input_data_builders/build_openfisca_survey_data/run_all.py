@@ -26,8 +26,8 @@
 import logging
 import os
 
-from openfisca_survey_manager.surveys import Survey
-from openfisca_survey_manager.survey_collections import SurveyCollection
+
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data import (  # analysis:ignore
     step_01_pre_processing as pre_processing,
     step_02_imputation_loyer as imputation_loyer,
@@ -38,49 +38,49 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data impor
     step_07_invalides as invalides,
     step_08_final as final,
     )
+from openfisca_survey_manager.surveys import Survey
+from openfisca_survey_manager.survey_collections import SurveyCollection
+
 
 log = logging.getLogger(__name__)
 
 
-def run_all(year = 2006, filename = "test", check = False):
+def run_all(year = None, filename = "test", check = False):
 
-    pre_processing.create_indivim_menagem(year = year)
-    pre_processing.create_enfants_a_naitre(year = year)
-    # imputation_loyer.imputation_loyer(year = year)
-    fip.create_fip(year = year)
-    famille.famille(year = year)
-    foyer.sif(year = year)
-    foyer.foyer_all(year = year)
-    rebuild.create_totals(year = year)
-    rebuild.create_final(year = year)
-    invalides.invalide(year = year)
+    assert year is not None
+#    pre_processing.create_indivim_menagem(year = year)
+#    pre_processing.create_enfants_a_naitre(year = year)
+#    # imputation_loyer.imputation_loyer(year = year)
+#    fip.create_fip(year = year)
+#    famille.famille(year = year)
+#    foyer.sif(year = year)
+#    foyer.foyer_all(year = year)
+#    rebuild.create_totals(year = year)
+#    rebuild.create_final(year = year)
+#    invalides.invalide(year = year)
     data_frame = final.final(year = year, check = check)
 
     # Saving the data_frame
-    openfisca_survey_collection = SurveyCollection(name = "openfisca")
-    openfisca_survey_collection.set_config_files_directory()
+    openfisca_survey_collection = SurveyCollection(name = "openfisca", config_files_directory = config_files_directory)
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_data_{}".format(year)
     table = "input"
-    hdf5_file_path = os.path.join(
-        os.path.dirname(output_data_directory),
-        "{}{}".format(survey_name, ".h5"),
-        )
-
+    hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
     survey = Survey(
         name = survey_name,
         hdf5_file_path = hdf5_file_path,
         )
-    survey.insert_table(name = table)
-    survey.fill_hdf(table, data_frame)
-    openfisca_survey_collection.surveys[survey_name] = survey
-    openfisca_survey_collection.dump(collection = "openfisca")
+    survey.insert_table(name = table, data_frame = data_frame)
+    openfisca_survey_collection.surveys.append(survey)
+    collections_directory = openfisca_survey_collection.config.get('collections', 'collections_directory')
+    json_file_path = os.path.join(collections_directory, 'openfisca.json')
+    openfisca_survey_collection.dump(json_file_path = json_file_path)
 
 
 if __name__ == '__main__':
     import time
     start = time.time()
     run_all(year = 2009, check = False)
-    log.info("{}".format( time.time() - start ))
+    log.info("{}".format(time.time() - start))
     # import pdb
     # pdb.set_trace()
