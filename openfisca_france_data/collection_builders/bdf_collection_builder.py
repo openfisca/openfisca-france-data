@@ -38,7 +38,7 @@ from openfisca_france_data import default_config_files_directory as config_files
 log = logging.getLogger(__name__)
 
 
-def build_bdf_survey_collection(years = None, erase = False):
+def build_bdf_survey_collection(years = None, erase = False, overwrite = False):
 
     if years is None:
         log.error("A list of years to process is needed")
@@ -78,11 +78,12 @@ def build_bdf_survey_collection(years = None, erase = False):
         collection_json_path = os.path.join(collections_directory, "budget_des_familles" + ".json")
         bdf_survey_collection.dump(json_file_path = collection_json_path)
         surveys = [survey for survey in bdf_survey_collection.surveys if survey.name.endswith(str(year))]
-        bdf_survey_collection.fill_hdf(source_format = 'stata', surveys = surveys)
+        print surveys
+        bdf_survey_collection.fill_hdf(source_format = 'stata', surveys = surveys, overwrite = overwrite)
     return bdf_survey_collection
 
 
 if __name__ == '__main__':
 
-    years = [1995, 2000, 2005, 2011]
-    bdf_survey_collection = build_bdf_survey_collection(years = years, erase = True)
+    years = [2011]
+    bdf_survey_collection = build_bdf_survey_collection(years = years, erase = False, overwrite = True)
