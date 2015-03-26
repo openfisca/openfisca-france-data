@@ -72,7 +72,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 'v': 'vag',
                 'mena': 'ident_men',
                 'ponderrd': 'pondmen',
-                'mena': 'ident_men',
                 'nbpers': 'npers',
                 'nm14a': 'nenfants',
                 'nbenf': 'nenfhors',
@@ -1042,6 +1041,20 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 
         # save "$datadir\données_socio_demog.dta", replace
         #
+# TODO : voir les caractéristiques qui nous intéressent pour le rapport
+    if year == 2011:
+        menage = survey.get_values(
+            table = "menage",
+            variables = [
+                'ident_me', 'pondmen', 'npers', 'nenfants', 'nactifs', 'sexepr', 'sexecj', 'dip14cj', 'dip14pr'
+                ]
+            )
+        menage.rename(
+            columns = {
+                'ident_me': 'ident_men',
+                },
+            inplace = True,
+            )
 
     temporary_store['donnes_socio_demog_{}'.format(year)] = menage
 
