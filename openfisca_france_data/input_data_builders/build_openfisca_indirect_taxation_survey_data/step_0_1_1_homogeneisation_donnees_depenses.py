@@ -297,10 +297,13 @@ def build_depenses_homogenisees(year = None):
 
 def normalize_coicop(code):
     '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
-matrice_passage_data_frame en la transformant en une chaine de 5 caractères
+matrice_passage_data_frame en la transformant en une chaine de 5 caractères afin de pouvoir par la suite agréger les postes
+COICOP selon les 12 postes agrégés de la nomenclature de la comptabilité nationale. Chaque poste contient 5 caractères,
+les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la CN.
+
     '''
-    # TODO il faut préciser ce que veut dire harmoniser
-    # Cf. Nomenclature_commune.xls
+    # TODO préciser ce que harmoniser veut dire, cf nomenclaute commune.xls
+
     try:
         code = unicode(code)
     except:

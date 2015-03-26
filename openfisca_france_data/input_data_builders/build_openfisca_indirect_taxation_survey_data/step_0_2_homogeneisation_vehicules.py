@@ -114,7 +114,15 @@ def build_homogeneisation_vehicules(year = None):
 
     if year == 2005:
         vehicule = survey.get_values(table = "automobile")
-        kept_variables = ['ident_men', 'carbu', 'vag']  # TODO: on ne fait rien de vag
+        kept_variables = ['ident_men', 'carbu']  # TODO: on ne fait rien de vag
+        vehicule = vehicule[kept_variables]
+        vehicule["veh_tot"] = 1
+        vehicule["veh_essence"] = (vehicule['carbu'] == '1')
+        vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
+
+    if year == 2011:
+        vehicule = survey.get_values(table = "automobile" )
+        kept_variables = ['ident_men', 'carbu']
         vehicule = vehicule[kept_variables]
         vehicule["veh_tot"] = 1
         vehicule["veh_essence"] = (vehicule['carbu'] == '1')
