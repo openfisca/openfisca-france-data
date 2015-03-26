@@ -1046,12 +1046,14 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage = survey.get_values(
             table = "menage",
             variables = [
-                'ident_me', 'pondmen', 'npers', 'nenfants', 'nactifs', 'sexepr', 'sexecj', 'dip14cj', 'dip14pr'
+                'ident_me', 'pondmen', 'npers', 'nenfants', 'nactifs', 'sexepr', 'sexecj', 'dip14cj', 'dip14pr',
+                'coeffuc'
                 ]
             )
         menage.rename(
             columns = {
                 'ident_me': 'ident_men',
+                'coeffuc': 'ocde10',
                 },
             inplace = True,
             )
