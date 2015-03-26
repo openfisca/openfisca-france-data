@@ -61,7 +61,7 @@ def build_imputation_loyers_proprietaires(year = None):
         var_to_filnas = ['surfhab']
         for var_to_filna in var_to_filnas:
             imput00[var_to_filna] = imput00[var_to_filna].fillna(0)
-        var_to_ints = ['sitlog', 'confort1', 'stalog', 'surfhab']
+        var_to_ints = ['sitlog', 'confort1', 'stalog', 'surfhab','ident_men','ancons','nbphab']
         for var_to_int in var_to_ints:
             imput00[var_to_int] = imput00[var_to_int].astype(int)
 
@@ -94,7 +94,17 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00['catsurf'] = imput00.surfhab < 16
         imput00.catsurf = 1 * ((imput00.surfhab > 15) & (imput00.surfhab < 31))
         imput00.catsurf = 3 * ((imput00.surfhab > 30) & (imput00.surfhab < 41))
+        imput00.catsurf = 4 * ((imput00.surfhab > 40) & (imput00.surfhab < 61))
+        imput00.catsurf = 5 * ((imput00.surfhab > 60) & (imput00.surfhab < 81))
+        imput00.catsurf = 6 * ((imput00.surfhab > 80) & (imput00.surfhab < 101))
+        imput00.catsurf = 7 * ((imput00.surfhab > 100) & (imput00.surfhab < 151))
+        imput00.catsurf = 8 * (imput00.surfhab > 150)
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
+        imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 3) & (imput00.maison_appart == 1))
+        imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 8) & (imput00.maison_appart == 1))
+        imput00.maison = 1 - ((imput00.cc == 4) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
+#
+#
 #        TODO: continuer sur le modèle des lignes précédentes
 #        imput00.catsurf[imput00.surfhab > 40 & imput00.surfhab < 61] = 4
 #        imput00.catsurf[imput00.surfhab > 60 & imput00.surfhab < 81] = 5
@@ -110,7 +120,7 @@ def build_imputation_loyers_proprietaires(year = None):
 #
 #		hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
 #		replace loyer_imput = . if observe == 1
-
+        loyers.loyer_imput[loyers.observe == 1] = '.'
         # TODO:
 
 #		use "$rawdatadir\hotdeck1.dta", clear
@@ -144,10 +154,16 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00['imputation'] = imput00.observe == 0
         imput00.reset_index(inplace = True)
         loyers_imputes = imput00[['ident_men', 'loyer_impute']]
+        loyers_imputes.set_index('ident_men', inplace = True)
+        depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
         # TODO:
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
+        depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
+        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = ['loyer_imp']
+        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == .] = 0
+#
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
 #		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .
 #		drop observe stalog loyer_impute
