@@ -78,12 +78,10 @@ def build_bdf_survey_collection(years = None, erase = False, overwrite = False):
         collection_json_path = os.path.join(collections_directory, "budget_des_familles" + ".json")
         bdf_survey_collection.dump(json_file_path = collection_json_path)
         surveys = [survey for survey in bdf_survey_collection.surveys if survey.name.endswith(str(year))]
-        print surveys
         bdf_survey_collection.fill_hdf(source_format = 'stata', surveys = surveys, overwrite = overwrite)
     return bdf_survey_collection
 
 
 if __name__ == '__main__':
-
     years = [2011]
-    bdf_survey_collection = build_bdf_survey_collection(years = years, erase = False, overwrite = True)
+    bdf_survey_collection = build_bdf_survey_collection(years = years, erase = False, overwrite = False)
