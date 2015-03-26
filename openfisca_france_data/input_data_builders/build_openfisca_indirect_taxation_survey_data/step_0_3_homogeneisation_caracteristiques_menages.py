@@ -576,7 +576,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus = survey.get_values(table = 'individus')
         variables_to_destring = ['anais']
         for variable_to_destring in variables_to_destring:
-            individus[variable_to_destring] = individus[variable_to_destring].astype('int').copy()  # TODO: define as a catagory ?
+            individus[variable_to_destring] = individus[variable_to_destring].astype('int').copy()  # MBJ TODO: define as a catagory ?
         individus['agepr'] = 2005 - individus.anais
         menage = menage.merge(individus, left_index = True, right_index = True)
         # save "`menages'", replace
@@ -731,7 +731,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         del menage['htl']
         for variable_to_destring in ['typmen5', 'situapr', 'situacj', 'dip14pr', 'dip14cj']:
             menage[variable_to_destring].replace(to_replace = {'': '0'}, inplace = True)
-            menage[variable_to_destring] = menage[variable_to_destring].astype('int').copy()  # TODO: define as a catagory ?
+            menage[variable_to_destring] = menage[variable_to_destring].astype('int').copy()  # MBJ TODO: define as a catagory ?
         temporary_store['menage_{}'.format(year)] = menage
         # use "$rawdatadir\individu.dta", clear
         # tempfile individus
@@ -761,7 +761,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         kept_variables = ['ident_men', 'etamatri', 'agepr']
         individus = individus[kept_variables].copy()
         individus['etamatri'].replace(to_replace = {'': '0'}, inplace = True)
-        individus['etamatri'] = individus['etamatri'].astype('int').copy()  # TODO: define as a catagory ?
+        individus['etamatri'] = individus['etamatri'].astype('int').copy()  # MBJ TODO: define as a catagory ?
         individus.set_index('ident_men', inplace = True)
         temporary_store['individus_{}'.format(year)] = individus
         menage = menage.merge(individus, left_index = True, right_index = True)
