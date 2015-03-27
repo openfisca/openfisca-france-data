@@ -39,7 +39,6 @@ log = logging.getLogger(__name__)
 
 
 def build_bdf_survey_collection(years = None, erase = False, overwrite = False):
-
     if years is None:
         log.error("A list of years to process is needed")
 

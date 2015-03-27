@@ -63,7 +63,7 @@ def test_survey_simulation():
                 'age',
                 'champm_individus',
                 'sal',
-                'salnet',
+                'salaire_net',
                 'txtppb',
                 # salsuperbrut # TODO bug in 2006
                 ]])
