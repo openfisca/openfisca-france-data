@@ -29,9 +29,11 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 def get_input_data_frame(year):
     openfisca_survey_collection = SurveyCollection.load(
         collection = "openfisca", config_files_directory = config_files_directory)
-    print openfisca_survey_collection
     openfisca_survey = openfisca_survey_collection.get_survey("openfisca_data_{}".format(year))
     input_data_frame = openfisca_survey.get_values(table = "input")
-    print input_data_frame
+    input_data_frame.rename(
+        columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
+        inplace = True,
+        )
     input_data_frame.reset_index(inplace = True)
     return input_data_frame

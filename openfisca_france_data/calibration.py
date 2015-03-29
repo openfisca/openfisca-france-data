@@ -39,9 +39,10 @@ class Calibration(object):
     """
     def __init__(self):
         super(Calibration, self).__init__()
-        self.filter_by = "champm"
+        self.filter_by_name = "champm"
         self.frame = None
         self.initial_total_population = None
+        self.margins_by_name = None
         self.input_margins_data_frame = None
         self.output_margins_data_frame = None
         self.parameters = {
@@ -55,7 +56,6 @@ class Calibration(object):
         self.survey_scenario = None
         self.total_population = None
         self.weight_name = None
-        # TODO: add a champm option
 
     def __repr__(self):
         return '%s \n simulation %s ' % (self.__class__.__name__, self.simulation)
@@ -83,11 +83,10 @@ class Calibration(object):
         if survey_scenario.simulation is None:
             survey_scenario.simulation = survey_scenario.new_simulation()
         # self.entity = 'men'  # TODO: shoud not be france specific
-        self.champm = survey_scenario.simulation.calculate("champm")
-        weight_name = self.survey_scenario.weight_column_name_by_entity_key_plural['menages']
-        self.initial_weights = survey_scenario.simulation.calculate(weight_name)
-        self.initial_total_population = sum(self.initial_weights * self.champm)
-        self.weight_name = weight_name
+        self.filter_by = filter_by = survey_scenario.simulation.calculate(self.filter_by_name)
+        self.weight_name = weight_name = self.survey_scenario.weight_column_name_by_entity_key_plural['menages']
+        self.initial_weights = initial_weights = survey_scenario.simulation.calculate(weight_name)
+        self.initial_total_population = sum(initial_weights * filter_by)
         self.weights = survey_scenario.simulation.calculate(weight_name)
 
     def set_parameters(self, parameter, value):
@@ -148,8 +147,8 @@ class Calibration(object):
                  database source
         """
 
-        w_init = self.initial_weights * self.champm
-        w = self.weights * self.champm
+        w_init = self.initial_weights * self.filter_by
+        w = self.weights * self.filter_by
 
         survey_scenario = self.survey_scenario
         simulation = survey_scenario.simulation
@@ -173,10 +172,10 @@ class Calibration(object):
             return
         # TODO: rewrite this using pivot table
 
-        items = [('marge', w[self.champm]), ('marge initiale', w_init[self.champm])]
+        items = [('marge', w[self.filter_by]), ('marge initiale', w_init[self.filter_by])]
 
         if column.__class__ in [AgeCol, BoolCol, EnumCol]:
-            items.append(('mod', value[self.champm]))
+            items.append(('mod', value[self.filter_by]))
             df = DataFrame.from_items(items)
             res = df.groupby('mod', sort = True).sum()
         else:
@@ -251,7 +250,7 @@ class Calibration(object):
         p['pondini'] = self.weight_name + ""
         return p
 
-    def build_calmar_data(self, margins, weights_in):
+    def build_calmar_data(self, margins, initial_weights_name):
         """
         Builds the data dictionnary used as calmar input argument
 
@@ -260,7 +259,7 @@ class Calibration(object):
         margins : dict
                  Variables and their margins. A scalar var for numeric variables and a dict with
                  categories key and population
-        weights_in : str
+        initial_weights_name : str
                      name of the original weight variable
 
         Returns
@@ -271,7 +270,7 @@ class Calibration(object):
 #        inputs = self.simulation.survey
 #        output_table = self.simulation.output_table
 
-        data = {weights_in: self.initial_weights * self.champm}
+        data = {initial_weights_name: self.initial_weights * self.filter_by}
         for var in margins:
 #            if var in inputs.column_by_name:
 #                data[var] = inputs.get_value(var, self.entity)
@@ -284,7 +283,7 @@ class Calibration(object):
                 data[var] = self.survey_scenario.simulation.calculate(var)
         return data
 
-    def update_weights(self, margins, parameters = {}, weights_in = None):
+    def update_weights(self, margins, parameters = {}, initial_weights_name = None):
         """
         Runs calmar, stores new weights and returns adjusted margins
 
@@ -295,7 +294,7 @@ class Calibration(object):
                  categories key and population
         parameters : dict
                 parameters of the calibration
-        weights_in : str
+        initial_weights_name : str
                      name of the original weight variable
 
         Returns
@@ -303,19 +302,19 @@ class Calibration(object):
         marge_new : dict
                     computed values of the margins
         """
-        if weights_in is None:
-            weights_in = self.weight_name + "_ini"
+        if initial_weights_name is None:
+            initial_weights_name = self.weight_name + "_ini"
 
-        data = self.build_calmar_data(margins, weights_in)
+        data = self.build_calmar_data(margins, initial_weights_name)
         try:
             val_pondfin, lambdasol, updated_margins = calmar(
-                data, margins, parameters = parameters, pondini = weights_in
+                data, margins, parameters = parameters, pondini = initial_weights_name
                 )
         except Exception, e:
             raise Exception("Calmar returned error '%s'" % e)
 
         # Updating only champm weights
-        self.weights = val_pondfin * self.champm + self.weights * (logical_not(self.champm))
+        self.weights = val_pondfin * self.filter_by + self.weights * (logical_not(self.filter_by))
         return updated_margins
 
     def calibrate(self):
@@ -366,6 +365,56 @@ class Calibration(object):
 
         if self.frame is not None:
             self.frame = df.reset_index()
+
+
+    def calibrate2(self):
+        """
+        Calibrate according to margins found in frame
+        """
+
+        margins_by_name = self.margins_by_name
+
+        if df is not None:
+            df.reset_index(drop = True, inplace = True)
+            df.set_index(['var', 'mod'], inplace = True)
+            for var, mod in df.index:
+                # Dealing with non categorical vars ...
+                if df.get_value((var, mod), u"modalités") == 'total':
+                    margins[var] = df.get_value((var, mod), 'cible')
+                #  ... and categorical vars
+                else:
+                    if var not in margins:
+                        margins[var] = {}
+                    margins[var][mod] = df.get_value((var, mod), 'cible')
+
+        parameters = self.get_parameters()
+
+        if self.total_population is not None:
+            margins['total_population'] = self.total_population
+        adjusted_margins = self.update_weights(margins, parameters = parameters)
+
+        if 'total_population' in margins.keys():
+            del margins['total_population']
+
+        w = self.weights
+        for var in margins.keys():
+            if var in self.survey_scenario.tax_benefit_system.column_by_name:
+                value = self.survey_scenario.simulation.calculate(var)  # TODO sum over menage
+
+            if isinstance(margins[var], dict):
+                items = [('marge', w), ('mod', value)]
+                updated_margins = DataFrame.from_items(items).groupby('mod', sort = True).sum()
+                for mod in margins[var].keys():
+                    df.set_value((var, mod), u"cible ajustée", adjusted_margins[var][mod])
+                    df.set_value((var, mod), u"marge", updated_margins['marge'][mod])
+            else:
+                updated_margin = (w * value).sum()
+                df.set_value((var, 0), u"cible ajustée", adjusted_margins[var])
+                df.set_value((var, 0), u"marge", updated_margin)
+
+        if self.frame is not None:
+            self.frame = df.reset_index()
+
 
     def set_calibrated_weights(self):
         """

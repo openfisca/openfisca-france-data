@@ -29,7 +29,7 @@ import os
 from pandas import HDFStore
 
 
-from . import get_input_data_frame
+from openfisca_france_data.input_data_builders import get_input_data_frame
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -50,10 +50,16 @@ def build_by_extraction(year = 2006):
 
 def get_fake_input_data_frame(year = 2006):
     store = HDFStore(hdf5_file_realpath)
-    return store.select(str(year))
+    input_data_frame = store.select(str(year))
+    input_data_frame.rename(
+        columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
+        inplace = True,
+        )
+    input_data_frame.reset_index(inplace = True)
+    return input_data_frame
 
 
 if __name__ == '__main__':
     year = 2006
-    build_by_extraction(year = year)
-    print get_fake_input_data_frame(year = year)
+    # build_by_extraction(year = year)
+    df = get_fake_input_data_frame(year = year)

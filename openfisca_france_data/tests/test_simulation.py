@@ -27,19 +27,7 @@ import pandas
 
 
 from openfisca_france_data.input_data_builders import get_input_data_frame
-from openfisca_france_data.input_data_builders.fake_openfisca_data_builder import get_fake_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
-
-
-def test_fake_survey_simulation():
-    year = 2006
-    input_data_frame = get_fake_input_data_frame(year)
-    survey_scenario = SurveyScenario().init_from_data_frame(
-        input_data_frame = input_data_frame,
-        year = year,
-        )
-    simulation = survey_scenario.new_simulation()
-    simulation.calculate('revdisp')
 
 
 def test_survey_simulation():
@@ -47,6 +35,7 @@ def test_survey_simulation():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
+        used_as_input_variables = ['sal', 'cho', 'rst'],
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -83,6 +72,7 @@ def test_weights_building():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
+        used_as_input_variables = ['sal', 'cho', 'rst'],
         year = year,
         )
     survey_scenario.new_simulation()
