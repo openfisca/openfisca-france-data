@@ -52,7 +52,7 @@ def build_homogeneisation_revenus_menages(year = None):
 # **********************************************************************************************************************
 #
 # ********************HOMOGENEISATION DES BASES DE RESSOURCES***************************
-#	if ${yearrawdata} == 1995 {
+#    if ${yearrawdata} == 1995 {
 # use "$rawdatadir\menrev.dta", clear
 # /* La base 95 permet de distinguer taxe d'habitation et impôts fonciers. On calcule leur montant relatif pour l'appliquer à 00 et 05 */
 # gen foncier_hab=IMPHAB+IMPFON
@@ -70,8 +70,8 @@ def build_homogeneisation_revenus_menages(year = None):
         menrev = survey.get_values(
             table = "menrev",
             variables = [
-                'REVTOT', 'IR', 'IRBIS', 'IMPHAB', 'IMPFON', 'REVAID', 'REVSAL', 'REVIND', 'REVSEC', 'REVRET',
-                'REVIND', 'REVCHO', 'REVFAM', 'REVLOG', 'REVINV', 'REVRMI', 'REVPAT', 'MENA', 'PONDERR'
+                'revtot', 'ir', 'irbis', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revret',
+                'revcho', 'revfam', 'revlog', 'revinv', 'revrmi', 'revpat', 'mena', 'ponderr'
                 ],
             )
 
@@ -82,10 +82,10 @@ def build_homogeneisation_revenus_menages(year = None):
         menrev['revsoc'] = (
             menrev.REVRET + menrev.REVCHO + menrev.REVFAM + menrev.REVLOG + menrev.REVINV + menrev.REVRMI
             )
-        for variable in ['REVCHO', 'REVFAM', 'REVINV', 'REVLOG', 'REVRET', 'REVRMI']:
+        for variable in ['revcho', 'revfam', 'revinv', 'revlog', 'revret', 'revrmi']:
             del menrev[variable]
 
-        menrev['revact'] = 'REVSAL' + 'REVIND' + 'REVSEC'
+        menrev['revact'] = 'revsal' + 'revind' + 'revsec'
         menrev.rename(
             columns = dict(
                 REVPAT = "revpat",
@@ -95,12 +95,12 @@ def build_homogeneisation_revenus_menages(year = None):
                 ),
             inplace = True
             )
-        menrev['impot_revenu'] = 'IR' + 'IRBIS'
+        menrev['impot_revenu'] = 'ir' + 'irbis'
 
 
         rev_disp = survey.get_values(
             table = "rev_disp",
-            variables = ['REVTOT', 'revsoc', 'IMPHAB', 'IMPFON', 'REVAID', 'REVSAL', 'REVIND', 'REVSEC', 'REVIND', 'REVPAT', 'MENA', 'PONDERR'],
+            variables = ['revtot', 'revsoc', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr'],
             )
 # drop IR IRBIS
 # rename IMPFON impfon
@@ -113,13 +113,13 @@ def build_homogeneisation_revenus_menages(year = None):
 # drop REVTOT
         rev_disp = survey.get_values(
             table = "rev_disp",
-            variables = ['REVTOT', 'revsoc', 'IMPHAB', 'IMPFON', 'REVAID', 'REVSAL', 'REVIND', 'REVSEC', 'REVIND', 'REVPAT', 'MENA', 'PONDERR'],
+            variables = ['revtot', 'revsoc', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr'],
             )
 # sort MENA
 # merge MENA using "`ponder'"
-        rev_disp = rev_disp.sort(columns = ['MENA'], inplace=True)
-        rev_disp.set_index('MENA', inplace=True)
-        rev_disp.merge('ponder', on = "MENA")
+        rev_disp = rev_disp.sort(columns = ['mena'], inplace=True)
+        rev_disp.set_index('mena', inplace=True)
+        rev_disp.merge('ponder', on = "mena")
 # tab _merge
 # keep if _m == 3
 # codebook MENA
@@ -173,15 +173,15 @@ def build_homogeneisation_revenus_menages(year = None):
             rev_disp[var] = rev_disp[var] / 6.55957
 # * CONVERSION EN EUROS
 # foreach var in   somme_obl_recue act_indpt revpat salaires autres_rev impfon imphab revsoc revact impot_revenu revtot somme_libre_recue autoverses autres_ress {
-# 	replace `var' = `var' / 6.55957
+#     replace `var' = `var' / 6.55957
 # }
 # sort ident_men
 # save "$datadir\revenus.dta", replace
-#	}
+#    }
         rev_disp = rev_disp.sort(columns = ['MENA'], inplace=True)
 
 #
-#	if ${yearrawdata} == 2000 {
+#    if ${yearrawdata} == 2000 {
     elif year == 2000:
     # TODO: récupérer plutôt les variables qui viennent de la table dépenses (dans temporary_store)
         consomen = survey.get_values(
@@ -193,7 +193,7 @@ def build_homogeneisation_revenus_menages(year = None):
 
 # tempfile rev_disp2
 # use "$rawdatadir\consomen.dta",clear
-#	* 	use "$rawdatadir\consomen.dta", clear
+#    *     use "$rawdatadir\consomen.dta", clear
 # keep C13141 C13111 C13121 C13131 PONDMEN IDENT
 # sort IDENT
 # gen impot_autres_res= C13121 + C13131
@@ -261,9 +261,9 @@ def build_homogeneisation_revenus_menages(year = None):
 
 # sort ident_men
 # save "$datadir\revenus.dta", replace
-#	}
+#    }
 #
-#	if ${yearrawdata} == 2005 {
+#    if ${yearrawdata} == 2005 {
 # tempfile rev_disp
 # use "$rawdatadir\c05d.dta", clear
 # keep c13111 c13121 c13141 pondmen ident_men
@@ -334,24 +334,24 @@ def build_homogeneisation_revenus_menages(year = None):
         # label var autres_ress "Autres ressources"
         # sort ident_men
         # save "$datadir\revenus.dta", replace
-        #	}
+        #    }
         #
-        #	* Calculer le revenu disponible avec et sans le loyer imputé
-        #	tempfile revenus
-        #	use "${datadir}\revenus.dta", clear
-        #	sort ident_men
-        #	save "`revenus'", replace
+        #    * Calculer le revenu disponible avec et sans le loyer imputé
+        #    tempfile revenus
+        #    use "${datadir}\revenus.dta", clear
+        #    sort ident_men
+        #    save "`revenus'", replace
         #
         temporary_store["revenus_{}".format(year)] = revenus
         loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
         variables = ["0421"]
         loyers_imputes = loyers_imputes[variables]
-        #	tempfile loyers_imp
-        #	use "${datadir}\dépenses_BdF.dta", clear
-        #	keep ident_men posteCOICOP depense
-        #	keep if posteCOICOP=="0421"
-        #	drop posteCOICOP
-        #	rename depense loyer_impute
+        #    tempfile loyers_imp
+        #    use "${datadir}\dépenses_BdF.dta", clear
+        #    keep ident_men posteCOICOP depense
+        #    keep if posteCOICOP=="0421"
+        #    drop posteCOICOP
+        #    rename depense loyer_impute
         loyers_imputes.rename(
             columns = {"0421": "loyer_impute"},
             inplace = True,
@@ -360,35 +360,35 @@ def build_homogeneisation_revenus_menages(year = None):
         # sort ident_men
         # save "`loyers_imp'", replace
         temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
-        #	use "`revenus'", clear
-        #	merge ident_men using "`loyers_imp'"
+        #    use "`revenus'", clear
+        #    merge ident_men using "`loyers_imp'"
         #
         revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
         # tab _m
-        #	drop _m
-        #	gen rev_disponible= revtot - impot_revenu - imphab
-        #	replace rev_disponible = 0 if rev_disponible < 0
-        #	gen rev_disp_loyerimput = rev_disponible + loyer_impute
-        #	label var rev_disponible "Revenu disponible sans loyer imputé"
-        #	label var rev_disp_loyerimput "Revenu disponible avec loyer imputé"
+        #    drop _m
+        #    gen rev_disponible= revtot - impot_revenu - imphab
+        #    replace rev_disponible = 0 if rev_disponible < 0
+        #    gen rev_disp_loyerimput = rev_disponible + loyer_impute
+        #    label var rev_disponible "Revenu disponible sans loyer imputé"
+        #    label var rev_disp_loyerimput "Revenu disponible avec loyer imputé"
         revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
-        #	sort ident_men
-        #	save "${datadir}\revenus.dta", replace
+        #    sort ident_men
+        #    save "${datadir}\revenus.dta", replace
         #
         temporary_store["revenus_{}".format(year)] = revenus
 
 
     elif year == 2010:
         c05 = survey.get_values(
-            table = "C05",
+            table = "c05",
             variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
             )
         rev_disp = c05.sort(columns = ['ident_me'])
         del c05
         menage = survey.get_values(
-            table = "MENAGE",
+            table = "menage",
             variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700_d', 'rev701_d', 'rev999_d', 'rev100_d', 'rev101_d', 'rev200_d', 'rev201_d'],
             ).sort(columns = ['ident_me'])
         rev_disp.set_index('ident_me', inplace = True)
