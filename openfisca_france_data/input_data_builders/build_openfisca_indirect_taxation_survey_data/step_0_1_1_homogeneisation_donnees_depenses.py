@@ -176,8 +176,8 @@ def build_depenses_homogenisees(year = None):
                 },
             inplace = True,
             )
+        del conso['ctot']
 
-#
 #	order ident pondmen poste depense
 #	sort poste
 #	* Fusionner le tableau de passage sur les données de consommation
@@ -346,6 +346,8 @@ def get_transfert_data_frames(year = None):
     matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     matrice_passage_data_frame = pandas.read_excel(matrice_passage_file_path)
+    if year == 2011:
+        matrice_passage_data_frame['poste2011'] = matrice_passage_data_frame['poste2011'].apply(lambda x: int(x.replace('c', '').lstrip('0')))
     parametres_fiscalite_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "categoriefiscale")
     selected_parametres_fiscalite_data_frame = \
         parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
@@ -357,6 +359,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2010
+    year = 2011
     build_depenses_homogenisees(year = year)
     log.info("duration is {}".format(time.clock() - deb))

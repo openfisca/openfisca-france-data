@@ -114,6 +114,6 @@ if __name__ == '__main__':
     start = time.time()
     year = 2005
     year_calage = 2007
-    year_data_list = [2005, 2010]
+    year_data_list = [1995, 2000, 2005, 2010]
     run_all(year, year_calage, year_data_list)
     log.info("{}".format(time.time() - start))

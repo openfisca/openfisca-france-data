@@ -121,9 +121,10 @@ def build_homogeneisation_vehicules(year = None):
         vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
 
     if year == 2011:
-        vehicule = survey.get_values(table = "automobile" )
-        kept_variables = ['ident_men', 'carbu']
+        vehicule = survey.get_values(table = "automobile")
+        kept_variables = ['ident_me', 'carbu']
         vehicule = vehicule[kept_variables]
+        vehicule.rename(columns = {'ident_me': 'ident_men'}, inplace = True)
         vehicule["veh_tot"] = 1
         vehicule["veh_essence"] = (vehicule['carbu'] == '1')
         vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
@@ -140,7 +141,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2000
+    year = 2011
     build_homogeneisation_vehicules(year = year)
 
     log.info("step 0_2_homogeneisation_vehicules duration is {}".format(time.clock() - deb))

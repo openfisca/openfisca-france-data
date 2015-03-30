@@ -27,12 +27,12 @@
 import logging
 
 
-from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -120,7 +120,7 @@ def build_imputation_loyers_proprietaires(year = None):
 #
 #		hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
 #		replace loyer_imput = . if observe == 1
-        loyers.loyer_imput[loyers.observe == 1] = '.'
+#        loyers.loyer_imput[loyers.observe == 1] = '.'
         # TODO:
 
 #		use "$rawdatadir\hotdeck1.dta", clear
@@ -161,7 +161,7 @@ def build_imputation_loyers_proprietaires(year = None):
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
         depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
-        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = ['loyer_imp']
+        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
         depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == '.'] = 0
 #
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
@@ -229,6 +229,14 @@ def build_imputation_loyers_proprietaires(year = None):
         loyers_imputes = loyers_imputes[kept_variables]
         loyers_imputes.rename(columns = {'rev801_d': '0421'}, inplace = True)
 
+
+    if year == 2011:
+        loyers_imputes = survey.get_values(table = "menage")
+        kept_variables = ['ident_me', 'rev801']
+        loyers_imputes = loyers_imputes[kept_variables]
+        loyers_imputes.rename(columns = {'rev801': '0421', 'ident_me': 'ident_men'},
+                              inplace = True)
+
     # Joindre à la table des dépenses par COICOP
     loyers_imputes.set_index('ident_men', inplace = True)
     temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
@@ -256,13 +264,11 @@ def build_imputation_loyers_proprietaires(year = None):
     temporary_store['depenses_bdf_{}'.format(year)] = depenses
 
 
-
-
 if __name__ == '__main__':
     import sys
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 2011
     build_imputation_loyers_proprietaires(year = year)
     log.info("step 0_1_2_build_imputation_loyers_proprietaires duration is {}".format(time.clock() - deb))

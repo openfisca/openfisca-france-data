@@ -380,7 +380,7 @@ def build_homogeneisation_revenus_menages(year = None):
         temporary_store["revenus_{}".format(year)] = revenus
 
 
-    elif year == 2010:
+    elif year == 2011:
         c05 = survey.get_values(
             table = "c05",
             variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
@@ -389,20 +389,22 @@ def build_homogeneisation_revenus_menages(year = None):
         del c05
         menage = survey.get_values(
             table = "menage",
-            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700_d', 'rev701_d', 'rev999_d', 'rev100_d', 'rev101_d', 'rev200_d', 'rev201_d'],
+            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'salaires'],
+#            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'rev101_d', 'salaires', 'rev201'],
             ).sort(columns = ['ident_me'])
         rev_disp.set_index('ident_me', inplace = True)
         menage.set_index('ident_me', inplace = True)
         revenus = pandas.concat([menage, rev_disp], axis = 1)
         revenus.rename(
             columns = dict(
-                rev100_d = "act_indpt",
-                rev101_d = "autoverses",
-                rev200_d = "salaires",
-                rev201_d = "autres_rev",
-                rev700_d = "somme_obl_recue",
-                rev701_d = "somme_libre_recue",
-                rev999_d = "autres_ress",
+                revindep = "act_indpt",
+#TODO: trouver ces revenus commentés dans bdf 2011
+#                rev101_d = "autoverses",
+                salaires = "salaires",
+#                rev201_d = "autres_rev",
+                rev700 = "somme_obl_recue",
+                rev701 = "somme_libre_recue",
+                rev999 = "autres_ress",
                 c13111 = "impot_res_ppal",
                 c13141 = "impot_revenu",
                 c13121 = "impot_autres_res",
@@ -413,7 +415,7 @@ def build_homogeneisation_revenus_menages(year = None):
         revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
         del revenus['impot_autres_res']
         del revenus['impot_res_ppal']
-        temporary_store["revenus_{}".format(year)] = revenus
+#        temporary_store["revenus_{}".format(year)] = revenus
         loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
         variables = ["0421"]
         loyers_imputes = loyers_imputes[variables]
@@ -434,7 +436,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 2011
     build_homogeneisation_revenus_menages(year = year)
 
     log.info("step_0_4_homogeneisation_revenus_menages duration is {}".format(time.clock() - deb))
