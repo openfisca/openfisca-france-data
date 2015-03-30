@@ -89,8 +89,7 @@ if __name__ == '__main__':
     import datetime
     start_time = datetime.datetime.now()
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-    years = [2009]
-    erfs_survey_collection = build_erfs_survey_collection(years = years, erase = False,
+    years = [2006, 2007, 2008, 2009]
+    erfs_survey_collection = build_erfs_survey_collection(years = years, erase = True,
         overwrite = False)
     log.info("The program have been executed in {}".format(datetime.datetime.now() - start_time))
-

@@ -47,7 +47,8 @@ def build_depenses_homogenisees(year = None):
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(
-        collection = 'budget_des_familles', config_files_directory = config_files_directory)
+        collection = 'budget_des_familles', config_files_directory = config_files_directory
+        )
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
 #
@@ -356,6 +357,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 1995
+    year = 2010
     build_depenses_homogenisees(year = year)
     log.info("duration is {}".format(time.clock() - deb))

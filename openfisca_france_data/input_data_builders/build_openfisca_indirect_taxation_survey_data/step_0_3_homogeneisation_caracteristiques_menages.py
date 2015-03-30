@@ -64,8 +64,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             table = "socioscm",
             )
         menage = menage[(menage.exdep == 1) & (menage.exrev == 1)]
-        var_to_keep = ['mena', 'v', 'ponderrd', 'ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr',
-        'agecj', 'matripr', 'occuppr',  'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
+        var_to_keep = ['mena', 'v', 'ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr',
+        'agecj', 'matripr', 'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
         menage = menage[var_to_keep]
         menage.rename(
             columns = {
@@ -81,7 +81,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 },
             inplace = True,
             )
-        vague = menage.copy()
+#        vague = menage.copy()
+        menage = menage[pandas.isnull(menage.pondmen) == False].copy()
         # use "$rawdatadir\socioscm.dta", clear
         # * Remettre en minuscule le nom et les labels de toutes les variables
         # foreach v of var * {
@@ -103,28 +104,30 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # merge 1:1 ident_men using `vague'
         # tab _m
         # drop _m
-        menage = survey.get_values(
-            table = "socioscm",
-            variables = ['ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr', 'agecj', 'matripr',
-                'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
-            )
-        menage.rename(
-            columns = {
-                'ponderrd': 'pondmen',
-                'mena': 'identmen',
-                'nbpers': 'npers',
-                'nm14a': 'nenfants',
-                'nbenf': 'nenfhors',
-                'nbact': 'nactifs',
-                'cohab': 'couplepr',
-                'matripr': 'etamatri',
-                'natio' : 'nationalite',
-                'pcs' : 'cs42'
-                },
-            inplace = True,
-            )
-        menage = menage[(menage.ponderrd != ".")].copy()
-        menage = menage.merge(vague, left_index = True, right_index = True)
+
+#        menage = survey.get_values(
+#            table = "socioscm",
+#            variables = ['ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr', 'agecj', 'matripr',
+#                'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
+#            )
+#        menage.rename(
+#            columns = {
+#                'ponderrd': 'pondmen',
+#                'mena': 'identmen',
+#                'nbpers': 'npers',
+#                'nm14a': 'nenfants',
+#                'nbenf': 'nenfhors',
+#                'nbact': 'nactifs',
+#                'cohab': 'couplepr',
+#                'matripr': 'etamatri',
+#                'natio' : 'nationalite',
+#                'pcs' : 'cs42'
+#                },
+#            inplace = True,
+#            )
+#        print pandas.isnull(menage.pondmen) == False
+#        menage = menage[pandas.isnull(menage.pondmen) == False].copy()
+#        menage = menage.merge(vague, left_index = True, right_index = True)
 
         # rename nbpers npers
         # rename nm14a  nenfants
@@ -133,8 +136,9 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # rename nbact nactifs
         # gen ocde10 = 1 + 0.5 * max(0, nadultes - 1) + 0.3 * nenfants
         # gen typmen5 = 0
+        print menage.columns
         menage['nadultes'] = menage['npers'] - menage['nenfants']
-        menage['ocde10'] = 1 + 0.5 * numpy.max_(0, menage['nadultes'] - 1) + 0.3 * menage['nenfants']
+        menage['ocde10'] = 1 + 0.5 * numpy.maximum(0, menage['nadultes'] - 1) + 0.3 * menage['nenfants']
         # replace typmen5 = 1 if typmen1 == "1"
         # replace typmen5 = 2 if typmen1 == "6"
         # replace typmen5 = 3 if typmen1 == "2"
@@ -1066,7 +1070,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 1995
+    year = 2005
     build_homogeneisation_caracteristiques_sociales(year = year)
 
     log.info("step_0_3_homogeneisation_caracteristiques_sociales {}".format(time.clock() - deb))

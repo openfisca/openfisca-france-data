@@ -33,7 +33,7 @@ from pandas import read_csv
 import os
 
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
+from openfisca_france_data.temporary import TemporaryStore
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     check_structure,
     control,
@@ -46,7 +46,11 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils
 log = logging.getLogger(__name__)
 
 
-def final(year = 2006, filename = "test", check = True):
+def final(year = None, filename = "test", check = True):
+
+    assert year is not None
+    temporary_store = TemporaryStore.create(file_name = "erfs")
+
 
 ##***********************************************************************/
     log.info(u'08_final: derniers réglages')
@@ -59,7 +63,7 @@ def final(year = 2006, filename = "test", check = True):
 #
     import gc
     gc.collect()
-    final = load_temp("final", year=year)
+    final = temporary_store['final_{}'.format(year)]
     log.info('check doublons'.format(len(final[final.duplicated(['noindiv'])])))
     final.statmarit = where(final.statmarit.isnull(), 2, final.statmarit)
 #
@@ -101,10 +105,10 @@ def final(year = 2006, filename = "test", check = True):
     final_fip.activite = where(final_fip.age > 21, 2, final_fip.activite)  # ne peuvent être rattachés que les étudiants
 
     final.update(final_fip)
-    save_temp(final, name = "final", year = year)
+    temporary_store['final_{}'.format(year)] = final
     log.info("final has been updated with fip")
 
-    menagem = load_temp(name = "menagem", year = year)
+    menagem = temporary_store['menagem_{}'.format(year)]
     menagem.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
     menagem["cstotpragr"] = np.floor(menagem["cstotpr"] / 10)
 
@@ -375,4 +379,4 @@ def final(year = 2006, filename = "test", check = True):
     return data_frame
 
 if __name__ == '__main__':
-    final()
+    final(year = 2009)

@@ -27,26 +27,15 @@ import pandas
 
 
 from openfisca_france_data.input_data_builders import get_input_data_frame
-from openfisca_france_data.input_data_builders.fake_openfisca_data_builder import get_fake_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
 
 
-def test_fake_survey_simulation():
-    year = 2006
-    input_data_frame = get_fake_input_data_frame(year)
-    survey_scenario = SurveyScenario().init_from_data_frame(
-        input_data_frame = input_data_frame,
-        year = year,
-        )
-    simulation = survey_scenario.new_simulation()
-    simulation.calculate('revdisp')
-
-
 def test_survey_simulation():
-    year = 2006
+    year = 2009
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
+        used_as_input_variables = ['sal', 'cho', 'rst'],
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -61,9 +50,9 @@ def test_survey_simulation():
                 'idfam',
                 'quifam',
                 'age',
-                'champm_ind',
+                'champm_individus',
                 'sal',
-                'salnet',
+                'salaire_net',
                 'txtppb',
                 # salsuperbrut # TODO bug in 2006
                 ]])
@@ -83,6 +72,7 @@ def test_weights_building():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
+        used_as_input_variables = ['sal', 'cho', 'rst'],
         year = year,
         )
     survey_scenario.new_simulation()
@@ -93,7 +83,6 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    test_fake_survey_simulation()
 
     df_by_entity = test_survey_simulation()
     df_i = df_by_entity['individus']

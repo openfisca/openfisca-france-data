@@ -35,7 +35,6 @@ from openfisca_france_data.temporary import TemporaryStore
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import load_temp, save_temp
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, control
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -43,8 +42,9 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def create_totals(year = 2006):
+def create_totals(year = None):
 
+    assert year is not None
     temporary_store = TemporaryStore.create(file_name = "erfs")
     replace = create_replace(year)
 
@@ -86,8 +86,8 @@ def create_totals(year = 2006):
         inplace = True,
         )
 
-    indivi_i["quifoy"] = where(indivi_i["quifoy"].isnull(), "vous", indivi_i["quifoy"])
-    indivi_i["quelfic"] = "FIP_IMP"
+    indivi_i.quifoy = where(indivi_i.quifoy.isnull(), "vous", indivi_i.quifoy)
+    indivi_i.quelfic = "FIP_IMP"
 
     # We merge them with the other individuals
     indivim.rename(
@@ -115,35 +115,32 @@ def create_totals(year = 2006):
     log.info("Etape 2 : isolation des FIP")
     fip_imp = indivi.quelfic == "FIP_IMP"
     indivi["idfoy"] = (
-        indivi["idmen"].astype("int64") * 100 +
-        (indivi["declar1"].str[0:2]).convert_objects(convert_numeric=True)
+        indivi.idmen.astype("int64") * 100 +
+        (indivi.declar1.str[0:2]).convert_objects(convert_numeric=True)
         )
 
     indivi.loc[fip_imp, "idfoy"] = np.nan
-    # Certains FIP (ou du moins avec revenus imputés) ont un num?ro de déclaration d'impôt ( pourquoi ?)
+    # Certains FIP (ou du moins avec revenus imputés) ont un numéro de déclaration d'impôt ( pourquoi ?)
     fip_has_declar = (fip_imp) & (indivi.declar1.notnull())
 
-    # indivi.ix[fip_has_declar, "idfoy"] = ( indivi.ix[fip_has_declar, "idmen"]*100
-    #   + (indivi.ix[fip_has_declar, "declar1"].str[0:1]).convert_objects(convert_numeric=True) )
     indivi["idfoy"] = where(
         fip_has_declar,
         indivi.idmen * 100 + indivi.declar1.str[0:2].convert_objects(convert_numeric = True),
         indivi.idfoy)
-
     del fip_has_declar
 
     fip_no_declar = (fip_imp) & (indivi.declar1.isnull())
     del fip_imp
-    indivi["idfoy"] = where(fip_no_declar,
-                            indivi["idmen"] * 100 + 50,
-                            indivi["idfoy"])
+    indivi["idfoy"] = where(fip_no_declar, indivi["idmen"] * 100 + 50, indivi["idfoy"])
 
     indivi_fnd = indivi[["idfoy", "noindiv"]][fip_no_declar].copy()
 
     while any(indivi_fnd.duplicated(cols=["idfoy"])):
-        indivi_fnd["idfoy"] = where(indivi_fnd.duplicated(cols=["idfoy"]),
-                                    indivi_fnd["idfoy"] + 1,
-                                    indivi_fnd["idfoy"])
+        indivi_fnd["idfoy"] = where(
+            indivi_fnd.duplicated(cols=["idfoy"]),
+            indivi_fnd["idfoy"] + 1,
+            indivi_fnd["idfoy"]
+            )
 
     # assert indivi_fnd["idfoy"].duplicated().value_counts()[False] == len(indivi_fnd["idfoy"].values), "Duplicates remaining"
     assert len(indivi[indivi.duplicated(['noindiv'])]) == 0, "Doublons"
@@ -158,17 +155,14 @@ def create_totals(year = 2006):
     indivi.quifoy[nrt] = "vous"
     del nrt
 
-    pref_or_cref = indivi['lpr'].isin([1, 2])
+    pref_or_cref = indivi.lpr.isin([1, 2])
     adults = (indivi.quelfic.isin(["EE", "EE_CAF"])) & (pref_or_cref)
     indivi.idfoy = where(adults, indivi.idmen * 100 + indivi.noi, indivi.idfoy)
     indivi.loc[adults, "quifoy"] = "vous"
     del adults
     # TODO: hack to avoid assert error
-    try:
-        log.info("{}".format(indivi.loc[indivi['lpr'].isin([1, 2]), "idfoy"].notnull().value_counts()))
-        assert indivi.idfoy[indivi['lpr'].isin([1, 2])].notnull().all()
-    except:
-        pass
+    log.info("{}".format(indivi.loc[indivi['lpr'].isin([1, 2]), "idfoy"].notnull().value_counts()))
+    assert indivi.idfoy[indivi.lpr.dropna().isin([1, 2])].all()
 
     log.info(u"Etape 4 : Rattachement des enfants aux déclarations")
 
@@ -190,33 +184,32 @@ def create_totals(year = 2006):
     foyer = data.get_values(variables = ["noindiv", "zimpof"], table = replace["foyer"])
     pere = pere.merge(foyer, how = "inner", on = "noindiv")
     mere = mere.merge(foyer, how = "inner", on = "noindiv")
-    df = pere.merge(mere, how="outer", on="noindiv_enf", suffixes=('_p', '_m'))
+    df = pere.merge(mere, how = "outer", on = "noindiv_enf", suffixes=('_p', '_m'))
 
     log.info(u"    4.1 : gestion des personnes dans 2 foyers")
     for col in ["noindiv_p", "noindiv_m", "noindiv_enf"]:
         df[col] = df[col].fillna(0, inplace = True)  # beacause groupby drop groups with NA in index
-    df = df.groupby(by=["noindiv_p", "noindiv_m", "noindiv_enf"]).sum()
+    df = df.groupby(by = ["noindiv_p", "noindiv_m", "noindiv_enf"]).sum()
     df.reset_index(inplace = True)
 
     df["which"] = ""
-    df["which"] = where((df.zimpof_m.notnull()) & (df.zimpof_p.isnull()), "mere", "")
-    df["which"] = where((df.zimpof_p.notnull()) & (df.zimpof_m.isnull()), "pere", "")
+    df.which = where((df.zimpof_m.notnull()) & (df.zimpof_p.isnull()), "mere", "")
+    df.which = where((df.zimpof_p.notnull()) & (df.zimpof_m.isnull()), "pere", "")
     both = (df.zimpof_p.notnull()) & (df.zimpof_m.notnull())
-    df["which"] = where(both & (df.zimpof_p > df.zimpof_m), "pere", "mere")
-    df["which"] = where(both & (df.zimpof_m >= df.zimpof_p), "mere", "pere")
+    df.which = where(both & (df.zimpof_p > df.zimpof_m), "pere", "mere")
+    df.which = where(both & (df.zimpof_m >= df.zimpof_p), "mere", "pere")
 
-    assert df["which"].notnull().all(), "Some enf_ee individuals are not matched with any pere or mere"
+    assert df.which.notnull().all(), "Some enf_ee individuals are not matched with any pere or mere"
     del lpr3_or_lpr4, pere, mere
 
-    df.rename(columns={"noindiv_enf": "noindiv"}, inplace = True)
-    df["idfoy"] = where(df.which == "pere", df.noindiv_p, df.noindiv_m)
-    df["idfoy"] = where(df.which == "mere", df.noindiv_m, df.noindiv_p)
+    df.rename(columns = {"noindiv_enf": "noindiv"}, inplace = True)
+    df['idfoy'] = where(df.which == "pere", df.noindiv_p, df.noindiv_m)
+    df['idfoy'] = where(df.which == "mere", df.noindiv_m, df.noindiv_p)
 
     assert df["idfoy"].notnull().all()
 
-    for col in df.columns:
-        if col not in ["idfoy", "noindiv"]:
-            del df[col]
+    dropped = [col for col in df.columns if col not in ["idfoy", "noindiv"]]
+    df.drop(dropped, axis = 1, inplace = True)
 
     assert not(df.duplicated().any())
 
@@ -279,8 +272,8 @@ def create_totals(year = 2006):
     indivi.quimen[indivi.lpr == 3] = 2
     indivi.quimen[indivi.lpr == 4] = 3
     indivi['not_pr_cpr'] = None  # Create a new row
-    indivi['not_pr_cpr'][indivi.lpr <= 2] = False
-    indivi['not_pr_cpr'][indivi.lpr > 2] = True
+    indivi.not_pr_cpr[indivi.lpr <= 2] = False
+    indivi.not_pr_cpr[indivi.lpr > 2] = True
 
     assert indivi.not_pr_cpr.isin([True, False]).all()
 
@@ -299,8 +292,8 @@ def create_totals(year = 2006):
 
     print_id(indivi)
 
-#     indivi.set_index(['quiment']) #TODO: check relevance
-#     TODO problème avec certains idfoy qui n'ont pas de vous
+    # indivi.set_index(['quimen']) #TODO: check relevance
+    # TODO problème avec certains idfoy qui n'ont pas de vous
     log.info(u"Etape 5 : Gestion des idfoy qui n'ont pas de vous")
     all_ind = indivi.drop_duplicates('idfoy')
     with_ = indivi.loc[indivi.quifoy == 'vous', 'idfoy']
@@ -309,13 +302,18 @@ def create_totals(year = 2006):
     log.info(u"On cherche si le déclarant donné par la deuxième déclaration est bien un vous")
 
     # TODO: the following should be delt with at the import of the tables
-    indivi.replace({'declar2': {'NA': np.nan}}, inplace = True)
+    indivi.replace(
+        to_replace = {
+            'declar2': {'NA': np.nan, '': np.nan}
+            },
+        inplace = True
+        )
+
     has_declar2 = (indivi.idfoy.isin(without.idfoy.values)) & (indivi.declar2.notnull())
 
     decl2_idfoy = (
         indivi.loc[has_declar2, "idmen"].astype('int') * 100 +
-        indivi.loc[has_declar2, "declar2"].str[0:2].astype('int')
-        )
+        indivi.loc[has_declar2, "declar2"].str[0:2].astype('int')        )
     indivi.loc[has_declar2, 'idfoy'] = where(decl2_idfoy.isin(with_.values), decl2_idfoy, None)
     del all_ind, with_, without, has_declar2
 
@@ -364,33 +362,29 @@ def create_totals(year = 2006):
     indivi['activite'][indivi.actrec == 7] = 3
     indivi['activite'][indivi.actrec == 8] = 4
     indivi['activite'][indivi.age <= 13] = 2  # ce sont en fait les actrec=9
-    log.info("{}".format(indivi['activite'].value_counts()))
+    log.info("{}".format(indivi['activite'].value_counts(dropna = False)))
     # TODO: MBJ problem avec les actrec
-
-    indivi.titc[indivi['titc'].isnull()] = 0
-    assert indivi.titc.notnull().all(), u"Problème avec les titc"
+    # TODO: FIX AND REMOVE
+    indivi.activite[indivi.actrec.isnull()] = 5
+    indivi.titc[indivi.titc.isnull()] = 0
+    assert indivi.titc.notnull().all(), u"Problème avec les titc" # On a 420 NaN pour les varaibels statut, titc etc
 
     log.info(u"    6.2 : variable statut")
-    indivi['statut'][indivi['statut'].isnull()] = 0
-    indivi['statut'] = indivi['statut'].astype('int')
-    indivi['statut'][indivi['statut'] == 11] = 1
-    indivi['statut'][indivi['statut'] == 12] = 2
-    indivi['statut'][indivi['statut'] == 13] = 3
-    indivi['statut'][indivi['statut'] == 21] = 4
-    indivi['statut'][indivi['statut'] == 22] = 5
-    indivi['statut'][indivi['statut'] == 33] = 6
-    indivi['statut'][indivi['statut'] == 34] = 7
-    indivi['statut'][indivi['statut'] == 35] = 8
-    indivi['statut'][indivi['statut'] == 43] = 9
-    indivi['statut'][indivi['statut'] == 44] = 10
-    indivi['statut'][indivi['statut'] == 45] = 11
+    indivi.statut[indivi.statut.isnull()] = 0
+    indivi.statut = indivi.statut.astype('int')
+    indivi.statut[indivi.statut == 11] = 1
+    indivi.statut[indivi.statut == 12] = 2
+    indivi.statut[indivi.statut == 13] = 3
+    indivi.statut[indivi.statut == 21] = 4
+    indivi.statut[indivi.statut == 22] = 5
+    indivi.statut[indivi.statut == 33] = 6
+    indivi.statut[indivi.statut == 34] = 7
+    indivi.statut[indivi.statut == 35] = 8
+    indivi.statut[indivi.statut == 43] = 9
+    indivi.statut[indivi.statut == 44] = 10
+    indivi.statut[indivi.statut == 45] = 11
     assert indivi.statut.isin(range(12)).all(), u"statut value over range"
 
-    # indivi$nbsala <- as.numeric(indivi$nbsala)
-    # indivi <- within(indivi,{
-    #   nbsala[is.na(nbsala) ]    <- 0
-    #   nbsala[nbsala==99 ] <- 10  # TODO  418 fip à retracer qui sont NA
-    # })
 
     log.info(u"    6.3 : variable txtppb")
     indivi.txtppb.fillna(0, inplace = True)
@@ -398,23 +392,24 @@ def create_totals(year = 2006):
 
     indivi.nbsala.fillna(0, inplace = True)
     indivi['nbsala'] = indivi.nbsala.astype('int')
-    indivi['nbsala'][indivi['nbsala'] == 99] = 10
+    indivi.nbsala[indivi.nbsala == 99] = 10
     assert indivi.nbsala.isin(range(11)).all()
 
     log.info(u"    6.4 : variable chpub et CSP")
     indivi.chpub.fillna(0, inplace = True)
-    indivi['chpub'] = indivi['chpub'].astype('int')
-    indivi['chpub'][indivi['chpub'].isnull()] = 0
-    # TODO: print indivi['chpub'].value_counts()  check isin
-    assert indivi['chpub'].isin(range(11)).all()
+    indivi.chpub = indivi.chpub.astype('int')
+    indivi.chpub[indivi.chpub.isnull()] = 0
+    assert indivi.chpub.isin(range(11)).all()
 
     indivi['cadre'] = 0
-    indivi['prosa'][indivi['prosa'].isnull()] = 0
+    indivi.prosa.fillna(0, inplace = True)
     assert indivi['prosa'].notnull().all()
-    log.info("{}".format(indivi['encadr'].value_counts()))
+    log.info("{}".format(indivi['encadr'].value_counts(dropna = False)))
 
     # encadr : 1=oui, 2=non
     indivi.encadr.fillna(2, inplace = True)
+    indivi.encadr[indivi.encadr == 0] = 2
+
     assert indivi.encadr.notnull().all()
     assert indivi.encadr.isin([1, 2]).all()
 
@@ -432,12 +427,12 @@ def create_totals(year = 2006):
     assert indivi['idfoy'].notnull().all()
     print_id(indivi)
     indivi['quifoy2'] = 2
-    indivi['quifoy2'][indivi.quifoy == 'vous'] = 0
-    indivi['quifoy2'][indivi.quifoy == 'conj'] = 1
-    indivi['quifoy2'][indivi.quifoy == 'pac'] = 2
+    indivi.quifoy2[indivi.quifoy == 'vous'] = 0
+    indivi.quifoy2[indivi.quifoy == 'conj'] = 1
+    indivi.quifoy2[indivi.quifoy == 'pac'] = 2
 
     del indivi['quifoy']
-    indivi['quifoy'] = indivi['quifoy2']
+    indivi['quifoy'] = indivi.quifoy2
     del indivi['quifoy2']
 
     print_id(indivi)
@@ -558,7 +553,7 @@ def create_final(year):
     del sif, final
 
 if __name__ == '__main__':
-    year = 2006
-    create_totals(year)
-    create_final(year)
+    year = 2009
+    # create_totals(year = year)
+    create_final(year = year)
     log.info(u"étape 06 remise en forme des données terminée")

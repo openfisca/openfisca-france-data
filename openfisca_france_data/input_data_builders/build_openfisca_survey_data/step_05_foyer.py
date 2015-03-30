@@ -164,24 +164,28 @@ def sif(year):
 
 
 def foyer_all(year):
-
+    year = 2009
+    replace = create_replace(year)
     temporary_store = TemporaryStore.create(file_name = "erfs")
 
     # On ajoute les cases de la déclaration
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
-    data = erfs_survey_collection.get_surveys('erfs_{}'.format(year))
-    foyer_all = data.get_values(table = "foyer")
-    # on ne garde que les cases de la déclaration ('fxzz')
-    vars = foyer_all.columns
-    regex = re.compile("^f[0-9]")
-    vars = [x for x in vars if regex.match(x)]
+    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    foyer_all = data.get_values(table = replace["foyer"])
+    # on ne garde que les cases de la déclaration ('_xzz') ou ^_[0-9][a-z]{2}")
+    regex = re.compile("^_[0-9][a-z]{2}")
+    variables = [x for x in foyer_all.columns if regex.match(x)]
+    # rename variable to fxzz ou ^f[0-9][a-z]{2}")
+    renamed_variables = ["f{}".format(x[1:]) for x in variables]
 
-    foyer = foyer_all[vars + ["noindiv"]]
+    foyer = foyer_all[variables + ["noindiv"]].copy()  # Memory expensive ...
     del foyer_all
     gc.collect()
+    foyer.rename(columns = dict(zip(variables, renamed_variables)), inplace = True)
+
 
     # On aggrège les déclarations dans le cas où un individu a fait plusieurs déclarations
-    foyer = foyer.groupby("noindiv", as_index=False).aggregate(numpy.sum)
+    foyer = foyer.groupby("noindiv", as_index = False).aggregate(numpy.sum)
     print_id(foyer)
 
     # On récupère les variables individualisables
@@ -307,7 +311,7 @@ def foyer_all(year):
                 selection = foyer[foyer_vars_cleaned + ["noindiv"]].copy()
 
         # Reshape the dataframe
-        selection.rename(columns=dict(zip(foyer_vars, qui)), inplace = True)
+        selection.rename(columns = dict(zip(foyer_vars, qui)), inplace = True)
         selection.set_index("noindiv", inplace = True)
         selection.columns.name = "quifoy"
 
@@ -322,7 +326,7 @@ def foyer_all(year):
         else:
             foy_ind = concat([foy_ind, selection], axis = 1, join = 'outer')
 
-    foy_ind.reset_index(inplace=True)
+    foy_ind.reset_index(inplace = True)
 
     ind_vars_to_remove = Series(list(eligible_vars))
     temporary_store['ind_vars_to_remove_{}'.format(year)] = ind_vars_to_remove

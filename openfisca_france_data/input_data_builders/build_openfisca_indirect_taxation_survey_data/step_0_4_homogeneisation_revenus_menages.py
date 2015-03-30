@@ -380,6 +380,55 @@ def build_homogeneisation_revenus_menages(year = None):
         temporary_store["revenus_{}".format(year)] = revenus
 
 
+    elif year == 2010:
+        c05 = survey.get_values(
+            table = "C05",
+            variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
+            )
+        rev_disp = c05.sort(columns = ['ident_me'])
+        del c05
+        menage = survey.get_values(
+            table = "MENAGE",
+            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700_d', 'rev701_d', 'rev999_d', 'rev100_d', 'rev101_d', 'rev200_d', 'rev201_d'],
+            ).sort(columns = ['ident_me'])
+        rev_disp.set_index('ident_me', inplace = True)
+        menage.set_index('ident_me', inplace = True)
+        revenus = pandas.concat([menage, rev_disp], axis = 1)
+        revenus.rename(
+            columns = dict(
+                rev100_d = "act_indpt",
+                rev101_d = "autoverses",
+                rev200_d = "salaires",
+                rev201_d = "autres_rev",
+                rev700_d = "somme_obl_recue",
+                rev701_d = "somme_libre_recue",
+                rev999_d = "autres_ress",
+                c13111 = "impot_res_ppal",
+                c13141 = "impot_revenu",
+                c13121 = "impot_autres_res",
+                ),
+            inplace = True
+            )
+        revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+        revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+        del revenus['impot_autres_res']
+        del revenus['impot_res_ppal']
+        temporary_store["revenus_{}".format(year)] = revenus
+        loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
+        variables = ["0421"]
+        loyers_imputes = loyers_imputes[variables]
+        loyers_imputes.rename(
+            columns = {"0421": "loyer_impute"},
+            inplace = True,
+            )
+        temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+        revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
+        revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
+        revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
+        revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+        temporary_store["revenus_{}".format(year)] = revenus
+
+
 if __name__ == '__main__':
     import sys
     import time

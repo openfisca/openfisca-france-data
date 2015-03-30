@@ -22,13 +22,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 def get_input_data_frame(year):
-    openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
-    openfisca_survey = openfisca_survey_collection.surveys["openfisca_data_{}".format(year)]
+    openfisca_survey_collection = SurveyCollection.load(
+        collection = "openfisca", config_files_directory = config_files_directory)
+    openfisca_survey = openfisca_survey_collection.get_survey("openfisca_data_{}".format(year))
     input_data_frame = openfisca_survey.get_values(table = "input")
+    input_data_frame.rename(
+        columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
+        inplace = True,
+        )
     input_data_frame.reset_index(inplace = True)
     return input_data_frame

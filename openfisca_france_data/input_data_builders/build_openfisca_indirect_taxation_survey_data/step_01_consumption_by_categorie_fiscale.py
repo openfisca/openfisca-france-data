@@ -50,7 +50,10 @@ def build_menage_consumption_by_categorie_fiscale(year = None):
 
     assert year is not None
     # Load data
-    bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles')
+    bdf_survey_collection = SurveyCollection.load(
+        collection = 'budget_des_familles',
+        config_files_directory = config_files_directory
+        )
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
     c05d = survey.get_values(table = "c05d")
@@ -196,7 +199,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 2000
     build_menage_consumption_by_categorie_fiscale(year = year)
 
     log.info("step 01 demo duration is {}".format(time.clock() - deb))

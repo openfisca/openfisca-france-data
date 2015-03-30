@@ -162,7 +162,11 @@ def build_imputation_loyers_proprietaires(year = None):
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
         depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
         depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = ['loyer_imp']
+<<<<<<< HEAD
         #depenses.depense[depenses.posteCOICOP == "0421" & depenses.observe == 1 & depenses.depense == .] = 0
+=======
+        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == '.'] = 0
+>>>>>>> openfisca/master
 #
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
 #		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .
@@ -263,6 +267,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 1995
+    year = 2005
     build_imputation_loyers_proprietaires(year = year)
     log.info("step 0_1_2_build_imputation_loyers_proprietaires duration is {}".format(time.clock() - deb))
