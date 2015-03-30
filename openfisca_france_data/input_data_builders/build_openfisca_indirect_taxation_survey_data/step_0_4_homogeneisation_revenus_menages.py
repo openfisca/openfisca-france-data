@@ -75,12 +75,12 @@ def build_homogeneisation_revenus_menages(year = None):
                 ],
             )
 
-        menrev['foncier_hab'] = menrev.IMPHAB + menrev.IMPFON
-        menrev['part_IMPHAB'] = menrev.IMPHAB / menrev.foncier_hab
-        menrev['part_IMPFON'] = menrev.IMPFON / menrev.foncier_hab
+        menrev['foncier_hab'] = menrev.imphab + menrev.impfon
+        menrev['part_IMPHAB'] = menrev.imphab / menrev.foncier_hab
+        menrev['part_IMPFON'] = menrev.impfon / menrev.foncier_hab
 
         menrev['revsoc'] = (
-            menrev.REVRET + menrev.REVCHO + menrev.REVFAM + menrev.REVLOG + menrev.REVINV + menrev.REVRMI
+            menrev.revret + menrev.revcho + menrev.revfam + menrev.revlog + menrev.revinv + menrev.revrmi
             )
         for variable in ['revcho', 'revfam', 'revinv', 'revlog', 'revret', 'revrmi']:
             del menrev[variable]
@@ -88,10 +88,10 @@ def build_homogeneisation_revenus_menages(year = None):
         menrev['revact'] = 'revsal' + 'revind' + 'revsec'
         menrev.rename(
             columns = dict(
-                REVPAT = "revpat",
-                IMPFON = "impfon",
-                IMPHAB = "imphab",
-                REVAID= "somme_obl_recue",
+                revpat = "revpat",
+                impfon = "impfon",
+                imphab = "imphab",
+                revaid = "somme_obl_recue",
                 ),
             inplace = True
             )
