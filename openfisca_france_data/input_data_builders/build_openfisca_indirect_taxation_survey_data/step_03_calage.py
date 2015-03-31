@@ -161,9 +161,7 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
-def build_depenses_calees(year_calage, year_data_list):
-#   Quelle base de données choisir pour le calage ?
-    year_data = find_nearest_inferior(year_data_list, year_calage)
+def build_depenses_calees(year_calage, year_data):
 
     # Masses de calage provenant de la comptabilité nationale
     masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)

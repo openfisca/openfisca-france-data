@@ -47,9 +47,8 @@ log = logging.getLogger(__name__)
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data_list = None):
+def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data = None):
     """Build menage consumption by categorie fiscale dataframe """
-    year_data = find_nearest_inferior(year_data_list, year_calage)
 
     assert year_calage is not None
     assert year_data is not None
