@@ -60,7 +60,7 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2010]):
+def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
 
     # Quelle base de données choisir pour le calage ?
     year_data = find_nearest_inferior(year_data_list, year_calage)
@@ -101,7 +101,7 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2010]):
 
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection.load(
-        collection = 'budget_des_familles', config_files_directory = config_files_directory)
+        collection = 'openfisca_indirect_taxation', config_files_directory = config_files_directory)
 
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_indirect_taxation_data_{}".format(year_calage)
@@ -119,8 +119,8 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2010]):
 if __name__ == '__main__':
     import time
     start = time.time()
-    year_calage = 2005
-    year_data_list = [1995, 2000, 2005, 2010]
+    year_calage = 2007
+    year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     log.info("{}".format(time.time() - start))
     print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(year_calage, find_nearest_inferior(year_data_list, year_calage))
