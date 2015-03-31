@@ -31,6 +31,9 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 from openfisca_france_data import default_config_files_directory as config_files_directory
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import find_nearest_inferior
+
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import build_depenses_homogenisees
 
@@ -57,28 +60,32 @@ from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
+def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2010]):
+
+    # Quelle base de données choisir pour le calage ?
+    year_data = find_nearest_inferior(year_data_list, year_calage)
 
     # 4 étape parallèles d'homogénéisation des données sources :
     # Gestion des dépenses de consommation:
-    build_depenses_homogenisees(year = year)
-    build_imputation_loyers_proprietaires(year = year)
-    build_depenses_calees(year_calage, year_data_list)
-    build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
+    build_depenses_homogenisees(year = year_data)
+    build_imputation_loyers_proprietaires(year = year_data)
+
+    build_depenses_calees(year_calage, year_data)
+    build_menage_consumption_by_categorie_fiscale(year_calage, year_data)
     categorie_fiscale_data_frame = temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)]
     depenses_calees_by_grosposte = temporary_store["depenses_calees_by_grosposte_{}".format(year_calage)]
 
     # Gestion des véhicules:
-    build_homogeneisation_vehicules(year = year)
-    vehicule = temporary_store['automobile_{}'.format(year)]
+    build_homogeneisation_vehicules(year = year_data)
+    vehicule = temporary_store['automobile_{}'.format(year_data)]
 
     # Gestion des variables socio démographiques:
-    build_homogeneisation_caracteristiques_sociales(year = year)
-    menage = temporary_store['donnes_socio_demog_{}'.format(year)]
+    build_homogeneisation_caracteristiques_sociales(year = year_data)
+    menage = temporary_store['donnes_socio_demog_{}'.format(year_data)]
 
     # Gestion des variables revenues:
-    build_homogeneisation_revenus_menages(year = year)
-    revenus = temporary_store["revenus_{}".format(year)]
+    build_homogeneisation_revenus_menages(year = year_data)
+    revenus = temporary_store["revenus_{}".format(year_data)]
 
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(
@@ -97,7 +104,7 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
         collection = 'budget_des_familles', config_files_directory = config_files_directory)
 
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
-    survey_name = "openfisca_indirect_taxation_data_{}".format(year)
+    survey_name = "openfisca_indirect_taxation_data_{}".format(year_calage)
     table = "input"
     hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
     survey = Survey(
@@ -112,8 +119,8 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
 if __name__ == '__main__':
     import time
     start = time.time()
-    year = 2005
-    year_calage = 2007
+    year_calage = 2005
     year_data_list = [1995, 2000, 2005, 2010]
-    run_all(year, year_calage, year_data_list)
+    run_all(year_calage, year_data_list)
     log.info("{}".format(time.time() - start))
+    print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(year_calage, find_nearest_inferior(year_data_list, year_calage))

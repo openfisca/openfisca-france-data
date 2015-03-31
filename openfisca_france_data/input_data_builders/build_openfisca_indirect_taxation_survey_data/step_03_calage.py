@@ -40,9 +40,6 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 from openfisca_france_data.temporary import TemporaryStore
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
-    import find_nearest_inferior
-
 
 def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
     depenses_calees = pandas.DataFrame()
@@ -161,9 +158,7 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
-def build_depenses_calees(year_calage, year_data_list):
-#   Quelle base de données choisir pour le calage ?
-    year_data = find_nearest_inferior(year_data_list, year_calage)
+def build_depenses_calees(year_calage, year_data):
 
     # Masses de calage provenant de la comptabilité nationale
     masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)

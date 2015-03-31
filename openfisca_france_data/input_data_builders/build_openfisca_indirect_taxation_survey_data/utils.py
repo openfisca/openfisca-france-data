@@ -35,6 +35,7 @@ def collapsesum(data_frame, by = None, var = None):
 
 
 def find_nearest_inferior(years, year):
+#    years = year_data_list
     anterior_years = [
         available_year for available_year in years if available_year <= year
         ]

@@ -34,9 +34,6 @@ from ConfigParser import SafeConfigParser
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
 
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
-    import find_nearest_inferior
-
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import normalize_coicop
 
@@ -47,9 +44,8 @@ log = logging.getLogger(__name__)
 temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data_list = None):
+def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data = None):
     """Build menage consumption by categorie fiscale dataframe """
-    year_data = find_nearest_inferior(year_data_list, year_calage)
 
     assert year_calage is not None
     assert year_data is not None
