@@ -34,9 +34,6 @@ from ConfigParser import SafeConfigParser
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import TemporaryStore
 
-from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
-    import find_nearest_inferior
-
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import normalize_coicop
 
