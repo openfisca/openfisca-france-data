@@ -67,13 +67,14 @@ setup(
         'pandas',
         'scipy',
         'tables',  # Needed by pandas.HDFStore
+        'wquantiles >= 0.3'  # To compute weighted quantiles
         ],
     message_extractors = {
         'openfisca_france_data': [
             ('**.py', 'python', None),
             ],
         },
-#    package_data = {'openfisca_france_data': ['i18n/*/LC_MESSAGES/*.mo']},
+    # package_data = {'openfisca_france_data': ['i18n/*/LC_MESSAGES/*.mo']},
     packages = find_packages(),
     zip_safe = False,
     )
