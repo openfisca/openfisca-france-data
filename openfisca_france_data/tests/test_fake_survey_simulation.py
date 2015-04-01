@@ -22,29 +22,76 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 
 import pandas
+from pandas import HDFStore
 
-
+from openfisca_core.tools import assert_near
 from openfisca_france_data.calibration import Calibration
-from openfisca_france_data.input_data_builders.fake_openfisca_data_builder import get_fake_input_data_frame
+from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
+
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+hdf5_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.h5')
+
+
+def build_by_extraction(year = None):
+    assert year is not None
+    df = get_input_data_frame(year)
+    output = df.ix[0:1]
+    for symbol in ['fam', 'foy', 'men']:
+        output['id{}_original'.format(symbol)] = output['id{}'.format(symbol)]
+    output.loc[0, 'sali'] = 20000
+    output.loc[1, 'sali'] = 10000
+    output['wprm'] = 100
+    store = HDFStore(hdf5_file_realpath)
+    store.put(str(year), output)
+    store.close()
+
+
+def get_fake_input_data_frame(year = None):
+    assert year is not None
+    store = HDFStore(hdf5_file_realpath)
+    input_data_frame = store.select(str(year))
+    input_data_frame.rename(
+        columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
+        inplace = True,
+        )
+    input_data_frame.sal[0] = 20000
+    input_data_frame.sal[1] = 10000
+
+    input_data_frame.reset_index(inplace = True)
+    return input_data_frame
 
 
 def test_fake_survey_simulation():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-    assert (input_data_frame.sal.loc[0:1] == 20000).all()
+
+    assert input_data_frame.sal.loc[0] == 20000
+    assert input_data_frame.sal.loc[1] == 10000
+
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'agem', 'age'],
         year = year,
         )
-    assert (survey_scenario.input_data_frame.sal.loc[0:1] == 20000).all()
+    assert (survey_scenario.input_data_frame.sal.loc[0] == 20000).all()
+    assert (survey_scenario.input_data_frame.sal.loc[1] == 10000).all()
+
     simulation = survey_scenario.new_simulation()
 
     sal = simulation.calculate('sal')
-    print sal[0:1] == 20000
+    assert (sal[0:1] == 20000).all()
+    age = simulation.calculate('age')
+    assert age[0] == 77
+    assert age[1] == 37
+    agem = simulation.calculate('agem')
+    print agem
+    assert agem[0] == 924
+    assert agem[1] == 447
 
     data_frame_by_entity_key_plural = dict(
         individus = pandas.DataFrame(
@@ -88,22 +135,28 @@ def test_fake_calibration():
         )
     survey_scenario.new_simulation()
     survey_scenario.initialize_weights()
-    print survey_scenario.weight_column_name_by_entity_key_plural
-    print survey_scenario.simulation.calculate("wprm")
-
     calibration = Calibration()
     calibration.set_survey_scenario(survey_scenario)
     calibration.parameters['method'] = 'linear'
-    print calibration.initial_total_population
     calibration.total_population = calibration.initial_total_population * 1.123
-    print calibration.total_population
 
     # calibration.set_inputs_margins_from_file(filename, 2006)
     calibration.set_parameters('invlo', 3)
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
+
+    revdisp_target = 1e6
+    calibration.set_margin('revdisp', revdisp_target)
+    print calibration.margins_by_name
     calibration.calibrate()
     calibration.set_calibrated_weights()
+    simulation = survey_scenario.simulation
+    assert_near(
+        (simulation.calculate('revdisp') * simulation.calculate("wprm")).sum(),
+        revdisp_target,
+        absolute_error_margin = None,
+        relative_error_margin = .01
+        )
     return calibration
 
 if __name__ == '__main__':
@@ -111,6 +164,10 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+
+#    year = 2006
+#    build_by_extraction(year = year)
+#    df = get_fake_input_data_frame(year = year)
 
 #    df_by_entity = test_fake_survey_simulation()
 #    df_i = df_by_entity['individus']

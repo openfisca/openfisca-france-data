@@ -84,10 +84,12 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+ 
     start = time.time()
-    df_by_entity = test_survey_simulation()
-    df_i = df_by_entity['individus']
-    df_m = df_by_entity['menages']
-    print df_i
-    print df_m
+    data_frame_by_entity_key_plural = test_survey_simulation()
+    data_frame_individus = data_frame_by_entity_key_plural['individus']
+    data_frame_menages = data_frame_by_entity_key_plural['menages']
+    print data_frame_individus
+    print data_frame_menages
     print time.time() - start
+
