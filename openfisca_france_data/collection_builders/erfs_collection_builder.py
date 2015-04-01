@@ -78,7 +78,7 @@ def build_erfs_survey_collection(years = None, erase = False, overwrite = False)
         collection_json_path = os.path.join(collections_directory, "erfs" + ".json")
         erfs_survey_collection.dump(json_file_path = collection_json_path)
         surveys = [survey for survey in erfs_survey_collection.surveys if survey.name.endswith(str(year))]
-        print overwrite
+
         erfs_survey_collection.fill_hdf(source_format = 'sas', surveys = surveys, overwrite = overwrite)
     return erfs_survey_collection
 

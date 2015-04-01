@@ -10,5 +10,6 @@ before_install:
   - sudo apt-get install -qq python-yaml  # For openfisca-france-data, installed from requirements.txt
 install:
   - pip install flake8  # Not yet available in Debian stable
+  - pip install wquantiles
   - pip install -r requirements.txt
 script: make test-ci

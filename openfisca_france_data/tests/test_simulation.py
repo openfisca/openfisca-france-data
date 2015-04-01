@@ -80,12 +80,14 @@ def test_weights_building():
 
 if __name__ == '__main__':
     import logging
+    import time
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
+    start = time.time()
     df_by_entity = test_survey_simulation()
     df_i = df_by_entity['individus']
     df_m = df_by_entity['menages']
     print df_i
     print df_m
+    print time.time() - start

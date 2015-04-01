@@ -24,7 +24,7 @@
 
 
 import logging
-from numpy import dtype
+import numpy
 from pandas import Series
 
 
@@ -33,8 +33,12 @@ log = logging.getLogger(__name__)
 
 def assert_dtype(series, dtype_string):
     assert isinstance(series, Series), "First argument is not of Series type"
-    assert series.dtype == dtype(dtype_string), "Series {} dtype is {} instead of {}".format(
-        series.name, series.dtype, dtype_string)
+    try:
+        assert series.dtype == numpy.dtype(dtype_string), "Series {} dtype is {} instead of {}".format(
+            series.name, series.dtype, dtype_string)
+    except AssertionError:
+        assert numpy.issubdtype(series.dtype, numpy.dtype(dtype_string)), "Series {} dtype is {} instead of {}".format(
+            series.name, series.dtype, dtype_string)
 
 
 def assert_variable_in_range(name, wrange, table):
