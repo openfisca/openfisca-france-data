@@ -134,6 +134,9 @@ def test_fake_calibration():
         year = year,
         )
     survey_scenario.new_simulation()
+    print survey_scenario.simulation.calculate('revdisp')
+    print survey_scenario.simulation.calculate('wprm')
+
     survey_scenario.initialize_weights()
     calibration = Calibration()
     calibration.set_survey_scenario(survey_scenario)
@@ -145,12 +148,13 @@ def test_fake_calibration():
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
 
-    revdisp_target = 1e6
+    revdisp_target = 7e6
     calibration.set_margin('revdisp', revdisp_target)
     print calibration.margins_by_name
     calibration.calibrate()
     calibration.set_calibrated_weights()
     simulation = survey_scenario.simulation
+    print calibration.weight
     assert_near(
         (simulation.calculate('revdisp') * simulation.calculate("wprm")).sum(),
         revdisp_target,
