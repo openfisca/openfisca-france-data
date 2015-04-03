@@ -190,6 +190,7 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 #            )
 #        )
 
+@reference_formula
 class champm_individus(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Individus
@@ -200,6 +201,7 @@ class champm_individus(SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
 
 
+@reference_formula
 class champm_familles(SimpleFormulaColumn):
     column = BoolCol
     entity_class = Familles
@@ -210,6 +212,7 @@ class champm_familles(SimpleFormulaColumn):
         return period, self.filter_role(champm_individus, role = CHEF)
 
 
+@reference_formula
 class champm_foyers_fiscaux(SimpleFormulaColumn):
     column = BoolCol
     entity_class = FoyersFiscaux
@@ -220,6 +223,7 @@ class champm_foyers_fiscaux(SimpleFormulaColumn):
         return period, self.filter_role(champm_individus, role = VOUS)
 
 
+@reference_formula
 class decile(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -258,6 +262,7 @@ class decile(SimpleFormulaColumn):
         return period, decile * champm
 
 
+@reference_formula
 class decile_net(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -287,6 +292,7 @@ class decile_net(SimpleFormulaColumn):
         return period, decile * champm
 
 
+@reference_formula
 class pauvre40(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -308,6 +314,7 @@ class pauvre40(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
+@reference_formula
 class pauvre50(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -329,6 +336,7 @@ class pauvre50(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
+@reference_formula
 class pauvre60(SimpleFormulaColumn):
     column = EnumCol(
         enum = Enum([
@@ -350,6 +358,7 @@ class pauvre60(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
+@reference_formula
 class weight_ind(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
@@ -360,6 +369,7 @@ class weight_ind(SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
 
 
+@reference_formula
 class weight_fam(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Familles
@@ -370,6 +380,7 @@ class weight_fam(SimpleFormulaColumn):
         return period, self.filter_role(weight_ind_holder, entity = "famille", role = CHEF)
 
 
+@reference_formula
 class weight_foy(SimpleFormulaColumn):
     column = FloatCol
     entity_class = FoyersFiscaux

@@ -28,7 +28,7 @@ import pkg_resources
 
 from .model.base import TaxBenefitSystem
 from .model import input_variables  # Load input variables into entities. # noqa analysis:ignore
-from .model.cotisations_sociales.travail import type_sal, taille_entreprise  # Load output variables into entities. # noqa analysis:ignore
+from .model import model  # Load output variables into entities. # noqa analysis:ignore
 
 
 def init_country():
