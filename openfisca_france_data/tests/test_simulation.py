@@ -59,7 +59,7 @@ def test_survey_simulation():
             ),
         menages = pandas.DataFrame(
             dict([(name, simulation.calculate(name)) for name in [
-                'revdisp'
+                'revdisp',
                 ]])
             ),
         )
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
- 
+
     start = time.time()
     data_frame_by_entity_key_plural = test_survey_simulation()
     data_frame_individus = data_frame_by_entity_key_plural['individus']

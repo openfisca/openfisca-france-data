@@ -22,10 +22,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from __future__ import division
+
+
 import os
 
+
+import numpy
 import pandas
-from pandas import HDFStore
+
 
 from openfisca_core.tools import assert_near
 from openfisca_france_data.calibration import Calibration
@@ -46,14 +52,14 @@ def build_by_extraction(year = None):
     output.loc[0, 'sali'] = 20000
     output.loc[1, 'sali'] = 10000
     output['wprm'] = 100
-    store = HDFStore(hdf5_file_realpath)
+    store = pandas.HDFStore(hdf5_file_realpath)
     store.put(str(year), output)
     store.close()
 
 
 def get_fake_input_data_frame(year = None):
     assert year is not None
-    store = HDFStore(hdf5_file_realpath)
+    store = pandas.HDFStore(hdf5_file_realpath)
     input_data_frame = store.select(str(year))
     input_data_frame.rename(
         columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
@@ -125,43 +131,77 @@ def test_fake_survey_simulation():
     return data_frame_by_entity_key_plural
 
 
-def test_fake_calibration():
+def create_fake_calibration():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'age'],
         year = year,
         )
     survey_scenario.new_simulation()
-    print survey_scenario.simulation.calculate('revdisp')
-    print survey_scenario.simulation.calculate('wprm')
-
-    survey_scenario.initialize_weights()
-    calibration = Calibration()
+    calibration = Calibration(survey_scenario = survey_scenario)
     calibration.set_survey_scenario(survey_scenario)
-    calibration.parameters['method'] = 'linear'
-    calibration.total_population = calibration.initial_total_population * 1.123
-
-    # calibration.set_inputs_margins_from_file(filename, 2006)
     calibration.set_parameters('invlo', 3)
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
+    return calibration
+
+
+def test_fake_calibration_float():
+    calibration = create_fake_calibration()
+    survey_scenario = calibration.survey_scenario
+    calibration.total_population = calibration.initial_total_population * 1.123
 
     revdisp_target = 7e6
-    calibration.set_margin('revdisp', revdisp_target)
-    print calibration.margins_by_name
+    calibration.set_target_margin('revdisp', revdisp_target)
+
     calibration.calibrate()
     calibration.set_calibrated_weights()
     simulation = survey_scenario.simulation
-    print calibration.weight
+    assert_near(
+        simulation.calculate("wprm").sum(),
+        calibration.total_population,
+        absolute_error_margin = None,
+        relative_error_margin = .00001
+        )
     assert_near(
         (simulation.calculate('revdisp') * simulation.calculate("wprm")).sum(),
         revdisp_target,
         absolute_error_margin = None,
-        relative_error_margin = .01
+        relative_error_margin = .00001
         )
+
     return calibration
+
+
+def test_fake_calibration_age():
+    calibration = create_fake_calibration()
+    survey_scenario = calibration.survey_scenario
+    calibration.total_population = calibration.initial_total_population * 1.123
+    calibration.set_target_margin('age', [95, 130])
+
+    calibration.calibrate()
+    calibration.set_calibrated_weights()
+    simulation = survey_scenario.simulation
+    assert_near(
+        simulation.calculate("wprm").sum(),
+        calibration.total_population,
+        absolute_error_margin = None,
+        relative_error_margin = .00001
+        )
+    age = survey_scenario.simulation.calculate('age'),
+    wprm = survey_scenario.simulation.calculate('wprm')
+
+    for category, target in calibration.margins_by_name['age']['target'].iteritems():
+        assert_near(
+            ((age == category) * wprm).sum() / wprm.sum(),
+            target / numpy.sum(calibration.margins_by_name['age']['target'].values()),
+            absolute_error_margin = None,
+            relative_error_margin = .00001
+            )
+    return calibration
+
 
 if __name__ == '__main__':
     import logging
@@ -179,4 +219,4 @@ if __name__ == '__main__':
 #    df_m = df_by_entity['menages']
 #    print df_i
 #    print df_m
-    calibration = test_fake_calibration()
+    calibration = test_fake_calibration_age()

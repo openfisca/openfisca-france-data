@@ -37,29 +37,25 @@ class Calibration(object):
     """
     An object to calibrate survey data of a SurveySimulation
     """
-    def __init__(self):
-        super(Calibration, self).__init__()
-        self.filter_by_name = "champm"
-        self.frame = None
-        self.initial_total_population = None
-        self.margins_by_name = None
-        self.input_margins_data_frame = None
-        self.output_margins_data_frame = None
-        self.parameters = {
-            'use_proportions': True,
-            'pondini': None,
-            'method': None,  # 'linear', 'raking ratio', 'logit'
-            'up': None,
-            'lo': None
-            }
-        self.simulation = None
-        self.survey_scenario = None
-        self.total_population = None
-        self.weight_name = None
-        self.initial_weight_name = None
+    filter_by_name = None
+    initial_total_population = None
+    margins_by_name = None
+    parameters = {
+        'use_proportions': True,
+        'pondini': None,
+        'method': None,  # 'linear', 'raking ratio', 'logit'
+        'up': None,
+        'lo': None
+        }
+    survey_scenario = None
+    total_population = None
+    weight_name = None
+    initial_weight_name = None
 
-    def __repr__(self):
-        return '%s \n simulation %s ' % (self.__class__.__name__, self.simulation)
+    def __init__(self, survey_scenario = None):
+        self.filter_by_name = "champm"
+        assert survey_scenario is not None
+        self.survey_scenario = survey_scenario
 
     def set_total_population(self, total_population):
         """
@@ -71,7 +67,6 @@ class Calibration(object):
         """
         Reset the calibration to it initial state
         """
-        self.frame = None
         simulation = self.survey_scenario.simulation
         holder = simulation.get_or_new_holder(self.weight_name)
         holder.array = numpy.array(self.initial_weight, dtype = holder.column.dtype)
@@ -100,10 +95,7 @@ class Calibration(object):
         else:
             self.parameters[parameter] = value
 
-    def set_inputs_margins_from_file(self, filename, year):
-        self.set_margins_from_file(filename, year, source="input")
-
-    def set_margins_from_file(self, filename, year, source):
+    def set_margins_target_from_file(self, filename, year, source):
         """
         Sets margins for inputs variable from file
         """
@@ -134,112 +126,6 @@ class Calibration(object):
             else:
                 self.add_var2(var, margins[var], source = source)
 
-    def add_var2(self, varname, target = None, source = 'free'):
-        """
-        Add a variable in the dataframe
-
-        Parameters
-        ----------
-
-        varname : str
-                  name of the variable
-        target : float
-                 target for the margin of the variable
-        source : str, default 'free'
-                 database source
-        """
-
-        w_init = self.initial_weight * self.filter_by
-        w = self.weight * self.filter_by
-
-        survey_scenario = self.survey_scenario
-        simulation = survey_scenario.simulation
-        column_by_name = survey_scenario.tax_benefit_system.column_by_name
-#        varcol = self.simulation.get_col(varname)
-#        entity = self.entity
-#        enum = inputs.column_by_name.get('qui' + self.entity).enum
-#        people = [x[1] for x in enum]
-#
-#        if varname in inputs.column_by_name:
-#            value = inputs.get_value(varname, index = idx)
-#        elif output_table is not None and varname in output_table.column_by_name:
-#            value = output_table.get_value(varname, index = idx, opt = people, sum_ = True)
-
-        if varname in column_by_name:
-            value = simulation.calculate(varname)
-            column = survey_scenario.tax_benefit_system.column_by_name[varname]
-            label = column.label
-        else:
-            print varname
-            return
-        # TODO: rewrite this using pivot table
-
-        items = [('marge', w[self.filter_by]), ('marge initiale', w_init[self.filter_by])]
-
-        if column.__class__ in [AgeCol, BoolCol, EnumCol]:
-            items.append(('mod', value[self.filter_by]))
-            df = DataFrame.from_items(items)
-            res = df.groupby('mod', sort = True).sum()
-        else:
-            res = DataFrame(index = ['total'],
-                            data = {'marge': (value * w).sum(),
-                                    'marge initiale': (value * w_init).sum()
-                                    }
-                            )
-        res.insert(0, u"modalités", u"")
-        res.insert(2, "cible", 0)
-        res.insert(2, u"cible ajustée", 0)
-        res.insert(4, "source", source)
-        mods = res.index
-
-        if target is not None:
-            if len(mods) != len(target.keys()):
-                drop_indices = [(varname, mod) for mod in target.keys()]
-                if source == 'input':
-                    self.input_margins_data_frame.drop(drop_indices, inplace=True)
-                    self.input_margins_data_frame.index.names = ['var', 'mod']
-                if source == 'output':
-                    self.output_margins_data_frame.drop(drop_indices, inplace = True)
-                    self.output_margins_data_frame.index.names = ['var', 'mod']
-                return
-
-        if isinstance(column, EnumCol):
-            if column.enum:
-                enum = column.enum
-                res[u'modalités'] = [enum._vars[mod] for mod in mods]
-                res['mod'] = mods
-            else:
-                res[u'modalités'] = [mod for mod in mods]
-                res['mod'] = mods
-        elif isinstance(column, BoolCol):
-            res[u'modalités'] = bool(mods)
-            res['mod'] = mods
-        elif isinstance(column, AgeCol):
-            res[u'modalités'] = mods
-            res['mod'] = mods
-        else:
-            res[u'modalités'] = "total"
-            res['mod'] = 0
-
-        if label is not None:
-            res['variable'] = label
-        else:
-            res['variable'] = varname
-        res['var'] = varname
-
-        if target is not None:
-            for mod, margin in target.iteritems():
-                if mod == varname:    # dirty to deal with non catgorical data
-                    res['cible'][0] = margin
-                else:
-                    res['cible'][mod] = margin
-
-        if self.frame is None:
-            self.frame = res
-        else:
-            self.frame = concat([self.frame, res])
-        self.frame = self.frame.reset_index(drop=True)
-        print self.frame
 
     def get_parameters(self):
         p = {}
@@ -293,7 +179,7 @@ class Calibration(object):
             simple_margins_by_name['total_population'] = self.total_population
 
         self._update_weights(simple_margins_by_name, parameters = parameters)
-        print self.weight
+        self.update_margins()
 #        w = self.weight
 #        for var in margins.keys():
 #            if var in self.survey_scenario.tax_benefit_system.column_by_name:
@@ -373,37 +259,58 @@ class Calibration(object):
         holder.array = numpy.array(self.weight, dtype = holder.column.dtype)
         # TODO: propagation to other weights
 
-    def set_margin(self, variable, target):
+    def set_target_margin(self, variable, target):
         survey_scenario = self.survey_scenario
         simulation = survey_scenario.simulation
         column_by_name = survey_scenario.tax_benefit_system.column_by_name
-
         assert variable in column_by_name
-
         column = survey_scenario.tax_benefit_system.column_by_name[variable]
 
-        weight = self.weight
         filter_by = self.filter_by
-        initial_weight = self.initial_weight
-
         value = simulation.calculate(variable)
-        margin_items = dict(
-            actual = weight[filter_by],
-            initial = initial_weight[filter_by],
-            )
-
+        target_by_category = None
         if column.__class__ in [AgeCol, BoolCol, EnumCol]:
-            margin_items.append(('category', value[filter_by]))
-            df = DataFrame.from_items(margin_items)
-            margin = df.groupby('category', sort = True).sum()
-        else:
-            margin_by_type = dict(
-                actual = (weight[filter_by] * value[filter_by]).sum(),
-                initial = (initial_weight[filter_by] * value[filter_by]).sum(),
-                target = target,
-                )
+            categories = numpy.sort(numpy.unique(value[filter_by]))
+            target_by_category = dict(zip(categories, target))
 
         # assert len(atrget) = len
         if not self.margins_by_name:
             self.margins_by_name = dict()
-        self.margins_by_name.update({variable: margin_by_type})
+        if variable not in self.margins_by_name:
+            self.margins_by_name[variable] = dict()
+        self.margins_by_name[variable]['target'] = target_by_category or target
+        self.update_margins()
+
+    def update_margins(self):
+        for variable in self.margins_by_name:
+            survey_scenario = self.survey_scenario
+            simulation = survey_scenario.simulation
+            column_by_name = survey_scenario.tax_benefit_system.column_by_name
+
+            assert variable in column_by_name
+            column = survey_scenario.tax_benefit_system.column_by_name[variable]
+            weight = self.weight
+            filter_by = self.filter_by
+            initial_weight = self.initial_weight
+
+            value = simulation.calculate(variable)
+            margin_items = [
+                ('actual', weight[filter_by]),
+                ('initial', initial_weight[filter_by]),
+                ]
+
+            if column.__class__ in [AgeCol, BoolCol, EnumCol]:
+                margin_items.append(('category', value[filter_by]))
+                margins_data_frame = DataFrame.from_items(margin_items)
+                margins_data_frame = margins_data_frame.groupby('category', sort = True).sum()
+                margin_by_type = margins_data_frame.to_dict()
+            else:
+                margin_by_type = dict(
+                    actual = (weight[filter_by] * value[filter_by]).sum(),
+                    initial = (initial_weight[filter_by] * value[filter_by]).sum(),
+                    )
+            self.margins_by_name[variable].update(margin_by_type)
+
+            if self.total_population is not None:
+                 target = self.margins_by_name[variable].get('target', False)
+
