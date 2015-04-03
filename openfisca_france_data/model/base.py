@@ -26,7 +26,7 @@
 from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol
 from openfisca_core.enumerations import Enum
 from openfisca_core.formulas import SimpleFormulaColumn
-from openfisca_france_data import reference_tax_benefit_system, SurveyTaxBenefitSystem
+from openfisca_france_data import reference_tax_benefit_system
 from openfisca_france.entities import Familles, FoyersFiscaux, Individus, Menages
 
 
@@ -47,7 +47,7 @@ __all__ = [
     'QUIFOY',
     'reference_tax_benefit_system',
     'SimpleFormulaColumn',
-    'SurveyTaxBenefitSystem',
+#    'SurveyTaxBenefitSystem',
     'VOUS',
     ]
 

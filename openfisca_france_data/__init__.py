@@ -32,13 +32,16 @@ import openfisca_france
 
 ReferenceTaxBenefitSystem = openfisca_france.init_country()
 reference_tax_benefit_system = ReferenceTaxBenefitSystem()
+
+from .model.cotisations_sociales.travail import type_sal, taille_entreprise  # Load output variables into entities. # noqa analysis:ignore
+
 SurveyTaxBenefitSystem = reforms.make_reform(
     name = u"OpenFisca for survey data",
+    new_formulas = (type_sal, taille_entreprise),
     reference = reference_tax_benefit_system,
     )
 
 from .model import input_variables  # Load input variables into entities. # noqa analysis:ignore
-from .model import model  # Load output variables into entities. # noqa analysis:ignore
 
 
 def init_country():
