@@ -23,10 +23,12 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
+from openfisca_core import reforms
 from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol
 from openfisca_core.enumerations import Enum
 from openfisca_core.formulas import SimpleFormulaColumn
-from openfisca_france_data import reference_tax_benefit_system
+
+import openfisca_france
 from openfisca_france.entities import Familles, FoyersFiscaux, Individus, Menages
 
 
@@ -47,7 +49,7 @@ __all__ = [
     'QUIFOY',
     'reference_tax_benefit_system',
     'SimpleFormulaColumn',
-#    'SurveyTaxBenefitSystem',
+    'SurveyTaxBenefitSystem',
     'VOUS',
     ]
 
@@ -60,4 +62,12 @@ ENFS = [QUIFAM['enf{}'.format(i)] for i in range(1, 10)]
 
 PART = QUIFAM['part']
 VOUS = QUIFOY['vous']
-#
+
+ReferenceTaxBenefitSystem = openfisca_france.init_country()
+reference_tax_benefit_system = ReferenceTaxBenefitSystem()
+
+SurveyTaxBenefitSystem = reforms.make_reform(
+    name = u"OpenFisca for survey data",
+    reference = reference_tax_benefit_system,
+    )
+
