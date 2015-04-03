@@ -359,7 +359,7 @@ class pauvre60(SimpleFormulaColumn):
 
 
 @reference_formula
-class weight_ind(SimpleFormulaColumn):
+class weight_individus(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Individus
     label = u"Poids de l'individu"
@@ -370,22 +370,22 @@ class weight_ind(SimpleFormulaColumn):
 
 
 @reference_formula
-class weight_fam(SimpleFormulaColumn):
+class weight_familles(SimpleFormulaColumn):
     column = FloatCol
     entity_class = Familles
     label = u"Poids de la famille"
 
     def function(self, simulation, period):
-        weight_ind_holder = simulation.calculate('weight_ind', period)
-        return period, self.filter_role(weight_ind_holder, entity = "famille", role = CHEF)
+        weight_individus_holder = simulation.calculate('weight_individus', period)
+        return period, self.filter_role(weight_individus_holder, entity = "famille", role = CHEF)
 
 
 @reference_formula
-class weight_foy(SimpleFormulaColumn):
+class weight_foyers(SimpleFormulaColumn):
     column = FloatCol
     entity_class = FoyersFiscaux
     label = u"Poids du foyer fiscal",
 
     def function(self, simulation, period):
-        weight_ind_holder = simulation.calculate('weight_ind', period)
-        return period, self.filter_role(weight_ind_holder, entity = "foyer_fiscal", role = VOUS)
+        weight_individus_holder = simulation.calculate('weight_individus', period)
+        return period, self.filter_role(weight_individus_holder, entity = "foyer_fiscal", role = VOUS)

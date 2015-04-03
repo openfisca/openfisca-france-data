@@ -81,9 +81,9 @@ class SurveyScenario(AbstractSurveyScenario):
 
     def initialize_weights(self):
         self.weight_column_name_by_entity_key_plural['menages'] = 'wprm'
-        self.weight_column_name_by_entity_key_plural['familles'] = 'weight_fam'
-        self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foy'
-        self.weight_column_name_by_entity_key_plural['individus'] = 'weight_ind'
+        self.weight_column_name_by_entity_key_plural['familles'] = 'weight_familles'
+        self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foyers'
+        self.weight_column_name_by_entity_key_plural['individus'] = 'weight_individus'
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
