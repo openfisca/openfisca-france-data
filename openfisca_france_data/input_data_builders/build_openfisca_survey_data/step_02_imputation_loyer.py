@@ -38,10 +38,14 @@ import logging
 import numpy
 
 # problem with rpy last version is not working
-from rpy2.robjects.packages import importr
-import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
-import rpy2.robjects.vectors as vectors
-
+try:
+    from rpy2.robjects.packages import importr
+    import rpy2.robjects.pandas2ri  # use rpy2 2.3x from : https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
+    import rpy2.robjects.vectors as vectors
+except ImportError:
+    importr = None
+    pandas2ri = None
+    vectors = None
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
