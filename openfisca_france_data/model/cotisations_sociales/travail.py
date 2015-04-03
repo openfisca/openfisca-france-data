@@ -45,7 +45,7 @@ class taille_entreprise(SimpleFormulaColumn):
         # 2 : "De 10 à 19 salariés"
         # 3 : "De 20 à 199 salariés"
         # 4 : "Plus de 200 salariés"
-        nbsala = simulation.calcultae('nbsala', period)
+        nbsala = simulation.calculate('nbsala', period)
         return period, 0 + 1 * (nbsala >= 1) + 1 * (nbsala >= 4) + 1 * (nbsala >= 5) + 1 * (nbsala >= 7)
 
 
@@ -53,10 +53,10 @@ class type_sal(SimpleFormulaColumn):
     reference = reference_tax_benefit_system.column_by_name['type_sal']
 
     def function(self, simulation, period):
-        cadre = simulation.calcultae('cadre', period)
-        chpub = simulation.calcultae('chpub', period)
-        titc = simulation.calcultae('titc', period)
-        statut = simulation.calcultae('statut', period)
+        cadre = simulation.calculate('cadre', period)
+        chpub = simulation.calculate('chpub', period)
+        titc = simulation.calculate('titc', period)
+        statut = simulation.calculate('statut', period)
 
         cadre = (statut == 8) * (chpub > 3) * cadre
         # noncadre = (statut ==8)*(chpub>3)*not_(cadre)
