@@ -42,22 +42,24 @@ __all__ = [
     'Individus',
     'IntCol',
     'Menages',
+    'openfisca_france_tax_benefit_system',
     'PART',
     'QUIFAM',
     'QUIFOY',
     'reference_formula',
-    'reference_tax_benefit_system',
+    'reference_input_variable',
     'SimpleFormulaColumn',
-    'SurveyTaxBenefitSystem',
+    'TaxBenefitSystem',
     'VOUS',
     ]
 
-ReferenceTaxBenefitSystem = openfisca_france.init_country()
-reference_tax_benefit_system = ReferenceTaxBenefitSystem()
+OpenFiscaFranceTaxBenefitSystem = openfisca_france.init_country()
+openfisca_france_tax_benefit_system = OpenFiscaFranceTaxBenefitSystem()
 
-SurveyTaxBenefitSystem = reforms.make_reform(
+TaxBenefitSystem = reforms.make_reform(
     name = u"OpenFisca for survey data",
-    reference = reference_tax_benefit_system,
+    reference = openfisca_france_tax_benefit_system,
     )
 
-reference_formula = SurveyTaxBenefitSystem.formula
+reference_formula = TaxBenefitSystem.formula
+reference_input_variable = TaxBenefitSystem.input_variable

@@ -22,29 +22,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ..base import * # noqa  analysis:ignore
-from openfisca_france_data import SurveyTaxBenefitSystem
 
-SurveyTaxBenefitSystem.input_variable(
+from ..base import * # noqa  analysis:ignore
+
+
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF ",
     name = "idmen_original",
     )
 
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = FoyersFiscaux,
     label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF",
     name = "idfoy_original",
 )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Familles,
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
     name = "idfam_original",
 )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -60,7 +61,7 @@ SurveyTaxBenefitSystem.input_variable(
     name = "titc",
     # survey_only = True,
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -83,7 +84,7 @@ SurveyTaxBenefitSystem.input_variable(
     label = u"Statut détaillé mis en cohérence avec la profession",
     name = "statut",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -100,7 +101,7 @@ SurveyTaxBenefitSystem.input_variable(
     label = u"Taux du temps partiel",
     name = "txtppb",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -118,7 +119,7 @@ SurveyTaxBenefitSystem.input_variable(
     label = u"Nature de l'employeur principal",
     name = "chpub",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = BoolCol(),
     entity_class = Individus,
     label = u"Cadre salarié du privé",
@@ -127,7 +128,7 @@ SurveyTaxBenefitSystem.input_variable(
 
 #   zones apl and calibration
 
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -147,7 +148,7 @@ SurveyTaxBenefitSystem.input_variable(
     label = u"Tranche d'unité urbaine",
     name = "tu99",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -169,7 +170,7 @@ SurveyTaxBenefitSystem.input_variable(
     entity_class = Menages,
     name = "tau99",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -202,7 +203,7 @@ SurveyTaxBenefitSystem.input_variable(
     entity_class = Menages,
     name = "reg",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -217,7 +218,7 @@ SurveyTaxBenefitSystem.input_variable(
     entity_class = Menages,
     name = "pol99",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -237,7 +238,7 @@ SurveyTaxBenefitSystem.input_variable(
     entity_class = Menages,
     name = "cstotpragr",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -267,7 +268,7 @@ SurveyTaxBenefitSystem.input_variable(
     label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence",
     name = "naf16pr",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -316,7 +317,7 @@ SurveyTaxBenefitSystem.input_variable(
 #                                    u"Autres ménages, 1 actif",
 #                                    u"Autres ménages, 2 actifs ou plus",
 #                                    u"Autres ménages, tous inactifs"],start = 1)))
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -349,7 +350,7 @@ SurveyTaxBenefitSystem.input_variable(
 #                                  u"Cinq personnes",
 #                                  u"Six personnes et plus"], start = 1))),
 
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum(
             [
@@ -368,7 +369,7 @@ SurveyTaxBenefitSystem.input_variable(
     name = "ddipl",
 )
 
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = EnumCol(
         enum = Enum([
             u"Salarié",
@@ -386,49 +387,49 @@ SurveyTaxBenefitSystem.input_variable(
     )  # 5 postes normalement TODO: check = 0
 
 # to remove
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = BoolCol(default = True),
     entity_class = Menages,
     name = "champm",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = FloatCol(default = 1),
     entity_class = Menages,
     label = u"Effectifs",
     name = "wprm",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = FloatCol,
     entity_class = Menages,
     label = u"Effectifs",
     name = "wprm_init",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     name = "m_afeamam",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     name = "m_agedm",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     name = "m_clcam",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     name = "m_colcam",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     name = "m_mgamm",
     )
-SurveyTaxBenefitSystem.input_variable(
+reference_input_variable(
     column = IntCol,
     entity_class = Menages,
     name = "m_mgdomm",

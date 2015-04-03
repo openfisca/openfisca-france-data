@@ -29,15 +29,13 @@ import logging
 
 from ..base import *  # noqa analysis:ignore
 
-from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotisations_sociales import travail_prive
-
 
 log = logging.getLogger(__name__)
 
 
 @reference_formula
 class taille_entreprise(SimpleFormulaColumn):
-    reference = travail_prive.taille_entreprise
+    reference = openfisca_france_tax_benefit_system.column_by_name['taille_entreprise']
 
     def function(self, simulation, period):
         # Pour mémoire
@@ -52,7 +50,7 @@ class taille_entreprise(SimpleFormulaColumn):
 
 @reference_formula
 class type_sal(SimpleFormulaColumn):
-    reference = reference_tax_benefit_system.column_by_name['type_sal']
+    reference = openfisca_france_tax_benefit_system.column_by_name['type_sal']
 
     def function(self, simulation, period):
         cadre = simulation.calculate('cadre', period)

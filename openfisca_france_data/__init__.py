@@ -26,14 +26,14 @@
 import os
 import pkg_resources
 
-from .model.base import SurveyTaxBenefitSystem
+from .model.base import TaxBenefitSystem
 from .model import input_variables  # Load input variables into entities. # noqa analysis:ignore
 from .model.cotisations_sociales.travail import type_sal, taille_entreprise  # Load output variables into entities. # noqa analysis:ignore
 
 
 def init_country():
     """Create a country-specific TaxBenefitSystem for use with data."""
-    return SurveyTaxBenefitSystem
+    return TaxBenefitSystem
 
 
 AGGREGATES_DEFAULT_VARS = [
