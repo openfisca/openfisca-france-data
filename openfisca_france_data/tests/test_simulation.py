@@ -53,10 +53,17 @@ def test_survey_simulation():
                 'champm_individus',
                 'sal',
                 'salaire_net',
+#                'smic55',
                 'txtppb',
                 # salsuperbrut # TODO bug in 2006
                 ]])
             ),
+        familles = pandas.DataFrame(
+            dict([(name, simulation.calculate(name)) for name in [
+                'af_nbenf',
+                ]])
+            ),
+
         menages = pandas.DataFrame(
             dict([(name, simulation.calculate(name)) for name in [
                 'revdisp',
@@ -89,6 +96,8 @@ if __name__ == '__main__':
     data_frame_by_entity_key_plural = test_survey_simulation()
     data_frame_individus = data_frame_by_entity_key_plural['individus']
     data_frame_menages = data_frame_by_entity_key_plural['menages']
+    data_frame_familles = data_frame_by_entity_key_plural['familles']
+
     print data_frame_individus
     print data_frame_menages
     print time.time() - start

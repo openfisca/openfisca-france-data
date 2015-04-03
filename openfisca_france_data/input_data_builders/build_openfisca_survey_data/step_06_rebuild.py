@@ -454,7 +454,7 @@ def create_totals(year = None):
     del test2, fip
     log.info(
         u"nb de doublons idfam/quifam' {}".format(
-            len(indivi[indivi.duplicated(cols = ['idfoy', 'quifoy'])])
+            len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])])
             )
         )
     print_id(indivi)
@@ -481,15 +481,15 @@ def create_totals(year = None):
     print_id(tot2)
     tot3 = tot2
     # TODO: check where they come from
-    tot3 = tot3.drop_duplicates(cols = 'noindiv')
+    tot3 = tot3.drop_duplicates(subset = 'noindiv')
     log.info("{}".format(len(tot3)))
 
     # Block to remove any unwanted duplicated pair
     control(tot3, debug = True, verbose = True)
-    tot3 = tot3.drop_duplicates(cols = ['idfoy', 'quifoy'])
-    tot3 = tot3.drop_duplicates(cols = ['idfam', 'quifam'])
-    tot3 = tot3.drop_duplicates(cols = ['idmen', 'quimen'])
-    tot3 = tot3.drop_duplicates(cols = ['noindiv'])
+    tot3 = tot3.drop_duplicates(subset = ['idfoy', 'quifoy'])
+    tot3 = tot3.drop_duplicates(subset = ['idfam', 'quifam'])
+    tot3 = tot3.drop_duplicates(subset = ['idmen', 'quimen'])
+    tot3 = tot3.drop_duplicates(subset = ['noindiv'])
     control(tot3)
 
     log.info(u"    8.2 : On ajoute les variables individualisables")
@@ -499,7 +499,7 @@ def create_totals(year = None):
     tot3 = tot3[list(vars2)]
     log.info("{}".format(len(tot3)))
 
-    assert not(tot3.duplicated(cols = ['noindiv']).any()), "doublon dans tot3['noindiv']"
+    assert not(tot3.duplicated(subset = ['noindiv']).any()), "doublon dans tot3['noindiv']"
     lg_dup = len(tot3[tot3.duplicated(['idfoy', 'quifoy'])])
     assert lg_dup == 0, "{} pairs of idfoy/quifoy in tot3 are duplicated".format(lg_dup)
 

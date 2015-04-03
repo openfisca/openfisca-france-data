@@ -335,7 +335,7 @@ def final(year = None, filename = "test", check = True):
 
     control(final2, debug = True)
     log.info(final2.age.isnull().sum())
-    final2 = final2.drop_duplicates(cols = 'noindiv')
+    final2 = final2.drop_duplicates(subset = 'noindiv')
 
     log.info('    Filter to manage the new 3-tables structures:')
     # On récupère les foyer, famille, ménages qui ont un chef :

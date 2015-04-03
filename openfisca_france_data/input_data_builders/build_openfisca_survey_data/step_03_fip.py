@@ -124,8 +124,8 @@ def create_fip(year = None):
     log.info(u"    1.3 : on enlève les individus F pour lesquels il existe un individu G")
     type_FG = fip[fip.type_pac.isin(['F', 'G'])].copy()  # Filtre pour ne travailler que sur F & G
 
-    type_FG['same_pair'] = type_FG.duplicated(cols = ['declaration', 'naia'], take_last = True)
-    type_FG['is_twin'] = type_FG.duplicated(cols = ['declaration', 'naia', 'type_pac'])
+    type_FG['same_pair'] = type_FG.duplicated(subset = ['declaration', 'naia'], take_last = True)
+    type_FG['is_twin'] = type_FG.duplicated(subset = ['declaration', 'naia', 'type_pac'])
     type_FG['to_keep'] = ~(type_FG['same_pair']) | type_FG['is_twin']
     # Note : On conserve ceux qui ont des couples déclar/naia différents et les jumeaux
     #       puis on retire les autres (à la fois F et G)
@@ -136,8 +136,8 @@ def create_fip(year = None):
 
     log.info(u"    1.4 : on enlève les H pour lesquels il y a un I")
     type_HI = fip[fip.type_pac.isin(['H', 'I'])].copy()
-    type_HI['same_pair'] = type_HI.duplicated(cols = ['declaration', 'naia'], take_last = True)
-    type_HI['is_twin'] = type_HI.duplicated(cols = ['declaration', 'naia', 'type_pac'])
+    type_HI['same_pair'] = type_HI.duplicated(subset = ['declaration', 'naia'], take_last = True)
+    type_HI['is_twin'] = type_HI.duplicated(subset = ['declaration', 'naia', 'type_pac'])
     type_HI['to_keep'] = (~(type_HI['same_pair']) | (type_HI['is_twin'])).values
 
     fip.update(type_HI)

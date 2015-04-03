@@ -470,7 +470,7 @@ def famille(year = 2006):
     # TODO: How to prevent failing in the next assert and avoiding droppping duplicates ?
     # assert not duplicated_individuals.any(), "{} duplicated individuals in famille".format(
     # duplicated_individuals.sum())
-    famille = famille.drop_duplicates(cols = 'noindiv', take_last = True)
+    famille = famille.drop_duplicates(subset = 'noindiv', take_last = True)
     control_04(famille, base)
     del enfant_fip, fip, parent_fip
 
@@ -549,7 +549,7 @@ def famille(year = 2006):
     log.info(u"    7.2 : création de la colonne rang")
 
     famille['rang'] = famille.kid.astype('int')
-    while any(famille[(famille.rang != 0)].duplicated(cols = ['rang', 'noifam'])):
+    while any(famille[(famille.rang != 0)].duplicated(subset = ['rang', 'noifam'])):
         famille["rang"][famille.rang != 0] += famille[famille.rang != 0].copy().duplicated(
             cols = ["rang", 'noifam']).values
         log.info(u"nb de rangs différents : {}".format(len(set(famille.rang.values))))
@@ -580,9 +580,9 @@ def famille(year = 2006):
     log.info(u"Vérifications sur famille")
     # TODO: we drop duplicates if any
     log.info(u"There are {} duplicates of quifam inside famille, we drop them".format(
-        famille.duplicated(cols = ['idfam', 'quifam']).sum())
+        famille.duplicated(subset = ['idfam', 'quifam']).sum())
         )
-    famille.drop_duplicates(cols = ['idfam', 'quifam'], inplace = True)
+    famille.drop_duplicates(subset = ['idfam', 'quifam'], inplace = True)
     # assert not(famille.duplicated(cols=['idfam', 'quifam']).any()), \
     #   'There are {} duplicates of quifam inside famille'.format(
     #       famille.duplicated(cols=['idfam', 'quifam']).sum())
