@@ -35,7 +35,7 @@ from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotis
 log = logging.getLogger(__name__)
 
 
-@SurveyTaxBenefitSystem.formula
+@reference_formula
 class taille_entreprise(SimpleFormulaColumn):
     reference = travail_prive.taille_entreprise
 
@@ -50,7 +50,7 @@ class taille_entreprise(SimpleFormulaColumn):
         return period, 0 + 1 * (nbsala >= 1) + 1 * (nbsala >= 4) + 1 * (nbsala >= 5) + 1 * (nbsala >= 7)
 
 
-@SurveyTaxBenefitSystem.formula
+@reference_formula
 class type_sal(SimpleFormulaColumn):
     reference = reference_tax_benefit_system.column_by_name['type_sal']
 

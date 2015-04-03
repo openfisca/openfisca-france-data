@@ -47,6 +47,7 @@ __all__ = [
     'PART',
     'QUIFAM',
     'QUIFOY',
+    'reference_formula',
     'reference_tax_benefit_system',
     'SimpleFormulaColumn',
     'SurveyTaxBenefitSystem',
@@ -71,3 +72,4 @@ SurveyTaxBenefitSystem = reforms.make_reform(
     reference = reference_tax_benefit_system,
     )
 
+reference_formula = SurveyTaxBenefitSystem.formula
