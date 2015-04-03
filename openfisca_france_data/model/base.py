@@ -24,12 +24,10 @@
 
 
 from openfisca_core import reforms
-from openfisca_core.columns import BoolCol, EnumCol, FloatCol, IntCol
-from openfisca_core.enumerations import Enum
-from openfisca_core.formulas import SimpleFormulaColumn
 
 import openfisca_france
-from openfisca_france.entities import Familles, FoyersFiscaux, Individus, Menages
+from openfisca_france.model.base import (BoolCol, CHEF, ENFS, Enum, EnumCol, Familles, FloatCol, FoyersFiscaux,
+    Individus, IntCol, Menages, QUIFAM, QUIFOY, PART, SimpleFormulaColumn, VOUS)
 
 
 __all__ = [
@@ -53,16 +51,6 @@ __all__ = [
     'SurveyTaxBenefitSystem',
     'VOUS',
     ]
-
-
-QUIFAM = Enum(['chef', 'part', 'enf1', 'enf2', 'enf3', 'enf4', 'enf5', 'enf6', 'enf7', 'enf8', 'enf9'])
-QUIFOY = Enum(['vous', 'conj', 'pac1', 'pac2', 'pac3', 'pac4', 'pac5', 'pac6', 'pac7', 'pac8', 'pac9'])
-
-CHEF = QUIFAM['chef']
-ENFS = [QUIFAM['enf{}'.format(i)] for i in range(1, 10)]
-
-PART = QUIFAM['part']
-VOUS = QUIFOY['vous']
 
 ReferenceTaxBenefitSystem = openfisca_france.init_country()
 reference_tax_benefit_system = ReferenceTaxBenefitSystem()
