@@ -53,7 +53,7 @@ def test_survey_simulation():
                 'champm_individus',
                 'sal',
                 'salaire_net',
-#                'smic55',
+                # 'smic55',
                 'txtppb',
                 # salsuperbrut # TODO bug in 2006
                 ]])
@@ -73,19 +73,21 @@ def test_survey_simulation():
             ),
         )
 
-    return data_frame_by_entity_key_plural
+    (data_frame_familles.weight_familles * data_frame_familles.af).sum() / 1e9 > 10
+
+    return data_frame_by_entity_key_plural, simulation
 
 
 def test_weights_building():
-    year = 2006
+    year = 2009
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'agem'],
         year = year,
         )
     survey_scenario.new_simulation()
-
+    return survey_scenario.simulation
 
 if __name__ == '__main__':
     import logging
@@ -95,12 +97,36 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     start = time.time()
-    data_frame_by_entity_key_plural = test_survey_simulation()
+    data_frame_by_entity_key_plural, simulation = test_survey_simulation()
     data_frame_individus = data_frame_by_entity_key_plural['individus']
     data_frame_menages = data_frame_by_entity_key_plural['menages']
     data_frame_familles = data_frame_by_entity_key_plural['familles']
 
-    print data_frame_individus
-    print data_frame_menages
-    print time.time() - start
+    print (data_frame_familles.weight_familles * data_frame_familles.af).sum()/1e9
+    print simulation.calculate('agem', period = "2009")
+    print simulation.calculate('agem', period = "2009-01")
+    print simulation.calculate('agem', period = "2009-02")
+    print simulation.calculate('af', period = "2009-01")
+    print simulation.calculate('af', period = "2009-02")
+    print (simulation.calculate('af', period = "2009-02")).sum()
+    print (simulation.calculate('af_nbenf', period = "2009-01")).sum()
 
+    print (simulation.calculate('af_nbenf', period = "2009-02")).sum()
+    print simulation.calculate_add('af', period = "2009")
+
+
+#    simulation = test_weights_building()
+#    from openfisca_core.periods import period
+#
+#    print simulation.calculate('agem', period = period("2009"))
+#    print simulation.calculate('agem', period = period("2009-01"))
+#    print simulation.calculate('agem', period = period("2009-02"))
+#    print simulation.calculate('agem', period = period("2009-03"))
+#
+#    agem = simulation.get_or_new_holder('agem')
+#
+#    agem.set_input("2009-01", 25)
+
+
+
+    print time.time() - start
