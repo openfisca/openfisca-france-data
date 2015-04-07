@@ -1,0 +1,51 @@
+- name: "Allocations familiales - Couple, 2 enfants de moins de 11 ans"
+  description: Montant AF brut de CRDS
+  period: 2015
+  absolute_error_margin: 0.005
+  familles:
+    parents: ["parent1", "parent2"]
+    enfants: ["enfant1", "enfant2"]
+  foyers_fiscaux:
+    declarants: ["parent1", "parent2"]
+    personnes_a_charge: ["enfant1", "enfant2"]
+  menages:
+    personne_de_reference: "parent1"
+    conjoint: "parent2"
+    enfants: ["enfant1", "enfant2"]
+  individus:
+    - id: "parent1"
+      age: 40
+      sal: 25000
+    - id: "parent2"
+      age: 40
+      sal: 25000
+    - id: "enfant1"
+      age: 9
+      sal: 25000
+    - id: "enfant2"
+      age: 9
+  output_variables:
+    smic55:
+      "2015-01":
+        - false
+        - false
+        - false
+        - false
+    af_nbenf:
+      "2015-01": 2
+    age:
+      "2015-01":
+        - 40
+        - 40
+        - 9
+        - 9
+      "2015-02":
+        - 40
+        - 40
+        - 9
+        - 9
+
+    af:
+      "2015-01": .32 * 406.21
+      "2015-02": .32 * 406.21
+      "2015": .32 * 406.21 * 12

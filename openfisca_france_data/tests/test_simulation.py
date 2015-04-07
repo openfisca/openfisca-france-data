@@ -35,7 +35,7 @@ def test_survey_simulation():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'agem', 'smic55'],
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -59,8 +59,10 @@ def test_survey_simulation():
                 ]])
             ),
         familles = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
+            dict([(name, simulation.calculate_add(name)) for name in [
                 'af_nbenf',
+                'af',
+                'weight_familles',
                 ]])
             ),
 
