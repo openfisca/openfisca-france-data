@@ -41,7 +41,7 @@ log = logging.getLogger(__name__)
 
 
 # Prepare the some useful merged tables
-def create_indivim_menagem(year = None):
+def create_indivim_menage_en_mois(year = None):
     """
     Création des tables ménages et individus concaténée (merged)
     """
@@ -72,7 +72,7 @@ def create_indivim_menagem(year = None):
     gc.collect()
 
     # fusion enquete emploi et source fiscale
-    menagem = erfmen.merge(eecmen)
+    menage_en_mois = erfmen.merge(eecmen)
     indivim = eecind.merge(erfind, on = ['noindiv', 'ident', 'noi'], how = "inner")
 
     # optimisation des types? Controle de l'existence en passant
@@ -144,11 +144,11 @@ def create_indivim_menagem(year = None):
         erfind['tu99'] = None  # TODO: why ?
 
     # Locataire
-    menagem["locataire"] = menagem.so.isin([3, 4, 5])
-    assert_dtype(menagem.locataire, "bool")
+    menage_en_mois["locataire"] = menage_en_mois.so.isin([3, 4, 5])
+    assert_dtype(menage_en_mois.locataire, "bool")
 
     transfert = indivim.loc[indivim.lpr == 1, ['ident', 'ddipl']].copy()
-    menagem = menagem.merge(transfert)
+    menage_en_mois = menage_en_mois.merge(transfert)
 
     # Correction
     def _manually_remove_errors():
@@ -163,8 +163,8 @@ def create_indivim_menagem(year = None):
 
     _manually_remove_errors()
 
-    temporary_store['menagem_{}'.format(year)] = menagem
-    del eecmen, erfmen, menagem, transfert
+    temporary_store['menage_en_mois_{}'.format(year)] = menage_en_mois
+    del eecmen, erfmen, menage_en_mois, transfert
     gc.collect()
     temporary_store['indivim_{}'.format(year)] = indivim
     del erfind, eecind
@@ -258,6 +258,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2009
-    create_indivim_menagem(year = year)
+    create_indivim_menage_en_mois(year = year)
     create_enfants_a_naitre(year = year)
     log.info("etape 01 pre-processing terminee en {}".format(time.clock() - deb))

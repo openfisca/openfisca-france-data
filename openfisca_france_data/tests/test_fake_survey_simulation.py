@@ -81,7 +81,7 @@ def test_fake_survey_simulation():
 
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'agem', 'age'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'age'],
         year = year,
         )
     assert (survey_scenario.input_data_frame.sal.loc[0] == 20000).all()
@@ -94,10 +94,9 @@ def test_fake_survey_simulation():
     age = simulation.calculate('age')
     assert age[0] == 77
     assert age[1] == 37
-    agem = simulation.calculate('agem')
-    print agem
-    assert agem[0] == 924
-    assert agem[1] == 447
+    age_en_mois = simulation.calculate('age_en_mois')
+    assert age_en_mois[0] == 924
+    assert age_en_mois[1] == 444
 
     data_frame_by_entity_key_plural = dict(
         individus = pandas.DataFrame(
@@ -213,10 +212,10 @@ if __name__ == '__main__':
 #    build_by_extraction(year = year)
 #    df = get_fake_input_data_frame(year = year)
 
-#    df_by_entity = test_fake_survey_simulation()
-#    df_i = df_by_entity['individus']
-#    df_f = df_by_entity['foyers_fiscaux']
-#    df_m = df_by_entity['menages']
-#    print df_i
-#    print df_m
-    calibration = test_fake_calibration_age()
+    df_by_entity = test_fake_survey_simulation()
+    df_i = df_by_entity['individus']
+    df_f = df_by_entity['foyers_fiscaux']
+    df_m = df_by_entity['menages']
+    print df_i
+    print df_m
+#    calibration = test_fake_calibration_age()

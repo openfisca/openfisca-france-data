@@ -35,7 +35,7 @@ def test_survey_simulation():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'agem', 'smic55'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'smic55'],
         year = year,
         )
     simulation = survey_scenario.new_simulation()
@@ -83,7 +83,7 @@ def test_weights_building():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'agem'],
+        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois'],
         year = year,
         )
     survey_scenario.new_simulation()
@@ -103,9 +103,9 @@ if __name__ == '__main__':
     data_frame_familles = data_frame_by_entity_key_plural['familles']
 
     print (data_frame_familles.weight_familles * data_frame_familles.af).sum()/1e9
-    print simulation.calculate('agem', period = "2009")
-    print simulation.calculate('agem', period = "2009-01")
-    print simulation.calculate('agem', period = "2009-02")
+    print simulation.calculate('age_en_mois', period = "2009")
+    print simulation.calculate('age_en_mois', period = "2009-01")
+    print simulation.calculate('age_en_mois', period = "2009-02")
     print simulation.calculate('af', period = "2009-01")
     print simulation.calculate('af', period = "2009-02")
     print (simulation.calculate('af', period = "2009-02")).sum()
@@ -118,14 +118,14 @@ if __name__ == '__main__':
 #    simulation = test_weights_building()
 #    from openfisca_core.periods import period
 #
-#    print simulation.calculate('agem', period = period("2009"))
-#    print simulation.calculate('agem', period = period("2009-01"))
-#    print simulation.calculate('agem', period = period("2009-02"))
-#    print simulation.calculate('agem', period = period("2009-03"))
+#    print simulation.calculate('age_en_mois', period = period("2009"))
+#    print simulation.calculate('age_en_mois', period = period("2009-01"))
+#    print simulation.calculate('age_en_mois', period = period("2009-02"))
+#    print simulation.calculate('age_en_mois', period = period("2009-03"))
 #
-#    agem = simulation.get_or_new_holder('agem')
+#    age_en_mois = simulation.get_or_new_holder('age_en_mois')
 #
-#    agem.set_input("2009-01", 25)
+#    age_en_mois.set_input("2009-01", 25)
 
 
 

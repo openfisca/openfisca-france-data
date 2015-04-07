@@ -34,22 +34,22 @@ CREF = QUIMEN['cref']
 ENFS = [QUIMEN['enf{}'.format(i)] for i in range(1, 10)]
 
 
-def _nbinde(self, agem_holder):
+def _nbinde(self, age_en_mois_holder):
     """
     Number of household members
     'men'
     Values range between 1 and 6 for 6 members or more
     """
-    agem = self.split_by_roles(agem_holder)
+    age_en_mois = self.split_by_roles(age_en_mois_holder)
 
     n1 = 0
-    for ind in agem.iterkeys():
-        n1 += 1 * (floor(agem[ind]) >= 0)
+    for ind in age_en_mois.iterkeys():
+        n1 += 1 * (floor(age_en_mois[ind]) >= 0)
     n2 = where(n1 >= 6, 6, n1)
     return n2
 
 
-def _ageq(agem):
+def _ageq(age_en_mois):
     '''
     Calcule la tranche d'âge quinquennal
     moins de 25 ans : 0
@@ -67,21 +67,21 @@ def _ageq(agem):
     80 ans et plus  :12
     'ind'
     '''
-    age = floor(agem / 12)
+    age = floor(age_en_mois / 12)
     tranche = array([(age >= ag) for ag in arange(25, 5, 81)]).sum(axis = 0)
     return tranche
 
 
-def _nb_ageq0(self, agem_holder):
+def _nb_ageq0(self, age_en_mois_holder):
     '''
     Calcule le nombre d'individus dans chaque tranche d'âge quinquennal (voir ageq)
     'men'
     '''
-    agem = self.split_by_roles(agem_holder)
+    age_en_mois = self.split_by_roles(age_en_mois_holder)
 
     ag1 = 0
     nb = 0
-    for agm in agem.itervalues():
+    for agm in age_en_mois.itervalues():
         age = floor(agm / 12)
         nb += (ag1 <= age) & (age <= (ag1 + 4))
     return nb

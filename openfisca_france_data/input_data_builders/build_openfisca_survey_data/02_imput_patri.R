@@ -60,7 +60,7 @@ pat$patri_predictedlog <- predict(modellog, newdata=pat)
 
 
 ## en LOG 
-## 1ere stratégie
+## 1ere stratï¿½gie
 erf$patri_predictedlog <- predict(modellog, newdata=erf)
 pat$residuslog1 <- pat$logpat_new - pat$patri_predictedlog
 ## ei = logPi - logPipredi
@@ -82,7 +82,7 @@ erf$final <- erf$patri_predictedlog + erf$residuslog1
 ## ET PASSAGE EN EXPONENTIELLE POUR AVOIR LA VALEUR DU PATRIMOINE
 erf$finalexp <- exp(erf$final)
 
-## Pour ne pas fausser, on effectue les mêmes étapes sur la base pat- pat_prédit+ res
+## Pour ne pas fausser, on effectue les mï¿½mes ï¿½tapes sur la base pat- pat_prï¿½dit+ res
 allvars <- c("occuppr", "agepr","occupcj","diplopr","logrminterdeb", "sexepr", "typmen", "tu99")
 classes <- c("typmen", "diplopr") 
 #matching variables
@@ -103,7 +103,7 @@ pat$final <- pat$patri_predictedlog + pat$residuslog1
 describe(pat$final)
 pat$finalexp <- exp(pat$final)
 
-# categorize le patrimoine imputé dans la base ERF#
+# categorize le patrimoine imputï¿½ dans la base ERF#
 cats = c('01', '02','03','04','05','06','07','08','09','10','11','12')
 bins = c( 0,3000,7500,15000,30000,45000,75000,105000,150000,225000,300000,450000,5000000)
 erf$patri_cat <- categorize(erf$finalexp, seuil=bins, categories=cats )
@@ -130,7 +130,7 @@ pat$zzd <- ifelse((3661000<= pat$pat_new)*(pat$pat_new <= 7017000), 0, 1)
 pat$zze <- ifelse((7017000<= pat$pat_new)*(pat$pat_new <= 15255000),0,1)
 pat$zzf <- ifelse((15255000<= pat$pat_new),0,1)
 
-## dans base ERF synthétique
+## dans base ERF synthï¿½tique
 
 erf$zz <- ifelse((erf$finalexp <= 732000),0,1)
 erf$zza <- ifelse((732000 <= erf$finalexp)*(erf$finalexp <= 1180000), 0, 1) 
@@ -169,9 +169,9 @@ table(pat$zza, useNA='ifany')
 ##end of hotdeck
 
 ## HISTOGRAMME et Pourcentages 
-## histogramme de patri et densité pondérée (pat_new) dans PAT
-## histogramme de patri_cat dans ERF et densité pondérée de finalexp
-## histogramme de patri et densitéd pondérée de finalexp dans PAT
+## histogramme de patri et densitï¿½ pondï¿½rï¿½e (pat_new) dans PAT
+## histogramme de patri_cat dans ERF et densitï¿½ pondï¿½rï¿½e de finalexp
+## histogramme de patri et densitï¿½d pondï¿½rï¿½e de finalexp dans PAT
 ### treat x var as numeric to obtain an overall density
 
 data1 <- data.frame(cat=pat$patri, w=pat$pond, source="patrimoine")
@@ -181,12 +181,12 @@ data_plot <- rbind(data1,data2)
 p <- ggplot(data_plot)
 p + geom_bar(aes(x=cat, weight=w, fill=source), position="dodge") 
 
-# prepare for merging with menagem
+# prepare for merging with menage_en_mois
 patrim <- data.frame(ident = erf$ident, patri=erf$finalexp)
 load(menm)
-menagem <- merge(menagem, patrim, by="ident",all.x = TRUE)
-save(menagem,file=menm)
-rm(patrim,menagem)  
+menage_en_mois <- merge(menage_en_mois, patrim, by="ident",all.x = TRUE)
+save(menage_en_mois,file=menm)
+rm(patrim,menage_en_mois)  
 
 
 

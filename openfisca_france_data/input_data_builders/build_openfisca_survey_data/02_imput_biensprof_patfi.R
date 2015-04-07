@@ -35,9 +35,9 @@ table(pat$prona3)
 
 pat$fit <- ifelse((pat$prona3==1)*(pat$prona_imp==1), 1, 0)
 table(pat$fit)
-## REVOIR- le modèle n'est pas suffisamment robuste
-## 0.25 est totalement arbitraire mais permet de retrouver la proportion de menage détenteur de biens prof tel que def par profna3
-## dans base ERF prédire 
+## REVOIR- le modï¿½le n'est pas suffisamment robuste
+## 0.25 est totalement arbitraire mais permet de retrouver la proportion de menage dï¿½tenteur de biens prof tel que def par profna3
+## dans base ERF prï¿½dire 
 erf$prona_imp <- predict(regprof, newdata=erf, type="response")
 erf$biensprof[erf$prona_imp < 0.25] <- 0
 erf$biensprof[erf$prona_imp >= 0.25] <- 1
@@ -58,7 +58,7 @@ summary(modellog_fi)
 pat$patfi_predictedlog <- predict(modellog_fi, newdata=pat)
 
 ## en LOG 
-## 1ere stratégie
+## 1ere stratï¿½gie
 erf$patfi_predictedlog <- predict(modellog_fi, newdata=erf)
 pat$residusfi <- pat$logpatfi_new - pat$patfi_predictedlog
 ## ei = logPi - logPipredi
@@ -79,7 +79,7 @@ erf$logpatfi <- erf$patfi_predictedlog + erf$residusfi
 ## ET PASSAGE EN EXPONENTIELLE POUR AVOIR LA VALEUR DU PATRIMOINE
 erf$patfi <- exp(erf$logpatfi)
 
-## Pour ne pas fausser, on effectue les mêmes étapes sur la base pat- pat_prédit+ res
+## Pour ne pas fausser, on effectue les mï¿½mes ï¿½tapes sur la base pat- pat_prï¿½dit+ res
 allvars <- c("occuppr", "agepr","occupcj","diplopr","logrminterdeb", "sexepr", "typmen", "tu99")
 classes <- c("typmen", "occuppr") 
 #matching variables
@@ -99,7 +99,7 @@ pat$patfi_imputed <- exp(pat$imputed)
 pat$imputed <- NULL 
 
 ############### OBSERVATIONS DES RESULTATS #################################
-# categorize le patrimoine imputé dans la base ERF#
+# categorize le patrimoine imputï¿½ dans la base ERF#
 cats = c('01', '02','03','04','05','06','07','08','09','10','11','12')
 bins = c( 0,3000,7500,15000,30000,45000,75000,105000,150000,225000,300000,450000,5000000)
 erf$patfi_cat <- categorize(erf$patfi, seuil=bins, categories=cats )
@@ -118,11 +118,11 @@ data_plot <- rbind(data1,data2)
 p <- ggplot(data_plot)
 p + geom_bar(aes(x=cat, weight=w, fill=source), position="dodge") 
 
-# prepare for merging with menagem
+# prepare for merging with menage_en_mois
 patrimf <- data.frame(ident = erf$ident, patfi=erf$patfi, biensprof= erf$biensprof)
 load(menm)
-menagem <- merge(menagem, patrimf, by="ident",all.x = TRUE)
-save(menagem,file=menm)
-rm(patrimf,menagem)  
+menage_en_mois <- merge(menage_en_mois, patrimf, by="ident",all.x = TRUE)
+save(menage_en_mois,file=menm)
+rm(patrimf,menage_en_mois)  
 
 

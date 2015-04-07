@@ -201,5 +201,5 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     print 'youpi on a droppé'
 
 #    data.rename(columns = {"id_conj" : "conj"}, inplace = True)
-    data['agem'] = data['age'] * 12
+    data['age_en_mois'] = data['age'] * 12
     return data

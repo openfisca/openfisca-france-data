@@ -279,7 +279,7 @@ def foyer_all(year):
         'mbnc_pvce': ['f5hr', 'f5ir', 'f5jr'],
         'abnc_pvce': ['f5qd', 'f5rd', 'f5sd'],
         'nbnc_pvce': ['f5qj', 'f5rj', 'f5sj'],
-        'demenage': ['f1ar', 'f1br', 'f1cr', 'f1dr', 'f1er']}  # (déménagement) uniquement en 2006
+        'demenage': ['f1ar', 'f1br', 'f1cr', 'f1dr', 'f1er']}  # (déménage_en_moisent) uniquement en 2006
 
     vars_sets = [set(var_list) for var_list in var_dict.values()]
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))

@@ -264,7 +264,7 @@ def create_totals(year = None):
     indivi = concat([indivi, fip.loc[is_fip_19_25]])
     del is_fip_19_25
     indivi['age'] = year - indivi.naia - 1
-    indivi['agem'] = 12 * indivi.age + 12 - indivi.naim
+    indivi['age_en_mois'] = 12 * indivi.age + 12 - indivi.naim
 
     indivi["quimen"] = 0
     indivi.quimen[indivi.lpr == 1] = 0
@@ -327,7 +327,7 @@ def create_totals(year = None):
     myvars = [
         "actrec",
         "age",
-        "agem",
+        "age_en_mois",
         "chpub",
         "encadr",
         "idfoy",
