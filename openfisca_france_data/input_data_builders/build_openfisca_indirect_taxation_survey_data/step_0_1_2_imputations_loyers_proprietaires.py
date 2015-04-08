@@ -89,7 +89,7 @@ def build_imputation_loyers_proprietaires(year = None):
 #		replace maison  = 0 if CC == "4" & catsurf == 1 & maison == 1
 # 		sort ident_men
         imput00['observe'] = (imput00.loyer_reel > 0) & (imput00.stalog.isin([3, 4]))
-#        imput00['loyer_impute'] = imput00['loyer_reel']
+        imput00['loyer_impute'] = imput00['loyer_reel']
         imput00['maison_appart'] = imput00.sitlog == 1
         imput00['catsurf'] = imput00.surfhab < 16
         imput00.catsurf = 1 * ((imput00.surfhab > 15) & (imput00.surfhab < 31))
@@ -120,8 +120,11 @@ def build_imputation_loyers_proprietaires(year = None):
 #
 #		hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
 #		replace loyer_imput = . if observe == 1
-        loyers.loyer_imput[loyers.observe == 1] = '.'
-        # TODO:
+#        hotdeck = survey.get_values(table = 'hotdeck_result')
+#        kept_variables = ['ident_men', 'loyer_impute', 'observe']
+#        hotdeck = hotdeck[kept_variables]
+#        hotdeck.loyer_impute[hotdeck.observe == 1] = '.'
+#        # TODO:
 
 #		use "$rawdatadir\hotdeck1.dta", clear
 #		keep ident_men loyer_imput
@@ -133,9 +136,6 @@ def build_imputation_loyers_proprietaires(year = None):
 #		tab _m observe
 #		drop _m
 
-        hotdeck = survey.get_values(table = 'hotdeck_result')
-        kept_variables = ['ident_men', 'loyer_impute']
-        hotdeck = hotdeck[kept_variables]
         imput00.reset_index(inplace = True)
         imput00 = imput00.merge(hotdeck, on = 'ident_men').set_index('ident_men')
 
@@ -153,16 +153,21 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00.loyer_impute[imput00.observe == 1] = 0
         imput00['imputation'] = imput00.observe == 0
         imput00.reset_index(inplace = True)
-        loyers_imputes = imput00[['ident_men', 'loyer_impute']]
-        loyers_imputes.set_index('ident_men', inplace = True)
-        depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
+
+        kept_variables = ['ident_men', 'loyer_impute', 'imputation', 'observe', 'stalog']
+        imput00 = imput00[kept_variables]
+        imput00.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(imput00, left_index = True, right_index = True)
         # TODO:
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
-        depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
-        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = ['loyer_imp']
-        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == .] = 0
+        depenses.depense[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5]) & depenses.depense > 0 & depenses.depense != '.'] = 0
+        depenses.depense[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense != '.'] = 0
+        #condition = depenses.posteCOICOP == "0421" & depenses.observe == 0
+        condition = depenses.posteCOICOP == "0421" & depenses.observe == 0
+        depenses.depense[condition] = depenses.loyer_impute[depenses.posteCOICOP == "0421" & depenses.observe == 0]
+        depenses.depense[depenses.posteCOICOP == "0421" & depenses.observe == 1 & depenses.depense == '.'] = 0
 #
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
 #		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .
