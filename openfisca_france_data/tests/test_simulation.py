@@ -42,7 +42,7 @@ def test_survey_simulation():
 
     data_frame_by_entity_key_plural = dict(
         individus = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
+            dict([(name, simulation.calculate_add(name)) for name in [
                 'idmen',
                 'quimen',
                 'idfoy',
@@ -73,7 +73,8 @@ def test_survey_simulation():
             ),
         )
 
-    (data_frame_familles.weight_familles * data_frame_familles.af).sum() / 1e9 > 10
+    assert (data_frame_by_entity_key_plural['familles'].weight_familles
+        * data_frame_by_entity_key_plural['familles'].af).sum() / 1e9 > 10
 
     return data_frame_by_entity_key_plural, simulation
 
@@ -102,18 +103,8 @@ if __name__ == '__main__':
     data_frame_menages = data_frame_by_entity_key_plural['menages']
     data_frame_familles = data_frame_by_entity_key_plural['familles']
 
-    print (data_frame_familles.weight_familles * data_frame_familles.af).sum()/1e9
-    print simulation.calculate('age_en_mois', period = "2009")
-    print simulation.calculate('age_en_mois', period = "2009-01")
-    print simulation.calculate('age_en_mois', period = "2009-02")
-    print simulation.calculate('af', period = "2009-01")
-    print simulation.calculate('af', period = "2009-02")
-    print (simulation.calculate('af', period = "2009-02")).sum()
-    print (simulation.calculate('af_nbenf', period = "2009-01")).sum()
-
-    print (simulation.calculate('af_nbenf', period = "2009-02")).sum()
-    print simulation.calculate_add('af', period = "2009")
-
+    ra_rsa = simulation.calculate('ra_rsa', "2009-01")
+    salaire_net = simulation.calculate('salaire_net', "2009-01")
 
 #    simulation = test_weights_building()
 #    from openfisca_core.periods import period

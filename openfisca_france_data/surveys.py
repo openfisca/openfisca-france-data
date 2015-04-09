@@ -48,6 +48,7 @@ class SurveyScenario(AbstractSurveyScenario):
             tax_benefit_system = tax_benefit_system,
             used_as_input_variables = used_as_input_variables,
             year = year)
+
         return self
 
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
@@ -84,6 +85,13 @@ class SurveyScenario(AbstractSurveyScenario):
         self.weight_column_name_by_entity_key_plural['familles'] = 'weight_familles'
         self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foyers'
         self.weight_column_name_by_entity_key_plural['individus'] = 'weight_individus'
+
+    def custom_initialize(self):
+        simulation = self.simulation
+        for offset in [-1, -2]:
+            for variable_name in ['sal', 'cho', 'rst']:
+                variable = simulation.get_or_new_holder(variable_name)
+                variable.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
