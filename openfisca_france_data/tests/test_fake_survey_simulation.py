@@ -106,6 +106,12 @@ def test_fake_survey_simulation():
     assert (sal_2003 == 0).all()
     assert (sal_2004 == sal_2006).all()
     assert (sal_2005 == sal_2006).all()
+    import itertools
+    for year, month in itertools.product(range(2004, 2007), range(1, 13)):
+        assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
+
+    for year, month in itertools.product(range(2002, 2004), range(1, 13)):
+        assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == 0).all()
 
 
     data_frame_by_entity_key_plural = dict(
