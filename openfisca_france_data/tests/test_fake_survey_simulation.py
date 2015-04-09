@@ -32,7 +32,6 @@ import os
 import numpy
 import pandas
 
-
 from openfisca_core.tools import assert_near
 from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders import get_input_data_frame
@@ -97,10 +96,21 @@ def test_fake_survey_simulation():
     age_en_mois = simulation.calculate('age_en_mois')
     assert age_en_mois[0] == 924
     assert age_en_mois[1] == 444
+    print simulation.period
+
+    sal_2003 = simulation.calculate('sal', period = "2003")
+    sal_2004 = simulation.calculate('sal', period = "2004")
+    sal_2005 = simulation.calculate('sal', period = "2005")
+    sal_2006 = simulation.calculate('sal', period = "2006")
+
+    assert (sal_2003 == 0).all()
+    assert (sal_2004 == sal_2006).all()
+    assert (sal_2005 == sal_2006).all()
+
 
     data_frame_by_entity_key_plural = dict(
         individus = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
+            dict([(name, simulation.calculate_add(name)) for name in [
                 'idmen',
                 'quimen',
                 'idfoy',
@@ -127,7 +137,7 @@ def test_fake_survey_simulation():
             ),
         )
 
-    return data_frame_by_entity_key_plural
+    return data_frame_by_entity_key_plural, simulation
 
 
 def create_fake_calibration():
@@ -212,7 +222,7 @@ if __name__ == '__main__':
 #    build_by_extraction(year = year)
 #    df = get_fake_input_data_frame(year = year)
 
-    df_by_entity = test_fake_survey_simulation()
+    df_by_entity, simulation = test_fake_survey_simulation()
     df_i = df_by_entity['individus']
     df_f = df_by_entity['foyers_fiscaux']
     df_m = df_by_entity['menages']
