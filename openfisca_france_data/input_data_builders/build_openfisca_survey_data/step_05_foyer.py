@@ -279,7 +279,72 @@ def foyer_all(year):
         'mbnc_pvce': ['f5hr', 'f5ir', 'f5jr'],
         'abnc_pvce': ['f5qd', 'f5rd', 'f5sd'],
         'nbnc_pvce': ['f5qj', 'f5rj', 'f5sj'],
-        'demenage': ['f1ar', 'f1br', 'f1cr', 'f1dr', 'f1er']}  # (déménagement) uniquement en 2006
+        'demenage': ['f1ar', 'f1br', 'f1cr', 'f1dr', 'f1er'],  # (déménagement) uniquement en 2006
+        # Charges déductibles
+        'f6de': ['f6de'],  # CSG déductible calculée sur les revenus du patrimoine
+        # Pensions alimentaires
+        'f6gi': ['f6gi'],  # Pensions alimenaires versées à des enfants majeurs (1e enfant)
+        'f6gj': ['f6gj'],  # Pensions alimenaires versées à des enfants majeurs (2e enfant)
+        'f6el': ['f6el'],  # Autres pensions alimenaires versées à des enfants majeurs (1e enfant)
+        'f6el': ['f6em'],  # Autres pensions alimenaires versées à des enfants majeurs (2e enfant)
+        'f6gp': ['f6gp'],  # Autres pensions alimenaires versées (décision de juscitce avant 2006)
+        'f6gu': ['f6gu'],  # Autres pensions alimenaires versées
+        'f6dd': ['f6dd'],  # Déductions diverses
+        # Epargne retraite PERP
+        'f6rs': ['f6rs','f6rt','f6ru'],  #
+        'f6ss': ['f6ss','f6st','f6su'],  #
+        'f6ps': ['f6ps','f6pt','f6pu'],  #
+        'f6qr': ['f6qr'],  #
+        'f6qw': ['f6qw'],  #
+        'f6qs': ['f6qs','f6qt','f6qu'],  #
+        # Réductions d'impôt
+        'f7ud': ['f7ud'],  # Dons
+        'f7ue': ['f7ue'],  # Dons
+        'f7uf': ['f7uf'],  # Autres dons
+        'f7xs': ['f7xs'],  # report années antérieures
+        'f7xt': ['f7xt'],  # report années antérieures
+        'f7xu': ['f7xu'],  # report années antérieures
+        'f7xw': ['f7xw'],  # report années antérieures
+        'f7xy': ['f7xy'],  # report années antérieures
+        'f7ac': ['f7ac','f7ae','f7ag'],  # Cotisations syndicales
+        'f7ad': ['f7ad','f7af','f7ah'],  #
+        # Enfants poursuivant leurs études
+        'f7ea': ['f7ea'],  #
+        'f7ec': ['f7ec'],  #
+        'f7ef': ['f7ef'],  #
+        'f7eb': ['f7eb'],  #
+        'f7ed': ['f7ed'],  #
+        'f7eg': ['f7eg'],  #
+        # Salarié à domicile
+        'f7db': ['f7db'],  #
+        'f7df': ['f7df'],  #
+        'f7dq': ['f7dq'],  #
+        'f7dg': ['f7dg'],  #
+        'f7dl': ['f7dl'],  #
+        'f7gz': ['f7gz'],  # Prime de rente survie, contrat d'épargne handicap
+        'f7cd': ['f7cd'],  #
+        'f7ce': ['f7ce'],  #
+        # Dépenses en faveur de la qualité environnementale de l'habitation principale
+        'f7we': ['f7we'],  #
+        'f7wh': ['f7wh'],  #
+        'f7wk': ['f7wk'],  #
+        'f7wf': ['f7wf'],  #
+        'f7wg': ['f7wg'],  #
+        'f7wj': ['f7wj'],  #
+        'f7wi': ['f7wi'],  #
+        'f7vz': ['f7vz'],  #
+        'f7vx': ['f7vx'],  #
+        # Divers
+        'f8by': ['f8by','f8cy'],  # Elus locaux
+        'f8ut': ['f8ut'],  #
+        #Revenus à l'étranger
+        'f8ti': ['f8ti'],  # Revenus à l'étranger
+        'f8tl': ['f8tl'],  #
+        'f8tk': ['f8tk'],  #
+        'f8fv': ['f8fv'],  #
+        'f8tt': ['f8tt'],  #
+        'f8uu': ['f8uu'],  #
+        }
 
     vars_sets = [set(var_list) for var_list in var_dict.values()]
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))
