@@ -85,8 +85,6 @@ def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
             )
     if year_calage == year_data:
         masses['ratio_cn{}_cn{}'.format(year_data, year_calage)] = 1
-    print 'ici1', masses['consoCN_COICOP_{}'.format(year_data)].head()
-    print 'ici2', masses['conso_bdf{}'.format(year_data)].head()
 
     masses['ratio_bdf{}_cn{}'.format(year_data, year_data)] = (
         1000000 * masses['consoCN_COICOP_{}'.format(year_data)] / masses['conso_bdf{}'.format(year_data)]

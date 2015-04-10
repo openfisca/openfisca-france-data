@@ -686,7 +686,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.couplepr = menage.couplepr > 2  # TODO: changer de convention ?
         menage.ocde10 = menage.ocde10 / 10
         menage.set_index('ident_men', inplace = True)
-        temporary_store['menage_{}'.format(year)] = menage
         # use "$rawdatadir\depmen.dta", clear
         # tempfile stalog
         # keep ident_men stalog
@@ -733,10 +732,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.loc[menage.htl.isin(['1', '5']), 'typlog'] = 1
         assert menage.typlog.isin([1, 2]).all()
         del menage['htl']
-        for variable_to_destring in ['typmen5', 'situapr', 'situacj', 'dip14pr', 'dip14cj']:
-            menage[variable_to_destring].replace(to_replace = {'': '0'}, inplace = True)
-            menage[variable_to_destring] = menage[variable_to_destring].astype('int').copy()  # MBJ TODO: define as a catagory ?
-        temporary_store['menage_{}'.format(year)] = menage
         # use "$rawdatadir\individu.dta", clear
         # tempfile individus
         # * Il y a un problème sur l'année de naissance, donc on le recalcule avec l'année de naissance et la vague
@@ -759,17 +754,14 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus = survey.get_values(table = 'individu')
         # Il y a un problème sur l'année de naissance,
         # donc on le recalcule avec l'année de naissance et la vague d'enquête
-        individus['agepr'] = 2005 - individus.anais
-        individus.loc[individus.vag == "6", ['agepr']] = 2006 - individus.anais
-        individus = individus[individus.lienpref == "00"].copy()
+        individus['agepr'] = year - individus.anais
+        individus.loc[individus.vag == 6, ['agepr']] = year + 1 - individus.anais
+        individus = individus[individus.lienpref == 0].copy()
         kept_variables = ['ident_men', 'etamatri', 'agepr']
         individus = individus[kept_variables].copy()
-        individus['etamatri'].replace(to_replace = {'': '0'}, inplace = True)
         individus['etamatri'] = individus['etamatri'].astype('int').copy()  # MBJ TODO: define as a catagory ?
         individus.set_index('ident_men', inplace = True)
-        temporary_store['individus_{}'.format(year)] = individus
         menage = menage.merge(individus, left_index = True, right_index = True)
-        temporary_store['menage_{}'.format(year)] = menage
         # use "$rawdatadir\individu.dta", clear
         # drop age
         # gen age = 2005 - anais
@@ -800,10 +792,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             )
         # Il y a un problème sur l'année de naissance,
         # donc on le recalcule avec l'année de naissance et la vague d'enquête
-        individus['age'] = 2005 - individus.anais
-        individus.loc[individus.vag == "6", ['age']] = 2006 - individus.anais
+        individus['age'] = year - individus.anais
+        individus.loc[individus.vag == 6, ['age']] = year + 1 - individus.anais
         # Garder toutes les personnes du ménage qui ne sont pas la personne de référence et le conjoint
-        individus = individus[(individus.lienpref != "00") & (individus.lienpref != "01")].copy()
+        individus = individus[(individus.lienpref != 0) & (individus.lienpref != 1)].copy()
         individus.sort(columns = ['ident_men', 'ident_ind'], inplace = True)
 
         # Inspired by http://stackoverflow.com/questions/17228215/enumerate-each-row-for-each-group-in-a-dataframe
@@ -815,7 +807,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         pivoted = individus.pivot(index = 'ident_men', columns = "numero", values = 'age')
         pivoted.columns = ["age{}".format(column) for column in pivoted.columns]
         menage = menage.merge(pivoted, left_index = True, right_index = True, how = 'outer')
-        temporary_store['menage_{}'.format(year)] = menage
 
         # use $rawdatadir\individu.dta, clear
         # keep ident_men ident_ind agfinetu lienpref
@@ -837,8 +828,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             variables = ['ident_men', 'ident_ind', 'agfinetu', 'lienpref'],
             )
         individus.set_index('ident_men', inplace = True)
-        pr = individus.loc[individus.lienpref == "00", 'agfinetu'].copy()
-        conjoint = individus.loc[individus.lienpref == "01", 'agfinetu'].copy()
+        pr = individus.loc[individus.lienpref == 0, 'agfinetu'].copy()
+        conjoint = individus.loc[individus.lienpref == 1, 'agfinetu'].copy()
         conjoint.name = 'agfinetu_cj'
         agfinetu_merged = pandas.concat([pr, conjoint], axis = 1)
         menage = menage.merge(agfinetu_merged, left_index = True, right_index = True)
@@ -1070,7 +1061,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2011
+    year = 2005
     build_homogeneisation_caracteristiques_sociales(year = year)
 
     log.info("step_0_3_homogeneisation_caracteristiques_sociales {}".format(time.clock() - deb))
