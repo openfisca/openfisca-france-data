@@ -79,15 +79,15 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
     print 'longueur de la data frame =', len(dataframe.index)
     if debug:
         print 'nb de doublons', len(dataframe[dataframe.duplicated()])
-        print 'nb de doublons idfoy/quifoy', len(dataframe[dataframe.duplicated(cols=['idfoy', 'quifoy'])])
-        print 'nb de doublons idmen/quimen', len(dataframe[dataframe.duplicated(cols=['idmen', 'quimen'])])
-        print 'nb de doublons idfam/quifam', len(dataframe[dataframe.duplicated(cols=['idfam', 'quifam'])])
+        print 'nb de doublons idfoy/quifoy', len(dataframe[dataframe.duplicated(subset = ['idfoy', 'quifoy'])])
+        print 'nb de doublons idmen/quimen', len(dataframe[dataframe.duplicated(subset = ['idmen', 'quimen'])])
+        print 'nb de doublons idfam/quifam', len(dataframe[dataframe.duplicated(subset = ['idfam', 'quifam'])])
 
     if not(debug):
         assert not(dataframe.duplicated().any()), 'présence de lignes en double dans la dataframe'
-        assert ~(dataframe.duplicated(cols=['idfoy', 'quifoy'])).all(), 'duplicate of tuple idfoy/quifoy'
-        assert ~(dataframe.duplicated(cols=['idmen', 'quimen'])).all(), 'duplicate of tuple idmen/quimen'
-        assert ~(dataframe.duplicated(cols=['idfam', 'quifam'])).all(), 'duplicate of tuple idfam/quifam'
+        assert ~(dataframe.duplicated(subset = ['idfoy', 'quifoy'])).all(), 'duplicate of tuple idfoy/quifoy'
+        assert ~(dataframe.duplicated(subset = ['idmen', 'quimen'])).all(), 'duplicate of tuple idmen/quimen'
+        assert ~(dataframe.duplicated(subset = ['idfam', 'quifam'])).all(), 'duplicate of tuple idfam/quifam'
 
     empty_columns = []
     for col in dataframe:

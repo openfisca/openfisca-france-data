@@ -98,7 +98,7 @@ def create_comparable_erf_data_frame(year):
     indm_vars = ["dip11", 'ident', "lpr", "noi"]
     # Travail sur la base ERF
     # Preparing ERF menages tables
-    erfmenm = temporary_store.select('menage_en_mois_{}'.format(year))
+    erfmenm = temporary_store.select('menagem_{}'.format(year))
 
     erfmenm['revtot'] = (
         erfmenm.ztsam + erfmenm.zperm + erfmenm.zragm + erfmenm.zricm + erfmenm.zrncm + erfmenm.zracm
@@ -563,7 +563,7 @@ def imputation_loyer(year):
 
     loy_imput = fill_erf_nnd[['ident', 'loym']]
 
-    erfmenm = load_temp(name = "menage_en_mois", year = year)
+    erfmenm = load_temp(name = "menagem", year = year)
 
     for var in ["loym", "loym_x", "loym_y", "loym_z"]:
         if var in erfmenm:
@@ -572,7 +572,7 @@ def imputation_loyer(year):
 
     erfmenm = erfmenm.merge(loy_imput, on='ident', how='left')
     assert 'loym' in erfmenm.columns, u"La variable loym n'est pas présente dans erfmenm"
-    save_temp(erfmenm, name = "menage_en_mois", year=year)
+    save_temp(erfmenm, name = "menagem", year=year)
 
 if __name__ == '__main__':
     import sys
