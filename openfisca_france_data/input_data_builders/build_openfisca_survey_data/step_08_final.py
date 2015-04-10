@@ -108,9 +108,9 @@ def final(year = None, filename = "test", check = True):
     temporary_store['final_{}'.format(year)] = final
     log.info("final has been updated with fip")
 
-    menage_en_mois = temporary_store['menage_en_mois_{}'.format(year)]
-    menage_en_mois.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
-    menage_en_mois["cstotpragr"] = np.floor(menage_en_mois["cstotpr"] / 10)
+    menagem = temporary_store['menagem_{}'.format(year)]
+    menagem.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
+    menagem["cstotpragr"] = np.floor(menagem["cstotpr"] / 10)
 
     # 2008 tau99 removed TODO: check ! and check incidence
     vars = [
@@ -132,47 +132,47 @@ def final(year = None, filename = "test", check = True):
     if year == 2008:
         vars.remove("tau99")
     famille_vars = ["m_afeamam", "m_agedm", "m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
-# if ("naf16pr" %in% names(menage_en_mois)) {
-#   naf16pr <- factor(menage_en_mois$naf16pr)
+# if ("naf16pr" %in% names(menagem)) {
+#   naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16
-#   menage_en_mois$naf16pr <- as.character(naf16pr)
-#   menage_en_mois[is.na(menage_en_mois$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
+#   menagem$naf16pr <- as.character(naf16pr)
+#   menagem[is.na(menagem$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
 #   vars <- c(vars,"naf16pr")
-# } else if ("nafg17npr" %in% names(menage_en_mois)) {
+# } else if ("nafg17npr" %in% names(menagem)) {
 #   # TODO: pb in 2008 with xx
 #   if (year == "2008"){
-#     menage_en_mois[ menage_en_mois$nafg17npr == "xx" & !is.na(menage_en_mois$nafg17npr), "nafg17npr"] <- "00"
+#     menagem[ menagem$nafg17npr == "xx" & !is.na(menagem$nafg17npr), "nafg17npr"] <- "00"
 #   }
-#   nafg17npr <- factor(menage_en_mois$nafg17npr)
+#   nafg17npr <- factor(menagem$nafg17npr)
 #   levels(nafg17npr) <-  0:17
-#   menage_en_mois$nafg17npr <- as.character(nafg17npr)
-#   menage_en_mois[is.na(menage_en_mois$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
+#   menagem$nafg17npr <- as.character(nafg17npr)
+#   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
 #
 #TODO: TODO: pytohn translation needed
-#    if "naf16pr" in menage_en_mois.columns:
-#        naf16pr <- factor(menage_en_mois$naf16pr)
+#    if "naf16pr" in menagem.columns:
+#        naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16
-#   menage_en_mois$naf16pr <- as.character(naf16pr)
-#   menage_en_mois[is.na(menage_en_mois$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
+#   menagem$naf16pr <- as.character(naf16pr)
+#   menagem[is.na(menagem$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
 #   vars <- c(vars,"naf16pr")
-# } else if ("nafg17npr" %in% names(menage_en_mois)) {
+# } else if ("nafg17npr" %in% names(menagem)) {
 #   # TODO: pb in 2008 with xx
 #   if (year == "2008"){
-#     menage_en_mois[ menage_en_mois$nafg17npr == "xx" & !is.na(menage_en_mois$nafg17npr), "nafg17npr"] <- "00"
+#     menagem[ menagem$nafg17npr == "xx" & !is.na(menagem$nafg17npr), "nafg17npr"] <- "00"
 #   }
-#   nafg17npr <- factor(menage_en_mois$nafg17npr)
+#   nafg17npr <- factor(menagem$nafg17npr)
 #   levels(nafg17npr) <-  0:17
-#   menage_en_mois$nafg17npr <- as.character(nafg17npr)
-#   menage_en_mois[is.na(menage_en_mois$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
+#   menagem$nafg17npr <- as.character(nafg17npr)
+#   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
     # TODO: 2008tau99 is not present should be provided by 02_loy.... is it really needed
     all_vars = vars + famille_vars
 
     log.info("liste de toutes les variables : {}".format(all_vars))
-    log.info(menage_en_mois.info())
-    available_vars = list(set(all_vars).intersection(set(menage_en_mois.columns)))
-    loyersMenages = menage_en_mois.xs(available_vars, axis = 1)
+    log.info(menagem.info())
+    available_vars = list(set(all_vars).intersection(set(menagem.columns)))
+    loyersMenages = menagem.xs(available_vars, axis = 1)
 #
 # # Recodage de typmen15: modalités de 1:15
 # table(loyersMenages$typmen15, useNA="ifany")

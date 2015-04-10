@@ -295,7 +295,7 @@ def create_fip(year = None):
 
     fip_tmp = fip[['noi', 'ident']]
 
-    while any(fip.duplicated(cols=['noi', 'ident'])):
+    while any(fip.duplicated(subset = ['noi', 'ident'])):
         fip_tmp = fip.loc[:, ['noi', 'ident']]
         dup = fip_tmp.duplicated()
         tmp = fip.loc[dup, 'noi']
