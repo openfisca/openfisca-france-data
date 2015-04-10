@@ -1,6 +1,6 @@
 # Openfisca
 # Rent imputation for renters from regression on 'enquête logement'
-# Adds a variable 'loym' to the 'menage_en_mois' table
+# Adds a variable 'loym' to the 'menagem' table
 
 message('Entering 02_imput_loyer')
 message('Building comparable tables')
@@ -410,11 +410,11 @@ fill.erf.nnd <- upData(fill.erf.nnd, rename=c(lmlm='loym'))
 loy_imput = fill.erf.nnd[c('ident','loym')]
 rm(fill.erf.nnd, out.nnd)
 load(menm)
-menage_en_mois$loym <- NULL
-menage_en_mois <- merge(menage_en_mois,loy_imput,by='ident',all.x = TRUE)
+menagem$loym <- NULL
+menagem <- merge(menagem,loy_imput,by='ident',all.x = TRUE)
 
-save(menage_en_mois,file=menm)
-rm(loy_imput,menage_en_mois)
+save(menagem,file=menm)
+rm(loy_imput,menagem)
 
 # Cleaning temporary files
 #delTmp()

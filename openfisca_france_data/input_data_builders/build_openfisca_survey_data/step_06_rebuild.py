@@ -135,9 +135,9 @@ def create_totals(year = None):
 
     indivi_fnd = indivi[["idfoy", "noindiv"]][fip_no_declar].copy()
 
-    while any(indivi_fnd.duplicated(cols=["idfoy"])):
+    while any(indivi_fnd.duplicated(subset = ["idfoy"])):
         indivi_fnd["idfoy"] = where(
-            indivi_fnd.duplicated(cols=["idfoy"]),
+            indivi_fnd.duplicated(subset = ["idfoy"]),
             indivi_fnd["idfoy"] + 1,
             indivi_fnd["idfoy"]
             )
@@ -421,7 +421,7 @@ def create_totals(year = None):
     log.info(
         u"Etape 7: on vérifie qu'il ne manque pas d'info sur les liens avec la personne de référence")
     log.info(
-        u"nb de doublons idfam/quifam {}".format(len(indivi[indivi.duplicated(cols=['idfoy', 'quifoy'])])))
+        u"nb de doublons idfam/quifam {}".format(len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])])))
 
     log.info(u"On crée les n° de personnes à charge")
     assert indivi['idfoy'].notnull().all()

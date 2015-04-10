@@ -583,9 +583,9 @@ def famille(year = 2006):
         famille.duplicated(subset = ['idfam', 'quifam']).sum())
         )
     famille.drop_duplicates(subset = ['idfam', 'quifam'], inplace = True)
-    # assert not(famille.duplicated(cols=['idfam', 'quifam']).any()), \
+    # assert not(famille.duplicated(subset = ['idfam', 'quifam']).any()), \
     #   'There are {} duplicates of quifam inside famille'.format(
-    #       famille.duplicated(cols=['idfam', 'quifam']).sum())
+    #       famille.duplicated(subset = ['idfam', 'quifam']).sum())
 
     temporary_store["famc_{}".format(year)] = famille
     del indivi, enfants_a_naitre

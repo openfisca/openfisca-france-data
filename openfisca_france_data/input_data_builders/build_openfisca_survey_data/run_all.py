@@ -48,7 +48,7 @@ log = logging.getLogger(__name__)
 def run_all(year = None, filename = "test", check = False):
 
     assert year is not None
-    pre_processing.create_indivim_menage_en_mois(year = year)
+    pre_processing.create_indivim_menagem(year = year)
     pre_processing.create_enfants_a_naitre(year = year)
     # imputation_loyer.imputation_loyer(year = year)
     fip.create_fip(year = year)
