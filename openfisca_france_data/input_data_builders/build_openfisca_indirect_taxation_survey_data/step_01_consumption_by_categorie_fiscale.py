@@ -135,9 +135,13 @@ def get_transfert_data_frames(year = None):
 
 def normalize_coicop(code):
     '''Normalize_coicop est function d'harmonisation de la colonne d'entiers posteCOICOP de la table
-matrice_passage_data_frame en la transformant en une chaine de 5 caractères
+matrice_passage_data_frame en la transformant en une chaine de 5 caractères afin de pouvoir par la suite agréger les postes
+COICOP selon les 12 postes agrégés de la nomenclature de la comptabilité nationale. Chaque poste contient 5 caractères,
+les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la CN.
+
     '''
     # TODO il faut préciser ce que veut dire harmoniser
+    # fait (copier coller de step 0 1 1 )
     if len(code) == 3:
         normalized_code = "0" + code + "0"  # "{0}{1}{0}".format(0, code)
     elif len(code) == 4:

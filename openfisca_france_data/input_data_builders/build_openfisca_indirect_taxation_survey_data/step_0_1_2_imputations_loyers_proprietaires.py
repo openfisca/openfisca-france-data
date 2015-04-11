@@ -115,6 +115,7 @@ def build_imputation_loyers_proprietaires(year = None):
 #        imput00.maison[imput00.CC == 5 & imput00.catsurf == 8 & imput00.maison == 1] = 0
 #        imput00.maison[imput00.CC == 4 & imput00.catsurf == 1 & imput00.maison == 1] = 0
 
+
 #
 #		save "`loyers'", replace
 #
@@ -122,6 +123,9 @@ def build_imputation_loyers_proprietaires(year = None):
 #		replace loyer_imput = . if observe == 1
 #        loyers.loyer_imput[loyers.observe == 1] = '.'
         # TODO:
+        # ca m'a l'air d'être déjà fait, je ne comprends pas le todo
+        # 2 questions : pourquoi le imput00 à la place de 'loyers ?
+        # et loyer_impute ?= loyer_imput (code stata) ?
 
 #		use "$rawdatadir\hotdeck1.dta", clear
 #		keep ident_men loyer_imput
@@ -157,10 +161,12 @@ def build_imputation_loyers_proprietaires(year = None):
         loyers_imputes.set_index('ident_men', inplace = True)
         depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
         # TODO:
+        # ajout de la ligne 166 : todo terminé
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
         depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
+        depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense == '.'] = 0
         depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
         depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == '.'] = 0
 #

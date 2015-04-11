@@ -177,10 +177,20 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         #
 
 #        TODO: finir de corriger en s'inspirant de ce que j'ai fait plus haut...
+      #  je pense avoir terminé (lignes 184 à 210)
 #            Methode :  1.on clean les variables (i.e. renames + changement de format (astype(int)))
 #                       2. Reformatage des variables (réattribution des catégories pour quelles soient identiques pour les différentes années)
 
         menage["situacj"] = 0
+        menage.situacj[menage.occupacj == 1] = 1
+        menage.situacj[menage.occupacj == 3] = 3
+        menage.situacj[menage.occupacj == 2] = 4
+        menage.situacj[menage.occupacj == 5] = 5
+        menage.situacj[menage.occupacj == 6] = 5
+        menage.situacj[menage.occupacj == 7] = 6
+        menage.situacj[menage.occupacj == 8] = 7
+        menage.situacj[menage.occupacj == 4] = 8
+
 #        menage.situacj[menage.occupacj == "1"] = 1
 #        menage.situacj[menage.occupccj == "3"] = 3
 #        menage.situacj[menage.occupccj == "2"] = 4
@@ -190,6 +200,14 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #        menage.situacj[menage.occupccj == "8"] = 7
 #        menage.situacj[menage.occupccj == "4"] = 8
         menage["situapr"] = 0
+        menage.situapr[menage.occupapr == 1] = 1
+        menage.situapr[menage.occupapr == 3] = 3
+        menage.situapr[menage.occupapr == 2] = 4
+        menage.situapr[menage.occupapr == 5] = 5
+        menage.situapr[menage.occupapr == 6] = 5
+        menage.situapr[menage.occupapr == 7] = 6
+        menage.situapr[menage.occupapr == 8] = 7
+        menage.situapr[menage.occupapr == 4] = 8
 #        menage.situapr[menage.occupapr == "1"] = 1
 #        menage.situapr[menage.occupapr == "3"] = 3
 #        menage.situapr[menage.occupapr == "2"] = 4
