@@ -304,6 +304,7 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
 
     '''
     # TODO préciser ce que harmoniser veut dire, cf nomenclaute commune.xls
+    # L'explication me semble compréhensible, suppression du TODO ?
 
     try:
         code = unicode(code)
