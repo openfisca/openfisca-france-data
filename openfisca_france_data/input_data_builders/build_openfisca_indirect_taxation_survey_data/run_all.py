@@ -80,6 +80,27 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
     build_homogeneisation_revenus_menages(year = year)
     revenus = temporary_store["revenus_{}".format(year)]
 
+    #construction de la dataframe des parts budgétaires
+    depenses = temporary_store["depenses_{}".format(year)]
+    revenus = temporary_store["revenus_{}".format(year)]
+    var_to_keep = ['rev_disponible']
+    revenus = revenus[var_to_keep]
+    df_part_budg = depenses.merge(revenus, left_index = True, right_index = True)
+    # calcul les parts budgétaires:
+    var_list = depenses.columns
+    for var in var_list:
+    df_part_budg[var] = df_part_budg[var]/df_part_budg['rev_disponible']
+    #on enlève les variables commençant par 9 car elles correspondent à des impôts etc.
+    var_to_keep = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1') or column.startswith('pond') or column.startswith('rev') ]
+    df_part_budg = df_part_budg[var_to_keep]
+    #on renomme les variables car ce sont maintenant des parts budgétaires
+    var_list_bis = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1')]
+    for var in var_list_bis:
+        df_part_budg['pb_{}'.format(var)] = df_part_budg[var]
+    var_list_ter = [column for column in df_part_budg.columns if column.startswith('pb')]
+    df_part_budg = df_part_budg[var_list_ter]
+
+
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(
         [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
@@ -107,6 +128,8 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
     survey.insert_table(name = table, data_frame = data_frame)
     openfisca_survey_collection.surveys.append(survey)
     openfisca_survey_collection.dump()
+
+
 
 
 if __name__ == '__main__':
