@@ -27,7 +27,8 @@ import logging
 from pandas import concat, DataFrame
 
 
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,8 @@ log = logging.getLogger(__name__)
 
 def control_04(dataframe, base):
     log.info(u"longueur de la dataframe après opération :".format(len(dataframe.index)))
-    log.info(u"contrôle des doublons : il y a {} individus en double".format(any(dataframe.duplicated(cols='noindiv'))))
+    log.info(u"contrôle des doublons : il y a {} individus en double".format(
+        any(dataframe.duplicated(subset = 'noindiv'))))
     log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
     log.info(u"Il y a {} de familles différentes".format(len(set(dataframe.noifam.values))))
     log.info(u"contrôle: {} noifam are NaN:".format(len(dataframe[dataframe['noifam'].isnull()])))
@@ -53,9 +55,10 @@ def subset_base(base, famille):
     return base[~(base.noindiv.isin(famille.noindiv.values))].copy()
 
 
-def famille(year = 2006):
-
-    temporary_store = TemporaryStore.create(file_name = "erfs")
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def famille(temporary_store = None, year = None):
+    assert temporary_store is not None
+    assert year is not None
 
     log.info('step_04_famille: construction de la table famille')
 
@@ -593,5 +596,6 @@ def famille(year = 2006):
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    famille()
+    year = 2009
+    famille(year = year)
     log.info(u"étape 04 famille terminée")

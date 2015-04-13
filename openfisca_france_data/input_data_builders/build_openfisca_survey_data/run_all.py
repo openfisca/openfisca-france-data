@@ -45,19 +45,20 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def run_all(year = None, filename = "test", check = False):
+def run_all(year = None, check = False):
 
     assert year is not None
-    pre_processing.create_indivim_menagem(year = year)
-    pre_processing.create_enfants_a_naitre(year = year)
-    # imputation_loyer.imputation_loyer(year = year)
-    fip.create_fip(year = year)
-    famille.famille(year = year)
-    foyer.sif(year = year)
-    foyer.foyer_all(year = year)
-    rebuild.create_totals(year = year)
-    rebuild.create_final(year = year)
-    invalides.invalide(year = year)
+#    pre_processing.create_indivim_menagem(year = year)
+#    pre_processing.create_enfants_a_naitre(year = year)
+#    imputation_loyer.imputation_loyer(year = year)
+#    fip.create_fip(year = year)
+#    famille.famille(year = year)
+#    foyer.sif(year = year)
+#    foyer.foyer_all(year = year)
+#    rebuild.create_totals(year = year)
+#    rebuild.create_final(year = year)
+#    invalides.invalide(year = year)
+
     data_frame = final.final(year = year, check = check)
 
     # Saving the data_frame
