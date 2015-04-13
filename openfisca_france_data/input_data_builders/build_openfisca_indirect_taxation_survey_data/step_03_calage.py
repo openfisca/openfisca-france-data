@@ -63,9 +63,9 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
 #    11 Hotels, cafés, restaurants
 #    12 Biens et services divers
         if grosposte != 99:
-            ratio_bdf_cn = masses.at[grosposte,'ratio_bdf{}_cn{}'.format(year_data, year_data)]
-            ratio_cn_cn = masses.at[grosposte,'ratio_cn{}_cn{}'.format(year_data, year_calage)]
-            depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn
+            ratio_bdf_cn = masses.at[grosposte, 'ratio_bdf{}_cn{}'.format(year_data, year_data)]
+            ratio_cn_cn = masses.at[grosposte, 'ratio_cn{}_cn{}'.format(year_data, year_calage)]
+            depenses_calees[column] = depenses[column] * ratio_bdf_cn * ratio_cn_cn
 #            print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
     return depenses_calees
 

@@ -120,8 +120,13 @@ if __name__ == '__main__':
     import time
     start = time.time()
     year_calage = 2007
+<<<<<<< HEAD
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
+=======
+    year_data_list = [1995, 2000, 2005, 2010]
+    run_all(year, year_calage, year_data_list)
+>>>>>>> 94fe5db6c594c891726291707d62f5aa805bc579
     log.info("{}".format(time.time() - start))
     print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(
         year_calage, find_nearest_inferior(year_data_list, year_calage)
