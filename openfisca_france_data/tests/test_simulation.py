@@ -64,6 +64,7 @@ def test_survey_simulation():
                 'af',
                 'rsa',
                 'aspa',
+                'aide_logement_montant_brut',
                 'weight_familles',
                 ]])
             ),
@@ -100,12 +101,12 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     start = time.time()
-    # year = 2009
+    year = 2009
     # input_data_frame = get_input_data_frame(year)
     data_frame_by_entity_key_plural, simulation = test_survey_simulation()
-    # data_frame_individus = data_frame_by_entity_key_plural['individus']
-    # data_frame_menages = data_frame_by_entity_key_plural['menages']
-    # data_frame_familles = data_frame_by_entity_key_plural['familles']
+    data_frame_individus = data_frame_by_entity_key_plural['individus']
+    data_frame_menages = data_frame_by_entity_key_plural['menages']
+    data_frame_familles = data_frame_by_entity_key_plural['familles']
     # ra_rsa = simulation.calculate('ra_rsa', "2009-01")
     # salaire_net = simulation.calculate('salaire_net', "2009-01")
     print time.time() - start
