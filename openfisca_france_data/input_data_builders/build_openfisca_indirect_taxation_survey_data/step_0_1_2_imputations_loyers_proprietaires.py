@@ -61,6 +61,7 @@ def build_imputation_loyers_proprietaires(year = None):
         var_to_filnas = ['surfhab']
         for var_to_filna in var_to_filnas:
             imput00[var_to_filna] = imput00[var_to_filna].fillna(0)
+
         var_to_ints = ['sitlog', 'confort1', 'stalog', 'surfhab','ident_men','ancons','nbphab']
         for var_to_int in var_to_ints:
             imput00[var_to_int] = imput00[var_to_int].astype(int)
@@ -156,19 +157,20 @@ def build_imputation_loyers_proprietaires(year = None):
 
         imput00.loyer_impute[imput00.observe == 1] = 0
         imput00['imputation'] = imput00.observe == 0
-        imput00.reset_index(inplace = True)
+        imput00.reset_index('ident_men',inplace = True)
         loyers_imputes = imput00[['ident_men', 'loyer_impute']]
         loyers_imputes.set_index('ident_men', inplace = True)
-        depenses = coicop_data_frame.merge(poids, left_index = True, right_index = True)
+        depenses.set_index('ident_men',inplace = True)
+        depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
         # TODO:
         # ajout de la ligne 166 : todo terminé
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
-        depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
-        depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense == '.'] = 0
-        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
-        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == '.'] = 0
+        depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses> 0 & depenses != '.'] = 0
+        depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense == '.'] = 0
+        depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
+        depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses == '.'] = 0
 #
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
 #		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .

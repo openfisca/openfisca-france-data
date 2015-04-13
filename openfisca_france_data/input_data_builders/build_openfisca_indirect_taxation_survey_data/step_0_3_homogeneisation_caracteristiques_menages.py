@@ -426,24 +426,24 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # }
         #
         menage["situacj"] = 0
-        menage.situacj[menage.occupacj == "1"] = 1
-        menage.situacj[menage.occupccj == "3"] = 3
-        menage.situacj[menage.occupccj == "2"] = 4
-        menage.situacj[menage.occupccj == "5"] = 5
-        menage.situacj[menage.occupccj == "6"] = 5
-        menage.situacj[menage.occupccj == "7"] = 6
-        menage.situacj[menage.occupccj == "8"] = 7
-        menage.situacj[menage.occupccj == "4"] = 8
+        menage.situacj[menage.occupacj == 1] = 1
+        menage.situacj[menage.occupccj == 3] = 3
+        menage.situacj[menage.occupccj == 2] = 4
+        menage.situacj[menage.occupccj == 5] = 5
+        menage.situacj[menage.occupccj == 6] = 5
+        menage.situacj[menage.occupccj == 7] = 6
+        menage.situacj[menage.occupccj == 8] = 7
+        menage.situacj[menage.occupccj == 4] = 8
 
         menage["situapr"] = 0
-        menage.situapr[menage.occupapr == "1"] = 1
-        menage.situapr[menage.occupapr == "3"] = 3
-        menage.situapr[menage.occupapr == "2"] = 4
-        menage.situapr[menage.occupapr == "5"] = 5
-        menage.situapr[menage.occupapr == "6"] = 5
-        menage.situapr[menage.occupapr == "7"] = 6
-        menage.situapr[menage.occupapr == "8"] = 7
-        menage.situapr[menage.occupapr == "4"] = 8
+        menage.situapr[menage.occupapr == 1] = 1
+        menage.situapr[menage.occupapr == 3] = 3
+        menage.situapr[menage.occupapr == 2] = 4
+        menage.situapr[menage.occupapr == 5] = 5
+        menage.situapr[menage.occupapr == 6] = 5
+        menage.situapr[menage.occupapr == 7] = 6
+        menage.situapr[menage.occupapr == 8] = 7
+        menage.situapr[menage.occupapr == 4] = 8
         # foreach x in "cj" "pr" {
         # 	destring dieg`x' diep`x' dies`x', replace
         # 	egen dipmax`x' = rowmax(dieg`x' diep`x' dies`x')
@@ -544,12 +544,12 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         #        menage.diespr = menage.diespr.astype('int')
         menage["natiocj"] = 0
         menage["natiopr"] = 0
-        menage.natiocj[menage.nacj == "1"] = 1
-        menage.natiocj[menage.nacj == "2"] = 1
-        menage.natiocj[menage.nacj == "3"] = 2
-        menage.natiopr[menage.napr == "1"] = 1
-        menage.natiopr[menage.napr == "2"] = 1
-        menage.natiopr[menage.napr == "3"] = 2
+        menage.natiocj[menage.nacj == 1] = 1
+        menage.natiocj[menage.nacj == 2] = 1
+        menage.natiocj[menage.nacj == 3] = 2
+        menage.natiopr[menage.napr == 1] = 1
+        menage.natiopr[menage.napr == 2] = 1
+        menage.natiopr[menage.napr == 3] = 2
         #
         # gen typlog = 0
         # replace typlog = 1 if sitlog == "1"
@@ -557,8 +557,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # drop sitlog
         #
         menage["typlog"] = 0
-        menage.typlog[menage.sitlog == "1"] = 1
-        menage.typlog[menage.sitlog != "1"] = 2
+        menage.typlog[menage.sitlog == 1] = 1
+        menage.typlog[menage.sitlog != 1] = 2
         # destring stalog, replace
         #
 #        menage.statlog = menage.statlog.astype('int')
