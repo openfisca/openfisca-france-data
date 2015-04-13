@@ -167,10 +167,20 @@ def build_imputation_loyers_proprietaires(year = None):
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
+<<<<<<< HEAD
         depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses> 0 & depenses != '.'] = 0
         depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense == '.'] = 0
         depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
         depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses == '.'] = 0
+=======
+        depenses.depense[depense.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense > 0 & depenses.depense != '.'] = 0
+        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = ['loyer_imp']
+<<<<<<< HEAD
+        #depenses.depense[depenses.posteCOICOP == "0421" & depenses.observe == 1 & depenses.depense == .] = 0
+=======
+        depenses.depense[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses.depense == '.'] = 0
+>>>>>>> openfisca/master
+>>>>>>> 94fe5db6c594c891726291707d62f5aa805bc579
 #
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
 #		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .
