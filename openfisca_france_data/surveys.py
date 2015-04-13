@@ -28,6 +28,7 @@ import numpy as np
 
 
 from openfisca_core import periods, simulations
+from openfisca_france.reforms import inversion_revenus
 import openfisca_france_data
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
@@ -42,6 +43,8 @@ class SurveyScenario(AbstractSurveyScenario):
         if tax_benefit_system is None:
             TaxBenefitSystem = openfisca_france_data.init_country()
             tax_benefit_system = TaxBenefitSystem()
+            # france_tax_benefit_system = TaxBenefitSystem()
+            # tax_benefit_system = inversion_revenus.build_reform(france_tax_benefit_system)
 
         super(SurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
@@ -92,6 +95,8 @@ class SurveyScenario(AbstractSurveyScenario):
             for variable_name in ['sal', 'cho', 'rst']:
                 variable = simulation.get_or_new_holder(variable_name)
                 variable.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
+
+        simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, 50)
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,

@@ -30,7 +30,7 @@ import logging
 
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 
@@ -40,12 +40,14 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-# Prepare the some useful merged tables
-def create_indivim_menagem(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = "erfs")
+def create_indivim_menagem(temporary_store = None, year = None):
     """
     Création des tables ménages et individus concaténée (merged)
     """
-    temporary_store = TemporaryStore.create(file_name = "erfs")
+    # Prepare the some useful merged tables
+
+    assert temporary_store is not None
     assert year is not None
     # load data
     erfs_survey_collection = SurveyCollection.load(
@@ -168,15 +170,14 @@ def create_indivim_menagem(year = None):
     gc.collect()
     temporary_store['indivim_{}'.format(year)] = indivim
     del erfind, eecind
-    gc.collect()
-    temporary_store.close()
 
 
-def create_enfants_a_naitre(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = "erfs")
+def create_enfants_a_naitre(temporary_store = None, year = None):
     '''
     '''
+    assert temporary_store is not None
     assert year is not None
-    temporary_store = TemporaryStore.create(file_name = "erfs")
 
     erfs_survey_collection = SurveyCollection.load(
         collection = 'erfs', config_files_directory = config_files_directory)
@@ -247,8 +248,6 @@ def create_enfants_a_naitre(year = None):
         ].copy()
 
     temporary_store["enfants_a_naitre_{}".format(year)] = enfants_a_naitre
-    temporary_store.close()
-    gc.collect()
 
 
 if __name__ == '__main__':

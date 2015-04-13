@@ -62,6 +62,8 @@ def test_survey_simulation():
             dict([(name, simulation.calculate_add(name)) for name in [
                 'af_nbenf',
                 'af',
+                'rsa',
+                'aspa',
                 'weight_familles',
                 ]])
             ),
@@ -98,26 +100,12 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     start = time.time()
+    # year = 2009
+    # input_data_frame = get_input_data_frame(year)
     data_frame_by_entity_key_plural, simulation = test_survey_simulation()
-    data_frame_individus = data_frame_by_entity_key_plural['individus']
-    data_frame_menages = data_frame_by_entity_key_plural['menages']
-    data_frame_familles = data_frame_by_entity_key_plural['familles']
-
-    ra_rsa = simulation.calculate('ra_rsa', "2009-01")
-    salaire_net = simulation.calculate('salaire_net', "2009-01")
-
-#    simulation = test_weights_building()
-#    from openfisca_core.periods import period
-#
-#    print simulation.calculate('age_en_mois', period = period("2009"))
-#    print simulation.calculate('age_en_mois', period = period("2009-01"))
-#    print simulation.calculate('age_en_mois', period = period("2009-02"))
-#    print simulation.calculate('age_en_mois', period = period("2009-03"))
-#
-#    age_en_mois = simulation.get_or_new_holder('age_en_mois')
-#
-#    age_en_mois.set_input("2009-01", 25)
-
-
-
+    # data_frame_individus = data_frame_by_entity_key_plural['individus']
+    # data_frame_menages = data_frame_by_entity_key_plural['menages']
+    # data_frame_familles = data_frame_by_entity_key_plural['familles']
+    # ra_rsa = simulation.calculate('ra_rsa', "2009-01")
+    # salaire_net = simulation.calculate('salaire_net', "2009-01")
     print time.time() - start

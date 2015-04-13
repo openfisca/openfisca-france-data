@@ -36,14 +36,16 @@ import numpy as np
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
 
 
-def create_fip(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def create_fip(temporary_store = None, year = None):
+    assert temporary_store is not None
     assert year is not None
     # fip : fichier d'imposition des personnes
     """
@@ -52,8 +54,6 @@ def create_fip(year = None):
     # Some individuals are declared as 'personne à charge' (pac) on 'tax forms'
     # but are not present in the erf or eec tables.
     # We add them to ensure consistency between concepts.
-
-    temporary_store = TemporaryStore.create(file_name = "erfs")
 
     replace = create_replace(year)
 
@@ -314,5 +314,6 @@ def create_fip(year = None):
 
 
 if __name__ == '__main__':
-    create_fip()
+    year = 2009
+    create_fip(year = year)
     log.info(u"etape 03 fichier des peronnes imposables terminée")

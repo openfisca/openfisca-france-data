@@ -31,7 +31,7 @@ from pandas import Series, concat, DataFrame
 import numpy as np
 from numpy import where
 
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
 
@@ -42,15 +42,14 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def create_totals(year = None):
-
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def create_totals(temporary_store = None, year = None):
+    assert temporary_store is not None
     assert year is not None
-    temporary_store = TemporaryStore.create(file_name = "erfs")
     replace = create_replace(year)
 
     # On part de la table individu de l'ERFS
     # on renomme les variables
-
     log.info(u"Creating Totals")
     log.info(u"Etape 1 : Chargement des données")
 
@@ -511,9 +510,11 @@ def create_totals(year = None):
     gc.collect()
 
 
-def create_final(year):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def create_final(temporary_store = None, year = None):
 
-    temporary_store = TemporaryStore.create(file_name = "erfs")
+    assert temporary_store is not None
+    assert year is not None
 
     log.info(u"création de final")
     foy_ind = temporary_store['foy_ind_{}'.format(year)]
@@ -554,6 +555,6 @@ def create_final(year):
 
 if __name__ == '__main__':
     year = 2009
-    # create_totals(year = year)
+    create_totals(year = year)
     create_final(year = year)
     log.info(u"étape 06 remise en forme des données terminée")
