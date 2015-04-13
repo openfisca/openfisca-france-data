@@ -1,6 +1,6 @@
 - name: "Allocations familiales - Couple, 2 enfants de moins de 11 ans"
   description: Montant AF brut de CRDS
-  period: "2015"
+  period: 2015
   absolute_error_margin: 0.005
   familles:
     parents: ["parent1", "parent2"]
