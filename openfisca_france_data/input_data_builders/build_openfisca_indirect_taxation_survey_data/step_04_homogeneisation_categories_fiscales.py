@@ -70,6 +70,13 @@ def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data 
         ]
     selected_parametres_fiscalite_data_frame.index = normalized_coicop
     categorie_fiscale_by_coicop = selected_parametres_fiscalite_data_frame.to_dict()['categoriefiscale']
+    for key in categorie_fiscale_by_coicop.keys():
+        import math
+        if not math.isnan(categorie_fiscale_by_coicop[key]):
+            categorie_fiscale_by_coicop[key] = int(categorie_fiscale_by_coicop[key])
+        if math.isnan(categorie_fiscale_by_coicop[key]):
+            categorie_fiscale_by_coicop[key] = 0
+        assert type(categorie_fiscale_by_coicop[key]) == int
 
     # print categorie_fiscale_by_coicop
     categorie_fiscale_labels = [
