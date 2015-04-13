@@ -186,7 +186,7 @@ def build_homogeneisation_revenus_menages(year = None):
     # TODO: récupérer plutôt les variables qui viennent de la table dépenses (dans temporary_store)
         consomen = survey.get_values(
             table = "consomen",
-#            variables = ['C13141', 'C13111', 'C13121', 'C13131', 'PONDMEN', 'IDENT'],
+            variables = ['c13141', 'c13111', 'c13121', 'c13131', 'pondmen', 'ident'],
             )
         rev_disp = consomen.sort(columns = ['ident'])
         del consomen
@@ -210,29 +210,29 @@ def build_homogeneisation_revenus_menages(year = None):
 #        rev_disp.set_index('IDENT', inplace = True)
 #        menage.set_index('IDENT', inplace = True)
         revenus = menage.join(rev_disp, how = "outer", rsuffix = "rev_disp")
-#        revenus.rename(
-#            columns = dict(
-#                c13111 = "impot_res_ppal",
-#                c13141 = "impot_revenu",
-#                c13121 = "impot_autres_res",
-#                C13111= "impot_res_ppal",
-#                C13141= "impot_revenu",
-#                REVTOT= "revtot",
-#                REVACT= "revact",
-#                REVSOC= "revsoc",
-#                REVPAT= "revpat",
-#                REV70= "somme_obl_recue",
-#                REV71= "somme_libre_recue",
-#                REVT_D= "autres_ress",
-#                PONDMEN= "pondmen",
-#                IDENT= "ident_men",
-#                REV10= "act_indpt",
-#                REV11= "autoverses",
-#                REV20= "salaires",
-#                REV21= "autres_rev",
-#                ),
-#            inplace = True
-#            )
+        revenus.rename(
+            columns = dict(
+                c13111 = "impot_res_ppal",
+                c13141 = "impot_revenu",
+                c13121 = "impot_autres_res",
+                C13111= "impot_res_ppal",
+                C13141= "impot_revenu",
+                REVTOT= "revtot",
+                REVACT= "revact",
+                REVSOC= "revsoc",
+                REVPAT= "revpat",
+                REV70= "somme_obl_recue",
+                REV71= "somme_libre_recue",
+                REVT_D= "autres_ress",
+                PONDMEN= "pondmen",
+                IDENT= "ident_men",
+                REV10= "act_indpt",
+                REV11= "autoverses",
+                REV20= "salaires",
+                REV21= "autres_rev",
+                ),
+            inplace = True
+            )
 
 
         revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
@@ -256,8 +256,8 @@ def build_homogeneisation_revenus_menages(year = None):
 # label var autres_ress "Autres ressources"
 
         revenus = revenus.reset_index()
+        temporary_store["revenus_{}".format(year)] = revenus
         del revenus
-        temporary_store["revenus"] = revenus
 
 # sort ident_men
 # save "$datadir\revenus.dta", replace
@@ -377,7 +377,7 @@ def build_homogeneisation_revenus_menages(year = None):
         #    sort ident_men
         #    save "${datadir}\revenus.dta", replace
         #
-        temporary_store["revenus_{}".format(year)] = revenus
+
 
 
     elif year == 2011:

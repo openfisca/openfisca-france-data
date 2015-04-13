@@ -108,7 +108,7 @@ def build_homogeneisation_vehicules(year = None):
         vehicule.rename(columns = {'ident': 'ident_men'}, inplace = True)
         vehicule.rename(columns = {'carbu01': 'carbu1'}, inplace = True)
         vehicule.rename(columns = {'carbu02': 'carbu2'}, inplace = True)
-        vehicule["veh_tot"] = '1'
+        vehicule["veh_tot"] = 1
         vehicule["veh_essence"] = 1*(vehicule['carbu1'] == 1) + 1*(vehicule['carbu2'] == 1)
         vehicule["veh_diesel"] = 1*(vehicule['carbu1'] == 2) + 1*(vehicule['carbu2'] == 2)
 
