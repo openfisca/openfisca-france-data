@@ -24,6 +24,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
 import logging
 import numpy
 import pandas
@@ -701,6 +703,11 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             menage['natio' + person] = (menage['natio7' + person] > 2)  # TODO: changer de convention ?
             del menage['natio7' + person]
 
+        var_to_ints = ['ocde10', 'decuc','nactifs','nenfants','npers','pondmen','nadultes']
+        for var_to_int in var_to_ints:
+            menage[var_to_int] = menage[var_to_int].astype(int)
+            assert menage[var_to_int].notnull().all(), "{} contains NaN".format(var_to_int)
+
         menage.couplepr = menage.couplepr > 2  # TODO: changer de convention ?
         menage.ocde10 = menage.ocde10 / 10
         menage.set_index('ident_men', inplace = True)
@@ -774,9 +781,15 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # donc on le recalcule avec l'année de naissance et la vague d'enquête
         individus['agepr'] = year - individus.anais
         individus.loc[individus.vag == 6, ['agepr']] = year + 1 - individus.anais
-        individus = individus[individus.lienpref == 0].copy()
+        individus = individus[individus.lienpref == "00"].copy()
         kept_variables = ['ident_men', 'etamatri', 'agepr']
         individus = individus[kept_variables].copy()
+        individus.replace(
+            to_replace = {
+                'etamatri': {"": "0"}
+                },
+            inplace = True,
+            )
         individus['etamatri'] = individus['etamatri'].astype('int').copy()  # MBJ TODO: define as a catagory ?
         individus.set_index('ident_men', inplace = True)
         menage = menage.merge(individus, left_index = True, right_index = True)
@@ -813,7 +826,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus['age'] = year - individus.anais
         individus.loc[individus.vag == 6, ['age']] = year + 1 - individus.anais
         # Garder toutes les personnes du ménage qui ne sont pas la personne de référence et le conjoint
-        individus = individus[(individus.lienpref != 0) & (individus.lienpref != 1)].copy()
+        individus = individus[(individus.lienpref != "00") & (individus.lienpref != "01")].copy()
         individus.sort(columns = ['ident_men', 'ident_ind'], inplace = True)
 
         # Inspired by http://stackoverflow.com/questions/17228215/enumerate-each-row-for-each-group-in-a-dataframe
@@ -846,8 +859,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             variables = ['ident_men', 'ident_ind', 'agfinetu', 'lienpref'],
             )
         individus.set_index('ident_men', inplace = True)
-        pr = individus.loc[individus.lienpref == 0, 'agfinetu'].copy()
-        conjoint = individus.loc[individus.lienpref == 1, 'agfinetu'].copy()
+        pr = individus.loc[individus.lienpref == "00", 'agfinetu'].copy()
+        conjoint = individus.loc[individus.lienpref == "01", 'agfinetu'].copy()
         conjoint.name = 'agfinetu_cj'
         agfinetu_merged = pandas.concat([pr, conjoint], axis = 1)
         menage = menage.merge(agfinetu_merged, left_index = True, right_index = True)

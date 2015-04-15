@@ -169,7 +169,10 @@ def build_depenses_homogenisees(year = None):
         conso = survey.get_values(table = "c05d")
 
     if year == 2011:
-        conso = survey.get_values(table = "c05")
+        try:
+          conso = survey.get_values(table = "c05")
+        except:
+          conso = survey.get_values(table = "C05")
         conso.rename(
             columns = {
                 'ident_me': 'ident_men',
