@@ -63,9 +63,9 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
 #    11 Hotels, cafés, restaurants
 #    12 Biens et services divers
         if grosposte != 99:
-            ratio_bdf_cn = masses.at[grosposte,'ratio_bdf{}_cn{}'.format(year_data, year_data)]
-            ratio_cn_cn = masses.at[grosposte,'ratio_cn{}_cn{}'.format(year_data, year_calage)]
-            depenses_calees[column] = depenses[column]*ratio_bdf_cn*ratio_cn_cn
+            ratio_bdf_cn = masses.at[grosposte, 'ratio_bdf{}_cn{}'.format(year_data, year_data)]
+            ratio_cn_cn = masses.at[grosposte, 'ratio_cn{}_cn{}'.format(year_data, year_calage)]
+            depenses_calees[column] = depenses[column] * ratio_bdf_cn * ratio_cn_cn
 #            print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
     return depenses_calees
 
@@ -79,9 +79,13 @@ def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
         data_bdf, left_index = True, right_index = True
         )
     masses.rename(columns = {0: 'conso_bdf{}'.format(year_data)}, inplace = True)
-    masses['ratio_cn{}_cn{}'.format(year_data, year_calage)] = (
-        masses['consoCN_COICOP_{}'.format(year_calage)] / masses['consoCN_COICOP_{}'.format(year_data)]
-        )
+    if year_calage != year_data:
+        masses['ratio_cn{}_cn{}'.format(year_data, year_calage)] = (
+            masses['consoCN_COICOP_{}'.format(year_calage)] / masses['consoCN_COICOP_{}'.format(year_data)]
+            )
+    if year_calage == year_data:
+        masses['ratio_cn{}_cn{}'.format(year_data, year_calage)] = 1
+
     masses['ratio_bdf{}_cn{}'.format(year_data, year_data)] = (
         1000000 * masses['consoCN_COICOP_{}'.format(year_data)] / masses['conso_bdf{}'.format(year_data)]
         )
@@ -128,8 +132,10 @@ def get_cn_data_frames(year_data = None, year_calage = None):
 
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     masses_cn_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "consommation_CN")
-
-    masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year_data, year_calage]]
+    if year_data != year_calage:
+        masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year_data, year_calage]]
+    else:
+        masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year_data]]
     masses_cn_12postes_data_frame['code_unicode'] = masses_cn_12postes_data_frame.Code.astype(unicode)
     masses_cn_12postes_data_frame['len_code'] = masses_cn_12postes_data_frame['code_unicode'].apply(lambda x: len(x))
 
@@ -137,7 +143,6 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame = masses_cn_12postes_data_frame[masses_cn_12postes_data_frame['len_code'] == 6]
     masses_cn_12postes_data_frame['code'] = masses_cn_12postes_data_frame.Code.astype(int)
     masses_cn_12postes_data_frame = masses_cn_12postes_data_frame.drop(['len_code', 'code_unicode', 'Code'], 1)
-
     if year_calage != year_data:
         masses_cn_12postes_data_frame.rename(
             columns = {
@@ -162,7 +167,6 @@ def build_depenses_calees(year_calage, year_data):
 
     # Masses de calage provenant de la comptabilité nationale
     masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)
-
     # Enquête agrégée au niveau des gros postes de COICOP (12)
     df_bdf_weighted_sum_by_grosposte = get_bdf_data_frames(year_data)
     # TODO: check that the grospostes correspond to the right category (what are the 22, 45, 99 categories ?)
@@ -220,9 +224,9 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year_calage = 2007
-    year_data_list = [2005, 2010]
+    year_calage = 2000
+    year_data = 2000
 
-    build_depenses_calees(year_calage, year_data_list)
+    build_depenses_calees(year_calage, year_data)
 
     log.info("step 03 calage duration is {}".format(time.clock() - deb))

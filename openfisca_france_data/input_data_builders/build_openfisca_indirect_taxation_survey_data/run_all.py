@@ -97,7 +97,7 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
     # according to https://github.com/pydata/pandas/issues/6240
     # using solution form stackoverflow
     # http://stackoverflow.com/questions/16938441/how-to-remove-duplicate-columns-from-a-dataframe-using-python-pandas
-    data_frame = data_frame.T.groupby(level=0).first().T
+    data_frame = data_frame.T.groupby(level = 0).first().T
 
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection.load(
@@ -123,4 +123,6 @@ if __name__ == '__main__':
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     log.info("{}".format(time.time() - start))
-    print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(year_calage, find_nearest_inferior(year_data_list, year_calage))
+    print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(
+        year_calage, find_nearest_inferior(year_data_list, year_calage)
+        )

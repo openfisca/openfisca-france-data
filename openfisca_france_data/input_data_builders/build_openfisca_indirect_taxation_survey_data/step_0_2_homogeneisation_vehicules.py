@@ -108,17 +108,17 @@ def build_homogeneisation_vehicules(year = None):
         vehicule.rename(columns = {'ident': 'ident_men'}, inplace = True)
         vehicule.rename(columns = {'carbu01': 'carbu1'}, inplace = True)
         vehicule.rename(columns = {'carbu02': 'carbu2'}, inplace = True)
-        vehicule["veh_tot"] = '1'
-        vehicule["veh_essence"] = 1*(vehicule['carbu1'] == '1') + 1*(vehicule['carbu2'] == '1')
-        vehicule["veh_diesel"] = 1*(vehicule['carbu1'] == '2') + 1*(vehicule['carbu2'] == '2')
+        vehicule["veh_tot"] = 1
+        vehicule["veh_essence"] = 1*(vehicule['carbu1'] == 1) + 1*(vehicule['carbu2'] == 1)
+        vehicule["veh_diesel"] = 1*(vehicule['carbu1'] == 2) + 1*(vehicule['carbu2'] == 2)
 
     if year == 2005:
         vehicule = survey.get_values(table = "automobile")
-        kept_variables = ['ident_men', 'carbu']  # TODO: on ne fait rien de vag
+        kept_variables = ['ident_men', 'carbu']
         vehicule = vehicule[kept_variables]
         vehicule["veh_tot"] = 1
-        vehicule["veh_essence"] = (vehicule['carbu'] == '1')
-        vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
+        vehicule["veh_essence"] = (vehicule['carbu'] == 1)
+        vehicule["veh_diesel"] = (vehicule['carbu'] == 2)
 
     if year == 2011:
         vehicule = survey.get_values(table = "automobile")
@@ -126,8 +126,8 @@ def build_homogeneisation_vehicules(year = None):
         vehicule = vehicule[kept_variables]
         vehicule.rename(columns = {'ident_me': 'ident_men'}, inplace = True)
         vehicule["veh_tot"] = 1
-        vehicule["veh_essence"] = (vehicule['carbu'] == '1')
-        vehicule["veh_diesel"] = (vehicule['carbu'] == '2')
+        vehicule["veh_essence"] = (vehicule['carbu'] == 1)
+        vehicule["veh_diesel"] = (vehicule['carbu'] == 2)
 
     # Compute the number of cars by category
     vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()

@@ -82,7 +82,10 @@ def final(temporary_store = None, year = None, check = True):
     menagem = temporary_store['menagem_{}'.format(year)]
     assert 'ident' in menagem.columns
     assert 'loym' in menagem.columns
-    menagem.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
+    menagem.rename(
+        columns = dict(ident = "idmen", loym = "loyer", so = "statut_occupation"),
+        inplace = True
+        )
     menagem["cstotpragr"] = np.floor(menagem["cstotpr"] / 10)
 
     # 2008 tau99 removed TODO: check ! and check incidence
@@ -95,7 +98,7 @@ def final(temporary_store = None, year = None, check = True):
         "nbinde",
         "pol99",
         "reg",
-        "so",
+        "statut_occupation",
         "tau99",
         "tu99",
         "typmen15",
