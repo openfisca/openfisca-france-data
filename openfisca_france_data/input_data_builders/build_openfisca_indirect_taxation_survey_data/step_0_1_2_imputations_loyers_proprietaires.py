@@ -68,7 +68,8 @@ def build_imputation_loyers_proprietaires(year = None):
 
         depenses = temporary_store['depenses_{}'.format(year)]
         depenses.reset_index(inplace = True)
-        depenses_small = depenses[['ident_men', '04110', 'pondmen']]
+        depenses_small = depenses[['ident_men', '04110', 'pondmen']].copy()
+        depenses_small.ident_men = depenses_small.ident_men.astype('int')
         imput00 = depenses_small.merge(imput00, on = 'ident_men').set_index('ident_men')
         imput00.rename(columns = {'04110' : 'loyer_reel'}, inplace = True)
 
@@ -92,32 +93,31 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00['observe'] = (imput00.loyer_reel > 0) & (imput00.stalog.isin([3, 4]))
 #        imput00['loyer_impute'] = imput00['loyer_reel']
         imput00['maison_appart'] = imput00.sitlog == 1
-        imput00['catsurf'] = imput00.surfhab < 16
-        imput00.catsurf = 1 * ((imput00.surfhab > 15) & (imput00.surfhab < 31))
-        imput00.catsurf = 3 * ((imput00.surfhab > 30) & (imput00.surfhab < 41))
-        imput00.catsurf = 4 * ((imput00.surfhab > 40) & (imput00.surfhab < 61))
-        imput00.catsurf = 5 * ((imput00.surfhab > 60) & (imput00.surfhab < 81))
-        imput00.catsurf = 6 * ((imput00.surfhab > 80) & (imput00.surfhab < 101))
-        imput00.catsurf = 7 * ((imput00.surfhab > 100) & (imput00.surfhab < 151))
-        imput00.catsurf = 8 * (imput00.surfhab > 150)
+        imput00.surfhab.dtype
+        imput00.surfhab.value_counts()
+        imput00['catsurf'] = (
+          1  +
+          (imput00.surfhab > 15) +
+          (imput00.surfhab > 30) +
+          (imput00.surfhab > 40) +
+          (imput00.surfhab > 60) +
+          (imput00.surfhab > 80) +
+          (imput00.surfhab > 100) +
+          (imput00.surfhab > 150)
+          )
+        imput00.catsurf.value_counts()
+        assert imput00.catsurf.isin(range(1, 9)).all()
+        # TODO: vérifier ce qe l'on fait notamment regarder la vleur catsurf = 2 ommise dans le code stata
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 3) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 8) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 4) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
-#
-#
-#        TODO: continuer sur le modèle des lignes précédentes
-#        imput00.catsurf[imput00.surfhab > 40 & imput00.surfhab < 61] = 4
-#        imput00.catsurf[imput00.surfhab > 60 & imput00.surfhab < 81] = 5
-#        imput00.catsurf[imput00.surfhab > 80 & imput00.surfhab < 101] = 6
-#        imput00.catsurf[imput00.surfhab > 100 & imput00.surfhab < 151] = 7
-#        imput00.catsurf[imput00.surfhab > 150] = 8
+
+#        imput00.maison[imput00.CC == 5 & imput00.catsurf == 1 & imput00.maison == 1] = 0
 #        imput00.maison[imput00.CC == 5 & imput00.catsurf == 3 & imput00.maison == 1] = 0
 #        imput00.maison[imput00.CC == 5 & imput00.catsurf == 8 & imput00.maison == 1] = 0
 #        imput00.maison[imput00.CC == 4 & imput00.catsurf == 1 & imput00.maison == 1] = 0
 
-
-#
 #		save "`loyers'", replace
 #
 #		hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
@@ -140,8 +140,9 @@ def build_imputation_loyers_proprietaires(year = None):
 
         hotdeck = survey.get_values(table = 'hotdeck_result')
         kept_variables = ['ident_men', 'loyer_impute']
-        hotdeck = hotdeck[kept_variables]
+        hotdeck = hotdeck[kept_variables].copy()
         imput00.reset_index(inplace = True)
+        hotdeck.ident_men = hotdeck.ident_men.astype('int')
         imput00 = imput00.merge(hotdeck, on = 'ident_men').set_index('ident_men')
 
 #        replace loyer_impute = 0 if observe == 1
@@ -155,11 +156,12 @@ def build_imputation_loyers_proprietaires(year = None):
 #		sort ident_men posteCOICOP
 #		merge m:1 ident_men using "`loyers'"
 
-        imput00.loyer_impute[imput00.observe == 1] = 0
+        imput00.loyer_impute[imput00.observe == True] = 0
         imput00['imputation'] = imput00.observe == 0
         imput00.reset_index('ident_men',inplace = True)
         loyers_imputes = imput00[['ident_men', 'loyer_impute']]
         loyers_imputes.set_index('ident_men', inplace = True)
+        depenses.ident_men = depenses.ident_men.astype('int')
         depenses.set_index('ident_men',inplace = True)
         depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
         # TODO:
@@ -239,7 +241,11 @@ def build_imputation_loyers_proprietaires(year = None):
 
 
     if year == 2011:
-        loyers_imputes = survey.get_values(table = "menage")
+        try:
+          loyers_imputes = survey.get_values(table = "MENAGE")
+        except:
+          loyers_imputes = survey.get_values(table = "menage")
+
         kept_variables = ['ident_me', 'rev801']
         loyers_imputes = loyers_imputes[kept_variables]
         loyers_imputes.rename(columns = {'rev801': '0421', 'ident_me': 'ident_men'},
