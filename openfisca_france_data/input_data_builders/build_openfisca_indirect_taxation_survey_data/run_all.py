@@ -80,26 +80,39 @@ def run_all(year = 2005, year_calage = 2007, year_data_list = [2005, 2010]):
     build_homogeneisation_revenus_menages(year = year)
     revenus = temporary_store["revenus_{}".format(year)]
 
-    #construction de la dataframe des parts budgétaires
+    # on crée une data frame le revenu disponible et les consommations pour calculer les parts budgétaires
     depenses = temporary_store["depenses_{}".format(year)]
-    revenus = temporary_store["revenus_{}".format(year)]
-    var_to_keep = ['rev_disponible']
-    revenus = revenus[var_to_keep]
-    df_part_budg = depenses.merge(revenus, left_index = True, right_index = True)
+    df_part_budg = depenses
+
     # calcul les parts budgétaires:
-    var_list = depenses.columns
-    for var in var_list:
-    df_part_budg[var] = df_part_budg[var]/df_part_budg['rev_disponible']
+    var_list = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1') or column.startswith('id') or column.startswith('vag')]
+    df_part_budg = df_part_budg[var_list]
+    df_part_budg.to_stata('C:\Users\hadrien\Desktop\Travail\ENSAE\Statapp\indice_prix_stata\df_part_budg_bis.dta')
+    df_part_budg['depenses_tot'] = 0
+    var_list_1 = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1')]
+
+    for var in var_list_1:
+        df_part_budg[var] = df_part_budg[var].astype('float')
+        df_part_budg['depenses_tot'] =  df_part_budg['depenses_tot'] + df_part_budg[var]
+    df_part_budg['depenses_tot'] = df_part_budg['depenses_tot'].astype('float')
+    from __future__ import division
+    for var in var_list_1:
+        try:
+            df_part_budg[var] = df_part_budg[var]/df_part_budg['depenses_tot']
+        except:
+            df_part_budg[var]
+
     #on enlève les variables commençant par 9 car elles correspondent à des impôts etc.
-    var_to_keep = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1') or column.startswith('pond') or column.startswith('rev') ]
+    var_to_keep = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1') or column.startswith('vag')]
     df_part_budg = df_part_budg[var_to_keep]
+
     #on renomme les variables car ce sont maintenant des parts budgétaires
     var_list_bis = [column for column in df_part_budg.columns if column.startswith('0') or column.startswith('1')]
     for var in var_list_bis:
         df_part_budg['pb_{}'.format(var)] = df_part_budg[var]
-    var_list_ter = [column for column in df_part_budg.columns if column.startswith('pb')]
-    df_part_budg = df_part_budg[var_list_ter]
 
+    var_list_ter = [column for column in df_part_budg.columns if column.startswith('pb') or column.startswith('vag') ]
+    df_part_budg = df_part_budg[var_list_ter]
 
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(

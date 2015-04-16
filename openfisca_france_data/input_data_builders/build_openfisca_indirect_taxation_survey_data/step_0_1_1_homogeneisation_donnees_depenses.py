@@ -91,7 +91,7 @@ def build_depenses_homogenisees(year = None):
 
     if year == 1995:
         socioscm = survey.get_values(table = "socioscm")
-        poids = socioscm[['mena', 'ponderrd', 'exdep', 'exrev']]
+        poids = socioscm[['mena', 'ponderrd', 'exdep', 'exrev', 'v']]
         poids = poids[(poids.exdep == 1) & (poids.exrev == 1)]
         del poids['exdep'], poids['exrev']
         poids.rename(
@@ -141,6 +141,7 @@ def build_depenses_homogenisees(year = None):
         conso = conso.reset_index()
 
     if year == 2000:
+
         conso = survey.get_values(table = "consomen")
         conso.rename(
             columns = {
@@ -154,7 +155,7 @@ def build_depenses_homogenisees(year = None):
                         ["c{}".format(i) for i in range(10, 14)]:
             del conso[variable]
 
-        #		if ${yearrawdata} == 2005 {
+      #		if ${yearrawdata} == 2005 {
         #			use "$rawdatadir\c05d.dta", clear
         #			order _all, alpha
         #			*keep if _n < 100
@@ -347,6 +348,60 @@ def get_transfert_data_frames(year = None):
         parametres_fiscalite_data_frame[parametres_fiscalite_data_frame.annee == year]
     return matrice_passage_data_frame, selected_parametres_fiscalite_data_frame
 
+# incorporation de la variable vag, numéro de la vague d'interrogation
+# ceci est utile pour le modèle d'estimation de la demande
+
+if year == 1995:
+        vague = survey.get_values(table = "socioscm")
+        kept_variables = ['v','mena']
+        vague = vague[kept_variables]
+        vague.rename(
+            columns = {
+                'v': 'vag',
+                'mena':'ident_men',
+                },
+            inplace = True
+            )
+        vague.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(vague, left_index = True, right_index = True)
+
+if year == 2000:
+        vague = survey.get_values(table = "depmen")
+        kept_variables = ['vag','ident']
+        vague = vague[kept_variables]
+        vague['vag_'] = vague['vag']
+        vague.vag[vague.vag_ == "01"] = 1
+        vague.vag[vague.vag_ == "02"] = 2
+        vague.vag[vague.vag_ == "03"] = 3
+        vague.vag[vague.vag_ == "04"] = 4
+        vague.vag[vague.vag_ == "05"] = 5
+        vague.vag[vague.vag_ == "06"] = 6
+        vague.vag[vague.vag_ == "07"] = 7
+        vague.vag[vague.vag_ == "08"] = 8
+        vague.rename(
+            columns = {
+                'ident':'ident_men',
+                },
+            inplace = True
+            )
+        kept_variables_bis = ['vag','ident_men']
+        vague = vague[kept_variables_bis]
+        vague.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(vague, left_index = True, right_index = True)
+
+if year == 2005:
+        vague = survey.get_values(table = "depmen")
+        kept_variables = ['vag','ident_men']
+        vague = vague[kept_variables]
+        vague.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(vague, left_index = True, right_index = True)
+
+if year == 2011:
+        vague = survey.get_values(table = "depmen")
+        kept_variables = ['vag','ident_men']
+        vague = vague[kept_variables]
+        vague.set_index('ident_men', inplace = True)
+        depenses = depenses.merge(vague, left_index = True, right_index = True)
 
 if __name__ == '__main__':
     import sys
