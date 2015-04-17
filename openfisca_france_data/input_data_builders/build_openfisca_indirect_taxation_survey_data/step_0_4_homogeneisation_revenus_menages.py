@@ -342,7 +342,6 @@ def build_homogeneisation_revenus_menages(year = None):
         #    sort ident_men
         #    save "`revenus'", replace
         #
-        temporary_store["revenus_{}".format(year)] = revenus
         loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
         variables = ["0421"]
         loyers_imputes = loyers_imputes[variables]
@@ -374,6 +373,8 @@ def build_homogeneisation_revenus_menages(year = None):
         revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+        temporary_store["revenus_{}".format(year)] = revenus
+
         #    sort ident_men
         #    save "${datadir}\revenus.dta", replace
         #
