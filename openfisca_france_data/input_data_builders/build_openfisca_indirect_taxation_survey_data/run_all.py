@@ -92,7 +92,9 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
         [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
 
     data_frame.index.name = "ident_men"
-    data_frame.reset_index(inplace = True)
+    #TODO: peut-on vraiment mettre la ligne suivante en commentaires ? (nécessaire pour 2011)
+    # data_frame.reset_index(inplace = True)
+
     # Remove duplicated colums causing bug with HDFStore
     # according to https://github.com/pydata/pandas/issues/6240
     # using solution form stackoverflow
@@ -119,9 +121,15 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
 if __name__ == '__main__':
     import time
     start = time.time()
-    year_calage = 2007
+    year_calage = 2014
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
+# TODO: automatiser avec year_calage dans une liste
+#
+#    for year_c in [2013, 2014]:
+#      run_all(year_c, year_data_list)
+
+
     log.info("{}".format(time.time() - start))
     print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(
         year_calage, find_nearest_inferior(year_data_list, year_calage)
