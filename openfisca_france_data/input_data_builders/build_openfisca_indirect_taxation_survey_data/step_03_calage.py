@@ -216,8 +216,6 @@ def build_depenses_calees(year_calage, year_data):
     temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
 
 # Vérification des résultats du calage :
-    print 'depenses', depenses.shape
-    print 'depenses_calees', depenses_calees.shape
 #    La différence du nombre de colonne vient du fait que l'on ne garde pas
 #    les postes 99... qui sont des dépenses en impôts, taxes, loyers...
 
