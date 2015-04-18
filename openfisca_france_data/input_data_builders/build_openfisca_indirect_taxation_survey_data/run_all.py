@@ -95,8 +95,12 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
         [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
 
     data_frame.index.name = "ident_men"
-    #TODO: peut-on vraiment mettre la ligne suivante en commentaires ? (nécessaire pour 2011)
-    # data_frame.reset_index(inplace = True)
+    # TODO: Homogénéiser: soit faire en sorte que ident_men existe pour toutes les années
+    # soit qu'elle soit en index pour toutes
+    try:
+        data_frame.reset_index(inplace = True)
+    except ValueError, e:
+        print "ignoring reset_index because \n" + str(e)
 
     # Remove duplicated colums causing bug with HDFStore
     # according to https://github.com/pydata/pandas/issues/6240
@@ -128,7 +132,7 @@ if __name__ == '__main__':
     # run_all(year_calage, year_data_list)
     #
     #
-    for year_calage in [2013, 2014]:
+    for year_calage in [2000]:
         start = time.time()
         run_all(year_calage, year_data_list)
         log.info("{}".format(time.time() - start))
