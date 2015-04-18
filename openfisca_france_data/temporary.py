@@ -73,6 +73,26 @@ def get_store(config_files_directory = default_config_files_directory, file_name
     return HDFStore(file_path)
 
 
+def save_hdf_r_readable(data_frame, config_files_directory = default_config_files_directory, file_name = None,
+                        file_path = None):
+    if file_path is None:
+        parser = SafeConfigParser()
+        config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+        config_ini = os.path.join(config_files_directory, 'config.ini')
+        _ = parser.read([config_ini, config_local_ini])
+        tmp_directory = parser.get('data', 'tmp_directory')
+        if file_name is not None:
+            if not file_name.endswith('.h5'):
+                file_name = "{}.h5".format(file_name)
+            file_path = os.path.join(tmp_directory, file_name)
+        else:
+            file_path = os.path.join(tmp_directory, 'temp.h5')
+
+    store = HDFStore(file_path, "w", complib = str("zlib"), complevel = 5)
+    store.put("dataframe", data_frame, data_columns = data_frame.columns)
+    store.close()
+
+
 class TemporaryStore(HDFStore):
     @classmethod
     def create(cls, config_files_directory = default_config_files_directory, file_name = None, file_path = None):

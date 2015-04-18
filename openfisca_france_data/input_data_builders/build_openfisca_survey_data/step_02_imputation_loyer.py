@@ -36,19 +36,19 @@ from __future__ import division
 import gc
 import logging
 import numpy
+import pandas
 
 # problem with rpy last version is not working
 try:
-    from rpy2.robjects.packages import importr
-    import rpy2.robjects.vectors as vectors
+    import rpy2
+    import rpy2.robjects.pandas2ri
 except ImportError:
-    importr = None
-    vectors = None
+    rpy2 = None
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     assert_variable_in_range, count_NA)
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -63,6 +63,8 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
     # Préparation des variables qui serviront à l'imputation
+    # Année achèvement de l'immeuble (8 postes) aai1
+    # Année achèvement de l'immeuble aai2
     menm_vars = [
         "aai1",
         "agpr",
@@ -76,7 +78,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         "reg",
         "so",
         "spr",
-        "tau99"
+        "tau99",
         "tu99",
         "typmen5",
         "wprm",
@@ -91,22 +93,21 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     if year == 2008:  # Tau99 not present
         menm_vars = menm_vars.pop('tau99')
 
-    indm_vars = ["dip11", 'ident', "lpr", "noi"]
     # Travail sur la base ERF
     # Preparing ERF menages tables
-    erfmenm = temporary_store.select('menagem_{}'.format(year))
-
+    erfmenm = temporary_store['menagem_{}'.format(year)]
+    erfmenm = erfmenm.xs(menm_vars, axis = 1)
     erfmenm['revtot'] = (
         erfmenm.ztsam + erfmenm.zperm + erfmenm.zragm + erfmenm.zricm + erfmenm.zrncm + erfmenm.zracm
         )
     # Niveau de vie de la personne de référence
     erfmenm['nvpr'] = erfmenm.revtot.astype('float') / erfmenm.nb_uci.astype('float')
     erfmenm.nvpr[erfmenm.nvpr < 0] = 0
-    erfmenm['logt'] = erfmenm.so
+    erfmenm.rename(columns = dict(so = 'statut_occupation'), inplace = True)
 
     # Preparing ERF individuals table
+    indm_vars = ["dip11", 'ident', "lpr", "noi"]
     erfindm = temporary_store['indivim_{}'.format(year)]
-
     erfindm = erfindm[['ident', 'dip11']][erfindm.lpr == 1].copy()
 
     log.info(u"Merging talbes menage et individus de l'ERF")
@@ -133,8 +134,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         (erf.nvpr > values[8]) +
         (erf.nvpr > values[9])
         )
-    assert_variable_in_range('deci', [1, 11], erf)
-    count_NA('deci', erf)
+    assert erf.deci.isin(range(1, 11)).all()
     del dec, values
     gc.collect()
 
@@ -150,7 +150,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
             'zrncm',
             'zracm',
             'nb_uci',
-            'logt',
+            'statut_occupation',
             'nbpiec',
             'typmen5',
             'spr',
@@ -166,11 +166,10 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
             'dip11',
             'deci',
             ]
-        ][erf['so'].isin(range(3, 6))]
+        ][erf.statut_occupation.isin(range(3, 6))].copy()
 
     erf.rename(
         columns = {
-            'aai1': 'iaat',
             'dip11': 'mdiplo',
             'nbpiec': 'hnph2',
             'nat28pr': 'mnatio',
@@ -178,22 +177,20 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
             },
         inplace = True)
 
-    count_NA('agpr', erf)
     if (erf.agpr == '.').any():
         erf = erf[erf.agpr != '.'].copy()
 
-    erf['agpr'] = erf['agpr'].astype('int64')
-    # TODO: moche, pourquoi créer deux variables quand une suffit ?
+    erf['agpr'] = erf.agpr.astype('int')
     erf['magtr'] = 3
     erf.magtr[erf.agpr < 65] = 2
     erf.magtr[erf.agpr < 40] = 1
-    count_NA('magtr', erf)
     assert erf.magtr.isin(range(1, 5)).all()
 
-    count_NA('cstotpr', erf)
+    assert erf.cstotpr.notnull().all()
     erf['mcs8'] = erf.cstotpr.astype('float') / 10.0
-    erf.mcs8 = numpy.floor(erf.mcs8)
-    count_NA('mcs8', erf)
+    erf.mcs8 = numpy.floor(erf.mcs8).astype('int')
+    # TODO: assert erf.mcs8.isin(range(1, 9))
+    assert erf.mcs8.isin(range(0, 9)).all()
 
     erf['mtybd'] = 0
     erf.mtybd[(erf.typmen5 == 1) & (erf.spr != 2)] = 1
@@ -204,12 +201,11 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erf.mtybd[erf.nbenfc == 2] = 5
     erf.mtybd[erf.nbenfc >= 3] = 6
     assert erf.mtybd.isin(range(0, 8)).all()
-    # assert erf.mtybd.isin(range(1,8)).all() # bug,
+    # TODO: assert erf.mtybd.isin(range(1,8)).all(),
 
-    # TODO : 3 logements ont 0 pièces !!
+    # 3 logements ont 0 pièces !!
     erf.hnph2[erf.hnph2 < 1] = 1
     erf.hnph2[erf.hnph2 >= 6] = 6
-    count_NA('hnph2', erf)
     assert erf.hnph2.isin(range(1, 7)).all()
 
     # TODO: il reste un NA 2003
@@ -218,60 +214,58 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erf.mnatio[erf.mnatio == 10] = 1
     mnatio_range = range(11, 16) + range(21, 30) + range(31, 33) + range(41, 49) + range(51, 53) + [60] + [62]
     erf.mnatio[erf.mnatio.isin(mnatio_range)] = 2
-    count_NA('mnatio', erf)
     assert erf.mnatio.isin(range(1, 3)).all()
 
-    erf.iaat[erf.mnatio.isin([1, 2, 3])] = 1
-    erf.iaat[erf.mnatio == 4] = 2
-    erf.iaat[erf.mnatio == 5] = 3
-    erf.iaat[erf.mnatio == 6] = 4
-    erf.iaat[erf.mnatio == 7] = 5
-    erf.iaat[erf.mnatio == 8] = 6
-    assert erf.iaat.isin(range(1, 7)).all()
+    # iaat_bis is a contraction of iaat varaible of enquête logement
+    # iaat_bis DATE D'ACHEVEMENT DE LA CONSTRUCTION
+    # Voir http://www.insee.fr/fr/ppp/bases-de-donnees/fichiers_detail/eec10/doc/pdf/eec10_qlogement.pdf
+    erf['iaat_bis'] = 0
+    erf.iaat_bis[erf.aai1.isin([1, 2, 3])] = 1
+    erf.iaat_bis[erf.aai1 == 4] = 2
+    erf.iaat_bis[erf.aai1 == 5] = 3
+    erf.iaat_bis[erf.aai1 == 6] = 4
+    erf.iaat_bis[erf.aai1 == 7] = 5
+    erf.iaat_bis[erf.aai1 == 8] = 6
+    # TODO: assert erf.iaat_bis.isin(range(1, 7)).all()
+    assert erf.iaat_bis.isin(range(0, 7)).all()
 
     # Il reste un NA en 2003
     # reste un NA en 2008
     # TODO: comparer logement et erf pour être sur que cela colle ???
-
     erf.mdiplo[erf.mdiplo.isin([71, ""])] = 1
     erf.mdiplo[erf.mdiplo.isin([70, 60, 50])] = 2
     erf.mdiplo[erf.mdiplo.isin([41, 42, 31, 33])] = 3
     erf.mdiplo[erf.mdiplo.isin([10, 11, 30])] = 4
-    # TODO: assert erf.mdiplo.isin(range(0, 5)).all()
+    # TODO: assert erf.mdiplo.isin(range(1, 5)).all()
     assert erf.mdiplo.isin(range(0, 5)).all()
 
-    erf['tu99_recoded'] = erf['tu99'].copy()
-    erf.tu99_recoded[erf['tu99'] == 0] = 1
-    erf.tu99_recoded[erf['tu99'].isin([1, 2, 3])] = 2
-    erf.tu99_recoded[erf['tu99'].isin([4, 5, 6])] = 3
-    erf.tu99_recoded[erf['tu99'] == 7] = 4
-    erf.tu99_recoded[erf['tu99'] == 8] = 5
-    count_NA('tu99_recoded', erf)
+    erf['tu99_recoded'] = erf.tu99.copy()
+    erf.tu99_recoded[erf.tu99 == 0] = 1
+    erf.tu99_recoded[erf.tu99.isin([1, 2, 3])] = 2
+    erf.tu99_recoded[erf.tu99.isin([4, 5, 6])] = 3
+    erf.tu99_recoded[erf.tu99 == 7] = 4
+    erf.tu99_recoded[erf.tu99 == 8] = 5
     assert erf.tu99_recoded.isin(range(1, 6)).all()
 
     erf.mcs8[erf.mcs8.isin([4, 8])] = 4
     erf.mcs8[erf.mcs8.isin([5, 6, 7])] = 5
-    count_NA('mcs8', erf)
-
-    # Drop NA = 0 values
-    if not erf.mcs8.isin(range(1, 6)).all():
-        erf = erf[erf.mcs8 != 0].copy()
+    # TODO: assert erf.mcs8.isin(range(1, 6)).all(), erf.mcs8.value_counts()
+    assert erf.mcs8.isin(range(0, 6)).all()
 
     erf.wprm = erf.wprm.astype('int')
-    count_NA('wprm', erf)
 
     for dropped_variable in ['agpr', 'cstotpr', 'nbenfc', 'spr', 'tu99', 'typmen5']:
         del erf[dropped_variable]
     gc.collect()
 
     check_variables = [
-        'logt',
+        'statut_occupation',
         'magtr',
         'mcs8',
         'mtybd',
         'hnph2',
         'mnatio',
-        'iaat',
+        'iaat_bis',
         'mdiplo',
         'tu99_recoded',
         ]
@@ -282,13 +276,16 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         if erf[check_variable].isnull().any():
             log.info("Des valeurs NaN sont encore présentes dans la variable {} la table ERF".format(check_variable))
             non_integer_variables_to_filter.append(check_variable)
+
         if (erf[check_variable] == 0).any():
             if numpy.issubdtype(erf[check_variable].dtype, numpy.integer):
                 log.info(
                     "Des valeurs nulles sont encore présentes dans la variable {} la table ERF".format(check_variable))
                 integer_variables_to_filter.append(check_variable)
 
-    erf = erf.dropna(subset = non_integer_variables_to_filter)
+    assert len(non_integer_variables_to_filter) == 0, non_integer_variables_to_filter
+    # assert len(integer_variables_to_filter) == 0, integer_variables_to_filter
+
     # On vérifie au final que l'on n'a pas de doublons d'individus
     assert not erf['ident'].duplicated().any(), 'Il y a {} doublons'.format(erf['ident'].duplicated().sum())
     return erf
@@ -342,10 +339,12 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     logement_menage['mrsal'].fillna(0, inplace = True)
     logement_menage['mrtns'].fillna(0, inplace = True)
     logement_menage['revtot'] = logement_menage['mrcho'] + logement_menage ['mrret'] + logement_menage['mrsal'] + logement_menage['mrtns'] # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
-    count_NA('revtot', logement_menage)
+    assert logement_menage.revtot.notnull().all()
     logement_menage['nvpr'] = 10.0 * logement_menage['revtot'] / logement_menage['muc1']
 
-    count_NA('qex', logement_menage)
+    assert logement_menage.qex.notnull().all()
+    assert (logement_menage.qex > 0).all()
+
     dec, values = mark_weighted_percentiles(
         logement_menage['nvpr'].values,
         numpy.arange(1, 11),
@@ -387,13 +386,13 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
 
     data = (data[data['mnatior'].notnull()])
     data = (data[data['sec1'].notnull()])
-    data['tmp'] = data['sec1'].astype("int64")
+    data['tmp'] = data['sec1'].astype("int")
     data['tmp'][data['sec1'].isin([21, 22, 23])] = 3
     data['tmp'][data['sec1'] == 24] = 4
     data['tmp'][data['sec1'] == 30] = 5
-    data['logt'] = data['tmp']
-    count_NA('logt', data)
-    data = (data[data['logt'].notnull()])
+    data['statut_occupation'] = data['tmp']
+    count_NA('statut_occupation', data)
+    data = (data[data['statut_occupation'].notnull()])
     logement_menage = data
 
     # Table adresse
@@ -405,10 +404,10 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     log.info(u"Fusion des tables logement et ménage de l'enquête logement")
     Logement = logement_menage.merge(logement_adresse, on = 'ident', how = 'inner')
 
-    Logement.hnph2[Logement['hnph2'] >= 6] = 6
-    Logement.hnph2[Logement['hnph2'] < 1] = 1
+    Logement.hnph2[Logement.hnph2 >= 6] = 6
+    Logement.hnph2[Logement.hnph2 < 1] = 1
     count_NA('hnph2', Logement)
-    assert Logement['hnph2'].notnull().any(), "Some hnph2 are null"
+    assert Logement.hnph2.notnull().any(), "Some hnph2 are null"
 #     Logement=(Logement[Logement['hnph2'].notnull()]) # Mis en comment car 0 NA pour hnph2
 
     # On est dans la même étape within ici et par la suite ( cf code R )
@@ -420,13 +419,14 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     count_NA('mnatior', Logement)
     assert_variable_in_range('mnatior', [1, 3], Logement)
 
-    Logement.iaat[Logement.iaat.isin([1, 2, 3, 4, 5])] = 1
-    Logement.iaat[Logement.iaat == 6] = 2
-    Logement.iaat[Logement.iaat == 7] = 3
-    Logement.iaat[Logement.iaat == 8] = 4
-    Logement.iaat[Logement.iaat == 9] = 5
-    Logement.iaat[Logement.iaat == 10] = 6
-    assert Logement.iaat.isin(range(1, 7)).all()
+    Logement['iaat_bis'] = 0
+    Logement.iaat_bis[Logement.iaat.isin([1, 2, 3, 4, 5])] = 1  # avant 1967
+    Logement.iaat_bis[Logement.iaat == 6] = 2  # 1968 - 1974
+    Logement.iaat_bis[Logement.iaat == 7] = 3  # 1975 - 1981
+    Logement.iaat_bis[Logement.iaat == 8] = 4  # 1982 - 1989
+    Logement.iaat_bis[Logement.iaat == 9] = 5  # 1990 - 1998
+    Logement.iaat_bis[Logement.iaat == 10] = 6  # après 1999
+    assert Logement.iaat_bis.isin(range(1, 7)).all()
 
     Logement.mdiplo[Logement.mdiplo == 1] = 1
     Logement.mdiplo[Logement.mdiplo.isin([2, 3, 4])] = 2
@@ -466,31 +466,23 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     Logement.magtr[Logement['magtr'].isin([1, 2])] = 1
     Logement.magtr[Logement['magtr'].isin([3, 4])] = 2
     Logement.magtr[Logement['magtr'] == 5] = 3
-    count_NA('magtr', Logement)
-    assert_variable_in_range('magtr', [1, 4], Logement)
+    assert Logement.magtr.isin(range(1, 4)).all()
 
     Logement['mcs8'][Logement['mcs8'] == 1] = 1
     Logement['mcs8'][Logement['mcs8'] == 2] = 2
     Logement['mcs8'][Logement['mcs8'] == 3] = 3
     Logement['mcs8'][Logement['mcs8'].isin([4, 8])] = 4
     Logement['mcs8'][Logement['mcs8'].isin([5, 6, 7])] = 5
-    count_NA('mcs8', Logement)
-    assert_variable_in_range('mcs8', [1, 6], Logement)
+    assert Logement.mcs8.isin(range(1, 6)).all()
 
     Logement['logloy'] = numpy.log(Logement['lmlm'].values)
-    #    Logement.dropna(
-    #        axis = 0,
-    #        subset = ['mdiplo', 'mtybd', 'magtr', 'mcs8', 'maa1at'],
-    #        inplace = True)
-    # Imputation des loyers proprement dite
-    log.info('Compute imputed rents')
     kept_variables = [
         'deci',
         'hnph2',
-        'iaat',
-        'ident',
+        'iaat_bis',
+        # 'ident',
         'lmlm',
-        'logt',
+        'statut_occupation',
         'magtr',
         'mcs8',
         'mdiplo',
@@ -500,7 +492,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
         ]
 
     logement = Logement[kept_variables].copy()
-    logement.rename(columns = {'qex': 'wprm'}, inplace = True)
+    # logement.rename(columns = {'qex': 'wprm'}, inplace = True)
     return logement
 
 
@@ -510,58 +502,100 @@ def imputation_loyer(temporary_store = None, year = None):
     assert year is not None
 
     erf = create_comparable_erf_data_frame(temporary_store = temporary_store, year = year)
-    erf = erf[['logt', 'hnph2', 'iaat', 'mdiplo', 'mtybd', 'tu99_recoded', 'magtr', 'mcs8', 'deci', 'wprm', 'ident']]
-    erf = erf.dropna(how = 'any')  # TODO : faire un check avant de dropper les lignes avec des NA
 
     logement = create_comparable_logement_data_frame(temporary_store = temporary_store, year = year)
-    logement = logement.dropna(how = 'any')
+    print "dropping {} observations form logement".format(logement.lmlm.isnull().sum())
+    logement = logement.loc[logement.lmlm.notnull()].copy()
 
-    allvars = ['logt', 'hnph2', 'iaat', 'mdiplo', 'mtybd', 'tu99_recoded', 'magtr', 'mcs8', 'deci']
-    classes = ['magtr', 'tu99_recoded']
-    matchvars = list(set(allvars) - set(classes))
+    allvars = ['statut_occupation', 'hnph2', 'iaat_bis', 'mdiplo', 'mtybd', 'tu99_recoded', 'magtr', 'mcs8', 'deci']
+
+    # TODO keep the variable indices
+    erf = erf[allvars + ['wprm', 'ident']].copy()
 
     for variable in allvars:
-        count_NA(variable, logement)
-        count_NA(variable, erf)
-
-    erf['mcs8'] = erf['mcs8'].astype(int)
-
-    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes
-    sm = importr("StatMatch")  # Launch R you need to have StatMatch installed in R
-
-    out_nnd = sm.NND_hotdeck(data_rec = erf,
-                             data_don = logement,
-                             match_vars = vectors.StrVector(matchvars),
-                             don_class = vectors.StrVector(classes),
-                             dist_fun = "Gower",
-                             )
-    mtc_ids = out_nnd[0].reshape(len(erf), 2)  # Essential to avoid a bug in next line
-    fill_erf_nnd = sm.create_fused(
-        data_rec = erf,
-        data_don = logement,
-        mtc_ids = mtc_ids,
-        z_vars = vectors.StrVector(["lmlm"]),
+        erf_unique_values = set(erf[variable].unique())
+        logement_unique_values = set(logement[variable].unique())
+        if not erf_unique_values <= logement_unique_values:
+            print '''
+{} span wrong
+erf: {},
+logement: {}
+concerns {} observations
+'''.format(
+        variable,
+        erf_unique_values,
+        logement_unique_values,
+        erf[variable].isin(erf_unique_values - logement_unique_values).sum()
         )
-    del allvars, matchvars, classes, out_nnd
-    gc.collect()
 
-    fill_erf_nnd.rename(columns = {'lmlm': 'loym'}, inplace = True)
-    loy_imput = fill_erf_nnd[['ident', 'loym']]
+    # print "dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0')))
+    erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
 
+
+    for variable in allvars:
+        erf_unique_values = set(erf[variable].unique())
+        logement_unique_values = set(logement[variable].unique())
+        assert erf_unique_values <= logement_unique_values
+
+    classes = ['tu99_recoded', 'deci']
+    matchvars = list(set(allvars) - set(classes))
+
+    # Clean for unicode column names
+    erf.rename(
+        columns = dict([(col, str(col)) for col in erf.columns]),
+        inplace = True
+        )
+
+    save_hdf_r_readable(erf.astype('int32'), file_name = "erf_imputation")
+    save_hdf_r_readable(logement.astype('int32'), file_name = "logement_imputation")
+
+    import subprocess
+    subprocess.check_call(['/usr/bin/Rscript', '/home/benjello/data/openfisca/tmp/imputation_loyer.R'])
+    return erf, logement
+
+    fill_erf_nnd = pandas.read_hdf('/home/benjello/data/openfisca/tmp/imputation.h5', 'fill_erf_nnd')
+    assert set(fill_erf_nnd.ident) == set(erf.ident.astype('int32'))
+
+#    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes
+#    sm = rpy2.robjects.packages.importr("StatMatch")  # Launch R you need to have StatMatch installed in R
+#
+#    out_nnd = sm.NND_hotdeck(
+#        data_rec = erf.astype('int32'),
+#        data_don = logement.astype('int32'),
+#        match_vars = rpy2.robjects.vectors.StrVector(matchvars),
+#        don_class = rpy2.robjects.vectors.StrVector(classes),
+#        dist_fun = "Gower",
+#        )
+#
+#
+#    mtc_ids = out_nnd[0].reshape(len(erf), 2)  # Essential to avoid a bug in next line
+#
+#    fill_erf_nnd = sm.create_fused(
+#        data_rec = erf.astype('int32'),
+#        data_don = logement.astype('int32'),
+#        mtc_ids = mtc_ids,
+#        z_vars = "lmlm",
+#        )
+
+    fill_erf_nnd.rename(columns = {'lmlm': 'loyer'}, inplace = True)
+    loyers_imputes = fill_erf_nnd[['ident', 'loyer']].copy()
     menagem = temporary_store['menagem_{}'.format(year)]
+    for loyer_var in ['loyer_x', 'loyer_y', 'loyer']:
+        if loyer_var in menagem.columns:
+            del menagem[loyer_var]
 
-    for var in ["loym", "loym_x", "loym_y", "loym_z"]:
-        if var in menagem:
-            del menagem[var]
-            log.info("{} have been deleted".format(var))
+    menagem = menagem.merge(loyers_imputes, on = 'ident', how = 'left')
+    assert 'loyer' in menagem.columns, u"La variable loyer n'est pas présente dans menagem"
 
-    menagem = menagem.merge(loy_imput, on = 'ident', how = 'left')
-    assert 'loym' in menagem.columns, u"La variable loym n'est pas présente dans menagem"
     temporary_store['menagem_{}'.format(year)] = menagem
+    return
 
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2009
-    imputation_loyer(year = year)
-    log.info(u"étape 02 imputation des loyers terminée")
+
+    erf, logement = imputation_loyer(year = year)
+
+    #menagem, erf, fill_erf_nnd, logement = imputation_loyer(year = year)
+

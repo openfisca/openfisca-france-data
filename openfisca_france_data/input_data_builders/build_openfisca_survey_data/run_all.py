@@ -38,6 +38,8 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data impor
     step_07_invalides as invalides,
     step_08_final as final,
     )
+from openfisca_france_data.temporary import get_store
+
 from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -48,19 +50,20 @@ log = logging.getLogger(__name__)
 def run_all(year = None, check = False):
 
     assert year is not None
-#    pre_processing.create_indivim_menagem(year = year)
-#    pre_processing.create_enfants_a_naitre(year = year)
-#    imputation_loyer.imputation_loyer(year = year)
-#    fip.create_fip(year = year)
-#    famille.famille(year = year)
-#    foyer.sif(year = year)
-#    foyer.foyer_all(year = year)
-#    rebuild.create_totals(year = year)
-#    rebuild.create_final(year = year)
-#    invalides.invalide(year = year)
+    pre_processing.create_indivim_menagem(year = year)
+    pre_processing.create_enfants_a_naitre(year = year)
+    imputation_loyer.imputation_loyer(year = year)
+    fip.create_fip(year = year)
+    famille.famille(year = year)
+    foyer.sif(year = year)
+    foyer.foyer_all(year = year)
+    rebuild.create_totals(year = year)
+    rebuild.create_final(year = year)
+    invalides.invalide(year = year)
+    final.final(year = year, check = check)
 
-    data_frame = final.final(year = year, check = check)
-
+    temporary_store = get_store(file_name = 'erfs')
+    data_frame = temporary_store['input_{}'.format(year)]
     # Saving the data_frame
     openfisca_survey_collection = SurveyCollection(name = "openfisca", config_files_directory = config_files_directory)
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
@@ -80,8 +83,11 @@ def run_all(year = None, check = False):
 
 if __name__ == '__main__':
     import time
+    import sys
     start = time.time()
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     run_all(year = 2009, check = False)
-    log.info("{}".format(time.time() - start))
+    log.info("Script finished after {}".format(time.time() - start))
     # import pdb
     # pdb.set_trace()
+    print time.time() - start

@@ -35,6 +35,7 @@ from pandas import read_csv
 import os
 
 
+from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     check_structure,
@@ -48,7 +49,7 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils
 log = logging.getLogger(__name__)
 
 
-@temporary_store_decorator(file_name = 'erfs')
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
 def final(temporary_store = None, year = None, check = True):
 
     assert temporary_store is not None
@@ -81,9 +82,10 @@ def final(temporary_store = None, year = None, check = True):
 
     menagem = temporary_store['menagem_{}'.format(year)]
     assert 'ident' in menagem.columns
-    assert 'loym' in menagem.columns
+    assert 'loyer' in menagem.columns
+    assert 'so' in menagem.columns
     menagem.rename(
-        columns = dict(ident = "idmen", loym = "loyer", so = "statut_occupation"),
+        columns = dict(ident = "idmen", so = "statut_occupation"),
         inplace = True
         )
     menagem["cstotpragr"] = np.floor(menagem["cstotpr"] / 10)
@@ -148,7 +150,8 @@ def final(temporary_store = None, year = None, check = True):
     log.info("liste de toutes les variables : {}".format(all_variables))
     log.info(menagem.info())
     available_variables = list(set(all_variables).intersection(set(menagem.columns)))
-    loyersMenages = menagem.xs(available_variables, axis = 1)
+    log.info("liste des variables à extraire de menagem: {}".format(available_variables))
+    loyersMenages = menagem[available_variables].copy()
 #
 # # Recodage de typmen15: modalités de 1:15
 # table(loyersMenages$typmen15, useNA="ifany")
@@ -184,12 +187,12 @@ def final(temporary_store = None, year = None, check = True):
 #
 # loyersMenages[loyersMenages$ddipl>1, "ddipl"] <- loyersMenages$ddipl[loyersMenages$ddipl>1]-1
 #
-    log.info("{}".format(loyersMenages.info()))
+    log.info("loyersMenages \n {}".format(loyersMenages.info()))
     loyersMenages.ddipl = where(loyersMenages.ddipl.isnull(), 7, loyersMenages.ddipl)
     loyersMenages.ddipl = where(loyersMenages.ddipl > 1,
                                 loyersMenages.ddipl - 1,
                                 loyersMenages.ddipl)
-    loyersMenages.ddipl.astype("int32")
+    loyersMenages.ddipl = loyersMenages.ddipl.astype("int32")
 
     final['act5'] = NaN
     final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
@@ -314,9 +317,9 @@ def final(temporary_store = None, year = None, check = True):
 
     #On ne conserve dans final2 que ces foyers là :
     log.info('final2 avant le filtrage {}'.format(len(final2)))
-    final2 = final2.loc[final2.idmen.isin(liste_men), :]
-    final2 = final2.loc[final2.idfam.isin(liste_fam), :]
-    final2 = final2.loc[final2.idfoy.isin(liste_foy), :]
+    final2 = final2.loc[final2.idmen.isin(liste_men)]
+    final2 = final2.loc[final2.idfam.isin(liste_fam)]
+    final2 = final2.loc[final2.idfoy.isin(liste_foy)]
     log.info('final2 après le filtrage {}'.format(len(final2)))
 
     rectify_dtype(final2, verbose = False)
@@ -341,14 +344,23 @@ def final(temporary_store = None, year = None, check = True):
     if check:
         check_structure(data_frame)
 
+    gc.collect()
     for entity_id in ['idmen', 'idfoy', 'idfam']:
+        log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
 
-    data_frame.loyer = data_frame.loyer * 12
+    log.info('Dealing with loyer')
+    assert 'loyer' in data_frame.columns
+    data_frame.loyer = data_frame.loyer * 12.0
+    log.info('Set variables to their default values')
     set_variables_default_value(data_frame, year)
+
+    temporary_store['input_{}'.format(year)] = data_frame
     return data_frame
 
 
 if __name__ == '__main__':
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2009
     final(year = year)

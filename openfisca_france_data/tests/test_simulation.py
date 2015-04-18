@@ -50,6 +50,8 @@ def test_survey_simulation():
                 'idfam',
                 'quifam',
                 'age',
+                'activite',
+                'br_rmi_i',
                 'champm_individus',
                 'sal',
                 'salaire_net',
@@ -62,6 +64,7 @@ def test_survey_simulation():
             dict([(name, simulation.calculate_add(name)) for name in [
                 'af_nbenf',
                 'af',
+                'br_rmi',
                 'rsa',
                 'aspa',
                 'aide_logement_montant_brut',

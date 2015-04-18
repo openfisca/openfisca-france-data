@@ -527,7 +527,7 @@ def create_final(temporary_store = None, year = None):
     foy_ind.reset_index(inplace = True)
     tot3.reset_index(inplace = True)
 
-    # tot3 = tot3.drop_duplicates(cols=['idfam', 'quifam'])
+    # tot3 = tot3.drop_duplicates(subset=['idfam', 'quifam'])
     final = final[final.idmen.notnull()]
 
     control(final, verbose=True)

@@ -125,7 +125,7 @@ def id_formatter(dataframe, entity_id):
     dataframe[entity_id + "_original"] = dataframe[entity_id].copy()
     id_unique = dataframe[entity_id].unique()
     new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
-    dataframe[entity_id] = dataframe[entity_id].replace(to_replace = new_id_by_old_id)
+    dataframe[entity_id].replace(to_replace = new_id_by_old_id, inplace = True)
     return dataframe
 
 
