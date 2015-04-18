@@ -170,9 +170,9 @@ def build_depenses_homogenisees(year = None):
 
     if year == 2011:
         try:
-          conso = survey.get_values(table = "c05")
-        except:
           conso = survey.get_values(table = "C05")
+        except:
+          conso = survey.get_values(table = "c05")
         conso.rename(
             columns = {
                 'ident_me': 'ident_men',
@@ -306,8 +306,8 @@ COICOP selon les 12 postes agrégés de la nomenclature de la comptabilité nati
 les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la CN.
 
     '''
-    # TODO préciser ce que harmoniser veut dire, cf nomenclaute commune.xls
-    # L'explication me semble compréhensible, suppression du TODO ?
+    # TODO: vérifier la formule !!!
+
 
     try:
         code = unicode(code)
@@ -321,7 +321,7 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
             # 022.. = cigarettes et tabacs => on les range avec l'alcool (021.0)
         elif code.startswith("0"):
             normalized_code = code + "0"
-        elif code in ["1151", "1181", "4522", "4511"]:
+        elif code in ["1151", "1181", "4552", "4522", "4511","9122","9151","9211","9341","1411"]:
             # 1151 = Margarines et autres graisses végétales
             # 1181 = Confiserie
             # 04522 = Achat de butane, propane
@@ -331,7 +331,10 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
             # 99 = loyer, impots et taxes, cadeaux...
             normalized_code = code + "0"
     elif len(code) == 5:
-        normalized_code = code
+        if not code.startswith("13") and not code.startswith("44") and not code.startswith("51"):
+            normalized_code = code
+        else:
+            normalized_code = "12000"
     else:
         raise()
     return normalized_code

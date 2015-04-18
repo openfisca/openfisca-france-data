@@ -342,7 +342,6 @@ def build_homogeneisation_revenus_menages(year = None):
         #    sort ident_men
         #    save "`revenus'", replace
         #
-        temporary_store["revenus_{}".format(year)] = revenus
         loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
         variables = ["0421"]
         loyers_imputes = loyers_imputes[variables]
@@ -374,28 +373,43 @@ def build_homogeneisation_revenus_menages(year = None):
         revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+        temporary_store["revenus_{}".format(year)] = revenus
+
         #    sort ident_men
         #    save "${datadir}\revenus.dta", replace
         #
 
 
-
     elif year == 2011:
-        c05 = survey.get_values(
+       try:
+          c05 = survey.get_values(
+            table = "C05",
+            variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
+            )
+       except:
+          c05 = survey.get_values(
             table = "c05",
             variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
             )
-        rev_disp = c05.sort(columns = ['ident_me'])
-        del c05
-        menage = survey.get_values(
+       rev_disp = c05.sort(columns = ['ident_me'])
+       del c05
+       try:
+          menage = survey.get_values(
+            table = "MENAGE",
+            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'salaires'],
+            ).sort(columns = ['ident_me'])
+       except:
+          menage = survey.get_values(
             table = "menage",
             variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'salaires'],
-#            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'rev101_d', 'salaires', 'rev201'],
             ).sort(columns = ['ident_me'])
-        rev_disp.set_index('ident_me', inplace = True)
-        menage.set_index('ident_me', inplace = True)
-        revenus = pandas.concat([menage, rev_disp], axis = 1)
-        revenus.rename(
+
+#      variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'rev101_d', 'salaires', 'rev201'],
+
+       rev_disp.set_index('ident_me', inplace = True)
+       menage.set_index('ident_me', inplace = True)
+       revenus = pandas.concat([menage, rev_disp], axis = 1)
+       revenus.rename(
             columns = dict(
                 revindep = "act_indpt",
 #TODO: trouver ces revenus commentés dans bdf 2011
@@ -411,24 +425,24 @@ def build_homogeneisation_revenus_menages(year = None):
                 ),
             inplace = True
             )
-        revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
-        revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
-        del revenus['impot_autres_res']
-        del revenus['impot_res_ppal']
+       revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+       revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+       del revenus['impot_autres_res']
+       del revenus['impot_res_ppal']
 #        temporary_store["revenus_{}".format(year)] = revenus
-        loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
-        variables = ["0421"]
-        loyers_imputes = loyers_imputes[variables]
-        loyers_imputes.rename(
+       loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
+       variables = ["0421"]
+       loyers_imputes = loyers_imputes[variables]
+       loyers_imputes.rename(
             columns = {"0421": "loyer_impute"},
             inplace = True,
             )
-        temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
-        revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
-        revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
-        revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
-        revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
-        temporary_store["revenus_{}".format(year)] = revenus
+       temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+       revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
+       revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
+       revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
+       revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+       temporary_store["revenus_{}".format(year)] = revenus
 
 
 if __name__ == '__main__':
