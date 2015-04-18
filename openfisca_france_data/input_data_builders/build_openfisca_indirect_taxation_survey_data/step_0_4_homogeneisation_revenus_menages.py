@@ -202,7 +202,7 @@ def build_homogeneisation_revenus_menages(year = None):
         menage = survey.get_values(
             table = "menage",
 # TODO: mettre en minuscules
-#            variables = ['ie', 'REVTOT', 'REVACT', 'REVSOC', 'REVPAT', 'REV70', 'REV71', 'REVT_D', 'PODMEN', 'REV10', 'REV11', 'REV20', 'REV21'],
+            variables = ['ident', 'revtot', 'revact', 'revsoc', 'revpat', 'rev70', 'rev71', 'revt_d', 'pondmen', 'rev10', 'rev11', 'rev20', 'rev21'],
             ).sort(columns = ['ident'])
 
 #        rev_disp.IDENT = rev_disp.IDENT.astype("int64")
@@ -215,21 +215,14 @@ def build_homogeneisation_revenus_menages(year = None):
                 c13111 = "impot_res_ppal",
                 c13141 = "impot_revenu",
                 c13121 = "impot_autres_res",
-                C13111= "impot_res_ppal",
-                C13141= "impot_revenu",
-                REVTOT= "revtot",
-                REVACT= "revact",
-                REVSOC= "revsoc",
-                REVPAT= "revpat",
-                REV70= "somme_obl_recue",
-                REV71= "somme_libre_recue",
-                REVT_D= "autres_ress",
-                PONDMEN= "pondmen",
-                IDENT= "ident_men",
-                REV10= "act_indpt",
-                REV11= "autoverses",
-                REV20= "salaires",
-                REV21= "autres_rev",
+                rev70 = "somme_obl_recue",
+                rev71 = "somme_libre_recue",
+                revt_d= "autres_ress",
+                ident = "ident_men",
+                rev10 = "act_indpt",
+                rev11 = "autoverses",
+                rev20 = "salaires",
+                rev21 = "autres_rev",
                 ),
             inplace = True
             )
@@ -255,7 +248,7 @@ def build_homogeneisation_revenus_menages(year = None):
 # label var autoverses "Revenus auto-versés"
 # label var autres_ress "Autres ressources"
 
-        revenus = revenus.reset_index()
+        revenus = revenus.set_index('ident_men')
         temporary_store["revenus_{}".format(year)] = revenus
         del revenus
 

@@ -351,8 +351,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             table = "menage",
             variables = [
                 'ident', 'pondmen', 'nbact', 'nbenf1', 'nbpers', 'ocde10', 'sitlog', 'stalog', 'strate',
-                'typmen1', 'zeat', 'stalog', 'vag', 'sexepr', 'sexecj', 'agepr', 'agecj', 'napr', 'nacj', 'cs2pr',
-                'cs2cj', 'diegpr', 'dieppr', 'diespr', 'diegcj', 'diepcj', 'diescj', 'hod_nb', 'matripr', 'cohabpr',
+                'typmen1', 'zeat', 'stalog', 'vag', 'sexepr', 'sexecj',  'agecj', 'napr', 'nacj', 'cs2pr',
+                'cs2cj', 'diegpr', 'dieppr', 'diespr', 'diegcj', 'diepcj', 'diescj', 'hod_nb', 'cohabpr',
                 'occupapr', 'occupacj', 'occupbpr', 'occupbcj', 'occupcpr', 'occupccj'
                 ]
             )
@@ -367,7 +367,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 'nbenf1': 'nenfants',
                 'nbpers': 'npers',
                 'hod_nb': 'nenfhors',
-                'matripr': 'etamatri',
                 'cohabpr': 'couplepr'
                 },
             inplace = True,
@@ -393,7 +392,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # destring etamatri, replace
 
         menage.couplepr = menage.couplepr.astype('int')
-        menage.etamatri = menage.etamatri.astype('int')
         menage["nadultes"] = menage['npers'] - menage['nenfants']
         # gen nadultes = npers - nenfants
         # gen typmen5 = 0
@@ -569,7 +567,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # save "`menages'", replace
         individus = survey.get_values(
             table = "individus",
-            variables = ['ident', 'matri', 'lien']
+            variables = ['ident', 'matri', 'lien','anais']
             )
         # use "$rawdatadir\individus.dta", clear
         # foreach v of var * {
@@ -584,6 +582,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             columns = {'ident': 'ident_men', 'matri': 'etamatri'},
             inplace = True,
             )
+        variables_to_destring = ['anais']
+        for variable_to_destring in variables_to_destring:
+            individus[variable_to_destring] = individus[variable_to_destring].astype('int').copy()  # MBJ TODO: define as a catagory ?
+        individus['agepr'] = year - individus.anais
         individus.set_index('ident_men', inplace = True)
         menage = menage.merge(individus, left_index = True, right_index = True)
         # tempfile individus
@@ -597,12 +599,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # merge ident_men using "`individus'"
         # drop _m
         # sort ident_men
-        individus = survey.get_values(table = 'individus')
-        variables_to_destring = ['anais']
-        for variable_to_destring in variables_to_destring:
-            individus[variable_to_destring] = individus[variable_to_destring].astype('int').copy()  # MBJ TODO: define as a catagory ?
-        individus['agepr'] = 2005 - individus.anais
-        menage = menage.merge(individus, left_index = True, right_index = True)
+
         # save "`menages'", replace
         #
         # use "$rawdatadir\individus.dta", clear
