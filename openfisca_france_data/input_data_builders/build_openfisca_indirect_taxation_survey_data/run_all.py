@@ -57,10 +57,11 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 log = logging.getLogger(__name__)
 
 from openfisca_france_data.temporary import TemporaryStore
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
 def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
+
+    temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
     # Quelle base de données choisir pour le calage ?
     year_data = find_nearest_inferior(year_data_list, year_calage)
@@ -86,6 +87,8 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
     # Gestion des variables revenues:
     build_homogeneisation_revenus_menages(year = year_data)
     revenus = temporary_store["revenus_{}".format(year_data)]
+
+    temporary_store.close()
 
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(
@@ -120,17 +123,15 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    start = time.time()
-    year_calage = 2014
+    year_calage = 2013
     year_data_list = [1995, 2000, 2005, 2011]
-    run_all(year_calage, year_data_list)
-# TODO: automatiser avec year_calage dans une liste
-#
-#    for year_c in [2013, 2014]:
-#      run_all(year_c, year_data_list)
-
-
-    log.info("{}".format(time.time() - start))
-    print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(
-        year_calage, find_nearest_inferior(year_data_list, year_calage)
-        )
+    # run_all(year_calage, year_data_list)
+    #
+    #
+    for year_calage in [2013, 2014]:
+        start = time.time()
+        run_all(year_calage, year_data_list)
+        log.info("{}".format(time.time() - start))
+        print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(
+            year_calage, find_nearest_inferior(year_data_list, year_calage)
+            )

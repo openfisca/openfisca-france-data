@@ -36,14 +36,11 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
-
-
 
 
 def build_depenses_homogenisees(year = None):
     """Build menage consumption by categorie fiscale dataframe """
-
+    temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(
