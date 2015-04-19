@@ -132,10 +132,10 @@ if __name__ == '__main__':
     # run_all(year_calage, year_data_list)
     #
     #
-    for year_calage in [2000]:
+    for year_calage in [2000, 2001, 2002, 2003, 2004]:
         start = time.time()
         run_all(year_calage, year_data_list)
         log.info("{}".format(time.time() - start))
-        print "Base construite pour l'année {} à partir des l'enquête bdf {}".format(
+        print "Base construite pour l'année {} à partir de l'enquête bdf {}".format(
             year_calage, find_nearest_inferior(year_data_list, year_calage)
             )
