@@ -93,8 +93,8 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00['observe'] = (imput00.loyer_reel > 0) & (imput00.stalog.isin([3, 4]))
 #        imput00['loyer_impute'] = imput00['loyer_reel']
         imput00['maison_appart'] = imput00.sitlog == 1
-        imput00.surfhab.dtype
-        imput00.surfhab.value_counts()
+#        imput00.surfhab.dtype
+#        imput00.surfhab.value_counts()
         imput00['catsurf'] = (
           1  +
           (imput00.surfhab > 15) +
@@ -105,7 +105,7 @@ def build_imputation_loyers_proprietaires(year = None):
           (imput00.surfhab > 100) +
           (imput00.surfhab > 150)
           )
-        imput00.catsurf.value_counts()
+#        imput00.catsurf.value_counts()
         assert imput00.catsurf.isin(range(1, 9)).all()
         # TODO: vérifier ce qe l'on fait notamment regarder la vleur catsurf = 2 ommise dans le code stata
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
@@ -139,8 +139,8 @@ def build_imputation_loyers_proprietaires(year = None):
 #		drop _m
 
         hotdeck = survey.get_values(table = 'hotdeck_result')
-        kept_variables = ['ident_men', 'loyer_impute']
-        hotdeck = hotdeck[kept_variables].copy()
+#        kept_variables = ['ident_men', 'loyer_impute']
+#        hotdeck = hotdeck[kept_variables].copy()
         imput00.reset_index(inplace = True)
         hotdeck.ident_men = hotdeck.ident_men.astype('int')
         imput00 = imput00.merge(hotdeck, on = 'ident_men').set_index('ident_men')
@@ -159,13 +159,13 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00.loyer_impute[imput00.observe == True] = 0
         imput00['imputation'] = imput00.observe == 0
         imput00.reset_index('ident_men',inplace = True)
-        loyers_imputes = imput00[['ident_men', 'loyer_impute']]
+        loyers_imputes = imput00[['ident_men', 'loyer_impute','stalog','observe']]
         loyers_imputes.set_index('ident_men', inplace = True)
         depenses.ident_men = depenses.ident_men.astype('int')
         depenses.set_index('ident_men',inplace = True)
         depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
-        # TODO:
-        # ajout de la ligne 166 : todo terminé
+        # TODO: règler le problème de la colonne posteCOICOP
+
 
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
 #		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
@@ -173,6 +173,7 @@ def build_imputation_loyers_proprietaires(year = None):
         depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense == '.'] = 0
         depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
         depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses == '.'] = 0
+
 #
 #		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
 #		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .

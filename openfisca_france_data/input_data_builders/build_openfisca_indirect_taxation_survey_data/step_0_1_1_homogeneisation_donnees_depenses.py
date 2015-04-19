@@ -119,6 +119,7 @@ def build_depenses_homogenisees(year = None):
         conso.depense = conso.depense / 6.55957
         conso.depense_avt_imput = conso.depense_avt_imput / 6.55957
         conso_small=conso[[u'ident_men', u'poste1995', u'depense']]
+
         conso_unstacked = conso_small.set_index(['ident_men', 'poste1995']).unstack('poste1995')
         conso_unstacked = conso_unstacked.fillna(0)
 #		if ${yearrawdata} == 2000 {
@@ -331,7 +332,7 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
         if not code.startswith("13") and not code.startswith("44") and not code.startswith("51"):
             normalized_code = code
         else:
-            normalized_code = "12000"
+            normalized_code = "99000"
     else:
         raise()
     return normalized_code

@@ -227,9 +227,47 @@ def build_homogeneisation_revenus_menages(year = None):
             inplace = True
             )
 
+        var_to_ints = ['pondmen','impot_autres_res','impot_res_ppal','pondmenrev_disp','c13131']
+        for var_to_int in var_to_ints:
+            revenus[var_to_int] = revenus[var_to_int].astype(int)
 
         revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
         revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+
+
+        loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
+        variables = ["0421"]
+        loyers_imputes = loyers_imputes[variables]
+
+        loyers_imputes.rename(
+            columns = {"0421": "loyer_impute"},
+            inplace = True,
+            )
+
+        temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+
+        loyers_imputes.index = loyers_imputes.index.astype('int')
+        revenus = revenus.set_index('ident_men')
+        revenus.index = revenus.index.astype('int')
+
+        revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
+
+        revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
+        revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
+        revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+
+        var_to_ints = ['loyer_impute']
+        for var_to_int in var_to_ints:
+            revenus[var_to_int] = revenus[var_to_int].astype(int)
+
+
+        temporary_store["revenus_{}".format(year)] = revenus
+
+
+ #    revenus = revenus.set_index('ident_men')
+
+
+
 
 # label var ident_men "identifiant du ménage"
 # label var somme_obl_recue "Pensions alimentaires, etc."
@@ -248,9 +286,6 @@ def build_homogeneisation_revenus_menages(year = None):
 # label var autoverses "Revenus auto-versés"
 # label var autres_ress "Autres ressources"
 
-        revenus = revenus.set_index('ident_men')
-        temporary_store["revenus_{}".format(year)] = revenus
-        del revenus
 
 # sort ident_men
 # save "$datadir\revenus.dta", replace
