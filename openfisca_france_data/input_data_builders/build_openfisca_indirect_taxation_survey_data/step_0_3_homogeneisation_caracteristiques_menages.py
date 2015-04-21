@@ -184,14 +184,14 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #                       2. Reformatage des variables (réattribution des catégories pour quelles soient identiques pour les différentes années)
 
         menage["situacj"] = 0
-        menage.situacj[menage.occupacj == 1] = 1
-        menage.situacj[menage.occupacj == 3] = 3
-        menage.situacj[menage.occupacj == 2] = 4
-        menage.situacj[menage.occupacj == 5] = 5
-        menage.situacj[menage.occupacj == 6] = 5
-        menage.situacj[menage.occupacj == 7] = 6
-        menage.situacj[menage.occupacj == 8] = 7
-        menage.situacj[menage.occupacj == 4] = 8
+        menage.situacj[menage.occupcj == 1] = 1
+        menage.situacj[menage.occupcj == 3] = 3
+        menage.situacj[menage.occupcj == 2] = 4
+        menage.situacj[menage.occupcj == 5] = 5
+        menage.situacj[menage.occupcj == 6] = 5
+        menage.situacj[menage.occupcj == 7] = 6
+        menage.situacj[menage.occupcj == 8] = 7
+        menage.situacj[menage.occupcj == 4] = 8
 
 #        menage.situacj[menage.occupacj == "1"] = 1
 #        menage.situacj[menage.occupccj == "3"] = 3
@@ -202,14 +202,14 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 #        menage.situacj[menage.occupccj == "8"] = 7
 #        menage.situacj[menage.occupccj == "4"] = 8
         menage["situapr"] = 0
-        menage.situapr[menage.occupapr == 1] = 1
-        menage.situapr[menage.occupapr == 3] = 3
-        menage.situapr[menage.occupapr == 2] = 4
-        menage.situapr[menage.occupapr == 5] = 5
-        menage.situapr[menage.occupapr == 6] = 5
-        menage.situapr[menage.occupapr == 7] = 6
-        menage.situapr[menage.occupapr == 8] = 7
-        menage.situapr[menage.occupapr == 4] = 8
+        menage.situapr[menage.occuppr == 1] = 1
+        menage.situapr[menage.occuppr == 3] = 3
+        menage.situapr[menage.occuppr == 2] = 4
+        menage.situapr[menage.occuppr == 5] = 5
+        menage.situapr[menage.occuppr == 6] = 5
+        menage.situapr[menage.occuppr == 7] = 6
+        menage.situapr[menage.occuppr == 8] = 7
+        menage.situapr[menage.occuppr == 4] = 8
 #        menage.situapr[menage.occupapr == "1"] = 1
 #        menage.situapr[menage.occupapr == "3"] = 3
 #        menage.situapr[menage.occupapr == "2"] = 4
@@ -224,8 +224,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # replace typlog = 2 if typlog == 0
         # drop sitlog
         menage["typlog"] = 0
-        menage.typlog[menage.sitlog == "1"] = 1
-        menage.typlog[menage.sitlog != "1"] = 2
+        menage.typlog[menage.sitlog == 1] = 1
+        menage.typlog[menage.sitlog != 1] = 2
         # destring stalog, replace
         menage['stalog'] = menage['stalog'].astype(int)
         # sort ident_men
@@ -1102,7 +1102,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2005
+    year = 1995
     build_homogeneisation_caracteristiques_sociales(year = year)
 
     log.info("step_0_3_homogeneisation_caracteristiques_sociales {}".format(time.clock() - deb))
