@@ -25,7 +25,7 @@
 
 
 import logging
-
+import pandas
 
 
 log = logging.getLogger(__name__)
@@ -105,7 +105,6 @@ def build_imputation_loyers_proprietaires(year = None):
           (imput00.surfhab > 100) +
           (imput00.surfhab > 150)
           )
-#        imput00.catsurf.value_counts()
         assert imput00.catsurf.isin(range(1, 9)).all()
         # TODO: vérifier ce qe l'on fait notamment regarder la vleur catsurf = 2 ommise dans le code stata
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
@@ -113,117 +112,56 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 8) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 4) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
 
-#        imput00.maison[imput00.CC == 5 & imput00.catsurf == 1 & imput00.maison == 1] = 0
-#        imput00.maison[imput00.CC == 5 & imput00.catsurf == 3 & imput00.maison == 1] = 0
-#        imput00.maison[imput00.CC == 5 & imput00.catsurf == 8 & imput00.maison == 1] = 0
-#        imput00.maison[imput00.CC == 4 & imput00.catsurf == 1 & imput00.maison == 1] = 0
-
-#		save "`loyers'", replace
-#
-#		hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
-#		replace loyer_imput = . if observe == 1
-#        loyers.loyer_imput[loyers.observe == 1] = '.'
+        # save "`loyers'", replace
+        #
+        # hotdeck loyer_imput using "$rawdatadir\hotdeck", store by(catsurf CC maison_appart) keep(ident_men loyer_imput observe)
+        # replace loyer_imput = . if observe == 1
+        #  loyers.loyer_imput[loyers.observe == 1] = '.'
         # TODO:
         # ca m'a l'air d'être déjà fait, je ne comprends pas le todo
         # 2 questions : pourquoi le imput00 à la place de 'loyers ?
         # et loyer_impute ?= loyer_imput (code stata) ?
 
-#		use "$rawdatadir\hotdeck1.dta", clear
-#		keep ident_men loyer_imput
-#		sort ident_men
-#		save "$rawdatadir\hotdeck1.dta", replace
-#
-#		use "`loyers'", clear
-#		merge ident_men using "$rawdatadir\hotdeck1.dta", update
-#		tab _m observe
-#		drop _m
+        # use "$rawdatadir\hotdeck1.dta", clear
+        # keep ident_men loyer_imput
+        # sort ident_men
+        # save "$rawdatadir\hotdeck1.dta", replace
+        #
+        # use "`loyers'", clear
+        # merge ident_men using "$rawdatadir\hotdeck1.dta", update
+        # tab _m observe
+        # drop _m
+        try:
+            hotdeck = pandas.read_stata('/home/benjello/IPP/openfisca_france_indirect_taxation/hotdeck_result.dta')
+        except:
+            hotdeck = survey.get_values(table = 'hotdeck_result')
 
-        hotdeck = survey.get_values(table = 'hotdeck_result')
-#        kept_variables = ['ident_men', 'loyer_impute']
-#        hotdeck = hotdeck[kept_variables].copy()
         imput00.reset_index(inplace = True)
         hotdeck.ident_men = hotdeck.ident_men.astype('int')
-        imput00 = imput00.merge(hotdeck, on = 'ident_men').set_index('ident_men')
+        imput00 = imput00.merge(hotdeck, on = 'ident_men')
+        imput00.loyer_impute[imput00.observe] = 0
+        # imput00['imputation'] = ~imput00.observe
+        imput00.reset_index(inplace = True)
+        loyers_imputes = imput00[['ident_men', 'loyer_impute', 'stalog', 'observe']].copy()
+        assert loyers_imputes.loyer_impute.notnull().all()
+        loyers_imputes.loyer_impute[loyers_imputes.stalog.isin([1, 2, 5])] = 0
+        del loyers_imputes['stalog']
+        del loyers_imputes['observe']
+        loyers_imputes.rename(columns = dict(loyer_impute = '0411'), inplace = True)
 
-#        replace loyer_impute = 0 if observe == 1
-#		gen imputation = (observe == 0)
-#		label var imputation "Un loyer a été imputé (oui = 1, non = 0)"
-#		rename STALOG stalog
-#		keep ident_men loyer_imp imputation observe stalog
-#		sort ident_men
-#		save "`loyers'", replace
-#		use "`depenses'", clear
-#		sort ident_men posteCOICOP
-#		merge m:1 ident_men using "`loyers'"
+        #	noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
+        #	noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
+        #	replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
+        #	replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .
+        #	drop observe stalog loyer_impute
+        #	tab  _m
+        #	drop _m
+        #	}
+        #
 
-        imput00.loyer_impute[imput00.observe == True] = 0
-        imput00['imputation'] = imput00.observe == 0
-        imput00.reset_index('ident_men',inplace = True)
-        loyers_imputes = imput00[['ident_men', 'loyer_impute','stalog','observe']]
-        loyers_imputes.set_index('ident_men', inplace = True)
-        depenses.ident_men = depenses.ident_men.astype('int')
-        depenses.set_index('ident_men',inplace = True)
-        depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
-        # TODO: règler le problème de la colonne posteCOICOP
-
-
-#		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense > 0 & depense != .
-#		noisily: replace depense = 0 if posteCOICOP == "0411" & inlist(stalog,"1","2","5") & depense == .
-        depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses> 0 & depenses != '.'] = 0
-        depenses[depenses.posteCOICOP == "0411" & depenses.stalog.isin([1,2,5])& depenses.depense == '.'] = 0
-        depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 0] = depenses['loyer_impute']
-        depenses[depenses.posteCOICOP == "0421"  & depenses.observe == 1 & depenses == '.'] = 0
-
-#
-#		replace depense = loyer_imp if posteCOICOP == "0421"  & observe == 0
-#		replace depense = 0 		if posteCOICOP == "0421"  & observe == 1 & depense == .
-#		drop observe stalog loyer_impute
-#		tab  _m
-#		drop _m
-#	}
-#
-#
-#
-#			* POUR BdF 2000 ET 2005, ON UTILISE LES LOYERS IMPUTES CALCULES PAR L'INSEE
-#
-#
-#	if ${yearrawdata} == 2000 {
-#		tempfile loyers_imputes
-#		* Garder les loyers imputés (disponibles dans la table sur les ménages)
-#		use "$rawdatadir\menage.dta", clear
-#		keep IDENT REV81
-#		rename IDENT ident_men
-#		gen posteCOICOP = "0421"
-#		rename REV81 depense
-#		sort ident_men posteCOICOP
-#		save "`loyers_imputes'", replace
-#		use "`depenses'", clear
-#		sort ident_men posteCOICOP
-#		merge 1:1 ident_men posteCOICOP using "`loyers_imputes'", update
-#		tab _m
-#		tab _m if posteCOICOP == "0421"
-#		drop _m
-#	}
-#
-#	if ${yearrawdata} == 2005 {
-#		* Garder les loyers imputés (disponibles dans la table sur les ménages)
-#		tempfile loyers_imputes
-#		use "$rawdatadir\menage.dta", clear
-#		keep ident_men rev801_d
-#		gen posteCOICOP = "0421"
-#		rename rev801_d depense
-#		sort ident_men poste
-#		save "`loyers_imputes'", replace
-#		use "`depenses'", clear
-#		sort ident_men posteCOICOP
-#		merge 1:1 ident_men posteCOICOP using "`loyers_imputes'", update keepusing(depense)
-#		tab _m
-#		tab _m if posteCOICOP == "0421"
-#		drop _m
-#	}
-
-
+    # POUR BdF 2000 ET 2005, ON UTILISE LES LOYERS IMPUTES CALCULES PAR L'INSEE
     if year == 2000:
+        # Garder les loyers imputés (disponibles dans la table sur les ménages)
         loyers_imputes = survey.get_values(table = "menage", variables = ['ident', 'rev81'])
         loyers_imputes.rename(
             columns = {
@@ -232,9 +170,9 @@ def build_imputation_loyers_proprietaires(year = None):
                 },
             inplace = True,
             )
-        depenses = survey.get_values(table = 'depmen')
 
     if year == 2005:
+        # Garder les loyers imputés (disponibles dans la table sur les ménages)
         loyers_imputes = survey.get_values(table = "menage")
         kept_variables = ['ident_men', 'rev801_d']
         loyers_imputes = loyers_imputes[kept_variables]
@@ -256,9 +194,10 @@ def build_imputation_loyers_proprietaires(year = None):
     loyers_imputes.set_index('ident_men', inplace = True)
     temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
     depenses = temporary_store['depenses_{}'.format(year)]
+    depenses.index = depenses.index.astype('int')
+    assert set(depenses.index) == set(loyers_imputes.index)
+    assert len(set(depenses.columns).intersection(set(loyers_imputes.columns))) == 0
     depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
-
-    # Sauvegarde de la base depenses mise à jour
 
 
 #**************************************************************************************************************************

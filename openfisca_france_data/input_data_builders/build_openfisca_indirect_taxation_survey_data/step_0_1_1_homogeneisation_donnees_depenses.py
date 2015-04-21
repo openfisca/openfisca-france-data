@@ -334,6 +334,7 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
         else:
             normalized_code = "99000"
     else:
+        print "Problematic code {}".format(code)
         raise()
     return normalized_code
 
@@ -347,7 +348,7 @@ def get_transfert_data_frames(year = None):
     directory_path = os.path.normpath(
         parser.get("openfisca_france_indirect_taxation", "assets")
         )
-    #TODO: faire un fichier équivalent pour 2010
+    # TODO: faire un fichier équivalent pour 2010
     matrice_passage_file_path = os.path.join(directory_path, "Matrice passage {}-COICOP.xls".format(year))
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     matrice_passage_data_frame = pandas.read_excel(matrice_passage_file_path)

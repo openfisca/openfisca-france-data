@@ -101,6 +101,9 @@ def build_homogeneisation_vehicules(year = None):
         collection = 'budget_des_familles', config_files_directory = config_files_directory)
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
+    if year == 1995:
+        vehicule = None
+
     if year == 2000:
         vehicule = survey.get_values(table = "depmen")
         kept_variables = ['ident', 'carbu01', 'carbu02']
@@ -133,11 +136,13 @@ def build_homogeneisation_vehicules(year = None):
         vehicule["veh_diesel"] = (vehicule['carbu'] == 2)
 
     # Compute the number of cars by category
-    vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()
+    if vehicule:
+        vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()
 
-    # Save in temporary store
-    temporary_store['automobile_{}'.format(year)] = vehicule
+        # Save in temporary store
+        temporary_store['automobile_{}'.format(year)] = vehicule
 
+    temporary_store.close()
 
 if __name__ == '__main__':
     import sys

@@ -67,7 +67,9 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             )
         menage = menage[(menage.exdep == 1) & (menage.exrev == 1)]
         var_to_keep = ['mena', 'v', 'ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr',
-        'agecj', 'matripr', 'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
+                       'agecj', 'matripr', 'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
+        for var in var_to_keep:
+            assert var in menage.columns, '{} is not present in menage'.format(var)
         menage = menage[var_to_keep]
         menage.rename(
             columns = {
