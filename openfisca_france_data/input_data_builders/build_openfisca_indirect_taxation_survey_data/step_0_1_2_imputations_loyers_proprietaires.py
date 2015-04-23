@@ -51,7 +51,7 @@ def build_imputation_loyers_proprietaires(year = None):
 
     if year == 1995:
         imput00 = survey.get_values(table = "socioscm")
-
+        imput00 = imput00[(imput00.exdep == 1) & (imput00.exrev == 1)]
         imput00 = imput00[(imput00.exdep == 1) & (imput00.exrev == 1)]
         kept_variables = ['mena', 'stalog', 'surfhab', 'confort1', 'confort2', 'confort3', 'confort4', 'ancons', 'sitlog', 'nbphab', 'rg', 'cc']
         imput00 = imput00[kept_variables]
@@ -211,8 +211,6 @@ def build_imputation_loyers_proprietaires(year = None):
 #	keep  ident_men pondmen posteCOICOP poste13 grosposte depense description supplementaire nondurable semidurable durable servicenondurable servicedurable loyer depensenonconso
 #	order ident_men pondmen posteCOICOP poste13 grosposte depense description supplementaire nondurable semidurable durable servicenondurable servicedurable loyer depensenonconso
 #	save "${datadir}\dépenses_BdF.dta", replace
-
-
 
     # Save in temporary store
     temporary_store['depenses_bdf_{}'.format(year)] = depenses

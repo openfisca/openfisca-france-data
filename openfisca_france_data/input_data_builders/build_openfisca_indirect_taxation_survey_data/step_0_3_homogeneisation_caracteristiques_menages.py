@@ -62,15 +62,13 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
     # rename mena ident_men
     # save `vague', replace
     if year == 1995:
+        kept_variables = ['exdep', 'exrev', 'mena', 'v', 'ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr',
+                       'agecj', 'matripr', 'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
         menage = survey.get_values(
             table = "socioscm",
+            variables = kept_variables,
             )
         menage = menage[(menage.exdep == 1) & (menage.exrev == 1)]
-        var_to_keep = ['mena', 'v', 'ponderrd', 'nbpers', 'nbenf', 'typmen1', 'cohabpr', 'sexepr', 'agepr',
-                       'agecj', 'matripr', 'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena', 'nm14a']
-        for var in var_to_keep:
-            assert var in menage.columns, '{} is not present in menage'.format(var)
-        menage = menage[var_to_keep]
         menage.rename(
             columns = {
                 'v': 'vag',
@@ -85,8 +83,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 },
             inplace = True,
             )
+        menage.agecj = menage.agecj.fillna(0)
+        menage.nenfhors = menage.nenfhors.fillna(0)
 #        vague = menage.copy()
-        menage = menage[pandas.isnull(menage.pondmen) == False].copy()
+#        menage = menage[pandas.isnull(menage.pondmen) == False].copy()
         # use "$rawdatadir\socioscm.dta", clear
         # * Remettre en minuscule le nom et les labels de toutes les variables
         # foreach v of var * {
@@ -140,7 +140,6 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # rename nbact nactifs
         # gen ocde10 = 1 + 0.5 * max(0, nadultes - 1) + 0.3 * nenfants
         # gen typmen5 = 0
-        print menage.columns
         menage['nadultes'] = menage['npers'] - menage['nenfants']
         menage['ocde10'] = 1 + 0.5 * numpy.maximum(0, menage['nadultes'] - 1) + 0.3 * menage['nenfants']
         # replace typmen5 = 1 if typmen1 == "1"
@@ -250,6 +249,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             columns = {'mena': 'identmen'},
             inplace = True,
             )
+        menage.set_index('ident_men',inplace = True)
         # rename mena ident_men
 
 #nepasfaire        # keep if lien == "1" | lien == "2"
@@ -780,15 +780,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # donc on le recalcule avec l'année de naissance et la vague d'enquête
         individus['agepr'] = year - individus.anais
         individus.loc[individus.vag == 6, ['agepr']] = year + 1 - individus.anais
-        individus = individus[individus.lienpref == "00"].copy()
+        individus = individus[individus.lienpref == 00].copy()
         kept_variables = ['ident_men', 'etamatri', 'agepr']
         individus = individus[kept_variables].copy()
-        individus.replace(
-            to_replace = {
-                'etamatri': {"": "0"}
-                },
-            inplace = True,
-            )
+        individus.etamatri[individus.etamatri == 0] = 1
         individus['etamatri'] = individus['etamatri'].astype('int').copy()  # MBJ TODO: define as a catagory ?
         individus.set_index('ident_men', inplace = True)
         menage = menage.merge(individus, left_index = True, right_index = True)
@@ -825,7 +820,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus['age'] = year - individus.anais
         individus.loc[individus.vag == 6, ['age']] = year + 1 - individus.anais
         # Garder toutes les personnes du ménage qui ne sont pas la personne de référence et le conjoint
-        individus = individus[(individus.lienpref != "00") & (individus.lienpref != "01")].copy()
+        individus = individus[(individus.lienpref != 00) & (individus.lienpref != 01)].copy()
         individus.sort(columns = ['ident_men', 'ident_ind'], inplace = True)
 
         # Inspired by http://stackoverflow.com/questions/17228215/enumerate-each-row-for-each-group-in-a-dataframe
@@ -858,8 +853,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             variables = ['ident_men', 'ident_ind', 'agfinetu', 'lienpref'],
             )
         individus.set_index('ident_men', inplace = True)
-        pr = individus.loc[individus.lienpref == "00", 'agfinetu'].copy()
-        conjoint = individus.loc[individus.lienpref == "01", 'agfinetu'].copy()
+        pr = individus.loc[individus.lienpref == 00, 'agfinetu'].copy()
+        conjoint = individus.loc[individus.lienpref == 01, 'agfinetu'].copy()
         conjoint.name = 'agfinetu_cj'
         agfinetu_merged = pandas.concat([pr, conjoint], axis = 1)
         menage = menage.merge(agfinetu_merged, left_index = True, right_index = True)
@@ -1095,6 +1090,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 },
             inplace = True,
             )
+       menage.set_index('ident_men', inplace = True)
 
     temporary_store['donnes_socio_demog_{}'.format(year)] = menage
 
