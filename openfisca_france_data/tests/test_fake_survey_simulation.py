@@ -113,36 +113,33 @@ def test_fake_survey_simulation():
     for year, month in itertools.product(range(2002, 2004), range(1, 13)):
         assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == 0).all()
 
-
-    data_frame_by_entity_key_plural = dict(
-        individus = pandas.DataFrame(
-            dict([(name, simulation.calculate_add(name)) for name in [
-                'idmen',
-                'quimen',
-                'idfoy',
-                'quifoy',
-                'idfam',
-                'quifam',
-                'age',
-                'champm_individus',
-                'sal',
-                'salaire_net',
-                'txtppb',
-                # salsuperbrut # TODO bug in 2006
-                ]])
-            ),
-        foyers_fiscaux = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'impo'
-                ]])
-            ),
-        menages = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'revdisp'
-                ]])
-            ),
+    data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+        variables = [
+            'idmen',
+            'quimen',
+            'idfoy',
+            'quifoy',
+            'idfam',
+            'quifam',
+            'age',
+            'activite',
+            'br_rmi_i',
+            'champm_individus',
+            'sal',
+            'salaire_net',
+            'smic55',
+            'txtppb',
+            'af_nbenf',
+            'af',
+            'br_rmi',
+            'rsa',
+            'aspa',
+            'aide_logement_montant_brut',
+            'weight_familles',
+            'revdisp',
+            'impo',
+            ]
         )
-
     return data_frame_by_entity_key_plural, simulation
 
 

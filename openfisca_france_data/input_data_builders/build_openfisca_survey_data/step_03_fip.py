@@ -35,7 +35,7 @@ import numpy as np
 
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -55,7 +55,7 @@ def create_fip(temporary_store = None, year = None):
     # but are not present in the erf or eec tables.
     # We add them to ensure consistency between concepts.
 
-    replace = create_replace(year)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     erfs_survey_collection = SurveyCollection.load(
         collection = 'erfs', config_files_directory = config_files_directory)
@@ -66,7 +66,7 @@ def create_fip(temporary_store = None, year = None):
     # anaisenf is a string containing letter code of pac (F,G,H,I,J,N,R) and year of birth (example: 'F1990H1992')
     # when a child is invalid, he appears twice in anaisenf (example: F1900G1900 is a single invalid child born in 1990)
     erfFoyVar = ['declar', 'anaisenf']
-    foyer = survey.get_values(table = replace["foyer"], variables = erfFoyVar)
+    foyer = survey.get_values(table = year_specific_by_generic["foyer"], variables = erfFoyVar)
     foyer.replace({'anaisenf': {'NA': np.nan}}, inplace = True)
 
     log.info(u"Etape 1 : on récupere les personnes à charge des foyers")

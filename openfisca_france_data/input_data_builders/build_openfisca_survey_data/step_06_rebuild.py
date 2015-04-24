@@ -33,7 +33,7 @@ from numpy import where
 
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, control
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -46,7 +46,7 @@ log = logging.getLogger(__name__)
 def create_totals(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
-    replace = create_replace(year)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     # On part de la table individu de l'ERFS
     # on renomme les variables
@@ -180,7 +180,7 @@ def create_totals(temporary_store = None, year = None):
         "noindiv": 100 * indivi.idmen.loc[enf_ee] + indivi.noimer.loc[enf_ee]
         })
 
-    foyer = data.get_values(variables = ["noindiv", "zimpof"], table = replace["foyer"])
+    foyer = data.get_values(variables = ["noindiv", "zimpof"], table = year_specific_by_generic["foyer"])
     pere = pere.merge(foyer, how = "inner", on = "noindiv")
     mere = mere.merge(foyer, how = "inner", on = "noindiv")
     df = pere.merge(mere, how = "outer", on = "noindiv_enf", suffixes=('_p', '_m'))

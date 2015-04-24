@@ -38,45 +38,32 @@ def test_survey_simulation():
         used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'smic55'],
         year = year,
         )
-    simulation = survey_scenario.new_simulation()
-
-    data_frame_by_entity_key_plural = dict(
-        individus = pandas.DataFrame(
-            dict([(name, simulation.calculate_add(name)) for name in [
-                'idmen',
-                'quimen',
-                'idfoy',
-                'quifoy',
-                'idfam',
-                'quifam',
-                'age',
-                'activite',
-                'br_rmi_i',
-                'champm_individus',
-                'sal',
-                'salaire_net',
-                # 'smic55',
-                'txtppb',
-                # salsuperbrut # TODO bug in 2006
-                ]])
-            ),
-        familles = pandas.DataFrame(
-            dict([(name, simulation.calculate_add(name)) for name in [
-                'af_nbenf',
-                'af',
-                'br_rmi',
-                'rsa',
-                'aspa',
-                'aide_logement_montant_brut',
-                'weight_familles',
-                ]])
-            ),
-
-        menages = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'revdisp',
-                ]])
-            ),
+    simulation = survey_scenario.new_simulation(trace = True)
+    data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+        variables = [
+            'idmen',
+            'quimen',
+            'idfoy',
+            'quifoy',
+            'idfam',
+            'quifam',
+            'age',
+            'activite',
+            'br_rmi_i',
+            'champm_individus',
+            'sal',
+            'salaire_net',
+            'smic55',
+            'txtppb',
+            'af_nbenf',
+            'af',
+            'br_rmi',
+            'rsa',
+            'aspa',
+            'aide_logement_montant_brut',
+            'weight_familles',
+            'revdisp',
+            ]
         )
 
     assert (data_frame_by_entity_key_plural['familles'].weight_familles

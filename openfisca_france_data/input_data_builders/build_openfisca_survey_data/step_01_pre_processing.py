@@ -32,7 +32,7 @@ import logging
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -53,12 +53,12 @@ def create_indivim_menagem(temporary_store = None, year = None):
     erfs_survey_collection = SurveyCollection.load(
         collection = 'erfs', config_files_directory = config_files_directory)
 
-    replace = create_replace(year)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
     survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
-    erfmen = survey.get_values(table = replace["erf_menage"])
-    eecmen = survey.get_values(table = replace["eec_menage"])
-    erfind = survey.get_values(table = replace["erf_indivi"])
-    eecind = survey.get_values(table = replace["eec_indivi"])
+    erfmen = survey.get_values(table = year_specific_by_generic["erf_menage"])
+    eecmen = survey.get_values(table = year_specific_by_generic["eec_menage"])
+    erfind = survey.get_values(table = year_specific_by_generic["erf_indivi"])
+    eecind = survey.get_values(table = year_specific_by_generic["eec_indivi"])
 
     # travail sur la cohérence entre les bases
     noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))].copy()
@@ -207,10 +207,10 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
         'stc',
         'titc',
         ]
-    replace = create_replace(year)
-    eeccmp1 = survey.get_values(table = replace["eec_cmp_1"], variables = individual_vars)
-    eeccmp2 = survey.get_values(table = replace["eec_cmp_2"], variables = individual_vars)
-    eeccmp3 = survey.get_values(table = replace["eec_cmp_3"], variables = individual_vars)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
+    eeccmp1 = survey.get_values(table = year_specific_by_generic["eec_cmp_1"], variables = individual_vars)
+    eeccmp2 = survey.get_values(table = year_specific_by_generic["eec_cmp_2"], variables = individual_vars)
+    eeccmp3 = survey.get_values(table = year_specific_by_generic["eec_cmp_3"], variables = individual_vars)
     tmp = eeccmp1.merge(eeccmp2, how = "outer")
     enfants_a_naitre = tmp.merge(eeccmp3, how = "outer")
 
