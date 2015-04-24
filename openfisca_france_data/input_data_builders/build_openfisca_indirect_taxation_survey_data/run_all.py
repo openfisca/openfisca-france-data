@@ -59,7 +59,7 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 
-def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
+def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
 
     temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -78,13 +78,17 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
 
     # Gestion des véhicules:
     build_homogeneisation_vehicules(year = year_data)
-    vehicule = temporary_store['automobile_{}'.format(year_data)]
+    if year_data != 1995:
+        vehicule = temporary_store['automobile_{}'.format(year_data)]
+    else:
+        vehicule = None
 
     # Gestion des variables socio démographiques:
     build_homogeneisation_caracteristiques_sociales(year = year_data)
     menage = temporary_store['donnes_socio_demog_{}'.format(year_data)]
 
-    # Gestion des variables revenues:
+
+    # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
     revenus = temporary_store["revenus_{}".format(year_data)]
 
@@ -127,15 +131,15 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    year_calage = 2013
+    year_calage = 1995
     year_data_list = [1995, 2000, 2005, 2011]
-    # run_all(year_calage, year_data_list)
+    run_all(year_calage, year_data_list)
     #
     #
-    for year_calage in [2000, 2001, 2002, 2003, 2004]:
-        start = time.time()
-        run_all(year_calage, year_data_list)
-        log.info("{}".format(time.time() - start))
-        print "Base construite pour l'année {} à partir de l'enquête bdf {}".format(
-            year_calage, find_nearest_inferior(year_data_list, year_calage)
-            )
+    #    for year_calage in [2000, 2001, 2002, 2003, 2004]:
+    #        start = time.time()
+    #        run_all(year_calage, year_data_list)
+    #        log.info("{}".format(time.time() - start))
+    #        print "Base construite pour l'année {} à partir de l'enquête bdf {}".format(
+    #            year_calage, find_nearest_inferior(year_data_list, year_calage)
+    #            )

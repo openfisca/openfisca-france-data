@@ -74,6 +74,15 @@ def build_homogeneisation_revenus_menages(year = None):
                 'revcho', 'revfam', 'revlog', 'revinv', 'revrmi', 'revpat', 'mena', 'ponderr'
                 ],
             )
+        menage = survey.get_values(
+            table = "socioscm",
+            variables = ['exdep', 'exrev', 'mena']
+            )
+
+        menage.set_index('mena')
+        menrev = menrev.merge(menage, left_index = True, right_index = True)
+        menrev = menrev[(menrev.exdep == 1) & (menrev.exrev == 1)]
+
 
         menrev['foncier_hab'] = menrev.imphab + menrev.impfon
         menrev['part_IMPHAB'] = menrev.imphab / menrev.foncier_hab
@@ -85,7 +94,7 @@ def build_homogeneisation_revenus_menages(year = None):
         for variable in ['revcho', 'revfam', 'revinv', 'revlog', 'revret', 'revrmi']:
             del menrev[variable]
 
-        menrev['revact'] = 'revsal' + 'revind' + 'revsec'
+        menrev['revact'] = menrev['revsal'] + menrev['revind'] + menrev['revsec']
         menrev.rename(
             columns = dict(
                 revpat = "revpat",
@@ -95,31 +104,53 @@ def build_homogeneisation_revenus_menages(year = None):
                 ),
             inplace = True
             )
-        menrev['impot_revenu'] = 'ir' + 'irbis'
+        menrev['impot_revenu'] = menrev['ir'] + menrev['irbis']
 
 
         rev_disp = survey.get_values(
-            table = "rev_disp",
-            variables = ['revtot', 'revsoc', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr'],
+            table = "menrev",
+            variables = ['revtot', 'revret', 'revcho', 'revfam', 'revlog', 'revinv', 'revrmi', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr', 'ir','irbis' ],
             )
+        rev_disp.set_index('mena', inplace=True)
+
+        menage2 = survey.get_values(
+            table = "socioscm",
+            variables = ['exdep', 'exrev', 'mena']
+            )
+
+        menage2.set_index('mena', inplace = True)
+        rev_disp = menage2.merge(rev_disp, left_index = True, right_index = True)
+
+        rev_disp = rev_disp[(rev_disp.exrev == 1) & (rev_disp.exdep == 1)]
+
+        rev_disp['revsoc'] = rev_disp['revret'] + rev_disp['revcho'] + rev_disp['revfam'] + rev_disp['revlog'] + rev_disp['revinv'] + rev_disp['revrmi']
+        rev_disp['impot_revenu'] = rev_disp['ir'] + rev_disp['irbis']
 # drop IR IRBIS
 # rename IMPFON impfon
 # rename IMPHAB imphab
 # rename REVAID somme_obl_recue
-        rev_disp['somme_obl_recue'].replace('.',0)
-# replace somme_obl_recue=0 if somme_obl_recue==.
-        rev_disp['revtot'] = 'revact' + 'revpat' + 'revsoc' + 'somme_obl_recue'
-# gen revtot = revact + revpat + revsoc + somme_obl_recue
-# drop REVTOT
-        rev_disp = survey.get_values(
-            table = "rev_disp",
-            variables = ['revtot', 'revsoc', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr'],
+        rev_disp.rename(
+            columns = dict(
+                revaid = 'somme_obl_recue',
+                ),
+            inplace = True
             )
+        rev_disp.somme_obl_recue = rev_disp.somme_obl_recue.fillna(0)
+
+        rev_disp['revact'] = rev_disp['revsal'] + rev_disp['revind'] + rev_disp['revsec']
+# replace somme_obl_recue=0 if somme_obl_recue==.
+        rev_disp['revtot'] = rev_disp['revact'] + rev_disp['revpat'] + rev_disp['revsoc'] + rev_disp['somme_obl_recue']
+#revact = REVSAL + REVIND + REVSEC
+        rev_disp['revact'] = rev_disp['revsal'] + rev_disp['revind'] + rev_disp['revsec']
+# drop REVTOT
+
 # sort MENA
 # merge MENA using "`ponder'"
-        rev_disp = rev_disp.sort(columns = ['mena'], inplace=True)
-        rev_disp.set_index('mena', inplace=True)
-        rev_disp.merge('ponder', on = "mena")
+
+#        rev_disp = rev_disp.sort(columns = ['mena'], inplace=True)
+#        rev_disp.set_index('mena', inplace=True)
+#        rev_disp.merge('ponder', on = "mena")
+
 # tab _merge
 # keep if _m == 3
 # codebook MENA
@@ -127,11 +158,11 @@ def build_homogeneisation_revenus_menages(year = None):
 # sort MENA
         rev_disp.rename(
             columns = dict(
-                PONDERR = "pondmen",
-                MENA = "ident_men",
-                REVIND = "act_indpt",
-                REVSAL = "salaires",
-                REVSEC = "autres_rev",
+                ponderr = "pondmen",
+                mena = "ident_men",
+                revind = "act_indpt",
+                revsal = "salaires",
+                revsec = "autres_rev",
                 ),
             inplace = True
             )
@@ -141,9 +172,10 @@ def build_homogeneisation_revenus_menages(year = None):
 # rename REVIND act_indpt
 # rename REVSAL salaires
 # rename REVSEC autres_rev
-        rev_disp['somme_libre_recue'] = '.'
-        rev_disp['autoverses'] = '.'
-        rev_disp['autres_ress'] = '.'
+        rev_disp['autoverses'] = '0'
+        rev_disp['somme_libre_recue'] = '0'
+        rev_disp['autres_ress'] = '0'
+
 # gen somme_libre_recue=.
 # gen autoverses=.
 # gen autres_ress=.
@@ -169,7 +201,8 @@ def build_homogeneisation_revenus_menages(year = None):
 # label var somme_libre_recue "Aides libres d'autres ménages"
 # label var autoverses "Revenus auto-versés"
 # label var autres_ress "Autres ressources"
-        for var in ['somme_obl_recue', 'act_indpt', 'revpat salaires', 'autres_rev', 'impfon', 'imphab', 'revsoc', 'revact', 'impot_revenu', 'revtot', 'somme_libre_recue', 'autoverses', 'autres_ress'] :
+        rev_disp['rev_disponible'] = rev_disp.revtot - rev_disp.impot_revenu - rev_disp.imphab
+        for var in ['somme_obl_recue', 'act_indpt', 'revpat', 'salaires', 'autres_rev', 'rev_disponible', 'impfon', 'imphab', 'revsoc', 'revact', 'impot_revenu', 'revtot'] :
             rev_disp[var] = rev_disp[var] / 6.55957
 # * CONVERSION EN EUROS
 # foreach var in   somme_obl_recue act_indpt revpat salaires autres_rev impfon imphab revsoc revact impot_revenu revtot somme_libre_recue autoverses autres_ress {
@@ -178,7 +211,7 @@ def build_homogeneisation_revenus_menages(year = None):
 # sort ident_men
 # save "$datadir\revenus.dta", replace
 #    }
-        rev_disp = rev_disp.sort(columns = ['MENA'], inplace=True)
+        temporary_store["revenus_{}".format(year)] = rev_disp
 
 #
 #    if ${yearrawdata} == 2000 {
@@ -478,7 +511,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2011
+    year = 1995
     build_homogeneisation_revenus_menages(year = year)
 
     log.info("step_0_4_homogeneisation_revenus_menages duration is {}".format(time.clock() - deb))
