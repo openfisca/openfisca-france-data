@@ -136,7 +136,7 @@ def build_homogeneisation_vehicules(year = None):
         vehicule["veh_diesel"] = (vehicule['carbu'] == 2)
 
     # Compute the number of cars by category
-    if vehicule:
+    if year != 1995:
         vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()
 
         # Save in temporary store
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2011
+    year = 1995
     build_homogeneisation_vehicules(year = year)
 
     log.info("step 0_2_homogeneisation_vehicules duration is {}".format(time.clock() - deb))

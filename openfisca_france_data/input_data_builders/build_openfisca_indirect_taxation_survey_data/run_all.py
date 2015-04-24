@@ -59,7 +59,7 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 
-def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
+def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
 
     temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -80,12 +80,15 @@ def run_all(year_calage = 2007, year_data_list = [1995, 2000, 2005, 2011]):
     build_homogeneisation_vehicules(year = year_data)
     if year_data != 1995:
         vehicule = temporary_store['automobile_{}'.format(year_data)]
+    else:
+        vehicule = None
 
     # Gestion des variables socio démographiques:
     build_homogeneisation_caracteristiques_sociales(year = year_data)
     menage = temporary_store['donnes_socio_demog_{}'.format(year_data)]
 
-    # Gestion des variables revenues:
+
+    # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
     revenus = temporary_store["revenus_{}".format(year_data)]
 
