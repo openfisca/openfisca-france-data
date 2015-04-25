@@ -194,7 +194,8 @@ def build_imputation_loyers_proprietaires(year = None):
     loyers_imputes.set_index('ident_men', inplace = True)
     temporary_store['loyers_imputes_{}'.format(year)] = loyers_imputes
     depenses = temporary_store['depenses_{}'.format(year)]
-    depenses.index = depenses.index.astype('int')
+    depenses.index = depenses.index.astype('int64')
+    loyers_imputes.index = loyers_imputes.index.astype('int64')
     assert set(depenses.index) == set(loyers_imputes.index)
     assert len(set(depenses.columns).intersection(set(loyers_imputes.columns))) == 0
     depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
