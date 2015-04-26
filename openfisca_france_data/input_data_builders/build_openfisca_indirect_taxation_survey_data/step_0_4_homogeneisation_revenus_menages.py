@@ -282,13 +282,13 @@ def build_homogeneisation_revenus_menages(year = None):
         loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
         variables = ["0421"]
         loyers_imputes = loyers_imputes[variables]
-          loyers_imputes.rename(
+        loyers_imputes.rename(
             columns = {"0421": "loyer_impute"},
             inplace = True,
             )
-         temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+        temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
         revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
-           revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
+        revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
         temporary_store["revenus_{}".format(year)] = revenus

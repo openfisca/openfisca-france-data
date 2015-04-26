@@ -131,7 +131,7 @@ def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    year_calage = 1995
+    year_calage = 2011
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     #

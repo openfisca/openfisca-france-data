@@ -562,12 +562,12 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage = menage.merge(vague, left_index = True, right_index = True)
          # on met un numéro à chaque vague pour pouvoir faire un meilleur suivi des évolutions temporelles pour le modèle de demande
         menage['vag_'] = menage['vag']
-        menage.vag[menage.vag_ == "1"] = 23
-        menage.vag[menage.vag_ == "2"] = 24
-        menage.vag[menage.vag_ == "3"] = 25
-        menage.vag[menage.vag_ == "4"] = 26
-        menage.vag[menage.vag_ == "5"] = 27
-        menage.vag[menage.vag_ == "6"] = 28
+        menage.vag[menage.vag_ == 1] = 23
+        menage.vag[menage.vag_ == 2] = 24
+        menage.vag[menage.vag_ == 3] = 25
+        menage.vag[menage.vag_ == 4] = 26
+        menage.vag[menage.vag_ == 5] = 27
+        menage.vag[menage.vag_ == 6] = 28
         del menage['vag_']
 
     temporary_store['donnes_socio_demog_{}'.format(year)] = menage
