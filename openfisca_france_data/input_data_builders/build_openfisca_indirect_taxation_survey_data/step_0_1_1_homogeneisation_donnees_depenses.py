@@ -48,48 +48,16 @@ def build_depenses_homogenisees(year = None):
         )
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
-#
-#		* CE CODE APPELLE LE TABLEAU DE PASSAGE DE LA NOMENCLATURE BDF A LA NOMENCLATURE COICOP MODIFIEE
-#		tempfile nomen
-#		import excel using "$paramdir\Matrice passage ${yearrawdata}-COICOP.xls", first clear
-#		sort poste${yearrawdata}
-#		save "`nomen'"
-#
-
-            # On utilise les matrice de passages directement plus bas
-
 
 #		* HOMOGENEISATION DES BASES DE DONNEES DE DEPENSES
-#		if ${yearrawdata} == 1995 {
-#			tempfile ponder
-#			use "$rawdatadir\socioscm.dta", clear
-#			keep if EXDEP == 1 & EXREV == 1
-#			keep MENA PONDERRD
-#			sort MENA
-#			codebook MENA
-#			save "`ponder'"
-#
-#			use "$rawdatadir\depnom.dta", clear
-#			collapse (sum) VALEUR MONTANT, by(MENA NOMEN5)
-#			rename NOMEN5 poste${yearrawdata}
-#			rename VALEUR  depense
-#			rename MONTANT depense_avt_imput
-#			* PASSAGE A l'EURO!!!
-#			replace depense 			= depense / 6.55957
-#			replace depense_avt_imput 	= depense / 6.55957
-#			sort MENA
-#			merge m:1 MENA using "`ponder'"
-#			codebook MENA if _merge == 3
-#			drop if _merge != 3
-#			drop _merge
-#			rename MENA ident_men
-#			rename PONDERRD pondmen
-#
-#			}
 
+# pour 1995
     if year == 1995:
         socioscm = survey.get_values(table = "socioscm")
         poids = socioscm[['mena', 'ponderrd', 'exdep', 'exrev']]
+        # cette étape de ne garder que les données dont on est sûr de la qualité et de la véracité
+        # exdep = 1 si les données sont bien remplies pour les dépenses du ménage
+        # exrev = 1 si les données sont bien remplies pour les revenus du ménage
         poids = poids[(poids.exdep == 1) & (poids.exrev == 1)]
         del poids['exdep'], poids['exrev']
         poids.rename(
@@ -122,22 +90,15 @@ def build_depenses_homogenisees(year = None):
 
         conso_unstacked = conso_small.set_index(['ident_men', 'poste1995']).unstack('poste1995')
         conso_unstacked = conso_unstacked.fillna(0)
-#		if ${yearrawdata} == 2000 {
-#			use "$rawdatadir\consomen.dta", clear
-#			order IDENT PONDMEN CTOTALE  C01 C02 C03 C04 C05 C06 C07 C08 C09 C10 C11 C12 C13, first
-#			drop CTOTALE C01-C13 C99 C99999
-#			*keep if _n < 300
-#			reshape long C, i(IDENT) j(poste${yearrawdata}, s)
-#			rename C depense
-#			rename IDENT ident_men
-#			rename PONDMEN pondmen
-#		}
+
         levels = conso_unstacked.columns.levels[1]
         labels = conso_unstacked.columns.labels[1]
         conso_unstacked.columns = levels[labels]
         conso_unstacked.rename(index = {0: 'ident_men'}, inplace = True)
         conso = conso_unstacked.merge(poids, left_index = True, right_index = True)
         conso = conso.reset_index()
+
+# pour 2005
 
     if year == 2000:
         conso = survey.get_values(table = "consomen")
@@ -152,16 +113,6 @@ def build_depenses_homogenisees(year = None):
                         ["c0{}".format(i) for i in range(1, 10)] + \
                         ["c{}".format(i) for i in range(10, 14)]:
             del conso[variable]
-
-        #		if ${yearrawdata} == 2005 {
-        #			use "$rawdatadir\c05d.dta", clear
-        #			order _all, alpha
-        #			*keep if _n < 100
-        #			order ident pondmen, first
-        #			reshape long c, i(ident) j(poste${yearrawdata}, s)
-        #			rename c depense
-        #			sort ident_men poste
-        #		}
 
     if year == 2005:
         conso = survey.get_values(table = "c05d")
@@ -178,63 +129,6 @@ def build_depenses_homogenisees(year = None):
             inplace = True,
             )
         del conso['ctot']
-
-#	order ident pondmen poste depense
-#	sort poste
-#	* Fusionner le tableau de passage sur les données de consommation
-#	merge m:1 poste${datayear} using "`nomen'"
-#	quietly tab _merge
-#	local test `= r(min)'
-#	if `test' == 1 {
-#		dis "Il y a un problème dans le tableau de passage: certains postes de dépenses de la base BdF " ///
-#		"${yearrawdata} n'ont pas de poste correspondant dans la nomenclature COICOP modifiée." ///
-#		" Type q to continue, type BREAK to stop."
-#		pause
-#	}
-#	tab posteCOICOP if _m == 2
-#	drop if _merge == 2
-#	drop _merge
-#
-#	* OBTENIR LES DEPENSES PAR MENAGE ET PAR POSTE DE LA NOMENCLATURE COMMUNE
-#	collapse (sum) depense (mean) pondmen, by(ident_men posteCOICOP)
-#	sort posteCOICOP
-#	preserve
-#	tempfile poids
-#	keep ident_men pondmen
-#	duplicates drop ident_men, force
-#	sort ident_men
-#	save "`poids'"
-#	restore
-#
-#	preserve
-#	tempfile coicop
-#	import excel "$paramdir\Nomenclature commune.xls", clear first sheet("nomenclature")
-#	sort posteCOICOP
-#	*keep codeCOICOP description
-#	save "`coicop'"
-#	restore
-#
-#	merge posteCOICOP using "`coicop'"
-#	quietly tab _merge
-#	local test2 `= r(min)'
-#	if `test2' == 1 {
-#		dis "Il y a un problème: certains postes de dépenses n'ont pas de poste correspondant dans la nomenclature COICOP modifiée." ///
-#		" Type q to continue, type BREAK to stop."
-#		pause
-#	}
-#	drop _merge
-#	fillin posteCOICOP ident_men
-#	drop _fillin
-#	drop if ident_men == ""
-#	merge m:1 posteCOICOP using "`coicop'", update
-#	tab _m
-#	drop _m
-#	merge m:1 ident_men using "`poids'", update keepusing(pondmen)
-#	tab _m
-#	drop _m
-#	sort ident posteCOICOP
-#	tempfile depenses
-#	save "`depenses'"
 
     # Grouping by coicop
 
@@ -255,7 +149,7 @@ def build_depenses_homogenisees(year = None):
             return int(coicop.replace('c', '').lstrip('0'))
         except:
             return numpy.NaN
-
+     # cette étape permet d'harmoniser les df pour 1995 qui ne se présentent pas de la même façon que pour les trois autres années
     if year == 1995:
         coicop_labels = [
             normalize_coicop(coicop_by_poste_bdf.get(poste_bdf))
