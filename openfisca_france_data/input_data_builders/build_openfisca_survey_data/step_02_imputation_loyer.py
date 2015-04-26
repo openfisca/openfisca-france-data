@@ -550,10 +550,13 @@ concerns {} observations
     save_hdf_r_readable(logement.astype('int32'), file_name = "logement_imputation")
 
     import subprocess
-    subprocess.check_call(['/usr/bin/Rscript', '/home/benjello/data/openfisca/tmp/imputation_loyer.R'])
-    return erf, logement
+    import os
+    os.path.abspath
+    imputation_loyer_R = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'imputation_loyer.R')
+    temporary_store_directory = os.path.dirname(temporary_store.filename)
+    subprocess.check_call(['/usr/bin/Rscript', imputation_loyer_R, temporary_store_directory])
 
-    fill_erf_nnd = pandas.read_hdf('/home/benjello/data/openfisca/tmp/imputation.h5', 'fill_erf_nnd')
+    fill_erf_nnd = pandas.read_hdf(os.path.join(temporary_store_directory, 'imputation.h5'), 'fill_erf_nnd')
     assert set(fill_erf_nnd.ident) == set(erf.ident.astype('int32'))
 
 #    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes
