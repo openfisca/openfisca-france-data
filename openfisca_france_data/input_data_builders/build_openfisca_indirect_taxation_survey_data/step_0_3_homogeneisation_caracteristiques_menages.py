@@ -556,7 +556,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
 
 
        #ajout de la variable vag
-        vague = survey.get_values(table = "depmen")
+        try:
+          vague = survey.get_values(table = "DEPMEN")
+        except:
+          vague = survey.get_values(table = "depmen")
         kept_variables = ['vag']
         vague = vague[kept_variables]
         menage = menage.merge(vague, left_index = True, right_index = True)
