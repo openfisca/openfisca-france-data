@@ -548,7 +548,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             columns = {
                 'ident_me': 'ident_men',
                 'coeffuc': 'ocde10',
-                'typmen5' : 'typmen'
+                'typmen5' : 'typmen',
+                'decuc1' : 'decuc'
                 },
             inplace = True,
             )
