@@ -95,6 +95,8 @@ def build_homogeneisation_vehicules(year = None):
     # Compute the number of cars by category
     if year != 1995:
         vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()
+        vehicule["pourcentage_vehicule_essence"] = 0
+        vehicule.pourcentage_vehicule_essence[vehicule.veh_tot != 0] = vehicule.veh_essence / vehicule.veh_tot
 
         # Save in temporary store
         temporary_store['automobile_{}'.format(year)] = vehicule

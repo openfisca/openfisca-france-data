@@ -98,8 +98,6 @@ def build_depenses_homogenisees(year = None):
         conso = conso_unstacked.merge(poids, left_index = True, right_index = True)
         conso = conso.reset_index()
 
-# pour 2005
-
     if year == 2000:
         conso = survey.get_values(table = "consomen")
         conso.rename(
