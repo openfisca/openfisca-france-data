@@ -59,7 +59,7 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 
-def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
+def run_all(year_calage = 2005, year_data_list = [1995, 2000, 2005, 2011]):
 
     temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -97,6 +97,11 @@ def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(
         [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
+
+    if year_data != 1995:
+        data_frame.veh_tot = data_frame.veh_tot.fillna(0)
+        data_frame.veh_essence = data_frame.veh_essence.fillna(0)
+        data_frame.veh_diesel = data_frame.veh_diesel.fillna(0)
 
     data_frame.index.name = "ident_men"
     # TODO: Homogénéiser: soit faire en sorte que ident_men existe pour toutes les années
