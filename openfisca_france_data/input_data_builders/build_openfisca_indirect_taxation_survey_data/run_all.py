@@ -49,7 +49,7 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
     import build_homogeneisation_revenus_menages
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_03_calage\
-    import build_depenses_calees
+    import build_depenses_calees, build_revenus_cales
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_04_homogeneisation_categories_fiscales\
     import build_menage_consumption_by_categorie_fiscale
@@ -59,7 +59,7 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 
-def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
+def run_all(year_calage = 2005, year_data_list = [1995, 2000, 2005, 2011]):
 
     temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -78,7 +78,7 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
     # Gestion des véhicules:
     build_homogeneisation_vehicules(year = year_data)
-    if year_data != 1995:
+    if year_calage != 1995:
         vehicule = temporary_store['automobile_{}'.format(year_data)]
     else:
         vehicule = None
@@ -90,7 +90,8 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
     # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
-    revenus = temporary_store["revenus_{}".format(year_data)]
+    build_revenus_cales(year_calage, year_data)
+    revenus = temporary_store["revenus_cales_{}".format(year_data)]
 
     temporary_store.close()
 
@@ -137,7 +138,7 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    year_calage = 2011
+    year_calage = 2005
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     #
