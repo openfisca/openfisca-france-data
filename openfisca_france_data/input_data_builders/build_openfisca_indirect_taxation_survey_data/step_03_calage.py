@@ -258,7 +258,7 @@ def build_revenus_cales(year_calage, year_data):
     revenus_cales = revenus
 
     # Calcul des ratios de calage :
-    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000000 - loyer_imput_cn * 1000000)/ weighted_sum_revenus
+    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000)/ weighted_sum_revenus
     revenus_cales['ratio_loyer_impute'] = rev_disponible_cn * 1000000000 / weighted_sum_loyer_impute
 
 
