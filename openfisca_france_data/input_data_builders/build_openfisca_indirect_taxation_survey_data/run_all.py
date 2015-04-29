@@ -91,7 +91,7 @@ def run_all(year_calage = 2005, year_data_list = [1995, 2000, 2005, 2011]):
     # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
     build_revenus_cales(year_calage, year_data)
-    revenus = temporary_store["revenus_cales_{}".format(year_data)]
+    revenus = temporary_store["revenus_cales_{}".format(year_calage)]
 
     temporary_store.close()
 

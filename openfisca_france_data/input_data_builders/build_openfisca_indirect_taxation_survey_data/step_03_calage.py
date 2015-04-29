@@ -242,7 +242,7 @@ def build_revenus_cales(year_calage, year_data):
             inplace = True
             )
 
-    masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_data]
+    masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_calage]
 
     revenus = temporary_store['revenus_{}'.format(year_data)]
 
