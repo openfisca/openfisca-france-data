@@ -264,7 +264,7 @@ def build_revenus_cales(year_calage, year_data):
 
     # Application des ratios de calage
     revenus_cales.rev_disponible = revenus.rev_disponible * revenus_cales['ratio_revenus']
-    revenus_cales.loyer_impute = revenus_cales.loyer_impute * revenus_cales['ratio_loyer_impute']
+    revenus_cales.loyer_impute = (revenus_cales.rev_disp_loyerimput-revenus_cales.rev_disponible) * revenus_cales['ratio_loyer_impute']
 
     temporary_store['revenus_cales_{}'.format(year_calage)] = revenus_cales
 
