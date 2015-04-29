@@ -156,7 +156,16 @@ def build_homogeneisation_revenus_menages(year = None):
 # La variable revtot est la somme des revenus d'activité, sociaux, du patrimoine et d'aide. */
 #
         rev_disp['rev_disponible'] = rev_disp.revtot - rev_disp.impot_revenu - rev_disp.imphab
-        for var in ['somme_obl_recue', 'act_indpt', 'revpat', 'salaires', 'autres_rev', 'rev_disponible', 'impfon', 'imphab', 'revsoc', 'revact', 'impot_revenu', 'revtot'] :
+        loyers_imputes = temporary_store['depenses_bdf_{}'.format(year)]
+        loyers_imputes.rename(
+            columns = {"0411": "loyer_impute"},
+            inplace = True,
+            )
+
+        rev_dispbis = loyers_imputes.merge(rev_disp, left_index = True, right_index = True)
+        rev_disp['rev_disp_loyerimput'] = rev_disp['rev_disponible'] - rev_dispbis['loyer_impute']
+
+        for var in ['somme_obl_recue', 'act_indpt', 'revpat', 'salaires', 'autres_rev', 'rev_disponible', 'impfon', 'imphab', 'revsoc', 'revact', 'impot_revenu', 'revtot', 'rev_disp_loyerimput'] :
             rev_disp[var] = rev_disp[var] / 6.55957
 # * CONVERSION EN EUROS
 
@@ -363,7 +372,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 1995
+    year = 2000
     build_homogeneisation_revenus_menages(year = year)
 
     log.info("step_0_4_homogeneisation_revenus_menages duration is {}".format(time.clock() - deb))

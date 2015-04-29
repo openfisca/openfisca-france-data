@@ -109,11 +109,8 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00 = imput00.merge(hotdeck, on = 'ident_men')
         imput00.loyer_impute[imput00.observe] = 0
         imput00.reset_index(inplace = True)
-        loyers_imputes = imput00[['ident_men', 'loyer_impute', 'stalog', 'observe']].copy()
+        loyers_imputes = imput00[['ident_men', 'loyer_impute']].copy()
         assert loyers_imputes.loyer_impute.notnull().all()
-        loyers_imputes.loyer_impute[loyers_imputes.stalog.isin([1, 2, 5])] = 0
-        del loyers_imputes['stalog']
-        del loyers_imputes['observe']
         loyers_imputes.rename(columns = dict(loyer_impute = '0411'), inplace = True)
 
 
