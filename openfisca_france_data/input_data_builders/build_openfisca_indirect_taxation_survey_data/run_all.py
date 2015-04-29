@@ -49,7 +49,7 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
     import build_homogeneisation_revenus_menages
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_03_calage\
-    import build_depenses_calees
+    import build_depenses_calees, build_revenus_cales
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_04_homogeneisation_categories_fiscales\
     import build_menage_consumption_by_categorie_fiscale
@@ -59,7 +59,7 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 
-def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
+def run_all(year_calage = 2005, year_data_list = [1995, 2000, 2005, 2011]):
 
     temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -75,10 +75,11 @@ def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
     build_menage_consumption_by_categorie_fiscale(year_calage, year_data)
     categorie_fiscale_data_frame = temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)]
     depenses_calees_by_grosposte = temporary_store["depenses_calees_by_grosposte_{}".format(year_calage)]
+    depenses_calees = temporary_store["depenses_calees_{}".format(year_calage)]
 
     # Gestion des véhicules:
     build_homogeneisation_vehicules(year = year_data)
-    if year_data != 1995:
+    if year_calage != 1995:
         vehicule = temporary_store['automobile_{}'.format(year_data)]
     else:
         vehicule = None
@@ -87,16 +88,22 @@ def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
     build_homogeneisation_caracteristiques_sociales(year = year_data)
     menage = temporary_store['donnes_socio_demog_{}'.format(year_data)]
 
-
     # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
-    revenus = temporary_store["revenus_{}".format(year_data)]
+    build_revenus_cales(year_calage, year_data)
+    revenus = temporary_store["revenus_cales_{}".format(year_data)]
 
     temporary_store.close()
 
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(
-        [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees_by_grosposte], axis = 1)
+        [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees, depenses_calees_by_grosposte], axis = 1)
+
+    if year_data != 1995:
+        data_frame.veh_tot = data_frame.veh_tot.fillna(0)
+        data_frame.veh_essence = data_frame.veh_essence.fillna(0)
+        data_frame.veh_diesel = data_frame.veh_diesel.fillna(0)
+        data_frame.pourcentage_vehicule_essence = data_frame.pourcentage_vehicule_essence.fillna(0)
 
     data_frame.index.name = "ident_men"
     # TODO: Homogénéiser: soit faire en sorte que ident_men existe pour toutes les années
@@ -131,7 +138,7 @@ def run_all(year_calage = 1995, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    year_calage = 1995
+    year_calage = 2005
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     #

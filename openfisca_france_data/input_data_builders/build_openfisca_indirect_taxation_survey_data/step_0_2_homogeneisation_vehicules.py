@@ -45,52 +45,7 @@ temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 #
 #
 #	* DONNEES SUR LES TYPES DE CARBURANTS
-#
-#	if ${yearrawdata} == 1995 {
-#	* L'enquête BdF 1995 ne contient pas d'information sur le type de carburant utilisé par les véhicules.
-#	}
-#
-#	if ${yearrawdata} == 2000 {
-#		use "$rawdatadir\depmen.dta", clear
-#		keep IDENT CARBU*
-#		rename IDENT ident_men
-#		rename CARBU01 carbu1
-#		rename CARBU02 carbu2
-#		replace carbu1 = "0" if carbu1 == ""
-#		replace carbu2 = "0" if carbu2 == ""
-#		reshape long carbu, i(ident) j(num_veh)
-#		keep if inlist(carbu,"1","2")
-#		gen veh_tot = 1
-#		gen veh_essence = (carbu == "1")
-#		gen veh_diesel = (carbu == "2")
-#		collapse (sum) veh_tot veh_essence veh_diesel, by(ident)
-#		label var veh_tot     "Nombre total de vehicules dans le ménage"
-#		label var veh_essence "Nombre de vehicules à essence dans le ménage"
-#		label var veh_diesel  "Nombre total de vehicules diesel dans le ménage"
-#		sort ident
-#		tempfile automobile
-#		save "`automobile'"
-#		save "$datadir\automobile.dta", replace
-#
-#	}
-#
-#	if ${yearrawdata} == 2005 {
-#		use "$rawdatadir\automobile.dta", clear
-#		keep ident_men carbu vag
-#		keep if inlist(carbu,"1","2")
-#		gen veh_tot = 1
-#		gen veh_essence = (carbu == "1")
-#		gen veh_diesel = (carbu == "2")
-#		keep if inlist(carbu,"1","2")
-#		collapse (sum) veh_tot veh_essence veh_diesel, by(ident)
-#		label var veh_tot     "Nombre total de vehicules dans le ménage"
-#		label var veh_essence "Nombre de vehicules à essence dans le ménage"
-#		label var veh_diesel  "Nombre total de vehicules diesel dans le ménage"
-#		sort ident
-#		tempfile automobile
-#		save "`automobile'"
-#		save "$datadir\automobile.dta", replace
-#	}
+
 
 def build_homogeneisation_vehicules(year = None):
     """Compute vehicule numbers by type"""
@@ -103,6 +58,8 @@ def build_homogeneisation_vehicules(year = None):
 
     if year == 1995:
         vehicule = None
+
+#	* L'enquête BdF 1995 ne contient pas d'information sur le type de carburant utilisé par les véhicules.
 
     if year == 2000:
         vehicule = survey.get_values(table = "depmen")
@@ -138,6 +95,8 @@ def build_homogeneisation_vehicules(year = None):
     # Compute the number of cars by category
     if year != 1995:
         vehicule = vehicule.groupby(by = 'ident_men')["veh_tot", "veh_essence", "veh_diesel"].sum()
+        vehicule["pourcentage_vehicule_essence"] = 0
+        vehicule.pourcentage_vehicule_essence[vehicule.veh_tot != 0] = vehicule.veh_essence / vehicule.veh_tot
 
         # Save in temporary store
         temporary_store['automobile_{}'.format(year)] = vehicule

@@ -172,7 +172,6 @@ def build_depenses_calees(year_calage, year_data):
     masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)
     # Enquête agrégée au niveau des gros postes de COICOP (12)
     df_bdf_weighted_sum_by_grosposte = get_bdf_data_frames(year_data)
-    # TODO: check that the grospostes correspond to the right category (what are the 22, 45, 99 categories ?)
 
     # Calcul des ratios de calage :
     masses = calcul_ratios_calage(
@@ -215,6 +214,62 @@ def build_depenses_calees(year_calage, year_data):
     # Sauvegarde de la base en coicop agrégée calée
     temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
 
+
+def build_revenus_cales(year_calage, year_data):
+
+
+    # Masses de calage provenant de la comptabilité nationale
+    parser = SafeConfigParser()
+    config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+    config_ini = os.path.join(config_files_directory, 'config.ini')
+    parser.read([config_ini, config_local_ini])
+
+    directory_path = os.path.normpath(
+        parser.get("openfisca_france_indirect_taxation", "assets")
+        )
+
+    parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
+    masses_cn_revenus_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "revenus_CN")
+
+# ne pas oublier d'enlever l'accent à "loyers imputés" dans le document excel Parametres fiscalité indirecte
+
+    masses_cn_revenus_data_frame.rename(
+            columns = {
+                'annee': 'year',
+                'Revenu disponible brut': 'rev_disponible_cn',
+                'Loyers imputes': 'loyer_imput_cn'
+                },
+            inplace = True
+            )
+
+    masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_data]
+
+    revenus = temporary_store['revenus_{}'.format(year_data)]
+
+
+    weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
+
+    revenus.rev_disp_loyerimput = revenus.rev_disp_loyerimput.astype(float)
+    weighted_sum_loyer_impute = (revenus.pondmen * revenus.rev_disp_loyerimput).sum()
+
+    rev_disponible_cn = masses_cn_revenus_data_frame.rev_disponible_cn.sum()
+    loyer_imput_cn = masses_cn_revenus_data_frame.loyer_imput_cn.sum()
+
+    revenus_cales = revenus
+
+    # Calcul des ratios de calage :
+    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000)/ weighted_sum_revenus
+    revenus_cales['ratio_loyer_impute'] = rev_disponible_cn * 1000000 / weighted_sum_loyer_impute
+
+
+    # Application des ratios de calage
+    revenus_cales.rev_disponible = revenus.rev_disponible * revenus_cales['ratio_revenus']
+    revenus_cales.loyer_impute = (revenus_cales.rev_disp_loyerimput-revenus_cales.rev_disponible) * revenus_cales['ratio_loyer_impute']
+
+    temporary_store['revenus_cales_{}'.format(year_calage)] = revenus_cales
+
+
+
 # Vérification des résultats du calage :
 #    La différence du nombre de colonne vient du fait que l'on ne garde pas
 #    les postes 99... qui sont des dépenses en impôts, taxes, loyers...
@@ -229,5 +284,6 @@ if __name__ == '__main__':
     year_data = 2000
 
     build_depenses_calees(year_calage, year_data)
+    build_revenus_cales(year_calage, year_data)
 
     log.info("step 03 calage duration is {}".format(time.clock() - deb))
