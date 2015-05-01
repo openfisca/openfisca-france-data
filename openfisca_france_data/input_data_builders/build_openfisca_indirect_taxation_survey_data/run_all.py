@@ -59,7 +59,7 @@ log = logging.getLogger(__name__)
 from openfisca_france_data.temporary import TemporaryStore
 
 
-def run_all(year_calage = 2005, year_data_list = [1995, 2000, 2005, 2011]):
+def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
     temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
@@ -138,7 +138,7 @@ def run_all(year_calage = 2005, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    year_calage = 2005
+    year_calage = 2011
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     #
