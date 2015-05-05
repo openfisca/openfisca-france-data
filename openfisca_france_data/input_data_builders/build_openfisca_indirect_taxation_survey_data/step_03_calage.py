@@ -242,15 +242,15 @@ def build_revenus_cales(year_calage, year_data):
             inplace = True
             )
 
-    masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_data]
+    masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_calage]
 
     revenus = temporary_store['revenus_{}'.format(year_data)]
 
 
     weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
 
-    revenus.rev_disp_loyerimput = revenus.rev_disp_loyerimput.astype(float)
-    weighted_sum_loyer_impute = (revenus.pondmen * revenus.rev_disp_loyerimput).sum()
+    revenus.rev_disp_loyerimput = revenus.loyer_impute.astype(float)
+    weighted_sum_loyer_impute = (revenus.pondmen * revenus.loyer_impute).sum()
 
     rev_disponible_cn = masses_cn_revenus_data_frame.rev_disponible_cn.sum()
     loyer_imput_cn = masses_cn_revenus_data_frame.loyer_imput_cn.sum()
@@ -259,12 +259,13 @@ def build_revenus_cales(year_calage, year_data):
 
     # Calcul des ratios de calage :
     revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000)/ weighted_sum_revenus
-    revenus_cales['ratio_loyer_impute'] = rev_disponible_cn * 1000000 / weighted_sum_loyer_impute
+    revenus_cales['ratio_loyer_impute'] = loyer_imput_cn * 1000000 / weighted_sum_loyer_impute
 
 
     # Application des ratios de calage
     revenus_cales.rev_disponible = revenus.rev_disponible * revenus_cales['ratio_revenus']
-    revenus_cales.loyer_impute = (revenus_cales.rev_disp_loyerimput-revenus_cales.rev_disponible) * revenus_cales['ratio_loyer_impute']
+    revenus_cales.loyer_impute = revenus_cales.loyer_impute * revenus_cales['ratio_loyer_impute']
+    revenus_cales.rev_disp_loyerimput = revenus_cales.rev_disponible + revenus_cales.loyer_impute
 
     temporary_store['revenus_cales_{}'.format(year_calage)] = revenus_cales
 
