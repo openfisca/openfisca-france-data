@@ -32,6 +32,7 @@ import os
 import numpy
 import pandas
 
+
 from openfisca_core.tools import assert_near
 from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders import get_input_data_frame
