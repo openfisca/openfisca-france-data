@@ -42,7 +42,7 @@ def test_survey_simulation():
 
     data_frame_by_entity_key_plural = dict(
         individus = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
+            dict((name, simulation.calculate(name)) for name in [
                 'idmen',
                 'quimen',
                 'idfoy',
@@ -56,7 +56,7 @@ def test_survey_simulation():
                 # 'smic55',
                 'txtppb',
                 # salsuperbrut # TODO bug in 2006
-                ]])
+                ])
             ),
         familles = pandas.DataFrame(
             dict([(name, simulation.calculate_add(name)) for name in [
