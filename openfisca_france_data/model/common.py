@@ -27,6 +27,10 @@ from __future__ import division
 
 from numpy import arange, argsort, asarray, cumsum, linspace, logical_and as and_, repeat
 
+
+from openfisca_survey_manager.statshelpers import weighted_quantiles
+
+
 from .base import *  # noqa analysis:ignore
 
 
@@ -250,6 +254,8 @@ class decile(SimpleFormulaColumn):
         wprm = simulation.calculate('wprm', period)
         labels = arange(1, 11)
         method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
         decile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
         # print values
         # print len(values)
@@ -288,6 +294,8 @@ class decile_net(SimpleFormulaColumn):
         wprm = simulation.calculate('wprm', period)
         labels = arange(1, 11)
         method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
         decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * champm, method, return_quantiles = True)
         return period, decile * champm
 
@@ -309,6 +317,8 @@ class pauvre40(SimpleFormulaColumn):
         wprm = simulation.calculate('wprm', period)
         labels = arange(1, 3)
         method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
         percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
         threshold = .4 * values[1]
         return period, (nivvie <= threshold) * champm
@@ -331,6 +341,9 @@ class pauvre50(SimpleFormulaColumn):
         wprm = simulation.calculate('wprm', period)
         labels = arange(1, 3)
         method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
+
         percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
         threshold = .5 * values[1]
         return period, (nivvie <= threshold) * champm
@@ -353,9 +366,44 @@ class pauvre60(SimpleFormulaColumn):
         wprm = simulation.calculate('wprm', period)
         labels = arange(1, 3)
         method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
+
         percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
         threshold = .6 * values[1]
         return period, (nivvie <= threshold) * champm
+
+
+@reference_formula
+class decile_rfr(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Hors champ",
+            u"1er décile",
+            u"2nd décile",
+            u"3e décile",
+            u"4e décile",
+            u"5e décile",
+            u"6e décile",
+            u"7e décile",
+            u"8e décile",
+            u"9e décile",
+            u"10e décile"
+            ])
+        )
+    entity_class = FoyersFiscaux
+    label = u"Décile de niveau de revenu fiscal de référence"
+
+    def function(self, simulation, period):
+        rfr = simulation.calculate('rfr', period)
+        weight_foyers = simulation.calculate('weight_foyers', period)
+        import numpy
+        labels = numpy.arange(1, 11)
+        # Alternative method
+        # method = 2
+        # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr, labels, weight_foyers, return_quantiles = True)
+        return period, decile
 
 
 @reference_formula

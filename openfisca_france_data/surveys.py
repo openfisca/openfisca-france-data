@@ -92,7 +92,7 @@ class SurveyScenario(AbstractSurveyScenario):
     def custom_initialize(self):
         simulation = self.simulation
         for offset in [-1, -2]:
-            for variable_name in ['sal', 'cho', 'rst']:
+            for variable_name in ['salaire_imposable', 'cho', 'rst']:
                 variable = simulation.get_or_new_holder(variable_name)
                 variable.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
 
