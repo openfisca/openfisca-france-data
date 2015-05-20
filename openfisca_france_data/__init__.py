@@ -72,8 +72,8 @@ AGGREGATES_DEFAULT_VARS = [
     # ajouter csgd pour le calcul des agrégats erfs
     # ajouter rmi pour le calcul des agrégats erfs
 
-openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
-default_config_files_directory = os.path.join(openfisca_france_location)
+default_config_files_directory = os.path.join(
+    pkg_resources.get_distribution('openfisca-survey-manager').location)
 
 COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
 FILTERING_VARS = ["champm"]

@@ -331,7 +331,13 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
 
     log.info("Preparing logement menage table")
 
-    logement_menage = logement_survey.get_values(table = "lgt_menage", variables = logement_menage_variables)
+    try:
+        logement_menage = logement_survey.get_values(
+            table = "lgt_menage", variables = logement_menage_variables)
+    except:
+        logement_menage = logement_survey.get_values(
+            table = "menage1", variables = logement_menage_variables)
+
     logement_menage.rename(columns = {'idlog': 'ident'}, inplace = True)
 
     logement_menage['mrcho'].fillna(0, inplace = True)
@@ -372,7 +378,13 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
 
     if year_lgt == 2006:
         log.info('Preparing logement logement table')
-        lgtlgt = logement_survey.get_values(table = "lgt_logt", variables = logement_logement_variables)
+        try:
+            lgtlgt = logement_survey.get_values(
+                table = "lgt_logt", variables = logement_logement_variables)
+        except:
+            lgtlgt = logement_survey.get_values(
+                table = "logement", variables = logement_logement_variables)
+
         lgtlgt.rename(columns = {'idlog': 'ident'}, inplace = True)
         logement_menage = logement_menage.merge(lgtlgt, left_on = 'ident', right_on = 'ident', how = 'inner')
         del lgtlgt
@@ -554,7 +566,12 @@ concerns {} observations
     os.path.abspath
     imputation_loyer_R = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'imputation_loyer.R')
     temporary_store_directory = os.path.dirname(temporary_store.filename)
-    subprocess.check_call(['/usr/bin/Rscript', imputation_loyer_R, temporary_store_directory])
+    print imputation_loyer_R
+    try:
+        subprocess.check_call(['/usr/bin/Rscript', imputation_loyer_R, temporary_store_directory])
+    except WindowsError:
+        subprocess.check_call(['C:/Program Files/R/R-2.15.1/bin/x64/Rscript.exe',
+            imputation_loyer_R, temporary_store_directory], shell = True)
 
     fill_erf_nnd = pandas.read_hdf(os.path.join(temporary_store_directory, 'imputation.h5'), 'fill_erf_nnd')
     assert set(fill_erf_nnd.ident) == set(erf.ident.astype('int32'))

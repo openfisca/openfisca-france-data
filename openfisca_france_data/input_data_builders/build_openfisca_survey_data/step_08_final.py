@@ -82,7 +82,6 @@ def final(temporary_store = None, year = None, check = True):
 
     menagem = temporary_store['menagem_{}'.format(year)]
     assert 'ident' in menagem.columns
-    assert 'loyer' in menagem.columns
     assert 'so' in menagem.columns
     menagem.rename(
         columns = dict(ident = "idmen", so = "statut_occupation"),
@@ -96,7 +95,6 @@ def final(temporary_store = None, year = None, check = True):
         "cstotpragr",
         "ddipl",
         "idmen",
-        "loyer",
         "nbinde",
         "pol99",
         "reg",
@@ -110,6 +108,9 @@ def final(temporary_store = None, year = None, check = True):
     if year == 2008:
         variables.remove("tau99")
     famille_variables = ["m_afeamam", "m_agedm", "m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
+
+    if 'loyer' in menagem.columns:
+        variables.append('loyer')
 # if ("naf16pr" %in% names(menagem)) {
 #   naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16
@@ -350,8 +351,9 @@ def final(temporary_store = None, year = None, check = True):
         data_frame = id_formatter(data_frame, entity_id)
 
     log.info('Dealing with loyer')
-    assert 'loyer' in data_frame.columns
-    data_frame.loyer = data_frame.loyer * 12.0
+    if 'loyer' in data_frame.columns:
+        assert 'loyer' in data_frame.columns
+        data_frame.loyer = data_frame.loyer * 12.0
     log.info('Set variables to their default values')
     set_variables_default_value(data_frame, year)
 
