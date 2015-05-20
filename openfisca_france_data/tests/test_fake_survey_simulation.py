@@ -61,11 +61,11 @@ def get_fake_input_data_frame(year = None):
     store = pandas.HDFStore(hdf5_file_realpath)
     input_data_frame = store.select(str(year))
     input_data_frame.rename(
-        columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
+        columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
         inplace = True,
         )
-    input_data_frame.sal[0] = 20000
-    input_data_frame.sal[1] = 10000
+    input_data_frame.salaire_imposable[0] = 20000
+    input_data_frame.salaire_imposable[1] = 10000
 
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
@@ -75,29 +75,27 @@ def test_fake_survey_simulation():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
 
-    assert input_data_frame.sal.loc[0] == 20000
-    assert input_data_frame.sal.loc[1] == 10000
+    assert input_data_frame.salaire_imposable.loc[0] == 20000
+    assert input_data_frame.salaire_imposable.loc[1] == 10000
 
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'age'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
         year = year,
         )
-    assert (survey_scenario.input_data_frame.sal.loc[0] == 20000).all()
-    assert (survey_scenario.input_data_frame.sal.loc[1] == 10000).all()
+    assert (survey_scenario.input_data_frame.salaire_imposable.loc[0] == 20000).all()
+    assert (survey_scenario.input_data_frame.salaire_imposable.loc[1] == 10000).all()
 
     simulation = survey_scenario.new_simulation()
 
-    sal = simulation.calculate('sal')
-    assert (sal[0:1] == 20000).all()
+    salaire_imposable = simulation.calculate('salaire_imposable')
+    assert (salaire_imposable[0:1] == 20000).all()
     age = simulation.calculate('age')
     assert age[0] == 77
     assert age[1] == 37
     age_en_mois = simulation.calculate('age_en_mois')
     assert age_en_mois[0] == 924
     assert age_en_mois[1] == 444
-    print simulation.period
-
     sal_2003 = simulation.calculate('sal', period = "2003")
     sal_2004 = simulation.calculate('sal', period = "2004")
     sal_2005 = simulation.calculate('sal', period = "2005")
@@ -125,7 +123,7 @@ def test_fake_survey_simulation():
             'activite',
             'br_rmi_i',
             'champm_individus',
-            'sal',
+            'salaire_imposable',
             'salaire_net',
             'smic55',
             'txtppb',
@@ -148,7 +146,7 @@ def create_fake_calibration():
     input_data_frame = get_fake_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age'],
         year = year,
         )
     survey_scenario.new_simulation()
@@ -229,6 +227,3 @@ if __name__ == '__main__':
     df_i = df_by_entity['individus']
     df_f = df_by_entity['foyers_fiscaux']
     df_m = df_by_entity['menages']
-    print df_i
-    print df_m
-#    calibration = test_fake_calibration_age()

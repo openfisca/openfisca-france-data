@@ -16,13 +16,13 @@
   individus:
     - id: "parent1"
       age: 40
-      sal: 25000
+      salaire_imposable: 25000
     - id: "parent2"
       age: 40
-      sal: 25000
+      salaire_imposable: 25000
     - id: "enfant1"
       age: 9
-      sal: 25000
+      salaire_imposable: 25000
       invalide: true
     - id: "enfant2"
       age: 9
@@ -58,11 +58,11 @@
   individus:
     - id: "parent1"
       age: 40
-      sal: 25000
+      salaire_imposable: 25000
       statmarit: 4
     - id: "enfant1"
       age: 9
-      sal: 25000
+      salaire_imposable: 25000
     - id: "enfant2"
       age: 9
   output_variables:

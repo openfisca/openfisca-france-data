@@ -35,7 +35,7 @@ def test_survey_simulation():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'smic55'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'smic55'],
         year = year,
         )
     simulation = survey_scenario.new_simulation(trace = True)
@@ -51,7 +51,7 @@ def test_survey_simulation():
             'activite',
             'br_rmi_i',
             'champm_individus',
-            'sal',
+            'salaire_imposable',
             'salaire_net',
             'smic55',
             'txtppb',
@@ -77,7 +77,7 @@ def test_weights_building():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois'],
         year = year,
         )
     survey_scenario.new_simulation()
