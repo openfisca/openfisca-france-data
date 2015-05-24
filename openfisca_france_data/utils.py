@@ -271,7 +271,7 @@ def get_data_frame(columns_name, survey_scenario, load_first = False, collection
         table = entity
         data_frame = survey.get_values(variables = columns_name, table = table)
     else:
-        data_frame = DataFrame(dict([(column_name, simulation.calculate(column_name)) for column_name in columns_name]))
+        data_frame = DataFrame(dict([(column_name, simulation.calculate_add(column_name)) for column_name in columns_name]))
     return data_frame
 
 
@@ -284,6 +284,11 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
         variables_name = entity.column_by_name.keys()
         data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
+
+
+
+
+
 
 
 def simulation_results_as_data_frame(survey_scenario = None, column_names = None, entity = None, force_sum = False):

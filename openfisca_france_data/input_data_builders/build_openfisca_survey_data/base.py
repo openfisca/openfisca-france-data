@@ -23,7 +23,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-def create_replace(year):
+def year_specific_by_generic_data_frame_name(year):
     yr = str(year)[2:]
     yr1 = str(year + 1)[2:]
     return dict(

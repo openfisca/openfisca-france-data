@@ -35,45 +35,41 @@ def test_survey_simulation():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'smic55'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'smic55'],
         year = year,
         )
-    simulation = survey_scenario.new_simulation()
-
-    data_frame_by_entity_key_plural = dict(
-        individus = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'idmen',
-                'quimen',
-                'idfoy',
-                'quifoy',
-                'idfam',
-                'quifam',
-                'age',
-                'champm_individus',
-                'sal',
-                'salaire_net',
-                # 'smic55',
-                'txtppb',
-                # salsuperbrut # TODO bug in 2006
-                ]])
-            ),
-        familles = pandas.DataFrame(
-            dict([(name, simulation.calculate_add(name)) for name in [
-                'af_nbenf',
-                'af',
-                'weight_familles',
-                ]])
-            ),
-
-        menages = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'revdisp',
-                ]])
-            ),
+    simulation = survey_scenario.new_simulation(trace = True)
+    data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+        variables = [
+            'aspa',
+            'aide_logement_montant_brut',
+            'idmen',
+            'quimen',
+            'idfoy',
+            'quifoy',
+            'idfam',
+            'quifam',
+            'age',
+            'activite',
+            'br_rmi_i',
+            'champm_individus',
+             'pensions_alimentaires_percues',
+            'salaire_imposable',
+            'salaire_net',
+            'smic55',
+            'txtppb',
+            'af_nbenf',
+            'af',
+            'br_rmi',
+            'rsa',
+            'rstnet',
+            'weight_familles',
+            'revdisp',
+            ]
         )
 
-    (data_frame_familles.weight_familles * data_frame_familles.af).sum() / 1e9 > 10
+    assert (data_frame_by_entity_key_plural['familles'].weight_familles
+        * data_frame_by_entity_key_plural['familles'].af).sum() / 1e9 > 10
 
     return data_frame_by_entity_key_plural, simulation
 
@@ -83,7 +79,7 @@ def test_weights_building():
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois'],
         year = year,
         )
     survey_scenario.new_simulation()
@@ -97,36 +93,12 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     start = time.time()
+    year = 2009
+    # input_data_frame = get_input_data_frame(year)
     data_frame_by_entity_key_plural, simulation = test_survey_simulation()
     data_frame_individus = data_frame_by_entity_key_plural['individus']
     data_frame_menages = data_frame_by_entity_key_plural['menages']
     data_frame_familles = data_frame_by_entity_key_plural['familles']
-
-    print (data_frame_familles.weight_familles * data_frame_familles.af).sum()/1e9
-    print simulation.calculate('age_en_mois', period = "2009")
-    print simulation.calculate('age_en_mois', period = "2009-01")
-    print simulation.calculate('age_en_mois', period = "2009-02")
-    print simulation.calculate('af', period = "2009-01")
-    print simulation.calculate('af', period = "2009-02")
-    print (simulation.calculate('af', period = "2009-02")).sum()
-    print (simulation.calculate('af_nbenf', period = "2009-01")).sum()
-
-    print (simulation.calculate('af_nbenf', period = "2009-02")).sum()
-    print simulation.calculate_add('af', period = "2009")
-
-
-#    simulation = test_weights_building()
-#    from openfisca_core.periods import period
-#
-#    print simulation.calculate('age_en_mois', period = period("2009"))
-#    print simulation.calculate('age_en_mois', period = period("2009-01"))
-#    print simulation.calculate('age_en_mois', period = period("2009-02"))
-#    print simulation.calculate('age_en_mois', period = period("2009-03"))
-#
-#    age_en_mois = simulation.get_or_new_holder('age_en_mois')
-#
-#    age_en_mois.set_input("2009-01", 25)
-
-
-
+    # ra_rsa = simulation.calculate('ra_rsa', "2009-01")
+    # salaire_net = simulation.calculate('salaire_net', "2009-01")
     print time.time() - start
