@@ -47,12 +47,13 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def run_all(year = None, check = False):
+def run_all(year = None, check = False, loyer = True):
 
     assert year is not None
     pre_processing.create_indivim_menagem(year = year)
     pre_processing.create_enfants_a_naitre(year = year)
-    imputation_loyer.imputation_loyer(year = year)
+    if loyer == True : # TODO : make step 2 to work with enquete logement 2006.
+        imputation_loyer.imputation_loyer(year = year)
     fip.create_fip(year = year)
     famille.famille(year = year)
     foyer.sif(year = year)
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     import sys
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    run_all(year = 2009, check = False)
+    run_all(year = 2009, check = False, loyer = False)
     log.info("Script finished after {}".format(time.time() - start))
     # import pdb
     # pdb.set_trace()
