@@ -97,20 +97,20 @@ def test_fake_survey_simulation():
     age_en_mois = simulation.calculate('age_en_mois')
     assert age_en_mois[0] == 924
     assert age_en_mois[1] == 444
-    sal_2003 = simulation.calculate('sal', period = "2003")
-    sal_2004 = simulation.calculate('sal', period = "2004")
-    sal_2005 = simulation.calculate('sal', period = "2005")
-    sal_2006 = simulation.calculate('sal', period = "2006")
+    sal_2003 = simulation.calculate('salaire_imposable', period = "2003")
+    sal_2004 = simulation.calculate('salaire_imposable', period = "2004")
+    sal_2005 = simulation.calculate('salaire_imposable', period = "2005")
+    sal_2006 = simulation.calculate('salaire_imposable', period = "2006")
 
     assert (sal_2003 == 0).all()
     assert (sal_2004 == sal_2006).all()
     assert (sal_2005 == sal_2006).all()
     import itertools
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):
-        assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
+        assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
     for year, month in itertools.product(range(2002, 2004), range(1, 13)):
-        assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == 0).all()
+        assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
 
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
         variables = [
