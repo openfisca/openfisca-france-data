@@ -91,6 +91,7 @@ def test_fake_survey_simulation():
 
     salaire_imposable = simulation.calculate('salaire_imposable')
     assert (salaire_imposable[0:1] == 20000).all()
+    assert (salaire_imposable[1:2] == 10000).all()
     age = simulation.calculate('age')
     assert age[0] == 77
     assert age[1] == 37
@@ -106,11 +107,16 @@ def test_fake_survey_simulation():
     assert (sal_2004 == sal_2006).all()
     assert (sal_2005 == sal_2006).all()
     import itertools
-    for year, month in itertools.product(range(2004, 2007), range(1, 13)):
-        assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
     for year, month in itertools.product(range(2002, 2004), range(1, 13)):
         assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
+
+    for year, month in itertools.product(range(2004, 2007), range(1, 13)):
+        print "{}-{}".format(year, month)
+        print simulation.calculate_add_divide('salaire_imposable', period = "{}-{}".format(year, month))
+        print sal_2006 / 12
+        assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
+
 
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
         variables = [

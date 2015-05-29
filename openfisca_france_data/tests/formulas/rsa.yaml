@@ -7,7 +7,7 @@
   individus:
     - id: "parent1"
       age: 40
-      sal:
+      salaire_imposable:
         2014-10: 25000 / 12
         2014-11: 25000 / 12
         2014-12: 25000 / 12
@@ -28,7 +28,7 @@
     - id: "parent1"
       activite: 0
       age: 40
-      sal:
+      salaire_imposable:
         2008-10: 25000 / 12
         2008-11: 25000 / 12
         2008-12: 25000 / 12
