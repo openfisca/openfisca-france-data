@@ -37,7 +37,7 @@ log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
-    def init_from_data_frame(self, input_data_frame = None, tax_benefit_system = None, used_as_input_variables = None,
+    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None, tax_benefit_system = None, used_as_input_variables = None,
             year = None):
 
         if tax_benefit_system is None:
@@ -48,6 +48,7 @@ class SurveyScenario(AbstractSurveyScenario):
 
         super(SurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
+            input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
             tax_benefit_system = tax_benefit_system,
             used_as_input_variables = used_as_input_variables,
             year = year)
