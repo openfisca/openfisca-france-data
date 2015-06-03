@@ -31,6 +31,8 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 from openfisca_france_data import default_config_files_directory as config_files_directory
 
+print config_files_directory
+
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
     import find_nearest_inferior
 
@@ -97,7 +99,9 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
     # DataFrame résultant de ces 4 étapes
     data_frame = pandas.concat(
-        [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees, depenses_calees_by_grosposte], axis = 1)
+        [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees, depenses_calees_by_grosposte],
+        axis = 1,
+        )
 
     if year_data != 1995:
         data_frame.veh_tot = data_frame.veh_tot.fillna(0)
@@ -120,13 +124,17 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
     data_frame = data_frame.T.groupby(level = 0).first().T
 
     # Saving the data_frame
-    openfisca_survey_collection = SurveyCollection.load(
-        collection = 'openfisca_indirect_taxation', config_files_directory = config_files_directory)
+    try:
+        openfisca_survey_collection = SurveyCollection.load(
+            collection = 'openfisca_indirect_taxation', config_files_directory = config_files_directory)
+    except:
+        openfisca_survey_collection = SurveyCollection(
+            name = 'openfisca_indirect_taxation', config_files_directory = config_files_directory)
 
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_indirect_taxation_data_{}".format(year_calage)
     table = "input"
-    hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
+    hdf5_file_path = os.path.join(output_data_directory, "{}.h5".format(survey_name))
     survey = Survey(
         name = survey_name,
         hdf5_file_path = hdf5_file_path,
@@ -138,7 +146,7 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
 if __name__ == '__main__':
     import time
-    year_calage = 2011
+    year_calage = 2005
     year_data_list = [1995, 2000, 2005, 2011]
     run_all(year_calage, year_data_list)
     #
