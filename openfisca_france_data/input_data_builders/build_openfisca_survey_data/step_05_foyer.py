@@ -177,10 +177,10 @@ def foyer_all(temporary_store = None, year = None):
     # rename variable to fxzz ou ^f[0-9][a-z]{2}")
     renamed_variables = ["f{}".format(x[1:]) for x in variables]
 
-    foyer = foyer_all[variables + ["noindiv"] + [u'revimp']].copy()  # Memory expensive ...
+    foyer = foyer_all[variables + ["noindiv"]].copy()  # Memory expensive ...
     del foyer_all
     gc.collect()
-    foyer.rename(columns = dict(zip(variables + [u'revimp'], renamed_variables + [u'revimp'])), inplace = True)
+    foyer.rename(columns = dict(zip(variables, renamed_variables)), inplace = True)
 
     # On aggrège les déclarations dans le cas où un individu a fait plusieurs déclarations
     foyer = foyer.groupby("noindiv", as_index = False).aggregate(numpy.sum)
@@ -283,7 +283,6 @@ def foyer_all(temporary_store = None, year = None):
     var_dict.update(cases_f6_f7_f8)
     vars_sets = [set(var_list) for var_list in var_dict.values()]
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))
-    eligible_vars.add('revimp')
     log.info(
         u"From {} variables, we keep {} eligibles variables".format(
             len(set().union(*vars_sets)),
