@@ -28,22 +28,24 @@ import logging
 import pandas
 
 
-log = logging.getLogger(__name__)
-
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import TemporaryStore
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
+
+log = logging.getLogger(__name__)
 
 
 # **************************************************************************************************************************
 # * Etape n° 0-1-2 : IMPUTATION DE LOYERS POUR LES MENAGES PROPRIETAIRES
 # **************************************************************************************************************************
-def build_imputation_loyers_proprietaires(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_imputation_loyers_proprietaires(temporary_store = None, year = None):
     """Build menage consumption by categorie fiscale dataframe """
 
+    assert temporary_store is not None
     assert year is not None
+
     # Load data
     bdf_survey_collection = SurveyCollection.load(collection = 'budget_des_familles',
         config_files_directory = config_files_directory)
@@ -58,14 +60,14 @@ def build_imputation_loyers_proprietaires(year = None):
         imput00 = imput00[(imput00.exdep == 1) & (imput00.exrev == 1)]
         kept_variables = ['mena', 'stalog', 'surfhab', 'confort1', 'confort2', 'confort3', 'confort4', 'ancons', 'sitlog', 'nbphab', 'rg', 'cc']
         imput00 = imput00[kept_variables]
-        imput00.rename(columns = {'mena' : 'ident_men'}, inplace = True)
+        imput00.rename(columns = {'mena': 'ident_men'}, inplace = True)
 
         #TODO: continue variable cleaning
         var_to_filnas = ['surfhab']
         for var_to_filna in var_to_filnas:
             imput00[var_to_filna] = imput00[var_to_filna].fillna(0)
 
-        var_to_ints = ['sitlog', 'confort1', 'stalog', 'surfhab','ident_men','ancons','nbphab']
+        var_to_ints = ['sitlog', 'confort1', 'stalog', 'surfhab', 'ident_men', 'ancons', 'nbphab']
         for var_to_int in var_to_ints:
             imput00[var_to_int] = imput00[var_to_int].astype(int)
 
@@ -74,30 +76,29 @@ def build_imputation_loyers_proprietaires(year = None):
         depenses_small = depenses[['ident_men', '04110', 'pondmen']].copy()
         depenses_small.ident_men = depenses_small.ident_men.astype('int')
         imput00 = depenses_small.merge(imput00, on = 'ident_men').set_index('ident_men')
-        imput00.rename(columns = {'04110' : 'loyer_reel'}, inplace = True)
+        imput00.rename(columns = {'04110': 'loyer_reel'}, inplace = True)
 
-#		* une indicatrice pour savoir si le loyer est connu et l'occupant est locataire
+#       * une indicatrice pour savoir si le loyer est connu et l'occupant est locataire
 
         imput00['observe'] = (imput00.loyer_reel > 0) & (imput00.stalog.isin([3, 4]))
         imput00['maison_appart'] = imput00.sitlog == 1
 
         imput00['catsurf'] = (
-          1  +
-          (imput00.surfhab > 15) +
-          (imput00.surfhab > 30) +
-          (imput00.surfhab > 40) +
-          (imput00.surfhab > 60) +
-          (imput00.surfhab > 80) +
-          (imput00.surfhab > 100) +
-          (imput00.surfhab > 150)
-          )
+            1 +
+            (imput00.surfhab > 15) +
+            (imput00.surfhab > 30) +
+            (imput00.surfhab > 40) +
+            (imput00.surfhab > 60) +
+            (imput00.surfhab > 80) +
+            (imput00.surfhab > 100) +
+            (imput00.surfhab > 150)
+            )
         assert imput00.catsurf.isin(range(1, 9)).all()
         # TODO: vérifier ce qe l'on fait notamment regarder la vleur catsurf = 2 ommise dans le code stata
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 3) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 8) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 4) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
-
 
         try:
             hotdeck = pandas.read_stata('/home/benjello/IPP/openfisca_france_indirect_taxation/hotdeck_result.dta')
@@ -112,7 +113,6 @@ def build_imputation_loyers_proprietaires(year = None):
         loyers_imputes = imput00[['ident_men', 'loyer_impute']].copy()
         assert loyers_imputes.loyer_impute.notnull().all()
         loyers_imputes.rename(columns = dict(loyer_impute = '0411'), inplace = True)
-
 
     # POUR BdF 2000 ET 2005, ON UTILISE LES LOYERS IMPUTES CALCULES PAR L'INSEE
     if year == 2000:
@@ -133,12 +133,11 @@ def build_imputation_loyers_proprietaires(year = None):
         loyers_imputes = loyers_imputes[kept_variables]
         loyers_imputes.rename(columns = {'rev801_d': '0421'}, inplace = True)
 
-
     if year == 2011:
         try:
-          loyers_imputes = survey.get_values(table = "MENAGE")
+            loyers_imputes = survey.get_values(table = "MENAGE")
         except:
-          loyers_imputes = survey.get_values(table = "menage")
+            loyers_imputes = survey.get_values(table = "menage")
 
         kept_variables = ['ident_me', 'rev801']
         loyers_imputes = loyers_imputes[kept_variables]
@@ -155,11 +154,9 @@ def build_imputation_loyers_proprietaires(year = None):
     assert len(set(depenses.columns).intersection(set(loyers_imputes.columns))) == 0
     depenses = depenses.merge(loyers_imputes, left_index = True, right_index = True)
 
-
-#**************************************************************************************************************************
-#* Etape n° 0-1-3 : SAUVER LES BASES DE DEPENSES HOMOGENEISEES DANS LE BON DOSSIER
-#**************************************************************************************************************************
-
+    # ****************************************************************************************************************
+    #  Etape n° 0-1-3 : SAUVER LES BASES DE DEPENSES HOMOGENEISEES DANS LE BON DOSSIER
+    # ****************************************************************************************************************
 
     # Save in temporary store
     temporary_store['depenses_bdf_{}'.format(year)] = depenses

@@ -31,8 +31,8 @@ import logging
 import pandas
 from ConfigParser import SafeConfigParser
 
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import TemporaryStore
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import normalize_coicop
@@ -41,12 +41,10 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 log = logging.getLogger(__name__)
 
 
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
-
-
-def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_menage_consumption_by_categorie_fiscale(temporary_store = None, year_calage = None, year_data = None):
     """Build menage consumption by categorie fiscale dataframe """
-
+    assert temporary_store is not None
     assert year_calage is not None
     assert year_data is not None
 
@@ -55,7 +53,7 @@ def build_menage_consumption_by_categorie_fiscale(year_calage = None, year_data 
         get_transfert_data_frames(year = year_data)
 
     # Load data
-    coicop_data_frame = temporary_store.extract('depenses_calees_{}'.format(year_calage))
+    coicop_data_frame = temporary_store['depenses_calees_{}'.format(year_calage)]
 
     # Grouping by categorie_fiscale
     selected_parametres_fiscalite_data_frame = \
@@ -125,7 +123,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year_calage = 2007
+    year_calage = 2005
     year_data_list = [2005, 2010]
     build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
     log.info("step 01 demo duration is {}".format(time.clock() - deb))

@@ -30,7 +30,7 @@ import pandas
 from ConfigParser import SafeConfigParser
 
 
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -38,20 +38,19 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def build_depenses_homogenisees(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_depenses_homogenisees(temporary_store = None, year = None):
     """Build menage consumption by categorie fiscale dataframe """
-    temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
+    assert temporary_store is not None
     assert year is not None
-    # Load data
+
     bdf_survey_collection = SurveyCollection.load(
         collection = 'budget_des_familles', config_files_directory = config_files_directory
         )
     survey = bdf_survey_collection.get_survey('budget_des_familles_{}'.format(year))
 
+    # HOMOGENEISATION DES BASES DE DONNEES DE DEPENSES
 
-#		* HOMOGENEISATION DES BASES DE DONNEES DE DEPENSES
-
-# pour 1995
     if year == 1995:
         socioscm = survey.get_values(table = "socioscm")
         poids = socioscm[['mena', 'ponderrd', 'exdep', 'exrev']]
@@ -86,7 +85,7 @@ def build_depenses_homogenisees(year = None):
         # Passage à l'euro
         conso.depense = conso.depense / 6.55957
         conso.depense_avt_imput = conso.depense_avt_imput / 6.55957
-        conso_small=conso[[u'ident_men', u'poste1995', u'depense']]
+        conso_small = conso[[u'ident_men', u'poste1995', u'depense']]
 
         conso_unstacked = conso_small.set_index(['ident_men', 'poste1995']).unstack('poste1995')
         conso_unstacked = conso_unstacked.fillna(0)
@@ -117,9 +116,9 @@ def build_depenses_homogenisees(year = None):
 
     if year == 2011:
         try:
-          conso = survey.get_values(table = "C05")
+            conso = survey.get_values(table = "C05")
         except:
-          conso = survey.get_values(table = "c05")
+            conso = survey.get_values(table = "c05")
         conso.rename(
             columns = {
                 'ident_me': 'ident_men',
@@ -147,7 +146,7 @@ def build_depenses_homogenisees(year = None):
             return int(coicop.replace('c', '').lstrip('0'))
         except:
             return numpy.NaN
-     # cette étape permet d'harmoniser les df pour 1995 qui ne se présentent pas de la même façon que pour les trois autres années
+    # cette étape permet d'harmoniser les df pour 1995 qui ne se présentent pas de la même façon que pour les trois autres années
     if year == 1995:
         coicop_labels = [
             normalize_coicop(coicop_by_poste_bdf.get(poste_bdf))
@@ -186,7 +185,6 @@ def build_depenses_homogenisees(year = None):
     depenses_by_grosposte = depenses_by_grosposte.merge(poids, left_index = True, right_index = True)
 
     temporary_store['depenses_by_grosposte_{}'.format(year)] = depenses_by_grosposte
-    temporary_store.close()
 
 
 def normalize_coicop(code):
@@ -197,7 +195,6 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
 
     '''
     # TODO: vérifier la formule !!!
-
 
     try:
         code = unicode(code)
@@ -211,7 +208,7 @@ les deux premiers (entre 01 et 12) correspondent à ces postes agrégés de la C
             # 022.. = cigarettes et tabacs => on les range avec l'alcool (021.0)
         elif code.startswith("0"):
             normalized_code = code + "0"
-        elif code in ["1151", "1181", "4552", "4522", "4511","9122","9151","9211","9341","1411"]:
+        elif code in ["1151", "1181", "4552", "4522", "4511", "9122", "9151", "9211", "9341", "1411"]:
             # 1151 = Margarines et autres graisses végétales
             # 1181 = Confiserie
             # 04522 = Achat de butane, propane

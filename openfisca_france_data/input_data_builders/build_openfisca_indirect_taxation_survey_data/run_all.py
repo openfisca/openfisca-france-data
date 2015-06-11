@@ -27,11 +27,10 @@ import logging
 import os
 import pandas
 
+
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
 from openfisca_france_data import default_config_files_directory as config_files_directory
-
-print config_files_directory
 
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
     import find_nearest_inferior
@@ -56,9 +55,10 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_04_homogeneisation_categories_fiscales\
     import build_menage_consumption_by_categorie_fiscale
 
-log = logging.getLogger(__name__)
-
 from openfisca_france_data.temporary import TemporaryStore
+
+
+log = logging.getLogger(__name__)
 
 
 def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
@@ -73,9 +73,11 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
     build_depenses_homogenisees(year = year_data)
     build_imputation_loyers_proprietaires(year = year_data)
 
-    build_depenses_calees(year_calage, year_data)
-    build_menage_consumption_by_categorie_fiscale(year_calage, year_data)
+    build_depenses_calees(year_calage = year_calage, year_data = year_data)
+    build_menage_consumption_by_categorie_fiscale(year_calage = year_calage, year_data = year_data)
+
     categorie_fiscale_data_frame = temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)]
+
     depenses_calees_by_grosposte = temporary_store["depenses_calees_by_grosposte_{}".format(year_calage)]
     depenses_calees = temporary_store["depenses_calees_{}".format(year_calage)]
 
@@ -92,22 +94,38 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
 
     # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
-    build_revenus_cales(year_calage, year_data)
+    build_revenus_cales(year_calage = year_calage, year_data = year_data)
     revenus = temporary_store["revenus_cales_{}".format(year_calage)]
 
     temporary_store.close()
 
-    # DataFrame résultant de ces 4 étapes
+    # Concaténation des résults de ces 4 étapes
+
+    preprocessed_data_frame_by_name = dict(
+        revenus = revenus,
+        vehicule = vehicule,
+        categorie_fiscale_data_frame = categorie_fiscale_data_frame,
+        menage = menage,
+        depenses_calees = depenses_calees,
+        depenses_calees_by_grosposte = depenses_calees_by_grosposte
+        )
+
+    for name, preprocessed_data_frame in preprocessed_data_frame_by_name.iteritems():
+        assert preprocessed_data_frame.index.name == 'ident_men', \
+            'Index is not labelled ident_men in data frame {}'.format(name)
+        assert len(preprocessed_data_frame) != 0, 'Empty data frame {}'.format(name)
+        assert preprocessed_data_frame.index.dtype == 'object', "index is not an string for {}"
+
     data_frame = pandas.concat(
         [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees, depenses_calees_by_grosposte],
         axis = 1,
         )
 
     if year_data != 1995:
-        data_frame.veh_tot = data_frame.veh_tot.fillna(0)
-        data_frame.veh_essence = data_frame.veh_essence.fillna(0)
-        data_frame.veh_diesel = data_frame.veh_diesel.fillna(0)
-        data_frame.pourcentage_vehicule_essence = data_frame.pourcentage_vehicule_essence.fillna(0)
+        for vehicule_variable in ['veh_tot', 'veh_essence', 'veh_diesel', 'pourcentage_vehicule_essence']:
+            data_frame.loc[data_frame[vehicule_variable].isnull(), vehicule_variable] = 0
+        for variable in ['age{}'.format(i) for i in range(3, 14)] + ['agecj', 'agfinetu', 'agfinetu_cj', 'nenfhors']:
+            data_frame.loc[data_frame[variable].isnull(), variable] = 0
 
     data_frame.index.name = "ident_men"
     # TODO: Homogénéiser: soit faire en sorte que ident_men existe pour toutes les années
@@ -123,7 +141,7 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
     # http://stackoverflow.com/questions/16938441/how-to-remove-duplicate-columns-from-a-dataframe-using-python-pandas
     data_frame = data_frame.T.groupby(level = 0).first().T
 
-    # Saving the data_frame
+    log.info('Saving the openfisca indirect taxation input dataframe')
     try:
         openfisca_survey_collection = SurveyCollection.load(
             collection = 'openfisca_indirect_taxation', config_files_directory = config_files_directory)
@@ -144,17 +162,19 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
     openfisca_survey_collection.dump()
 
 
-if __name__ == '__main__':
+def run(years_calage):
     import time
-    year_calage = 2005
     year_data_list = [1995, 2000, 2005, 2011]
-    run_all(year_calage, year_data_list)
-    #
-    #
-    #    for year_calage in [2000, 2001, 2002, 2003, 2004]:
-    #        start = time.time()
-    #        run_all(year_calage, year_data_list)
-    #        log.info("{}".format(time.time() - start))
-    #        print "Base construite pour l'année {} à partir de l'enquête bdf {}".format(
-    #            year_calage, find_nearest_inferior(year_data_list, year_calage)
-    #            )
+    for year_calage in years_calage:
+        start = time.time()
+        run_all(year_calage, year_data_list)
+        log.info("Finished {}".format(time.time() - start))
+        print "Base construite pour l'année {} à partir de l'enquête bdf {}".format(
+            year_calage, find_nearest_inferior(year_data_list, year_calage)
+            )
+
+if __name__ == '__main__':
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    years = [2005]
+    run(years)
