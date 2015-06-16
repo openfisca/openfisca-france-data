@@ -31,12 +31,16 @@ from ConfigParser import SafeConfigParser
 
 import pandas
 
-log = logging.getLogger(__name__)
 
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import normalize_coicop
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import ident_men_dtype
+
+
+log = logging.getLogger(__name__)
 
 
 def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
@@ -190,7 +194,7 @@ def build_depenses_calees(temporary_store = None, year_calage = None, year_data 
 
     # Application des ratios de calage
     depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
-    depenses.index = depenses.index.astype('str')
+    depenses.index = depenses.index.astype(ident_men_dtype)
     assert depenses.index.dtype == 'object', "depenses index is not an object"
     depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
     temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
@@ -216,6 +220,7 @@ def build_depenses_calees(temporary_store = None, year_calage = None, year_data 
         ]
     depenses_calees_by_grosposte.columns = column_groposte
 
+    depenses_calees_by_grosposte.index = depenses_calees_by_grosposte.index.astype(ident_men_dtype)
     # Sauvegarde de la base en coicop agrégée calée
     temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
 
@@ -256,7 +261,8 @@ def build_revenus_cales(temporary_store = None, year_calage = None, year_data = 
 
     weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
 
-    revenus.rev_disp_loyerimput = revenus.loyer_impute.astype(float)
+    print revenus.columns
+    revenus.loyer_impute = revenus.loyer_impute.astype(float)
     weighted_sum_loyer_impute = (revenus.pondmen * revenus.loyer_impute).sum()
 
     rev_disponible_cn = masses_cn_revenus_data_frame.rev_disponible_cn.sum()
@@ -286,8 +292,8 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year_calage = 2005
-    year_data = 2005
+    year_calage = 1995
+    year_data = 1995
 
     build_depenses_calees(year_calage = year_calage, year_data = year_data)
     build_revenus_cales(year_calage = year_calage, year_data = year_data)

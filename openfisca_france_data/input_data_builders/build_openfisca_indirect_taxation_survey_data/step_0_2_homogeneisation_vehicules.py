@@ -32,6 +32,8 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import ident_men_dtype
 
 
 log = logging.getLogger(__name__)
@@ -72,6 +74,8 @@ def build_homogeneisation_vehicules(temporary_store = None, year = None):
         vehicule["veh_tot"] = 1
         vehicule["veh_essence"] = 1 * (vehicule['carbu1'] == 1) + 1 * (vehicule['carbu2'] == 1)
         vehicule["veh_diesel"] = 1 * (vehicule['carbu1'] == 2) + 1 * (vehicule['carbu2'] == 2)
+        vehicule.index = vehicule.index.astype(ident_men_dtype)
+
 
     if year == 2005:
         vehicule = survey.get_values(table = "automobile")

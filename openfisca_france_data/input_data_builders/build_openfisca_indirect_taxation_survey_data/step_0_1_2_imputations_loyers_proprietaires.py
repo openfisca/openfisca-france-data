@@ -24,6 +24,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+
+
+from ConfigParser import SafeConfigParser
 import logging
 import pandas
 
@@ -53,12 +57,13 @@ def build_imputation_loyers_proprietaires(temporary_store = None, year = None):
 
     if year == 1995:
         imput00 = survey.get_values(table = "socioscm")
-        # cette étape de ne garder que les données dont on est sûr de la qualité et de la véracité
+        # cette étape permet de ne garder que les données dont on est sûr de la qualité et de la véracité
         # exdep = 1 si les données sont bien remplies pour les dépenses du ménage
         # exrev = 1 si les données sont bien remplies pour les revenus du ménage
         imput00 = imput00[(imput00.exdep == 1) & (imput00.exrev == 1)]
         imput00 = imput00[(imput00.exdep == 1) & (imput00.exrev == 1)]
-        kept_variables = ['mena', 'stalog', 'surfhab', 'confort1', 'confort2', 'confort3', 'confort4', 'ancons', 'sitlog', 'nbphab', 'rg', 'cc']
+        kept_variables = ['mena', 'stalog', 'surfhab', 'confort1', 'confort2', 'confort3', 'confort4',
+                        'ancons', 'sitlog', 'nbphab', 'rg', 'cc']
         imput00 = imput00[kept_variables]
         imput00.rename(columns = {'mena': 'ident_men'}, inplace = True)
 
@@ -100,10 +105,19 @@ def build_imputation_loyers_proprietaires(temporary_store = None, year = None):
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 8) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 4) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
 
+        print survey
         try:
-            hotdeck = pandas.read_stata('/home/benjello/IPP/openfisca_france_indirect_taxation/hotdeck_result.dta')
+            parser = SafeConfigParser()
+            config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
+            config_ini = os.path.join(config_files_directory, 'config.ini')
+            parser.read([config_ini, config_local_ini])
+            directory_path = os.path.normpath(
+                parser.get("openfisca_france_indirect_taxation", "assets")
+                )
+            hotdeck = pandas.read_stata(os.path.join(directory_path, 'hotdeck_result.dta'))
         except:
             hotdeck = survey.get_values(table = 'hotdeck_result')
+
 
         imput00.reset_index(inplace = True)
         hotdeck.ident_men = hotdeck.ident_men.astype('int')
@@ -167,6 +181,6 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2011
+    year = 1995
     build_imputation_loyers_proprietaires(year = year)
     log.info("step 0_1_2_build_imputation_loyers_proprietaires duration is {}".format(time.clock() - deb))

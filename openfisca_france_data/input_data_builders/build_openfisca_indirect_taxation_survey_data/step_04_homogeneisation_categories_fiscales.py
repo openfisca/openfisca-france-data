@@ -30,6 +30,7 @@ import os
 import logging
 import pandas
 from ConfigParser import SafeConfigParser
+import numpy
 
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
@@ -37,6 +38,8 @@ from openfisca_france_data import default_config_files_directory as config_files
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import normalize_coicop
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import ident_men_dtype
 
 log = logging.getLogger(__name__)
 
@@ -97,6 +100,7 @@ def build_menage_consumption_by_categorie_fiscale(temporary_store = None, year_c
         )
     categorie_fiscale_data_frame['role_menage'] = 0
 #    categorie_fiscale_data_frame.reset_index(inplace = True)
+    categorie_fiscale_data_frame.index = categorie_fiscale_data_frame.index.astype(ident_men_dtype)
     temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)] = categorie_fiscale_data_frame
 
 
@@ -124,6 +128,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year_calage = 2005
-    year_data_list = [2005, 2010]
+    year_data_list = [2000, 2005, 2010]
     build_menage_consumption_by_categorie_fiscale(year_calage, year_data_list)
     log.info("step 01 demo duration is {}".format(time.clock() - deb))

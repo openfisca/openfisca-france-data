@@ -26,6 +26,7 @@
 import logging
 import os
 import pandas
+import numpy
 
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -57,6 +58,9 @@ from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation
 
 from openfisca_france_data.temporary import TemporaryStore
 
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import ident_men_dtype
+
 
 log = logging.getLogger(__name__)
 
@@ -77,25 +81,35 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
     build_menage_consumption_by_categorie_fiscale(year_calage = year_calage, year_data = year_data)
 
     categorie_fiscale_data_frame = temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)]
+    categorie_fiscale_data_frame.index = categorie_fiscale_data_frame.index.astype(ident_men_dtype)
+
+    temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)] = categorie_fiscale_data_frame
+
+    temporary_store["menage_consumption_by_categorie_fiscale_{}".format(year_calage)] = categorie_fiscale_data_frame
 
     depenses_calees_by_grosposte = temporary_store["depenses_calees_by_grosposte_{}".format(year_calage)]
+    depenses_calees_by_grosposte.index = depenses_calees_by_grosposte.index.astype(ident_men_dtype)
     depenses_calees = temporary_store["depenses_calees_{}".format(year_calage)]
+    depenses_calees.index = depenses_calees.index.astype(ident_men_dtype)
 
     # Gestion des véhicules:
     build_homogeneisation_vehicules(year = year_data)
     if year_calage != 1995:
         vehicule = temporary_store['automobile_{}'.format(year_data)]
+        vehicule.index = vehicule.index.astype(ident_men_dtype)
     else:
         vehicule = None
 
     # Gestion des variables socio démographiques:
     build_homogeneisation_caracteristiques_sociales(year = year_data)
     menage = temporary_store['donnes_socio_demog_{}'.format(year_data)]
+    menage.index = menage.index.astype(ident_men_dtype)
 
     # Gestion des variables revenus:
     build_homogeneisation_revenus_menages(year = year_data)
     build_revenus_cales(year_calage = year_calage, year_data = year_data)
     revenus = temporary_store["revenus_cales_{}".format(year_calage)]
+    revenus.index = revenus.index.astype(ident_men_dtype)
 
     temporary_store.close()
 
@@ -114,18 +128,38 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
         assert preprocessed_data_frame.index.name == 'ident_men', \
             'Index is not labelled ident_men in data frame {}'.format(name)
         assert len(preprocessed_data_frame) != 0, 'Empty data frame {}'.format(name)
-        assert preprocessed_data_frame.index.dtype == 'object', "index is not an string for {}"
+        print '-----'
+        print name,
+        print 'size: ', len(preprocessed_data_frame)
+        print 'dtype :', preprocessed_data_frame.index.dtype,
+        print 'nan_containing_variables: ', preprocessed_data_frame.isnull().any()[preprocessed_data_frame.isnull().any()].index
+
+        assert preprocessed_data_frame.index.dtype == numpy.dtype('O'), "index for {} is {}".format(
+            name, preprocessed_data_frame.index.dtype)
 
     data_frame = pandas.concat(
         [revenus, vehicule, categorie_fiscale_data_frame, menage, depenses_calees, depenses_calees_by_grosposte],
         axis = 1,
         )
 
-    if year_data != 1995:
+    nan_containing_variables = list(data_frame.isnull().any()[data_frame.isnull().any()].index)
+    nan_containing_variables_by_name = dict(
+        (name, list(set(nan_containing_variables).intersection(set(preprocessed_data_frame.columns))))
+        for name, preprocessed_data_frame in preprocessed_data_frame_by_name.iteritems()
+        )
+    import pprint
+
+    pprint.pprint(nan_containing_variables_by_name)
+
+    if year_data == 2005:
         for vehicule_variable in ['veh_tot', 'veh_essence', 'veh_diesel', 'pourcentage_vehicule_essence']:
             data_frame.loc[data_frame[vehicule_variable].isnull(), vehicule_variable] = 0
         for variable in ['age{}'.format(i) for i in range(3, 14)] + ['agecj', 'agfinetu', 'agfinetu_cj', 'nenfhors']:
             data_frame.loc[data_frame[variable].isnull(), variable] = 0
+    if year_data == 2011:
+        for var in ['veh_tot', 'veh_essence', 'veh_diesel', 'pourcentage_vehicule_essence', 'rev_disp_loyerimput',
+                    'rev_disponible', 'ratio_loyer_impute', 'loyer_impute', 'ratio_revenus']:
+            data_frame.loc[data_frame[var].isnull(), var] = 0
 
     data_frame.index.name = "ident_men"
     # TODO: Homogénéiser: soit faire en sorte que ident_men existe pour toutes les années
@@ -176,5 +210,6 @@ def run(years_calage):
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    years = [2005]
+    years = [2000]
     run(years)
+year_calage = 2000
