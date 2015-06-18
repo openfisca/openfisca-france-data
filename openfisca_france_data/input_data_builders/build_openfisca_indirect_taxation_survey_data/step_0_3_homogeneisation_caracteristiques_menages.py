@@ -26,6 +26,7 @@
 
 from __future__ import division
 
+
 import logging
 import numpy
 import pandas

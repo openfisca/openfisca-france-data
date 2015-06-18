@@ -24,6 +24,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
+
 import os
 import logging
 
@@ -258,7 +261,6 @@ def build_revenus_cales(temporary_store = None, year_calage = None, year_data = 
     masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_calage]
 
     revenus = temporary_store['revenus_{}'.format(year_data)]
-
     weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
 
     print revenus.columns
@@ -268,11 +270,11 @@ def build_revenus_cales(temporary_store = None, year_calage = None, year_data = 
     rev_disponible_cn = masses_cn_revenus_data_frame.rev_disponible_cn.sum()
     loyer_imput_cn = masses_cn_revenus_data_frame.loyer_imput_cn.sum()
 
-    revenus_cales = revenus
+    revenus_cales = revenus.copy()
 
     # Calcul des ratios de calage :
-    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000) / weighted_sum_revenus
-    revenus_cales['ratio_loyer_impute'] = loyer_imput_cn * 1000000 / weighted_sum_loyer_impute
+    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1e9 - loyer_imput_cn * 1e9) / weighted_sum_revenus
+    revenus_cales['ratio_loyer_impute'] = loyer_imput_cn * 1e9 / weighted_sum_loyer_impute
 
     # Application des ratios de calage
     revenus_cales.rev_disponible = revenus.rev_disponible * revenus_cales['ratio_revenus']

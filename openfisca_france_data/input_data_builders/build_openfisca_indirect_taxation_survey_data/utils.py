@@ -24,7 +24,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import numpy
+from __future__ import division
 
 
 def collapsesum(data_frame, by = None, var = None):

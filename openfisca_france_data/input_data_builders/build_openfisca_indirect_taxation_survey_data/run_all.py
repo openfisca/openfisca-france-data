@@ -23,6 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
+
 import logging
 import os
 import pandas
@@ -210,6 +213,5 @@ def run(years_calage):
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    years = [2000]
-    run(years)
-year_calage = 2000
+    years_calage = [2000, 2005, 2011]
+    run(years_calage)
