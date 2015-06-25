@@ -60,7 +60,7 @@ def build_homogeneisation_caracteristiques_sociales(temporary_store = None, year
                           'agepr', 'agecj', 'matripr', 'occuppr', 'occupcj', 'nbact', 'sitlog', 'stalog', 'mena',
                           'nm14a', 'typmen1']
         menage = survey.get_values(
-            table = "socioscm (2)",
+            table = "socioscm",
             variables = kept_variables,
             )
         # cette étape de ne garder que les données dont on est sûr de la qualité et de la véracité
