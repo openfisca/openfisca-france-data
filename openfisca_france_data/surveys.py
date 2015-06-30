@@ -28,6 +28,7 @@ import numpy as np
 
 
 from openfisca_core import periods, simulations
+from openfisca_france.reforms import inversion_revenus
 import openfisca_france_data
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
@@ -42,12 +43,15 @@ class SurveyScenario(AbstractSurveyScenario):
         if tax_benefit_system is None:
             TaxBenefitSystem = openfisca_france_data.init_country()
             tax_benefit_system = TaxBenefitSystem()
+            # france_tax_benefit_system = TaxBenefitSystem()
+            # tax_benefit_system = inversion_revenus.build_reform(france_tax_benefit_system)
 
         super(SurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
             tax_benefit_system = tax_benefit_system,
             used_as_input_variables = used_as_input_variables,
             year = year)
+
         return self
 
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
@@ -84,6 +88,15 @@ class SurveyScenario(AbstractSurveyScenario):
         self.weight_column_name_by_entity_key_plural['familles'] = 'weight_familles'
         self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foyers'
         self.weight_column_name_by_entity_key_plural['individus'] = 'weight_individus'
+
+    def custom_initialize(self):
+        simulation = self.simulation
+        for offset in [-1, -2]:
+            for variable_name in ['salaire_imposable', 'cho', 'rst']:
+                variable = simulation.get_or_new_holder(variable_name)
+                variable.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
+
+        simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, 50)
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,

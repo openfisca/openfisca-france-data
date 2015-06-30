@@ -1,0 +1,59 @@
+- name: "RSA - cas simple"
+  description: RSA
+  period: 2015
+  absolute_error_margin: 0.005
+  familles:
+    parents: ["parent1"]
+  individus:
+    - id: "parent1"
+      age: 40
+      sal:
+        2014-10: 25000 / 12
+        2014-11: 25000 / 12
+        2014-12: 25000 / 12
+        2015-01: 25000 / 12
+  output_variables:
+    br_rmi:
+      2015-01: 25000 / 12
+    rsa:
+      2015-01:
+        - 0
+- name: "RSA - cas simple"
+  description: RSA
+  period: 2009
+  absolute_error_margin: 0.005
+  familles:
+    parents: ["parent1"]
+  individus:
+    - id: "parent1"
+      activite: 0
+      age: 40
+      sal:
+        2008-10: 25000 / 12
+        2008-11: 25000 / 12
+        2008-12: 25000 / 12
+        2009-01: 25000 / 12
+        2009-02: 25000 / 12
+        2009-03: 25000 / 12
+        2009-04: 25000 / 12
+        2009-05: 25000 / 12
+        2009-06: 25000 / 12
+        2009-07: 25000 / 12
+        2009-08: 25000 / 12
+        2009-09: 25000 / 12
+        2009-10: 25000 / 12
+        2009-11: 25000 / 12
+        2009-12: 25000 / 12
+
+  output_variables:
+    activite: 0
+    br_rmi:
+      2009-12: 25000 / 12
+      2009-01: 0
+
+    rsa:
+      2009-01:
+        - 0
+    rmi:
+      2009-01:
+        - 0

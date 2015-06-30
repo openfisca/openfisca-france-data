@@ -39,20 +39,20 @@ import numpy
 from pandas import concat, DataFrame, Series
 import re
 
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
 
-def sif(year):
-
-    temporary_store = TemporaryStore.create(file_name = "erfs")
-
-    replace = create_replace(year)
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def sif(temporary_store = None, year = None):
+    assert temporary_store is not None
+    assert year is not None
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
     data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
@@ -65,7 +65,7 @@ def sif(year):
     # On récupère les variables du code sif
     # vars <- c("noindiv", 'sif', "nbptr", "mnrvka")
     vars = ["noindiv", 'sif', "nbptr", "mnrvka", "rbg", "tsrvbg"]
-    sif = data.get_values(variables = vars, table = replace["foyer"])
+    sif = data.get_values(variables = vars, table = year_specific_by_generic["foyer"])
 
     sif['statmarit'] = 0
 
@@ -163,15 +163,14 @@ def sif(year):
     gc.collect()
 
 
-def foyer_all(year):
-    year = 2009
-    replace = create_replace(year)
-    temporary_store = TemporaryStore.create(file_name = "erfs")
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def foyer_all(temporary_store = None, year = None):
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     # On ajoute les cases de la déclaration
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
     data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
-    foyer_all = data.get_values(table = replace["foyer"])
+    foyer_all = data.get_values(table = year_specific_by_generic["foyer"])
     # on ne garde que les cases de la déclaration ('_xzz') ou ^_[0-9][a-z]{2}")
     regex = re.compile("^_[0-9][a-z]{2}")
     variables = [x for x in foyer_all.columns if regex.match(x)]
@@ -182,7 +181,6 @@ def foyer_all(year):
     del foyer_all
     gc.collect()
     foyer.rename(columns = dict(zip(variables, renamed_variables)), inplace = True)
-
 
     # On aggrège les déclarations dans le cas où un individu a fait plusieurs déclarations
     foyer = foyer.groupby("noindiv", as_index = False).aggregate(numpy.sum)
@@ -414,7 +412,7 @@ def foyer_all(year):
 
 
 if __name__ == '__main__':
-    year = 2006
+    year = 2009
     sif(year = year)
     foyer_all(year = year)
     log.info(u"étape 05 foyer terminée")

@@ -31,9 +31,9 @@ from pandas import Series, concat, DataFrame
 import numpy as np
 from numpy import where
 
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, control
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -42,15 +42,14 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def create_totals(year = None):
-
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def create_totals(temporary_store = None, year = None):
+    assert temporary_store is not None
     assert year is not None
-    temporary_store = TemporaryStore.create(file_name = "erfs")
-    replace = create_replace(year)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     # On part de la table individu de l'ERFS
     # on renomme les variables
-
     log.info(u"Creating Totals")
     log.info(u"Etape 1 : Chargement des données")
 
@@ -135,9 +134,9 @@ def create_totals(year = None):
 
     indivi_fnd = indivi[["idfoy", "noindiv"]][fip_no_declar].copy()
 
-    while any(indivi_fnd.duplicated(cols=["idfoy"])):
+    while any(indivi_fnd.duplicated(subset = ["idfoy"])):
         indivi_fnd["idfoy"] = where(
-            indivi_fnd.duplicated(cols=["idfoy"]),
+            indivi_fnd.duplicated(subset = ["idfoy"]),
             indivi_fnd["idfoy"] + 1,
             indivi_fnd["idfoy"]
             )
@@ -181,7 +180,7 @@ def create_totals(year = None):
         "noindiv": 100 * indivi.idmen.loc[enf_ee] + indivi.noimer.loc[enf_ee]
         })
 
-    foyer = data.get_values(variables = ["noindiv", "zimpof"], table = replace["foyer"])
+    foyer = data.get_values(variables = ["noindiv", "zimpof"], table = year_specific_by_generic["foyer"])
     pere = pere.merge(foyer, how = "inner", on = "noindiv")
     mere = mere.merge(foyer, how = "inner", on = "noindiv")
     df = pere.merge(mere, how = "outer", on = "noindiv_enf", suffixes=('_p', '_m'))
@@ -421,7 +420,7 @@ def create_totals(year = None):
     log.info(
         u"Etape 7: on vérifie qu'il ne manque pas d'info sur les liens avec la personne de référence")
     log.info(
-        u"nb de doublons idfam/quifam {}".format(len(indivi[indivi.duplicated(cols=['idfoy', 'quifoy'])])))
+        u"nb de doublons idfam/quifam {}".format(len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])])))
 
     log.info(u"On crée les n° de personnes à charge")
     assert indivi['idfoy'].notnull().all()
@@ -511,9 +510,11 @@ def create_totals(year = None):
     gc.collect()
 
 
-def create_final(year):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def create_final(temporary_store = None, year = None):
 
-    temporary_store = TemporaryStore.create(file_name = "erfs")
+    assert temporary_store is not None
+    assert year is not None
 
     log.info(u"création de final")
     foy_ind = temporary_store['foy_ind_{}'.format(year)]
@@ -526,7 +527,7 @@ def create_final(year):
     foy_ind.reset_index(inplace = True)
     tot3.reset_index(inplace = True)
 
-    # tot3 = tot3.drop_duplicates(cols=['idfam', 'quifam'])
+    # tot3 = tot3.drop_duplicates(subset=['idfam', 'quifam'])
     final = final[final.idmen.notnull()]
 
     control(final, verbose=True)
@@ -554,6 +555,6 @@ def create_final(year):
 
 if __name__ == '__main__':
     year = 2009
-    # create_totals(year = year)
+    create_totals(year = year)
     create_final(year = year)
     log.info(u"étape 06 remise en forme des données terminée")

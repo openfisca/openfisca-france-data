@@ -30,17 +30,19 @@ from __future__ import division
 import logging
 
 
-import numpy as np
-from numpy import logical_and as and_
-from pandas import merge, concat
+import numpy
+from pandas import merge, concat, DataFrame
 
-
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 from openfisca_france_data.model.common import mark_weighted_percentiles as mwp
-from openfisca_survey_manager.surveys import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data.utils import simulation_results_as_data_frame
 from openfisca_france_data.erf import get_erf2of, get_of2erf
 from openfisca_plugin_aggregates.aggregates import Aggregates
 
+
+from openfisca_parsers import input_variables_extractors
 
 log = logging.getLogger(__name__)
 
@@ -60,15 +62,6 @@ class Debugger(object):
         self.survey_scenario = None
 
     def set_survey_scenario(self, survey_scenario = None):
-        """
-        Set the simulation to debug
-
-        Parameters
-        ----------
-
-        set_survey_scenario : SurveyScenario, default None
-                     survey_scenario to debug
-        """
         assert survey_scenario is not None
         self.survey_scenario = survey_scenario
         self.column_by_name = self.survey_scenario.simulation.tax_benefit_system.column_by_name
@@ -108,85 +101,135 @@ class Debugger(object):
         return data_frame[extracted_columns].copy()
 
     def get_all_parameters(self, column_list):
+        global x
+        print [column.name for column in column_list]
+        x = x + 1
+        if x == 20:
+            boum
         column_by_name = self.column_by_name
-        simulation = self.simulation
+        tax_benefit_system = self.survey_scenario.simulation.tax_benefit_system
+
+        extractor = input_variables_extractors.setup(tax_benefit_system)
+
         if len(column_list) == 0:
             return []
         else:
             column_name = column_list[0].name
-            holder = simulation.get_or_new_holder(column_name)
-            formula = holder.real_formula
-            print column_name, holder
-            if formula is None:
-                return [column_list[0]] + self.get_all_parameters(column_list[1:])
+            print column_name
+            if extractor.get_input_variables(column_by_name[column_name]) is None:
+                return column_list
             else:
-                return (
-                    [column_list[0]] +
-                    self.get_all_parameters(
-                        [column_by_name[clean(parameter)] for parameter in formula.parameters]
-                        ) +
-                    self.get_all_parameters(column_list[1:]))
+                first_column = [column_list[0]]
+                input_columns = self.get_all_parameters([
+                    column_by_name[clean(parameter)]
+                    for parameter in list(extractor.get_input_variables(column_by_name[column_name]))
+                    ])
+                other_columns = list(
+                    set(self.get_all_parameters(column_list[1:])) - set(first_column + input_columns)
+                    )
+                print 'input_variables: ', [column.name for column in input_columns]
+
+                print 'new_variables: ', [column.name for column in other_columns]
+
+                new_column_list = first_column + input_columns + other_columns
+                print 'final list: ',  [column.name for column in new_column_list]
+                return new_column_list
+
 
     def build_columns_to_fetch(self):
         column_by_name = self.column_by_name
-        parameters_column = self.get_all_parameters([column_by_name.get(x) for x in [self.variable]])
-        parameters = [x.name for x in parameters_column]
+#        parameters_column = self.get_all_parameters([column_by_name.get(x) for x in [self.variable]])
+#        parameters = [x.name for x in parameters_column]
+        parameters = [self.variable]
         # We want to get all parameters and consumers that we're going to encounter
-        consumers = []
-        for variable in [self.variable]:
-            column = column_by_name.get(variable)
-            consumers = list(set(consumers).union(set(column.consumers)))
-        column_names = list(set(parameters).union(set(consumers)))
-        self.columns_to_fetch = column_names
-        self.variable_consumers = list(set(consumers))
+#        consumers = []
+#        for variable in [self.variable]:
+#            column = column_by_name.get(variable)
+#            consumers = list(set(consumers).union(set(column.consumers)))
+#        column_names = list(set(parameters).union(set(consumers)))
+
+        # self.columns_to_fetch = column_names
+        # self.variable_consumers = list(set(consumers))
         self.variable_parameters = list(set(parameters))
+        self.columns_to_fetch = list(set(parameters))
 
     def build_openfisca_data_frames(self):
-        column_by_name = self.column_by_name
-
-        def get_var(column_name):
-            force_sum = True
-            if column_name.endswith('_original'):
-                force_sum = False
-            column_names = [column_name]
-            return simulation_results_as_data_frame(
-                survey_scenario = survey_scenario,
-                column_names = column_names,
-                entity = "men",
-                force_sum = force_sum)[column_name]
-
         column_names = self.columns_to_fetch
-        of_menages_data_frame = concat(
-            [get_var(column_name) for column_name in column_names + ["idmen_original"]],
-            axis = 1,
+        for column in column_names:
+            assert column in survey_scenario.tax_benefit_system.column_by_name.keys()
+        data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+            variables = column_names + ['idmen_original'],
+            indices = True,
+            roles = True,
             )
-        idmen_to_idmen_original = dict(
+        self.data_frame_by_entity_key_plural = data_frame_by_entity_key_plural
+
+        projected = self.project_on(data_frame_by_entity_key_plural = data_frame_by_entity_key_plural)
+        idmen_original_by_idmen = dict(
             zip(
-                of_menages_data_frame.index.values,
-                of_menages_data_frame["idmen_original"].values
+                data_frame_by_entity_key_plural['menages'].index.values,
+                data_frame_by_entity_key_plural['menages']["idmen_original"].values
                 )
             )
-        of_menages_data_frame.rename(columns = {"idmen_original": "idmen"}, inplace = True)
-       # First from the output_table
-        # We recreate the noindiv in output_table
-        individual_column_names = [
-            column_name for column_name in column_names if column_by_name[column_name].entity != 'men'
-            ]
-        of_individus_data_frame = simulation_results_as_data_frame(
-            survey_scenario = survey_scenario,
-            column_names = individual_column_names + ['idfam', 'idmen', 'quifam', 'quimen'],
-            entity = "ind",
-            force_sum = False,
+        self.idmen_original_by_idmen = idmen_original_by_idmen
+
+        idmen_by_idmen_original = dict(
+            zip(
+                data_frame_by_entity_key_plural['menages']["idmen_original"].values,
+                data_frame_by_entity_key_plural['menages'].index.values,
+                )
             )
-        self.of_menages_data_frame = of_menages_data_frame
-        self.of_individus_data_frame = of_individus_data_frame.replace(
-            {'idmen': idmen_to_idmen_original}
+        self.idmen_by_idmen_original = idmen_by_idmen_original
+
+        data_frame_by_entity_key_plural['menages'] = projected.rename(
+            columns = {"idmen_original": "idmen"})
+        data_frame_by_entity_key_plural['individus'].replace(
+            {'idmen': idmen_original_by_idmen}, inplace = True)
+        self.data_frame_by_entity_key_plural = data_frame_by_entity_key_plural
+
+
+    def project_on(self, receiving_entity_key_plural = 'menages', data_frame_by_entity_key_plural = None):
+        tax_benefit_system = self.survey_scenario.tax_benefit_system
+        assert data_frame_by_entity_key_plural is not None
+        assert receiving_entity_key_plural is not tax_benefit_system.person_key_plural
+
+        entity_data_frame = data_frame_by_entity_key_plural[receiving_entity_key_plural]
+        person_data_frame = data_frame_by_entity_key_plural[tax_benefit_system.person_key_plural]
+
+        entity_keys_plural = list(
+            set(tax_benefit_system.entity_class_by_key_plural.keys()).difference(set(
+                [tax_benefit_system.person_key_plural, receiving_entity_key_plural]
+                ))
             )
 
+        for entity_key_plural in entity_keys_plural:
+            entity = tax_benefit_system.entity_class_by_key_plural[entity_key_plural]
+            # Getting only heads of other entities prenent in the projected on entity
+            boolean_index = person_data_frame[entity.role_for_person_variable_name] == 0  # Heads
+            index_entity = person_data_frame.loc[boolean_index, entity.index_for_person_variable_name].values  # Ent.
+            for column_name, column_series in self.data_frame_by_entity_key_plural[entity_key_plural].iteritems():
+                person_data_frame.loc[boolean_index, column_name] \
+                    = column_series.iloc[index_entity].values
+                person_data_frame[column_name].fillna(0)
+
+        receiving_entity = tax_benefit_system.entity_class_by_key_plural[receiving_entity_key_plural]
+        grouped_data_frame = person_data_frame.groupby(by = receiving_entity.index_for_person_variable_name).agg(sum)
+        grouped_data_frame.drop(receiving_entity.role_for_person_variable_name, axis = 1, inplace = True)
+        data_frame = concat([entity_data_frame, grouped_data_frame], axis = 1)
+
+        assert data_frame.notnull().all().all()
+        return data_frame
+
+
     def build_erf_data_frames(self):
+        # TODO: remove this
+        self.columns_to_fetch = ['af']
         variables = self.columns_to_fetch
-        erf_survey_collection = SurveyCollection.load(collection = "erfs")
-        erf_survey = erf_survey_collection.surveys["erfs_{}".format(year)]
+        erf_survey_collection = SurveyCollection.load(
+            collection = "erfs", config_files_directory = config_files_directory)
+        erf_survey = erf_survey_collection.get_survey("erfs_{}".format(year))
+        year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
+        generic_by_year_specific = dict(zip(year_specific_by_generic.values(), year_specific_by_generic.keys()))
 
         erf_variables = list(set(variables + ["ident", "wprm", "quelfic", "noi"]))
         of2erf = get_of2erf()
@@ -194,50 +237,53 @@ class Debugger(object):
             if variable in of2erf:
                 erf_variables[index] = of2erf[variable]
         data_frame_by_table = dict(eec_indivi = None, erf_indivi = None, erf_menage = None)
-        erf_variables_by_table = dict(eec_indivi = [], erf_indivi = [], erf_menage = [])
-        table_by_erf_variable = dict(
+        erf_variables_by_generic_table = dict(eec_indivi = [], erf_indivi = [], erf_menage = [])
+
+        year_specific_tables_by_erf_variable = dict(
             [
                 (
                     erf_variable,
                     set(
                         erf_survey.find_tables(variable = erf_variable)
                         ).intersection(
-                        set(erf_variables_by_table.keys())
+                        set([year_specific_by_generic[key] for key in erf_variables_by_generic_table.keys()])
                         )
                     ) for erf_variable in erf_variables
                 ]
             )
-        for variable, tables in table_by_erf_variable.iteritems():
-            if len(tables) < 1:
+        for variable, year_specific_tables in year_specific_tables_by_erf_variable.iteritems():
+            if len(year_specific_tables) < 1:
                 log.info("No tables are present for variable {}".format(variable))
                 continue
             else:
-                log.info("Variable {} is present in multiple tables : {}".format(variable, tables))
-                for table in tables:
+                log.info("Variable {} is present in multiple tables : {}".format(variable, year_specific_tables))
+                for table in year_specific_tables:
                     log.info("Variable {} is retrieved from table {}".format(variable, table))
-                    erf_variables_by_table[table].append(variable)
+                    erf_variables_by_generic_table[generic_by_year_specific[table]].append(variable)
 
         erf2of = get_erf2of()
-        for table, erf_variables in erf_variables_by_table.iteritems():
+
+        for table, erf_variables in erf_variables_by_generic_table.iteritems():
             if erf_variables:
-                data_frame_by_table[table] = erf_survey.get_values(variables = erf_variables, table = table)
+                data_frame_by_table[table] = erf_survey.get_values(
+                    variables = erf_variables, table = year_specific_by_generic[table]
+                    )
                 data_frame_by_table[table].rename(columns = erf2of, inplace = True)
                 data_frame_by_table[table].rename(columns = {'ident': 'idmen'}, inplace = True)
 
         assert not data_frame_by_table["erf_menage"].duplicated().any(), "Duplicated idmen in erf_menage"
-        self.erf_menages_data_frame = data_frame_by_table["erf_menage"]
-        self.erf_eec_individus_data_frame = data_frame_by_table["erf_indivi"].merge(
-            data_frame_by_table["eec_indivi"],
+        self.erf_data_frame_by_entity_key_plural = dict(
+            menages = data_frame_by_table["erf_menage"],
+            individus = data_frame_by_table["erf_indivi"].merge(data_frame_by_table["eec_indivi"])
             )
     # TODO: fichier foyer
 
     def get_major_differences(self):
-        self.build_columns_to_fetch()
-        self.build_erf_data_frames()
-        self.build_openfisca_data_frames()
         variable = self.variable
-        erf_menages_data_frame = self.erf_menages_data_frame
-        of_menages_data_frame = self.of_menages_data_frame
+
+        of_menages_data_frame = self.data_frame_by_entity_key_plural['menages']
+        erf_menages_data_frame = self.erf_data_frame_by_entity_key_plural['menages']
+
         merged_menage_data_frame = merge(
             erf_menages_data_frame[[variable, 'idmen']],
             of_menages_data_frame[[variable, 'idmen']],
@@ -245,10 +291,11 @@ class Debugger(object):
             how = 'inner',
             suffixes = ('_erf', '_of')
             )
-        log.info('Length of merged_menage_data_frameis {}'.format(len(merged_menage_data_frame)))
+
+        log.info('Length of merged_menage_data_frame is {}'.format(len(merged_menage_data_frame)))
         merged_menage_data_frame.set_index('idmen', drop = False, inplace = True)
         table = merged_menage_data_frame[
-            and_(
+            numpy.logical_and(
                 merged_menage_data_frame[variable + '_erf'] != 0,
                 merged_menage_data_frame[variable + '_of'] != 0
                 )
@@ -273,14 +320,14 @@ class Debugger(object):
             assert len(table[variable + "_rel_diff"]) == len(table['wprm_of']), "PINAGS"
             dec, values = mwp(
                 table[variable + "_rel_diff"],
-                np.arange(1, 11), table['wprm_of'],
+                numpy.arange(1, 11), table['wprm_of'],
                 2,
                 return_quantiles = True
                 )
             log.info(sorted(values))
             dec, values = mwp(
                 table[variable + "_rel_diff"],
-                np.arange(1, 101),
+                numpy.arange(1, 101),
                 table['wprm_erf'],
                 2,
                 return_quantiles = True
@@ -292,7 +339,7 @@ class Debugger(object):
             pass
         table.sort(columns = variable + "_rel_diff", ascending = False, inplace = True)
 
-        print table.to_string()
+        print table[:10].to_string()
         return table
 
     def describe_discrepancies(self, fov = 10, consumers = False, parameters = True, descending = True, to_men = False):
@@ -303,12 +350,14 @@ class Debugger(object):
             ascending = not descending,
             inplace = True
             )
-        debug_data_frame = major_differences_data_frame[0:fov]
-        boum
-        of_menages_data_frame = self.of_menages_data_frame
-        of_individus_data_frame = self.of_individus_data_frame
-        erf_individus_data_frame = self.erf_eec_individus_data_frame
-        erf_menages_data_frame = self.erf_menages_data_frame
+        debug_data_frame = major_differences_data_frame[0:fov].copy()
+        del major_differences_data_frame
+
+        of_menages_data_frame = self.data_frame_by_entity_key_plural['menages']
+        of_individus_data_frame = self.data_frame_by_entity_key_plural['individus']
+        erf_individus_data_frame = self.erf_data_frame_by_entity_key_plural['individus']
+        erf_menages_data_frame = self.erf_data_frame_by_entity_key_plural['menages']
+        return debug_data_frame
 
         kept_columns = set()
         if parameters:
@@ -340,7 +389,6 @@ class Debugger(object):
             how = 'inner',
             on = 'idmen',
             )
-        print debug_data_frame.to_string()
 
         debug_data_frame = debug_data_frame.merge(
             erf_individus_data_frame,
@@ -353,7 +401,33 @@ class Debugger(object):
             + ["idmen", "quimen", "idfam", "quifam", "idfoy", "quifoy"]
         reordered_columns = reordered_columns + list(set(kept_columns) - set(reordered_columns))
         debug_data_frame = debug_data_frame[reordered_columns].copy()
-        print debug_data_frame.to_string()
+        return debug_data_frame
+
+    def generate_test_case(self):
+        entity_class_by_key_plural = self.survey_scenario.tax_benefit_system.entity_class_by_key_plural
+        menages_entity = entity_class_by_key_plural['menages']
+        idmen_by_idmen_original = self.idmen_by_idmen_original
+        idmen_original = self.describe_discrepancies(descending = False)[menages_entity.index_for_person_variable_name].iloc[0]
+        idmen = idmen_by_idmen_original[idmen_original]
+        input_data_frame = self.survey_scenario.input_data_frame
+        individus_index = input_data_frame.index[input_data_frame[menages_entity.index_for_person_variable_name] == idmen]
+        index_by_entity = {
+            entity_class_by_key_plural['individus']: individus_index,
+            }
+        for entity in entity_class_by_key_plural.values():
+            if entity.key_plural != 'individus':
+                index_by_entity[entity] = input_data_frame.loc[
+                    individus_index, entity.index_for_person_variable_name].unique()
+
+        extracted_indices = individus_index
+        for entity, entity_index in index_by_entity.iteritems():
+            if entity.key_plural in ['menages', 'individus']:
+                continue
+            extracted_indices = extracted_indices + \
+                input_data_frame.index[input_data_frame[entity.index_for_person_variable_name].isin(entity_index)]
+
+        extracted_input_data_frame = input_data_frame.loc[extracted_indices]
+        return extracted_input_data_frame
 
 
 if __name__ == '__main__':
@@ -362,13 +436,31 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     restart = True
     if restart:
-        year = 2006
+        year = 2009
         survey_scenario = create_survey_scenario(year)
         survey_scenario.simulation = survey_scenario.new_simulation()
 
     debugger = Debugger()
     debugger.set_survey_scenario(survey_scenario = survey_scenario)
     debugger.set_variable('af')
+    debugger.build_columns_to_fetch()
+    debugger.build_openfisca_data_frames()
+    debugger.build_erf_data_frames()
 
-#    debugger.show_aggregates()
-    debugger.describe_discrepancies(descending = False)
+#    df_menage = debugger.data_frame_by_entity_key_plural['menages']
+#    df_famille = debugger.data_frame_by_entity_key_plural['familles']
+#    df_individus = debugger.data_frame_by_entity_key_plural['individus']
+
+    #df = debugger.get_major_differences()
+
+    #    debugger.show_aggregates()
+    df = debugger.describe_discrepancies(descending = False)
+    df = debugger.generate_test_case()
+
+    boum
+    entity_class_by_key_plural = debugger.survey_scenario.tax_benefit_system.entity_class_by_key_plural
+    menages_entity = entity_class_by_key_plural['menages']
+
+    idmen = debugger.describe_discrepancies(descending = False)[menages_entity.index_for_person_variable_name].iloc[0]
+
+    input_data_frame = debugger.survey_scenario.input_data_frame
