@@ -396,18 +396,12 @@ def foyer_all(temporary_store = None, year = None):
     foy_ind.rename(columns = {"noindiv": "idfoy"}, inplace = True)
 
     print_id(foy_ind)
-#    foy_ind['quifoy'][foy_ind.quifoy == 'vous'] = 0
-#    foy_ind['quifoy'][foy_ind.quifoy == 'conj'] = 1
-#    foy_ind['quifoy'][foy_ind.quifoy == 'pac1'] = 2
-#    foy_ind['quifoy'][foy_ind.quifoy == 'pac2'] = 3
-#    foy_ind['quifoy'][foy_ind.quifoy == 'pac3'] = 4
-    
+
     foy_ind.quifoy.loc[foy_ind.quifoy == 'vous'] = 0
     foy_ind.quifoy.loc[foy_ind.quifoy == 'conj'] = 1
     foy_ind.quifoy.loc[foy_ind.quifoy == 'pac1'] = 2
     foy_ind.quifoy.loc[foy_ind.quifoy == 'pac2'] = 3
     foy_ind.quifoy.loc[foy_ind.quifoy == 'pac3'] = 4
-
 
     assert foy_ind.quifoy .isin(range(5)).all(), 'présence de valeurs aberrantes dans quifoy'
 
