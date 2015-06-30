@@ -109,32 +109,33 @@ def create_indivim_menagem(temporary_store = None, year = None):
     # création de variables#
     ########################
 
+
+  #  print indivim
 #   actrec : activité recodée comme preconisé par l'INSEE p84 du guide utilisateur
     indivim["actrec"] = numpy.nan
     # Attention : Q: pas de 6 ?!! A : Non pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
-    # la même nomenclatue à été adopée
-
+    # la même nomenclature à été adopée    
     # 3: contrat a durée déterminée
-    indivim['actrec'][indivim.acteu == 1] = 3
+    indivim.actrec.loc[indivim.acteu == 1] = 3
     # 8 : femme (homme) au foyer, autre inactif
-    indivim['actrec'][indivim.acteu == 3] = 8
+    indivim.actrec.loc[indivim.acteu == 3] = 8
     # 1 : actif occupé non salarié
     filter1 = (indivim.acteu == 1) & (indivim.stc.isin([1, 3]))  # actifs occupés non salariés à son compte ou pour un
-    indivim["actrec"][filter1] = 1                                # membre de sa famille
+    indivim.actrec.loc[filter1] = 1                              # membre de sa famille
     # 2 : salarié pour une durée non limitée
     filter2 = (indivim.acteu == 1) & (((indivim.stc == 2) & (indivim.contra == 1)) | (indivim.titc == 2))
-    indivim['actrec'][filter2] = 2
+    indivim.actrec.loc[filter2] = 2
     # 4 : au chomage
     filter4 = (indivim.acteu == 2) | ((indivim.acteu == 3) & (indivim.mrec == 1))
-    indivim['actrec'][filter4] = 4
+    indivim.actrec.loc[filter4] = 4
     # 5 : élève étudiant , stagiaire non rémunéré
     filter5 = (indivim.acteu == 3) & ((indivim.forter == 2) | (indivim.rstg == 1))
-    indivim['actrec'][filter5] = 5
+    indivim.actrec.loc[filter5] = 5
     # 7 : retraité, préretraité, retiré des affaires unchecked
     filter7 = (indivim.acteu == 3) & ((indivim.retrai == 1) | (indivim.retrai == 2))
-    indivim['actrec'][filter7] = 7
+    indivim.actrec.loc[filter7] = 7
     # 9 : probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
-    indivim['actrec'][indivim.acteu == 0] = 9
+    indivim.actrec.loc[indivim.acteu == 0] = 9
 
     indivim.actrec = indivim.actrec.astype("int8")
     assert_dtype(indivim.actrec, "int8")
@@ -219,7 +220,7 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
     # TODO: minimal dtype TODO: shoudln't be here
     for var in individual_vars:
         assert_dtype(enfants_a_naitre[var], 'float')
-    del eeccmp1, eeccmp2, eeccmp3, individual_vars, tmp  #TODO: Adrien: me fait planter python
+    del eeccmp1, eeccmp2, eeccmp3, individual_vars, tmp
     gc.collect()
 
     # création de variables
@@ -229,7 +230,7 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
     enfants_a_naitre['year'] = year
     enfants_a_naitre.year = enfants_a_naitre.year.astype("float32")  # TODO: should be an integer but NaN are present
     enfants_a_naitre['agepf'] = enfants_a_naitre.year - enfants_a_naitre.naia
-    enfants_a_naitre['agepf'][enfants_a_naitre.naim >= 7] -= 1
+    enfants_a_naitre.loc[enfants_a_naitre.naim >= 7,'agepf'] -= 1
     enfants_a_naitre['actrec'] = 9
     enfants_a_naitre['quelfic'] = 'ENF_NN'
     enfants_a_naitre['persfip'] = ""
@@ -248,8 +249,7 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
         ].copy()
 
     temporary_store["enfants_a_naitre_{}".format(year)] = enfants_a_naitre
-
-
+    
 if __name__ == '__main__':
     log.info('Entering 01_pre_proc')
     import sys

@@ -72,10 +72,10 @@ def sif(temporary_store = None, year = None):
     if year == 2009:
         old_sif = sif['sif'][sif['noindiv'] == 901803201].copy()
         new_sif = old_sif.str[0:59] + old_sif.str[60:] + "0"
-        sif['sif'][sif['noindiv'] == 901803201] = new_sif.values
-        old_sif = sif['sif'][sif['noindiv'] == 900872201]
+        sif.sif.loc[sif['noindiv'] == 901803201] = new_sif.values
+        old_sif = sif.sif.loc[sif['noindiv'] == 900872201]
         new_sif = old_sif.str[0:58] + " " + old_sif.str[58:]
-        sif['sif'][sif['noindiv'] == 900872201] = new_sif.values
+        sif.sif.loc[sif['noindiv'] == 900872201] = new_sif.values
         del old_sif, new_sif
 
     sif["rbg"] = sif["rbg"] * ((sif["tsrvbg"] == '+').astype(int) - (sif["tsrvbg"] == '-').astype(int))
@@ -84,7 +84,7 @@ def sif(temporary_store = None, year = None):
     # Converting marital status
     statmarit_dict = {"M": 1, "C": 2, "D": 3, "V": 4, "O": 5}
     for key, val in statmarit_dict.iteritems():
-        sif["statmarit"][sif.stamar == key] = val
+        sif.statmarit.loc[sif.stamar == key] = val
 
     sif["birthvous"] = sif.sif.str[5:9]
     sif["birthconj"] = sif.sif.str[10:14]
@@ -396,11 +396,12 @@ def foyer_all(temporary_store = None, year = None):
     foy_ind.rename(columns = {"noindiv": "idfoy"}, inplace = True)
 
     print_id(foy_ind)
-    foy_ind['quifoy'][foy_ind.quifoy == 'vous'] = 0
-    foy_ind['quifoy'][foy_ind.quifoy == 'conj'] = 1
-    foy_ind['quifoy'][foy_ind.quifoy == 'pac1'] = 2
-    foy_ind['quifoy'][foy_ind.quifoy == 'pac2'] = 3
-    foy_ind['quifoy'][foy_ind.quifoy == 'pac3'] = 4
+
+    foy_ind.quifoy.loc[foy_ind.quifoy == 'vous'] = 0
+    foy_ind.quifoy.loc[foy_ind.quifoy == 'conj'] = 1
+    foy_ind.quifoy.loc[foy_ind.quifoy == 'pac1'] = 2
+    foy_ind.quifoy.loc[foy_ind.quifoy == 'pac2'] = 3
+    foy_ind.quifoy.loc[foy_ind.quifoy == 'pac3'] = 4
 
     assert foy_ind.quifoy .isin(range(5)).all(), 'présence de valeurs aberrantes dans quifoy'
 

@@ -267,7 +267,7 @@ def final(temporary_store = None, year = None, check = True):
     proba_zone_2 = probs['proba_zone2'].values[0]
 
     final2["zone_apl"] = 3
-    final2["zone_apl"][indices] = (
+    final2.zone_apl.loc[indices] = (
         1 + (z > proba_zone_1) + (z > (proba_zone_1 + proba_zone_2))
         )
     del indices, probs
