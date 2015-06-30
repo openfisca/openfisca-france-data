@@ -553,7 +553,7 @@ def famille(temporary_store = None, year = None):
 
     famille['rang'] = famille.kid.astype('int')
     while any(famille[(famille.rang != 0)].duplicated(subset = ['rang', 'noifam'])):
-        famille.rang.loc[famille.rang != 0]+= famille[famille.rang != 0].copy().duplicated(
+        famille.rang.loc[famille.rang != 0] += famille[famille.rang != 0].copy().duplicated(
             subset = ["rang", 'noifam']).values
         log.info(u"nb de rangs différents : {}".format(len(set(famille.rang.values))))
 
