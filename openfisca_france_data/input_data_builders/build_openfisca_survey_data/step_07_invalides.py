@@ -89,7 +89,7 @@ def invalide(temporary_store = None, year = None):
         assert invalides[var].notnull().all(), 'NaN values in {}'.format(var)
 
     # Les déclarants invalides
-    invalides['invalide'][(invalides['caseP'] == 1) & (invalides['quifoy'] == 0)] = True
+    invalides.invalide.loc[(invalides['caseP'] == 1) & (invalides['quifoy'] == 0)] = True
     log.info(u"Il y a {} invalides déclarants".format(invalides["invalide"].sum()))
 
     # Les personnes qui touchent l'aah dans l'enquête emploi

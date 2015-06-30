@@ -114,8 +114,8 @@ def create_indivim_menagem(temporary_store = None, year = None):
 #   actrec : activité recodée comme preconisé par l'INSEE p84 du guide utilisateur
     indivim["actrec"] = numpy.nan
     # Attention : Q: pas de 6 ?!! A : Non pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
-    # la même nomenclatue à été adopée
-
+    # la même nomenclature à été adopée
+    
     # 3: contrat a durée déterminée
    # indivim['actrec'][indivim.acteu == 1] = 3
     indivim.actrec.loc[indivim.acteu == 1] = 3

@@ -144,14 +144,14 @@ def create_totals(temporary_store = None, year = None):
     # assert indivi_fnd["idfoy"].duplicated().value_counts()[False] == len(indivi_fnd["idfoy"].values), "Duplicates remaining"
     assert len(indivi[indivi.duplicated(['noindiv'])]) == 0, "Doublons"
 
-    indivi.idfoy[fip_no_declar] = indivi_fnd.idfoy.copy()
+    indivi.idfoy.loc[fip_no_declar] = indivi_fnd.idfoy.copy()
     del indivi_fnd, fip_no_declar
 
     log.info(u"Etape 3 : Récupération des EE_NRT")
 
     nrt = indivi.quelfic == "EE_NRT"
     indivi.idfoy = where(nrt, indivi.idmen * 100 + indivi.noi, indivi.idfoy)
-    indivi.quifoy[nrt] = "vous"
+    indivi.quifoy.loc[nrt] = "vous"
     del nrt
 
     pref_or_cref = indivi.lpr.isin([1, 2])
@@ -266,13 +266,13 @@ def create_totals(temporary_store = None, year = None):
     indivi['age_en_mois'] = 12 * indivi.age + 12 - indivi.naim
 
     indivi["quimen"] = 0
-    indivi.quimen[indivi.lpr == 1] = 0
-    indivi.quimen[indivi.lpr == 2] = 1
-    indivi.quimen[indivi.lpr == 3] = 2
-    indivi.quimen[indivi.lpr == 4] = 3
+    indivi.quimen.loc[indivi.lpr == 1] = 0
+    indivi.quimen.loc[indivi.lpr == 2] = 1
+    indivi.quimen.loc[indivi.lpr == 3] = 2
+    indivi.quimen.loc[indivi.lpr == 4] = 3
     indivi['not_pr_cpr'] = None  # Create a new row
-    indivi.not_pr_cpr[indivi.lpr <= 2] = False
-    indivi.not_pr_cpr[indivi.lpr > 2] = True
+    indivi.not_pr_cpr.loc[indivi.lpr <= 2] = False
+    indivi.not_pr_cpr.loc[indivi.lpr > 2] = True
 
     assert indivi.not_pr_cpr.isin([True, False]).all()
 
@@ -355,33 +355,33 @@ def create_totals(temporary_store = None, year = None):
     log.info(u"Etape 6 : Création des variables descriptives")
     log.info(u"    6.1 : variable activité")
     indivi['activite'] = None
-    indivi['activite'][indivi.actrec <= 3] = 0
-    indivi['activite'][indivi.actrec == 4] = 1
-    indivi['activite'][indivi.actrec == 5] = 2
-    indivi['activite'][indivi.actrec == 7] = 3
-    indivi['activite'][indivi.actrec == 8] = 4
-    indivi['activite'][indivi.age <= 13] = 2  # ce sont en fait les actrec=9
+    indivi.activite.loc[indivi.actrec <= 3] = 0
+    indivi.activite.loc[indivi.actrec == 4] = 1
+    indivi.activite.loc[indivi.actrec == 5] = 2
+    indivi.activite.loc[indivi.actrec == 7] = 3
+    indivi.activite.loc[indivi.actrec == 8] = 4
+    indivi.activite.loc[indivi.age <= 13] = 2  # ce sont en fait les actrec=9
     log.info("{}".format(indivi['activite'].value_counts(dropna = False)))
     # TODO: MBJ problem avec les actrec
     # TODO: FIX AND REMOVE
-    indivi.activite[indivi.actrec.isnull()] = 5
-    indivi.titc[indivi.titc.isnull()] = 0
+    indivi.activite.loc[indivi.actrec.isnull()] = 5
+    indivi.titc.loc[indivi.titc.isnull()] = 0
     assert indivi.titc.notnull().all(), u"Problème avec les titc" # On a 420 NaN pour les varaibels statut, titc etc
 
     log.info(u"    6.2 : variable statut")
-    indivi.statut[indivi.statut.isnull()] = 0
+    indivi.statut.loc[indivi.statut.isnull()] = 0
     indivi.statut = indivi.statut.astype('int')
-    indivi.statut[indivi.statut == 11] = 1
-    indivi.statut[indivi.statut == 12] = 2
-    indivi.statut[indivi.statut == 13] = 3
-    indivi.statut[indivi.statut == 21] = 4
-    indivi.statut[indivi.statut == 22] = 5
-    indivi.statut[indivi.statut == 33] = 6
-    indivi.statut[indivi.statut == 34] = 7
-    indivi.statut[indivi.statut == 35] = 8
-    indivi.statut[indivi.statut == 43] = 9
-    indivi.statut[indivi.statut == 44] = 10
-    indivi.statut[indivi.statut == 45] = 11
+    indivi.statut.loc[indivi.statut == 11] = 1
+    indivi.statut.loc[indivi.statut == 12] = 2
+    indivi.statut.loc[indivi.statut == 13] = 3
+    indivi.statut.loc[indivi.statut == 21] = 4
+    indivi.statut.loc[indivi.statut == 22] = 5
+    indivi.statut.loc[indivi.statut == 33] = 6
+    indivi.statut.loc[indivi.statut == 34] = 7
+    indivi.statut.loc[indivi.statut == 35] = 8
+    indivi.statut.loc[indivi.statut == 43] = 9
+    indivi.statut.loc[indivi.statut == 44] = 10
+    indivi.statut.loc[indivi.statut == 45] = 11
     assert indivi.statut.isin(range(12)).all(), u"statut value over range"
 
 
@@ -391,13 +391,13 @@ def create_totals(temporary_store = None, year = None):
 
     indivi.nbsala.fillna(0, inplace = True)
     indivi['nbsala'] = indivi.nbsala.astype('int')
-    indivi.nbsala[indivi.nbsala == 99] = 10
+    indivi.nbsala.loc[indivi.nbsala == 99] = 10
     assert indivi.nbsala.isin(range(11)).all()
 
     log.info(u"    6.4 : variable chpub et CSP")
     indivi.chpub.fillna(0, inplace = True)
     indivi.chpub = indivi.chpub.astype('int')
-    indivi.chpub[indivi.chpub.isnull()] = 0
+    indivi.chpub.loc[indivi.chpub.isnull()] = 0
     assert indivi.chpub.isin(range(11)).all()
 
     indivi['cadre'] = 0
@@ -407,13 +407,13 @@ def create_totals(temporary_store = None, year = None):
 
     # encadr : 1=oui, 2=non
     indivi.encadr.fillna(2, inplace = True)
-    indivi.encadr[indivi.encadr == 0] = 2
+    indivi.encadr.loc[indivi.encadr == 0] = 2
 
     assert indivi.encadr.notnull().all()
     assert indivi.encadr.isin([1, 2]).all()
 
-    indivi['cadre'][indivi.prosa.isin([7, 8])] = 1
-    indivi['cadre'][(indivi.prosa == 9) & (indivi.encadr == 1)] = 1
+    indivi.cadre.loc[indivi.prosa.isin([7, 8])] = 1
+    indivi.cadre.loc[(indivi.prosa == 9) & (indivi.encadr == 1)] = 1
 
     assert indivi['cadre'].isin(range(2)).all()
 
@@ -426,9 +426,9 @@ def create_totals(temporary_store = None, year = None):
     assert indivi['idfoy'].notnull().all()
     print_id(indivi)
     indivi['quifoy2'] = 2
-    indivi.quifoy2[indivi.quifoy == 'vous'] = 0
-    indivi.quifoy2[indivi.quifoy == 'conj'] = 1
-    indivi.quifoy2[indivi.quifoy == 'pac'] = 2
+    indivi.quifoy2.loc[indivi.quifoy == 'vous'] = 0
+    indivi.quifoy2.loc[indivi.quifoy == 'conj'] = 1
+    indivi.quifoy2.loc[indivi.quifoy == 'pac'] = 2
 
     del indivi['quifoy']
     indivi['quifoy'] = indivi.quifoy2
