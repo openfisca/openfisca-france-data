@@ -131,12 +131,6 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
         assert preprocessed_data_frame.index.name == 'ident_men', \
             'Index is not labelled ident_men in data frame {}'.format(name)
         assert len(preprocessed_data_frame) != 0, 'Empty data frame {}'.format(name)
-        print '-----'
-        print name,
-        print 'size: ', len(preprocessed_data_frame)
-        print 'dtype :', preprocessed_data_frame.index.dtype,
-        print 'nan_containing_variables: ', preprocessed_data_frame.isnull().any()[preprocessed_data_frame.isnull().any()].index
-
         assert preprocessed_data_frame.index.dtype == numpy.dtype('O'), "index for {} is {}".format(
             name, preprocessed_data_frame.index.dtype)
 
@@ -150,9 +144,6 @@ def run_all(year_calage = 2011, year_data_list = [1995, 2000, 2005, 2011]):
         (name, list(set(nan_containing_variables).intersection(set(preprocessed_data_frame.columns))))
         for name, preprocessed_data_frame in preprocessed_data_frame_by_name.iteritems()
         )
-    import pprint
-
-    pprint.pprint(nan_containing_variables_by_name)
 
     if year_data == 2005:
         for vehicule_variable in ['veh_tot', 'veh_essence', 'veh_diesel', 'pourcentage_vehicule_essence']:

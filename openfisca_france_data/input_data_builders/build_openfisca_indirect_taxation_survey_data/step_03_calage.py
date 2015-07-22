@@ -263,7 +263,6 @@ def build_revenus_cales(temporary_store = None, year_calage = None, year_data = 
     revenus = temporary_store['revenus_{}'.format(year_data)]
     weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
 
-    print revenus.columns
     revenus.loyer_impute = revenus.loyer_impute.astype(float)
     weighted_sum_loyer_impute = (revenus.pondmen * revenus.loyer_impute).sum()
 
@@ -294,8 +293,8 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year_calage = 1995
-    year_data = 1995
+    year_calage = 2005
+    year_data = 2005
 
     build_depenses_calees(year_calage = year_calage, year_data = year_data)
     build_revenus_cales(year_calage = year_calage, year_data = year_data)

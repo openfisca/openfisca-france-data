@@ -242,9 +242,6 @@ def build_homogeneisation_revenus_menages(temporary_store = None, year = None):
             revenus[var_to_int] = revenus[var_to_int].astype(int)
 
         temporary_store["revenus_{}".format(year)] = revenus
-        print revenus.index
-
-
 
     elif year == 2005:
         c05d = survey.get_values(

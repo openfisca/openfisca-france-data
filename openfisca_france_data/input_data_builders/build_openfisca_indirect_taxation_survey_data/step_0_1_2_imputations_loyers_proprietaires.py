@@ -108,7 +108,6 @@ def build_imputation_loyers_proprietaires(temporary_store = None, year = None):
         imput00.maison = 1 - ((imput00.cc == 5) & (imput00.catsurf == 8) & (imput00.maison_appart == 1))
         imput00.maison = 1 - ((imput00.cc == 4) & (imput00.catsurf == 1) & (imput00.maison_appart == 1))
 
-        print survey
         try:
             parser = SafeConfigParser()
             config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
