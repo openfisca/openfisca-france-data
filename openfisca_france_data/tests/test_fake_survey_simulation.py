@@ -65,8 +65,8 @@ def get_fake_input_data_frame(year = None):
         columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
         inplace = True,
         )
-    input_data_frame.salaire_imposable[0] = 20000
-    input_data_frame.salaire_imposable[1] = 10000
+    input_data_frame.loc[0, 'salaire_imposable'] = 20000
+    input_data_frame.loc[1, 'salaire_imposable'] = 10000
 
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
@@ -98,10 +98,10 @@ def test_fake_survey_simulation():
     age_en_mois = simulation.calculate('age_en_mois')
     assert age_en_mois[0] == 924
     assert age_en_mois[1] == 444
-    sal_2003 = simulation.calculate('salaire_imposable', period = "2003")
-    sal_2004 = simulation.calculate('salaire_imposable', period = "2004")
-    sal_2005 = simulation.calculate('salaire_imposable', period = "2005")
-    sal_2006 = simulation.calculate('salaire_imposable', period = "2006")
+    sal_2003 = simulation.calculate_add('salaire_imposable', period = "2003")
+    sal_2004 = simulation.calculate_add('salaire_imposable', period = "2004")
+    sal_2005 = simulation.calculate_add('salaire_imposable', period = "2005")
+    sal_2006 = simulation.calculate_add('salaire_imposable', period = "2006")
 
     assert (sal_2003 == 0).all()
     assert (sal_2004 == sal_2006).all()
@@ -109,7 +109,7 @@ def test_fake_survey_simulation():
     import itertools
 
     for year, month in itertools.product(range(2002, 2004), range(1, 13)):
-        assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
+        assert (simulation.calculate_add('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
 
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):
         print "{}-{}".format(year, month)
