@@ -62,15 +62,15 @@ AGGREGATES_DEFAULT_VARS = [
     'rsa_act',
     'aefa',
     'api',
-#    'majo_rsa',
+    # 'majo_rsa',
     'psa',
     'aides_logement',
     'alf',
     'als',
     'apl',
     ]
-    # ajouter csgd pour le calcul des agrégats erfs
-    # ajouter rmi pour le calcul des agrégats erfs
+#  ajouter csgd pour le calcul des agrégats erfs
+#  ajouter rmi pour le calcul des agrégats erfs
 
 
 default_config_files_directory = os.path.join(
