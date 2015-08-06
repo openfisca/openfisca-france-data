@@ -117,7 +117,6 @@ def test_fake_survey_simulation():
         print sal_2006 / 12
         assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
-
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
         variables = [
             'idmen',

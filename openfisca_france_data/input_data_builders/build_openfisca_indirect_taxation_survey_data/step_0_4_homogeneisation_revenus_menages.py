@@ -24,20 +24,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
+
 import logging
 import pandas
 
 
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import TemporaryStore
+
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import ident_men_dtype
 
 
 log = logging.getLogger(__name__)
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def build_homogeneisation_revenus_menages(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_homogeneisation_revenus_menages(temporary_store = None, year = None):
+    assert temporary_store is not None
     """Build menage consumption by categorie fiscale dataframe """
 
     assert year is not None
@@ -54,7 +61,6 @@ def build_homogeneisation_revenus_menages(year = None):
 # ********************HOMOGENEISATION DES BASES DE RESSOURCES***************************
 
 # /* La base 95 permet de distinguer taxe d'habitation et impôts fonciers. On calcule leur montant relatif pour l'appliquer à 00 et 05 */
-
 
     if year == 1995:
         menrev = survey.get_values(
@@ -76,7 +82,6 @@ def build_homogeneisation_revenus_menages(year = None):
         # exrev = 1 si les données sont bien remplies pour les revenus du ménage
 
         menrev = menrev[(menrev.exdep == 1) & (menrev.exrev == 1)]
-
 
         menrev['foncier_hab'] = menrev.imphab + menrev.impfon
         menrev['part_IMPHAB'] = menrev.imphab / menrev.foncier_hab
@@ -100,10 +105,10 @@ def build_homogeneisation_revenus_menages(year = None):
             )
         menrev['impot_revenu'] = menrev['ir'] + menrev['irbis']
 
-
         rev_disp = survey.get_values(
             table = "menrev",
-            variables = ['revtot', 'revret', 'revcho', 'revfam', 'revlog', 'revinv', 'revrmi', 'imphab', 'impfon', 'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr', 'ir','irbis' ],
+            variables = ['revtot', 'revret', 'revcho', 'revfam', 'revlog', 'revinv', 'revrmi', 'imphab', 'impfon',
+            'revaid', 'revsal', 'revind', 'revsec', 'revpat', 'mena', 'ponderr', 'ir', 'irbis'],
             )
         rev_disp.set_index('mena', inplace=True)
 
@@ -165,7 +170,8 @@ def build_homogeneisation_revenus_menages(year = None):
         rev_dispbis = loyers_imputes.merge(rev_disp, left_index = True, right_index = True)
         rev_disp['rev_disp_loyerimput'] = rev_disp['rev_disponible'] - rev_dispbis['loyer_impute']
 
-        for var in ['somme_obl_recue', 'act_indpt', 'revpat', 'salaires', 'autres_rev', 'rev_disponible', 'impfon', 'imphab', 'revsoc', 'revact', 'impot_revenu', 'revtot', 'rev_disp_loyerimput'] :
+        for var in ['somme_obl_recue', 'act_indpt', 'revpat', 'salaires', 'autres_rev', 'rev_disponible', 'impfon',
+                    'imphab', 'revsoc', 'revact', 'impot_revenu', 'revtot', 'rev_disp_loyerimput']:
             rev_disp[var] = rev_disp[var] / 6.55957
 # * CONVERSION EN EUROS
 
@@ -173,21 +179,20 @@ def build_homogeneisation_revenus_menages(year = None):
 
     elif year == 2000:
     # TODO: récupérer plutôt les variables qui viennent de la table dépenses (dans temporary_store)
-        consomen = survey.get_values(
+        rev_disp = survey.get_values(
             table = "consomen",
             variables = ['c13141', 'c13111', 'c13121', 'c13131', 'pondmen', 'ident'],
             )
-        rev_disp = consomen.sort(columns = ['ident'])
-        del consomen
-
-
         menage = survey.get_values(
             table = "menage",
-            variables = ['ident', 'revtot', 'revact', 'revsoc', 'revpat', 'rev70', 'rev71', 'revt_d', 'pondmen', 'rev10', 'rev11', 'rev20', 'rev21'],
+            variables = ['ident', 'revtot', 'revact', 'revsoc', 'revpat', 'rev70', 'rev71', 'revt_d', 'pondmen',
+                         'rev10', 'rev11', 'rev20', 'rev21'],
             ).sort(columns = ['ident'])
 
-
+        menage.index = menage.index.astype(ident_men_dtype)
+        rev_disp.index = rev_disp.index.astype(ident_men_dtype)
         revenus = menage.join(rev_disp, how = "outer", rsuffix = "rev_disp")
+        revenus.fillna(0, inplace = True)
         revenus.rename(
             columns = dict(
                 c13111 = "impot_res_ppal",
@@ -195,7 +200,7 @@ def build_homogeneisation_revenus_menages(year = None):
                 c13121 = "impot_autres_res",
                 rev70 = "somme_obl_recue",
                 rev71 = "somme_libre_recue",
-                revt_d= "autres_ress",
+                revt_d = "autres_ress",
                 ident = "ident_men",
                 rev10 = "act_indpt",
                 rev11 = "autoverses",
@@ -205,14 +210,13 @@ def build_homogeneisation_revenus_menages(year = None):
             inplace = True
             )
 
-        var_to_ints = ['pondmen','impot_autres_res','impot_res_ppal','pondmenrev_disp','c13131']
+        var_to_ints = ['pondmen', 'impot_autres_res', 'impot_res_ppal', 'pondmenrev_disp', 'c13131']
         for var_to_int in var_to_ints:
+            revenus.loc[revenus[var_to_int].isnull(), var_to_int] = 0
             revenus[var_to_int] = revenus[var_to_int].astype(int)
 
         revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
         revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
-
-
         loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
         variables = ["0421"]
         loyers_imputes = loyers_imputes[variables]
@@ -223,13 +227,12 @@ def build_homogeneisation_revenus_menages(year = None):
             )
 
         temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+        loyers_imputes.index = loyers_imputes.index.astype(ident_men_dtype)
 
-        loyers_imputes.index = loyers_imputes.index.astype('int')
-        revenus = revenus.set_index('ident_men')
-        revenus.index = revenus.index.astype('int')
-
+        revenus.set_index('ident_men', inplace = True)
+        revenus.index = revenus.index.astype(ident_men_dtype)
+        assert set(revenus.index) == set(loyers_imputes.index), 'revenus and loyers_imputes indexes are not equal'
         revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
-
         revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
@@ -238,10 +241,7 @@ def build_homogeneisation_revenus_menages(year = None):
         for var_to_int in var_to_ints:
             revenus[var_to_int] = revenus[var_to_int].astype(int)
 
-
         temporary_store["revenus_{}".format(year)] = revenus
-
-
 
     elif year == 2005:
         c05d = survey.get_values(
@@ -257,6 +257,8 @@ def build_homogeneisation_revenus_menages(year = None):
             ).sort(columns = ['ident_men'])
         rev_disp.set_index('ident_men', inplace = True)
         menage.set_index('ident_men', inplace = True)
+        menage.index = menage.index.astype('str')
+
         revenus = pandas.concat([menage, rev_disp], axis = 1)
         revenus.rename(
             columns = dict(
@@ -296,48 +298,59 @@ def build_homogeneisation_revenus_menages(year = None):
             inplace = True,
             )
         temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+        loyers_imputes.index = loyers_imputes.index.astype('str')
+        assert set(revenus.index) == set(loyers_imputes.index), 'revenus and loyers_imputes indexes are not equal'
         revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
         revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
         revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
         revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+
         temporary_store["revenus_{}".format(year)] = revenus
 
     elif year == 2011:
-       try:
-          c05 = survey.get_values(
-            table = "C05",
-            variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
-            )
-       except:
-          c05 = survey.get_values(
-            table = "c05",
-            variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
-            )
-       rev_disp = c05.sort(columns = ['ident_me'])
-       del c05
-       try:
-          menage = survey.get_values(
-            table = "MENAGE",
-            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'salaires'],
-            ).sort(columns = ['ident_me'])
-       except:
-          menage = survey.get_values(
-            table = "menage",
-            variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'salaires'],
-            ).sort(columns = ['ident_me'])
+        try:
+            c05 = survey.get_values(
+                table = "C05",
+                variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
+                )
+            rev_disp = c05.sort(columns = ['ident_me'])
+        except:
+            c05 = survey.get_values(
+                table = "c05",
+                variables = ['c13111', 'c13121', 'c13141', 'pondmen', 'ident_me'],
+                )
+            rev_disp = c05.sort(columns = ['ident_me'])
+        del c05
+        try:
+            menage = survey.get_values(
+                table = "MENAGE",
+                variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999',
+                             'revindep', 'salaires'],
+                ).sort(columns = ['ident_me'])
+        except:
+            menage = survey.get_values(
+                table = "menage",
+                variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999',
+                             'revindep', 'salaires'],
+                ).sort(columns = ['ident_me'])
 
-#      variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999', 'revindep', 'rev101_d', 'salaires', 'rev201'],
+#      variables = ['ident_me', 'revtot', 'revact', 'revsoc', 'revpat', 'rev700', 'rev701', 'rev999',
+#                   'revindep', 'rev101_d', 'salaires', 'rev201'],
 
-       rev_disp.set_index('ident_me', inplace = True)
-       menage.set_index('ident_me', inplace = True)
-       revenus = pandas.concat([menage, rev_disp], axis = 1)
-       revenus.rename(
+        rev_disp.index = rev_disp.index.astype(ident_men_dtype)
+        menage.index = menage.index.astype(ident_men_dtype)
+        rev_disp.set_index('ident_me', inplace = True)
+        menage.set_index('ident_me', inplace = True)
+        revenus = pandas.concat([menage, rev_disp], axis = 1)
+        menage.index.name = 'ident_men'
+        revenus.index.name = 'ident_men'
+        revenus.rename(
             columns = dict(
                 revindep = "act_indpt",
 #TODO: trouver ces revenus commentés dans bdf 2011
-#                rev101_d = "autoverses",
+                # rev101_d = "autoverses",
                 salaires = "salaires",
-#                rev201_d = "autres_rev",
+                # rev201_d = "autres_rev",
                 rev700 = "somme_obl_recue",
                 rev701 = "somme_libre_recue",
                 rev999 = "autres_ress",
@@ -347,24 +360,24 @@ def build_homogeneisation_revenus_menages(year = None):
                 ),
             inplace = True
             )
-       revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
-       revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
-       del revenus['impot_autres_res']
-       del revenus['impot_res_ppal']
+        revenus['imphab'] = 0.65 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+        revenus['impfon'] = 0.35 * (revenus.impot_res_ppal + revenus.impot_autres_res)
+        del revenus['impot_autres_res']
+        del revenus['impot_res_ppal']
 
-       loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
-       variables = ["0421"]
-       loyers_imputes = loyers_imputes[variables]
-       loyers_imputes.rename(
+        loyers_imputes = temporary_store["depenses_bdf_{}".format(year)]
+        variables = ["0421"]
+        loyers_imputes = loyers_imputes[variables]
+        loyers_imputes.rename(
             columns = {"0421": "loyer_impute"},
             inplace = True,
             )
-       temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
-       revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
-       revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
-       revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
-       revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
-       temporary_store["revenus_{}".format(year)] = revenus
+        temporary_store["loyers_imputes_{}".format(year)] = loyers_imputes
+        revenus = revenus.merge(loyers_imputes, left_index = True, right_index = True)
+        revenus['rev_disponible'] = revenus.revtot - revenus.impot_revenu - revenus.imphab
+        revenus['rev_disponible'] = revenus['rev_disponible'] * (revenus['rev_disponible'] >= 0)
+        revenus['rev_disp_loyerimput'] = revenus.rev_disponible + revenus.loyer_impute
+        temporary_store["revenus_{}".format(year)] = revenus
 
 
 if __name__ == '__main__':
@@ -372,7 +385,7 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year = 2000
+    year = 2011
     build_homogeneisation_revenus_menages(year = year)
 
     log.info("step_0_4_homogeneisation_revenus_menages duration is {}".format(time.clock() - deb))
