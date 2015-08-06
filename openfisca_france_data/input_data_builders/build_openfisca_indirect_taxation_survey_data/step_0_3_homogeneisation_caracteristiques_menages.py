@@ -26,23 +26,25 @@
 
 from __future__ import division
 
+
 import logging
 import numpy
 import pandas
 
 
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import TemporaryStore
 
 
 log = logging.getLogger(__name__)
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
 
 
-def build_homogeneisation_caracteristiques_sociales(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_homogeneisation_caracteristiques_sociales(temporary_store = None, year = None):
     """HOMOGENEISATION DES CARACTERISTIQUES SOCIALES DES MENAGES """
 
+    assert temporary_store is not None
     assert year is not None
     # Load data
     bdf_survey_collection = SurveyCollection.load(
@@ -169,29 +171,33 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             inplace = True,
             )
         menage.ocde10 = menage.ocde10 / 10
-        # on met un numéro à chaque vague pour pouvoir faire un meilleur suivi des évolutions temporelles pour le modèle
-        # de demande
+        # on met un numéro à chaque vague pour pouvoir faire un meilleur suivi des évolutions temporelles
+        # pour le modèle de demande
+        menage.agecj = menage.agecj.fillna(0)
+
+        assert menage.notnull().all().all(), 'The following variables contains NaN values: {}'.format(
+            list(menage.isnull().any()[menage.isnull().any()].index))
+
         menage['vag_'] = menage['vag']
-        menage.vag[menage.vag_ == 1] = 9
-        menage.vag[menage.vag_ == 2] = 10
-        menage.vag[menage.vag_ == 3] = 11
-        menage.vag[menage.vag_ == 4] = 12
-        menage.vag[menage.vag_ == 5] = 13
-        menage.vag[menage.vag_ == 6] = 14
-        menage.vag[menage.vag_ == 7] = 15
-        menage.vag[menage.vag_ == 8] = 16
+        menage.vag.loc[menage.vag_ == 1] = 9
+        menage.vag.loc[menage.vag_ == 2] = 10
+        menage.vag.loc[menage.vag_ == 3] = 11
+        menage.vag.loc[menage.vag_ == 4] = 12
+        menage.vag.loc[menage.vag_ == 5] = 13
+        menage.vag.loc[menage.vag_ == 6] = 14
+        menage.vag.loc[menage.vag_ == 7] = 15
+        menage.vag.loc[menage.vag_ == 8] = 16
         del menage['vag_']
         # harmonisation des types de ménage sur la nomenclature 2010
         menage['typmen_'] = menage['typmen']
-        menage.typmen[menage.typmen_ == 1] = 1
-        menage.typmen[menage.typmen_ == 2] = 3
-        menage.typmen[menage.typmen_ == 3] = 4
-        menage.typmen[menage.typmen_ == 4] = 4
-        menage.typmen[menage.typmen_ == 5] = 4
-        menage.typmen[menage.typmen_ == 6] = 2
-        menage.typmen[menage.typmen_ == 7] = 5
+        menage.typmen.loc[menage.typmen_ == 1] = 1
+        menage.typmen.loc[menage.typmen_ == 2] = 3
+        menage.typmen.loc[menage.typmen_ == 3] = 4
+        menage.typmen.loc[menage.typmen_ == 4] = 4
+        menage.typmen.loc[menage.typmen_ == 5] = 4
+        menage.typmen.loc[menage.typmen_ == 6] = 2
+        menage.typmen.loc[menage.typmen_ == 7] = 5
         del menage['typmen_']
-
 
         menage.couplepr = menage.couplepr.astype('int')
         menage["nadultes"] = menage['npers'] - menage['nenfants']
@@ -199,37 +205,37 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         menage.typmen = menage.typmen.astype('int')
 
         menage["situacj"] = 0
-        menage.situacj[menage.occupacj == 1] = 1
-        menage.situacj[menage.occupccj == 3] = 3
-        menage.situacj[menage.occupccj == 2] = 4
-        menage.situacj[menage.occupccj == 5] = 5
-        menage.situacj[menage.occupccj == 6] = 5
-        menage.situacj[menage.occupccj == 7] = 6
-        menage.situacj[menage.occupccj == 8] = 7
-        menage.situacj[menage.occupccj == 4] = 8
+        menage.situacj.loc[menage.occupacj == 1] = 1
+        menage.situacj.loc[menage.occupccj == 3] = 3
+        menage.situacj.loc[menage.occupccj == 2] = 4
+        menage.situacj.loc[menage.occupccj == 5] = 5
+        menage.situacj.loc[menage.occupccj == 6] = 5
+        menage.situacj.loc[menage.occupccj == 7] = 6
+        menage.situacj.loc[menage.occupccj == 8] = 7
+        menage.situacj.loc[menage.occupccj == 4] = 8
 
         menage["situapr"] = 0
-        menage.situapr[menage.occupapr == 1] = 1
-        menage.situapr[menage.occupapr == 3] = 3
-        menage.situapr[menage.occupapr == 2] = 4
-        menage.situapr[menage.occupapr == 5] = 5
-        menage.situapr[menage.occupapr == 6] = 5
-        menage.situapr[menage.occupapr == 7] = 6
-        menage.situapr[menage.occupapr == 8] = 7
-        menage.situapr[menage.occupapr == 4] = 8
+        menage.situapr.loc[menage.occupapr == 1] = 1
+        menage.situapr.loc[menage.occupapr == 3] = 3
+        menage.situapr.loc[menage.occupapr == 2] = 4
+        menage.situapr.loc[menage.occupapr == 5] = 5
+        menage.situapr.loc[menage.occupapr == 6] = 5
+        menage.situapr.loc[menage.occupapr == 7] = 6
+        menage.situapr.loc[menage.occupapr == 8] = 7
+        menage.situapr.loc[menage.occupapr == 4] = 8
 
         menage["natiocj"] = 0
         menage["natiopr"] = 0
-        menage.natiocj[menage.nacj == 1] = 1
-        menage.natiocj[menage.nacj == 2] = 1
-        menage.natiocj[menage.nacj == 3] = 2
-        menage.natiopr[menage.napr == 1] = 1
-        menage.natiopr[menage.napr == 2] = 1
-        menage.natiopr[menage.napr == 3] = 2
+        menage.natiocj.loc[menage.nacj == 1] = 1
+        menage.natiocj.loc[menage.nacj == 2] = 1
+        menage.natiocj.loc[menage.nacj == 3] = 2
+        menage.natiopr.loc[menage.napr == 1] = 1
+        menage.natiopr.loc[menage.napr == 2] = 1
+        menage.natiopr.loc[menage.napr == 3] = 2
 
         menage["typlog"] = 0
-        menage.typlog[menage.sitlog == 1] = 1
-        menage.typlog[menage.sitlog != 1] = 2
+        menage.typlog.loc[menage.sitlog == 1] = 1
+        menage.typlog.loc[menage.sitlog != 1] = 2
 
         menage.set_index('ident_men', inplace = True)
 
@@ -248,6 +254,10 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             individus[variable_to_destring] = individus[variable_to_destring].astype('int').copy()
         individus['agepr'] = year - individus.anais
         individus.set_index('ident_men', inplace = True)
+
+        assert menage.notnull().all().all(), 'The following variables contains NaN values: {}'.format(
+            list(menage.isnull().any()[menage.isnull().any()].index))
+
         menage = menage.merge(individus, left_index = True, right_index = True)
 
     if year == 2005:
@@ -278,10 +288,11 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
             menage['natio' + person] = (menage['natio7' + person] > 2)  # TODO: changer de convention ?
             del menage['natio7' + person]
 
+        menage.agecj = menage.agecj.fillna(0)
+        menage.nenfhors = menage.nenfhors.fillna(0)
         var_to_ints = ['ocde10', 'decuc', 'nactifs', 'nenfants', 'npers', 'pondmen', 'nadultes']
-        for var_to_int in var_to_ints:
-            menage[var_to_int] = menage[var_to_int].astype(int)
-            assert menage[var_to_int].notnull().all(), "{} contains NaN".format(var_to_int)
+        assert menage.notnull().all().all(), 'The following variables contains NaN values: {}'.format(
+            list(menage.isnull().any()[menage.isnull().any()].index))
 
         menage.couplepr = menage.couplepr > 2  # TODO: changer de convention ?
         menage.ocde10 = menage.ocde10 / 10
@@ -289,12 +300,12 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         # on met un numéro à chaque vague pour pouvoir faire un meilleur suivi des évolutions temporelles
         # pour le modèle de demande
         menage['vag_'] = menage['vag']
-        menage.vag[menage.vag_ == 1] = 17
-        menage.vag[menage.vag_ == 2] = 18
-        menage.vag[menage.vag_ == 3] = 19
-        menage.vag[menage.vag_ == 4] = 20
-        menage.vag[menage.vag_ == 5] = 21
-        menage.vag[menage.vag_ == 6] = 22
+        menage.vag.loc[menage.vag_ == 1] = 17
+        menage.vag.loc[menage.vag_ == 2] = 18
+        menage.vag.loc[menage.vag_ == 3] = 19
+        menage.vag.loc[menage.vag_ == 4] = 20
+        menage.vag.loc[menage.vag_ == 5] = 21
+        menage.vag.loc[menage.vag_ == 6] = 22
         del menage['vag_']
 
         stalog = survey.get_values(table = "depmen", variables = ['ident_men', 'stalog'])
@@ -324,8 +335,8 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         individus = individus[individus.lienpref == 00].copy()
         kept_variables = ['ident_men', 'etamatri', 'agepr']
         individus = individus[kept_variables].copy()
-        individus.etamatri[individus.etamatri == 0] = 1
-        individus['etamatri'] = individus['etamatri'].astype('int').copy()  # MBJ TODO: define as a catagory ?
+        individus.etamatri.loc[individus.etamatri == 0] = 1
+        individus['etamatri'] = individus['etamatri'].astype('int')  # MBJ TODO: define as a catagory ?
         individus.set_index('ident_men', inplace = True)
         menage = menage.merge(individus, left_index = True, right_index = True)
 
@@ -531,7 +542,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                     'ident_me', 'pondmen', 'npers', 'nenfants', 'nactifs', 'sexepr', 'sexecj', 'dip14cj', 'dip14pr',
                     'coeffuc', 'decuc1', 'typmen5'
                     ]
-                )
+                ).sort(columns = ['ident_me'])
         except:
             menage = survey.get_values(
                 table = "menage",
@@ -539,8 +550,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                     'ident_me', 'pondmen', 'npers', 'nenfants', 'nactifs', 'sexepr', 'sexecj', 'dip14cj', 'dip14pr',
                     'coeffuc', 'decuc1', 'typmen5'
                     ]
-                )
-
+                ).sort(columns = ['ident_me'])
         menage.rename(
             columns = {
                 'ident_me': 'ident_men',
@@ -550,9 +560,7 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
                 },
             inplace = True,
             )
-        menage.set_index('ident_men', inplace = True)
-
-        # Ajout de la variable vag
+        # ajout de la variable vag
         try:
             vague = survey.get_values(table = "DEPMEN")
         except:
@@ -560,17 +568,19 @@ def build_homogeneisation_caracteristiques_sociales(year = None):
         kept_variables = ['vag']
         vague = vague[kept_variables]
         menage = menage.merge(vague, left_index = True, right_index = True)
-        # On met un numéro à chaque vague pour pouvoir faire un meilleur suivi des évolutions temporelles pour le modèle
-        # de demande
+        # on met un numéro à chaque vague pour pouvoir faire un meilleur suivi des évolutions temporelles
+        # pour le modèle de demande
         menage['vag_'] = menage['vag']
-        menage.vag[menage.vag_ == 1] = 23
-        menage.vag[menage.vag_ == 2] = 24
-        menage.vag[menage.vag_ == 3] = 25
-        menage.vag[menage.vag_ == 4] = 26
-        menage.vag[menage.vag_ == 5] = 27
-        menage.vag[menage.vag_ == 6] = 28
+        menage.vag.loc[menage.vag_ == 1] = 23
+        menage.vag.loc[menage.vag_ == 2] = 24
+        menage.vag.loc[menage.vag_ == 3] = 25
+        menage.vag.loc[menage.vag_ == 4] = 26
+        menage.vag.loc[menage.vag_ == 5] = 27
+        menage.vag.loc[menage.vag_ == 6] = 28
         del menage['vag_']
 
+    if year == 2011:
+        menage.set_index('ident_men', inplace = True)
     temporary_store['donnes_socio_demog_{}'.format(year)] = menage
 
 

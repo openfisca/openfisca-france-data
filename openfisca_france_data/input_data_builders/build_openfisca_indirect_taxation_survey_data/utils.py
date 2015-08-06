@@ -24,6 +24,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
+
 def collapsesum(data_frame, by = None, var = None):
     '''
     Pour une variable, fonction qui calcule la moyenne pondérée au sein de chaque groupe.
@@ -35,11 +38,16 @@ def collapsesum(data_frame, by = None, var = None):
 
 
 def find_nearest_inferior(years, year):
-#    years = year_data_list
+    # years = year_data_list
     anterior_years = [
         available_year for available_year in years if available_year <= year
         ]
     return max(anterior_years)
+
+
+# ident_men_dtype = numpy.dtype('O')
+ident_men_dtype = 'str'
+
 
 def weighted_sum(groupe, var):
     '''

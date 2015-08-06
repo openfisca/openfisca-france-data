@@ -24,6 +24,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from __future__ import division
+
+
 import os
 import logging
 
@@ -31,14 +34,16 @@ from ConfigParser import SafeConfigParser
 
 import pandas
 
-log = logging.getLogger(__name__)
 
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.step_0_1_1_homogeneisation_donnees_depenses \
     import normalize_coicop
+from openfisca_france_data.input_data_builders.build_openfisca_indirect_taxation_survey_data.utils \
+    import ident_men_dtype
 
-from openfisca_france_data.temporary import TemporaryStore
-temporary_store = TemporaryStore.create(file_name = "indirect_taxation_tmp")
+
+log = logging.getLogger(__name__)
 
 
 def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
@@ -95,12 +100,15 @@ def calcul_ratios_calage(year_data, year_calage, data_bdf, data_cn):
     return masses
 
 
-def get_bdf_data_frames(year_data):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def get_bdf_data_frames(temporary_store = None, year_data = None):
+    assert year_data is not None
+    assert temporary_store is not None
     '''
     Fonction qui récupère les dépenses de budget des familles
     et les agrège par poste (en tenant compte des poids respectifs des ménages)
     '''
-    depenses_by_grosposte = temporary_store.extract('depenses_by_grosposte_{}'.format(year_data))
+    depenses_by_grosposte = temporary_store['depenses_by_grosposte_{}'.format(year_data)]
     grospostes_list = set(depenses_by_grosposte.columns)
     grospostes_list.remove('pondmen')
 
@@ -136,9 +144,10 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     parametres_fiscalite_file_path = os.path.join(directory_path, "Parametres fiscalite indirecte.xls")
     masses_cn_data_frame = pandas.read_excel(parametres_fiscalite_file_path, sheetname = "consommation_CN")
     if year_data != year_calage:
-        masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year_data, year_calage]]
+        masses_cn_12postes_data_frame = masses_cn_data_frame.loc[:, ['Code', year_data, year_calage]]
     else:
-        masses_cn_12postes_data_frame = masses_cn_data_frame[['Code', year_data]]
+        masses_cn_12postes_data_frame = masses_cn_data_frame.loc[:, ['Code', year_data]]
+
     masses_cn_12postes_data_frame['code_unicode'] = masses_cn_12postes_data_frame.Code.astype(unicode)
     masses_cn_12postes_data_frame['len_code'] = masses_cn_12postes_data_frame['code_unicode'].apply(lambda x: len(x))
 
@@ -167,12 +176,16 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     return masses_cn_12postes_data_frame
 
 
-def build_depenses_calees(year_calage, year_data):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_depenses_calees(temporary_store = None, year_calage = None, year_data = None):
+    assert temporary_store is not None
+    assert year_calage is not None
+    assert year_data is not None
 
     # Masses de calage provenant de la comptabilité nationale
     masses_cn_12postes_data_frame = get_cn_data_frames(year_data = year_data, year_calage = year_calage)
     # Enquête agrégée au niveau des gros postes de COICOP (12)
-    df_bdf_weighted_sum_by_grosposte = get_bdf_data_frames(year_data)
+    df_bdf_weighted_sum_by_grosposte = get_bdf_data_frames(year_data = year_data)
 
     # Calcul des ratios de calage :
     masses = calcul_ratios_calage(
@@ -184,10 +197,12 @@ def build_depenses_calees(year_calage, year_data):
 
     # Application des ratios de calage
     depenses = temporary_store['depenses_bdf_{}'.format(year_data)]
+    depenses.index = depenses.index.astype(ident_men_dtype)
+    assert depenses.index.dtype == 'object', "depenses index is not an object"
     depenses_calees = calage_viellissement_depenses(year_data, year_calage, depenses, masses)
     temporary_store['depenses_calees_{}'.format(year_calage)] = depenses_calees
 
-    ###
+    # Deintion d'une fonction pratique
     def select_gros_postes(coicop):
         try:
             coicop = unicode(coicop)
@@ -197,27 +212,27 @@ def build_depenses_calees(year_calage, year_data):
         grosposte = normalized_coicop[0:2]
         return int(grosposte)
 
-    grospostes = [
-        select_gros_postes(coicop)
-        for coicop in depenses_calees.columns
-        ]
+    grospostes = [select_gros_postes(coicop) for coicop in depenses_calees.columns]
     tuples_gros_poste = zip(depenses_calees.columns, grospostes)
     depenses_calees.columns = pandas.MultiIndex.from_tuples(tuples_gros_poste, names=['coicop', 'grosposte'])
 
     depenses_calees_by_grosposte = depenses_calees.groupby(level = 1, axis = 1).sum()
-
     column_groposte = [
         'coicop12_{}'.format(column)
         for column in depenses_calees_by_grosposte.columns
         ]
     depenses_calees_by_grosposte.columns = column_groposte
 
+    depenses_calees_by_grosposte.index = depenses_calees_by_grosposte.index.astype(ident_men_dtype)
     # Sauvegarde de la base en coicop agrégée calée
     temporary_store['depenses_calees_by_grosposte_{}'.format(year_calage)] = depenses_calees_by_grosposte
 
 
-def build_revenus_cales(year_calage, year_data):
-
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'indirect_taxation_tmp')
+def build_revenus_cales(temporary_store = None, year_calage = None, year_data = None):
+    assert temporary_store is not None
+    assert year_calage is not None
+    assert year_data is not None
 
     # Masses de calage provenant de la comptabilité nationale
     parser = SafeConfigParser()
@@ -246,20 +261,19 @@ def build_revenus_cales(year_calage, year_data):
     masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_calage]
 
     revenus = temporary_store['revenus_{}'.format(year_data)]
-
     weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
 
-    revenus.rev_disp_loyerimput = revenus.loyer_impute.astype(float)
+    revenus.loyer_impute = revenus.loyer_impute.astype(float)
     weighted_sum_loyer_impute = (revenus.pondmen * revenus.loyer_impute).sum()
 
     rev_disponible_cn = masses_cn_revenus_data_frame.rev_disponible_cn.sum()
     loyer_imput_cn = masses_cn_revenus_data_frame.loyer_imput_cn.sum()
 
-    revenus_cales = revenus
+    revenus_cales = revenus.copy()
 
     # Calcul des ratios de calage :
-    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000) / weighted_sum_revenus
-    revenus_cales['ratio_loyer_impute'] = loyer_imput_cn * 1000000 / weighted_sum_loyer_impute
+    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1e9 - loyer_imput_cn * 1e9) / weighted_sum_revenus
+    revenus_cales['ratio_loyer_impute'] = loyer_imput_cn * 1e9 / weighted_sum_loyer_impute
 
     # Application des ratios de calage
     revenus_cales.rev_disponible = revenus.rev_disponible * revenus_cales['ratio_revenus']
@@ -278,10 +292,10 @@ if __name__ == '__main__':
     import time
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
-    year_calage = 2000
-    year_data = 2000
+    year_calage = 2005
+    year_data = 2005
 
-    build_depenses_calees(year_calage, year_data)
-    build_revenus_cales(year_calage, year_data)
+    build_depenses_calees(year_calage = year_calage, year_data = year_data)
+    build_revenus_cales(year_calage = year_calage, year_data = year_data)
 
     log.info("step 03 calage duration is {}".format(time.clock() - deb))
