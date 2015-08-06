@@ -113,6 +113,7 @@ def build_depenses_homogenisees(year = None):
             del conso[variable]
 
     if year == 2005:
+        print survey
         conso = survey.get_values(table = "c05d")
 
     if year == 2011:

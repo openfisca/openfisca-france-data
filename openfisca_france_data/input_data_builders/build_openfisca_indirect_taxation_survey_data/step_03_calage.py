@@ -64,12 +64,12 @@ def calage_viellissement_depenses(year_data, year_calage, depenses, masses):
 #    11 Hotels, cafés, restaurants
 #    12 Biens et services divers
         if grosposte != 99:
-           # print 'grosposte: ', grosposte
-           # print masses
+            #  print 'grosposte: ', grosposte
+            #  print masses
             ratio_bdf_cn = masses.at[grosposte, 'ratio_bdf{}_cn{}'.format(year_data, year_data)]
             ratio_cn_cn = masses.at[grosposte, 'ratio_cn{}_cn{}'.format(year_data, year_calage)]
             depenses_calees[column] = depenses[column] * ratio_bdf_cn * ratio_cn_cn
-#            print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
+            #  print 'Pour le grosposte {}, le ratio de calage de la base bdf {} sur la cn est {}, le ratio de calage sur la cn pour l\'annee {} est {}'.format(grosposte, year_data, ratio_bdf_cn, year_calage,ratio_cn_cn)
     return depenses_calees
 
 
@@ -166,6 +166,7 @@ def get_cn_data_frames(year_data = None, year_calage = None):
     masses_cn_12postes_data_frame.set_index('poste', inplace = True)
     return masses_cn_12postes_data_frame
 
+
 def build_depenses_calees(year_calage, year_data):
 
     # Masses de calage provenant de la comptabilité nationale
@@ -234,18 +235,17 @@ def build_revenus_cales(year_calage, year_data):
 # ne pas oublier d'enlever l'accent à "loyers imputés" dans le document excel Parametres fiscalité indirecte
 
     masses_cn_revenus_data_frame.rename(
-            columns = {
-                'annee': 'year',
-                'Revenu disponible brut': 'rev_disponible_cn',
-                'Loyers imputes': 'loyer_imput_cn'
-                },
-            inplace = True
-            )
+        columns = {
+            'annee': 'year',
+            'Revenu disponible brut': 'rev_disponible_cn',
+            'Loyers imputes': 'loyer_imput_cn'
+            },
+        inplace = True
+        )
 
     masses_cn_revenus_data_frame = masses_cn_revenus_data_frame[masses_cn_revenus_data_frame.year == year_calage]
 
     revenus = temporary_store['revenus_{}'.format(year_data)]
-
 
     weighted_sum_revenus = (revenus.pondmen * revenus.rev_disponible).sum()
 
@@ -258,9 +258,8 @@ def build_revenus_cales(year_calage, year_data):
     revenus_cales = revenus
 
     # Calcul des ratios de calage :
-    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000)/ weighted_sum_revenus
+    revenus_cales['ratio_revenus'] = (rev_disponible_cn * 1000000 - loyer_imput_cn * 1000000) / weighted_sum_revenus
     revenus_cales['ratio_loyer_impute'] = loyer_imput_cn * 1000000 / weighted_sum_loyer_impute
-
 
     # Application des ratios de calage
     revenus_cales.rev_disponible = revenus.rev_disponible * revenus_cales['ratio_revenus']
@@ -268,8 +267,6 @@ def build_revenus_cales(year_calage, year_data):
     revenus_cales.rev_disp_loyerimput = revenus_cales.rev_disponible + revenus_cales.loyer_impute
 
     temporary_store['revenus_cales_{}'.format(year_calage)] = revenus_cales
-
-
 
 # Vérification des résultats du calage :
 #    La différence du nombre de colonne vient du fait que l'on ne garde pas

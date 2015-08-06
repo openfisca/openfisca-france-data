@@ -103,7 +103,8 @@ def create_indivim_menagem(temporary_store = None, year = None):
         ])
 
     for var in var_list:
-        assert indivim[var].dtype == numpy.dtype('int')
+        assert numpy.issubdtype(indivim[var].dtype , numpy.integer), "Variable {} dtype is {} and should be an integer".format(
+            var, indivim[var].dtype)
 
     ########################
     # création de variables#
@@ -114,7 +115,7 @@ def create_indivim_menagem(temporary_store = None, year = None):
 #   actrec : activité recodée comme preconisé par l'INSEE p84 du guide utilisateur
     indivim["actrec"] = numpy.nan
     # Attention : Q: pas de 6 ?!! A : Non pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
-    # la même nomenclature à été adopée    
+    # la même nomenclature à été adopée
     # 3: contrat a durée déterminée
     indivim.actrec.loc[indivim.acteu == 1] = 3
     # 8 : femme (homme) au foyer, autre inactif
@@ -249,7 +250,7 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
         ].copy()
 
     temporary_store["enfants_a_naitre_{}".format(year)] = enfants_a_naitre
-    
+
 if __name__ == '__main__':
     log.info('Entering 01_pre_proc')
     import sys
