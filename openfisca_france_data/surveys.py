@@ -75,8 +75,9 @@ class SurveyScenario(AbstractSurveyScenario):
         simulation = self.simulation
         for offset in [0, -1, -2]:
             for variable_name in ['salaire_imposable', 'cho', 'rst']:
-                variable = simulation.get_or_new_holder(variable_name)
-                variable.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
+
+                holder = simulation.get_or_new_holder(variable_name)
+                holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
 
         simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, 50)
 
