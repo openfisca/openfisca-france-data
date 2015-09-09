@@ -57,6 +57,7 @@ OpenFiscaFranceTaxBenefitSystem = openfisca_france.init_country()
 openfisca_france_tax_benefit_system = OpenFiscaFranceTaxBenefitSystem()
 
 TaxBenefitSystem = reforms.make_reform(
+    key = 'openfisca_france_data',
     name = u"OpenFisca for survey data",
     reference = openfisca_france_tax_benefit_system,
     )
