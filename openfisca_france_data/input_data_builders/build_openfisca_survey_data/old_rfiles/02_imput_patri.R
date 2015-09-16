@@ -181,12 +181,12 @@ data_plot <- rbind(data1,data2)
 p <- ggplot(data_plot)
 p + geom_bar(aes(x=cat, weight=w, fill=source), position="dodge") 
 
-# prepare for merging with menage_en_mois
+# prepare for merging with menagem
 patrim <- data.frame(ident = erf$ident, patri=erf$finalexp)
 load(menm)
-menage_en_mois <- merge(menage_en_mois, patrim, by="ident",all.x = TRUE)
-save(menage_en_mois,file=menm)
-rm(patrim,menage_en_mois)  
+menagem <- merge(menagem, patrim, by="ident",all.x = TRUE)
+save(menagem,file=menm)
+rm(patrim,menagem)  
 
 
 

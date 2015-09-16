@@ -30,9 +30,9 @@ import logging
 
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import create_replace
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -40,23 +40,25 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-# Prepare the some useful merged tables
-def create_indivim_menage_en_mois(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = "erfs")
+def create_indivim_menagem(temporary_store = None, year = None):
     """
     Création des tables ménages et individus concaténée (merged)
     """
-    temporary_store = TemporaryStore.create(file_name = "erfs")
+    # Prepare the some useful merged tables
+
+    assert temporary_store is not None
     assert year is not None
     # load data
     erfs_survey_collection = SurveyCollection.load(
         collection = 'erfs', config_files_directory = config_files_directory)
 
-    replace = create_replace(year)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
     survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
-    erfmen = survey.get_values(table = replace["erf_menage"])
-    eecmen = survey.get_values(table = replace["eec_menage"])
-    erfind = survey.get_values(table = replace["erf_indivi"])
-    eecind = survey.get_values(table = replace["eec_indivi"])
+    erfmen = survey.get_values(table = year_specific_by_generic["erf_menage"])
+    eecmen = survey.get_values(table = year_specific_by_generic["eec_menage"])
+    erfind = survey.get_values(table = year_specific_by_generic["erf_indivi"])
+    eecind = survey.get_values(table = year_specific_by_generic["eec_indivi"])
 
     # travail sur la cohérence entre les bases
     noappar_m = eecmen[~(eecmen.ident.isin(erfmen.ident.values))].copy()
@@ -72,7 +74,7 @@ def create_indivim_menage_en_mois(year = None):
     gc.collect()
 
     # fusion enquete emploi et source fiscale
-    menage_en_mois = erfmen.merge(eecmen)
+    menagem = erfmen.merge(eecmen)
     indivim = eecind.merge(erfind, on = ['noindiv', 'ident', 'noi'], how = "inner")
 
     # optimisation des types? Controle de l'existence en passant
@@ -144,11 +146,11 @@ def create_indivim_menage_en_mois(year = None):
         erfind['tu99'] = None  # TODO: why ?
 
     # Locataire
-    menage_en_mois["locataire"] = menage_en_mois.so.isin([3, 4, 5])
-    assert_dtype(menage_en_mois.locataire, "bool")
+    menagem["locataire"] = menagem.so.isin([3, 4, 5])
+    assert_dtype(menagem.locataire, "bool")
 
     transfert = indivim.loc[indivim.lpr == 1, ['ident', 'ddipl']].copy()
-    menage_en_mois = menage_en_mois.merge(transfert)
+    menagem = menagem.merge(transfert)
 
     # Correction
     def _manually_remove_errors():
@@ -163,20 +165,19 @@ def create_indivim_menage_en_mois(year = None):
 
     _manually_remove_errors()
 
-    temporary_store['menage_en_mois_{}'.format(year)] = menage_en_mois
-    del eecmen, erfmen, menage_en_mois, transfert
+    temporary_store['menagem_{}'.format(year)] = menagem
+    del eecmen, erfmen, menagem, transfert
     gc.collect()
     temporary_store['indivim_{}'.format(year)] = indivim
     del erfind, eecind
-    gc.collect()
-    temporary_store.close()
 
 
-def create_enfants_a_naitre(year = None):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = "erfs")
+def create_enfants_a_naitre(temporary_store = None, year = None):
     '''
     '''
+    assert temporary_store is not None
     assert year is not None
-    temporary_store = TemporaryStore.create(file_name = "erfs")
 
     erfs_survey_collection = SurveyCollection.load(
         collection = 'erfs', config_files_directory = config_files_directory)
@@ -206,10 +207,10 @@ def create_enfants_a_naitre(year = None):
         'stc',
         'titc',
         ]
-    replace = create_replace(year)
-    eeccmp1 = survey.get_values(table = replace["eec_cmp_1"], variables = individual_vars)
-    eeccmp2 = survey.get_values(table = replace["eec_cmp_2"], variables = individual_vars)
-    eeccmp3 = survey.get_values(table = replace["eec_cmp_3"], variables = individual_vars)
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
+    eeccmp1 = survey.get_values(table = year_specific_by_generic["eec_cmp_1"], variables = individual_vars)
+    eeccmp2 = survey.get_values(table = year_specific_by_generic["eec_cmp_2"], variables = individual_vars)
+    eeccmp3 = survey.get_values(table = year_specific_by_generic["eec_cmp_3"], variables = individual_vars)
     tmp = eeccmp1.merge(eeccmp2, how = "outer")
     enfants_a_naitre = tmp.merge(eeccmp3, how = "outer")
 
@@ -247,8 +248,6 @@ def create_enfants_a_naitre(year = None):
         ].copy()
 
     temporary_store["enfants_a_naitre_{}".format(year)] = enfants_a_naitre
-    temporary_store.close()
-    gc.collect()
 
 
 if __name__ == '__main__':
@@ -258,6 +257,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     deb = time.clock()
     year = 2009
-    create_indivim_menage_en_mois(year = year)
+    create_indivim_menagem(year = year)
     create_enfants_a_naitre(year = year)
     log.info("etape 01 pre-processing terminee en {}".format(time.clock() - deb))

@@ -234,12 +234,12 @@ logmt$rminter <- as.character(logmt$rminter)
 
 ## pr�paration de la table ERF
 load(menm)
-str(menage_en_mois)
-table(menage_en_mois$so, useNA='ifany')
+str(menagem)
+table(menagem$so, useNA='ifany')
 
-erf <- subset(menage_en_mois, select= c(ident, spr, agepr, ddipl, acteu5pr, acteu5cj, ztsam, zperm, typmen5, wprm, tu99))
-erf <- subset(menage_en_mois,so==1|so==2, select= c(ident, spr, agepr, ddipl, acteu5pr, acteu5cj, ztsam, zperm, typmen5, wprm, tu99))
-rm(menage_en_mois)
+erf <- subset(menagem, select= c(ident, spr, agepr, ddipl, acteu5pr, acteu5cj, ztsam, zperm, typmen5, wprm, tu99))
+erf <- subset(menagem,so==1|so==2, select= c(ident, spr, agepr, ddipl, acteu5pr, acteu5cj, ztsam, zperm, typmen5, wprm, tu99))
+rm(menagem)
 
 
 ## revenus dans base ERF
@@ -464,23 +464,23 @@ plot_data <- data.frame(rbind(erfCDF_data,logmtCDF_data,logmtpredCDF_data))
 ggplot(plot_data, aes(x=x,y=cdf, color=survey)) + geom_point() + scale_x_log10()
 
 
-# prepare for merging with menage_en_mois
+# prepare for merging with menagem
 res_princ_file<- data.frame(ident = erf$ident, res_princ=erf$finalexp)
 load(menm)
-menage_en_mois <- merge(menage_en_mois, res_princ_file, by="ident",all.x = TRUE)
-save(menage_en_mois,file=menm)
-rm(res_princ_file,menage_en_mois)  
+menagem <- merge(menagem, res_princ_file, by="ident",all.x = TRUE)
+save(menagem,file=menm)
+rm(res_princ_file,menagem)  
 
 
 ## ETUDE DU RESTE= PATRI - PATFI - RES_PRINC
 # load(menm)
-# menage_en_mois$reste <- menage_en_mois$patri - menage_en_mois$res_princ - menage_en_mois$patfi
-# #View(menage_en_mois[,c('res_princ','patri','patfi', 'reste')])
-# menage_en_mois$reste[menage_en_mois$reste <= 0] <- 0
-# m <- ggplot(menage_en_mois, aes(x=reste))
+# menagem$reste <- menagem$patri - menagem$res_princ - menagem$patfi
+# #View(menagem[,c('res_princ','patri','patfi', 'reste')])
+# menagem$reste[menagem$reste <= 0] <- 0
+# m <- ggplot(menagem, aes(x=reste))
 # m + geom_histogram(aes(weight = wprm)) 
 # m + geom_histogram(aes(y = ..count..))
-# summary(menage_en_mois$reste)
-# summary(menage_en_mois)
-# menage_en_mois$zz <- ifelse((menage_en_mois$reste <= 732000),0,1)
-# table(menage_en_mois$zz)
+# summary(menagem$reste)
+# summary(menagem)
+# menagem$zz <- ifelse((menagem$reste <= 732000),0,1)
+# table(menagem$zz)

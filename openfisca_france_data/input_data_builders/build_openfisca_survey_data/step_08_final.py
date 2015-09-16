@@ -26,6 +26,8 @@
 
 from __future__ import division
 
+import gc
+
 import logging
 import numpy as np
 from numpy import where, NaN, random, unique
@@ -33,7 +35,8 @@ from pandas import read_csv
 import os
 
 
-from openfisca_france_data.temporary import TemporaryStore
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     check_structure,
     control,
@@ -46,57 +49,26 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils
 log = logging.getLogger(__name__)
 
 
-def final(year = None, filename = "test", check = True):
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def final(temporary_store = None, year = None, check = True):
 
+    assert temporary_store is not None
     assert year is not None
-    temporary_store = TemporaryStore.create(file_name = "erfs")
 
-
-##***********************************************************************/
     log.info(u'08_final: derniers réglages')
-##***********************************************************************/
-#
-# loadTmp("final.Rdata")
-# # On définit comme célibataires les individus dont on n'a pas retrouvé la déclaration
-# final$statmarit[is.na(final$statmarit)] <- 2
-# table(final$statmarit, useNA='ifany')
-#
-    import gc
-    gc.collect()
+
+    # On définit comme célibataires les individus dont on n'a pas retrouvé la déclaration
     final = temporary_store['final_{}'.format(year)]
     log.info('check doublons'.format(len(final[final.duplicated(['noindiv'])])))
     final.statmarit = where(final.statmarit.isnull(), 2, final.statmarit)
-#
 
-# # activite des fip
-# table(final[final$quelfic=="FIP","activite"],useNA="ifany")
-# summary(final[final$quelfic=="FIP",c("activite","choi","sali","alr","rsti","age")] )
-# # activite      # actif occup? 0, ch?meur 1, ?tudiant/?l?ve 2, retrait? 3, autre inactif 4
-#
-# final_fip <- final[final$quelfic=="FIP",]
-# final_fip <- within(final_fip,{
-#   choi <- ifelse(is.na(choi),0,choi)
-#   sali <- ifelse(is.na(sali),0,sali)
-#   alr <- ifelse(is.na(alr),0,alr)
-#   rsti <- ifelse(is.na(rsti),0,rsti)
-#   activite <- 2 # TODO comment choisr la valeur par d?faut ?
-#   activite <- ifelse(choi > 0,1,activite)
-#   activite <- ifelse(sali > 0,0,activite)
-#   activite <- ifelse(age  >= 21, 2,activite) # ne peuvent être rattachés que les étudiants
-# })
-# final[final$quelfic=="FIP",]<- final_fip
-# table(final_fip[,c("age","activite")])
-# rm(final_fip)
-#
-# print_id(final)
-# saveTmp(final, file= "final.Rdata")
-#
+    # activite des fip
     log.info('    gestion des FIP de final')
     final_fip = final[["choi", "sali", "alr", "rsti", "age"]][final.quelfic == "FIP"].copy()
 
     log.info(set(["choi", "sali", "alr", "rsti"]).difference(set(final_fip.columns)))
     for var in ["choi", "sali", "alr", "rsti"]:
-        final_fip[var].fillna(0, inplace=True)
+        final_fip[var].fillna(0, inplace = True)
         assert final_fip[var].notnull().all(), "Some NaN are remaining in column {}".format(var)
 
     final_fip["activite"] = 2 # TODO comment choisr la valeur par défaut ?
@@ -108,21 +80,25 @@ def final(year = None, filename = "test", check = True):
     temporary_store['final_{}'.format(year)] = final
     log.info("final has been updated with fip")
 
-    menage_en_mois = temporary_store['menage_en_mois_{}'.format(year)]
-    menage_en_mois.rename(columns = dict(ident = "idmen", loym = "loyer"), inplace = True)
-    menage_en_mois["cstotpragr"] = np.floor(menage_en_mois["cstotpr"] / 10)
+    menagem = temporary_store['menagem_{}'.format(year)]
+    assert 'ident' in menagem.columns
+    assert 'so' in menagem.columns
+    menagem.rename(
+        columns = dict(ident = "idmen", so = "statut_occupation"),
+        inplace = True
+        )
+    menagem["cstotpragr"] = np.floor(menagem["cstotpr"] / 10)
 
     # 2008 tau99 removed TODO: check ! and check incidence
-    vars = [
+    variables = [
         "champm",
         "cstotpragr",
         "ddipl",
         "idmen",
-        "loyer",
         "nbinde",
         "pol99",
         "reg",
-        "so",
+        "statut_occupation",
         "tau99",
         "tu99",
         "typmen15",
@@ -130,49 +106,53 @@ def final(year = None, filename = "test", check = True):
         "zthabm",
         ]
     if year == 2008:
-        vars.remove("tau99")
-    famille_vars = ["m_afeamam", "m_agedm", "m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
-# if ("naf16pr" %in% names(menage_en_mois)) {
-#   naf16pr <- factor(menage_en_mois$naf16pr)
+        variables.remove("tau99")
+    famille_variables = ["m_afeamam", "m_agedm", "m_clcam", "m_colcam", 'm_mgamm', 'm_mgdomm']
+
+    if 'loyer' in menagem.columns:
+        variables.append('loyer')
+# if ("naf16pr" %in% names(menagem)) {
+#   naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16
-#   menage_en_mois$naf16pr <- as.character(naf16pr)
-#   menage_en_mois[is.na(menage_en_mois$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
-#   vars <- c(vars,"naf16pr")
-# } else if ("nafg17npr" %in% names(menage_en_mois)) {
+#   menagem$naf16pr <- as.character(naf16pr)
+#   menagem[is.na(menagem$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
+#   variables <- c(variables,"naf16pr")
+# } else if ("nafg17npr" %in% names(menagem)) {
 #   # TODO: pb in 2008 with xx
 #   if (year == "2008"){
-#     menage_en_mois[ menage_en_mois$nafg17npr == "xx" & !is.na(menage_en_mois$nafg17npr), "nafg17npr"] <- "00"
+#     menagem[ menagem$nafg17npr == "xx" & !is.na(menagem$nafg17npr), "nafg17npr"] <- "00"
 #   }
-#   nafg17npr <- factor(menage_en_mois$nafg17npr)
+#   nafg17npr <- factor(menagem$nafg17npr)
 #   levels(nafg17npr) <-  0:17
-#   menage_en_mois$nafg17npr <- as.character(nafg17npr)
-#   menage_en_mois[is.na(menage_en_mois$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
+#   menagem$nafg17npr <- as.character(nafg17npr)
+#   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
 #
 #TODO: TODO: pytohn translation needed
-#    if "naf16pr" in menage_en_mois.columns:
-#        naf16pr <- factor(menage_en_mois$naf16pr)
+#    if "naf16pr" in menagem.columns:
+#        naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16
-#   menage_en_mois$naf16pr <- as.character(naf16pr)
-#   menage_en_mois[is.na(menage_en_mois$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
-#   vars <- c(vars,"naf16pr")
-# } else if ("nafg17npr" %in% names(menage_en_mois)) {
+#   menagem$naf16pr <- as.character(naf16pr)
+#   menagem[is.na(menagem$naf16pr), "naf16pr" ] <- "-1"  # Sans objet
+#   variables <- c(variables,"naf16pr")
+# } else if ("nafg17npr" %in% names(menagem)) {
 #   # TODO: pb in 2008 with xx
 #   if (year == "2008"){
-#     menage_en_mois[ menage_en_mois$nafg17npr == "xx" & !is.na(menage_en_mois$nafg17npr), "nafg17npr"] <- "00"
+#     menagem[ menagem$nafg17npr == "xx" & !is.na(menagem$nafg17npr), "nafg17npr"] <- "00"
 #   }
-#   nafg17npr <- factor(menage_en_mois$nafg17npr)
+#   nafg17npr <- factor(menagem$nafg17npr)
 #   levels(nafg17npr) <-  0:17
-#   menage_en_mois$nafg17npr <- as.character(nafg17npr)
-#   menage_en_mois[is.na(menage_en_mois$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
+#   menagem$nafg17npr <- as.character(nafg17npr)
+#   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
     # TODO: 2008tau99 is not present should be provided by 02_loy.... is it really needed
-    all_vars = vars + famille_vars
+    all_variables = variables + famille_variables
 
-    log.info("liste de toutes les variables : {}".format(all_vars))
-    log.info(menage_en_mois.info())
-    available_vars = list(set(all_vars).intersection(set(menage_en_mois.columns)))
-    loyersMenages = menage_en_mois.xs(available_vars, axis = 1)
+    log.info("liste de toutes les variables : {}".format(all_variables))
+    log.info(menagem.info())
+    available_variables = list(set(all_variables).intersection(set(menagem.columns)))
+    log.info("liste des variables à extraire de menagem: {}".format(available_variables))
+    loyersMenages = menagem[available_variables].copy()
 #
 # # Recodage de typmen15: modalités de 1:15
 # table(loyersMenages$typmen15, useNA="ifany")
@@ -208,21 +188,14 @@ def final(year = None, filename = "test", check = True):
 #
 # loyersMenages[loyersMenages$ddipl>1, "ddipl"] <- loyersMenages$ddipl[loyersMenages$ddipl>1]-1
 #
-    log.info("{}".format( loyersMenages.info()))
+    log.info("loyersMenages \n {}".format(loyersMenages.info()))
     loyersMenages.ddipl = where(loyersMenages.ddipl.isnull(), 7, loyersMenages.ddipl)
     loyersMenages.ddipl = where(loyersMenages.ddipl > 1,
                                 loyersMenages.ddipl - 1,
                                 loyersMenages.ddipl)
-    loyersMenages.ddipl.astype("int32")
+    loyersMenages.ddipl = loyersMenages.ddipl.astype("int32")
 
     final['act5'] = NaN
-    final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
-    final.act5 = where(final.actrec.isin([2, 3]), 1, final.act5)  # salariés
-
-    final.act5 = where(final.actrec == 4, 3, final.act5)  # chômeur
-    final.act5 = where(final.actrec == 7, 4, final.act5)  # retraité
-    final.act5 = where(final.actrec == 8, 5, final.act5)  # autres inactifs
-
     final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
     final.act5 = where(final.actrec.isin([2, 3]), 1, final.act5)  # salariés
 
@@ -243,7 +216,7 @@ def final(year = None, filename = "test", check = True):
     gc.collect()
     final.rename(columns = dict(zthabm = "taxe_habitation"), inplace = True)  # rename zthabm to taxe_habitation
     final2 = final.merge(loyersMenages, on = "idmen", how = "left")  # TODO: Check
-    log.info("{}".format( loyersMenages.head()))
+    log.info("{}".format(loyersMenages.head()))
     gc.collect()
     print_id(final2)
 # # TODO: merging with patrimoine
@@ -259,7 +232,7 @@ def final(year = None, filename = "test", check = True):
         )
     apl_imp = read_csv(zone_apl_imputation_data_file_path)
 
-    log.info("{}".format( apl_imp.head(10)))
+    log.info("{}".format(apl_imp.head(10)))
     if year == 2008:
         zone_apl = final2.xs(["tu99", "pol99", "reg"], axis = 1)
     else:
@@ -316,7 +289,7 @@ def final(year = None, filename = "test", check = True):
 #     final2 = final2.drop_duplicates(['noindiv'])
 
     final2 = final2[~(final2.age.isnull())]
-    log.info(u"longueur de final2 après purge: {}".format( len(final2)))
+    log.info(u"longueur de final2 après purge: {}".format(len(final2)))
     print_id(final2)
 
 #
@@ -345,9 +318,9 @@ def final(year = None, filename = "test", check = True):
 
     #On ne conserve dans final2 que ces foyers là :
     log.info('final2 avant le filtrage {}'.format(len(final2)))
-    final2 = final2.loc[final2.idmen.isin(liste_men), :]
-    final2 = final2.loc[final2.idfam.isin(liste_fam), :]
-    final2 = final2.loc[final2.idfoy.isin(liste_foy), :]
+    final2 = final2.loc[final2.idmen.isin(liste_men)]
+    final2 = final2.loc[final2.idfam.isin(liste_fam)]
+    final2 = final2.loc[final2.idfoy.isin(liste_foy)]
     log.info('final2 après le filtrage {}'.format(len(final2)))
 
     rectify_dtype(final2, verbose = False)
@@ -372,11 +345,24 @@ def final(year = None, filename = "test", check = True):
     if check:
         check_structure(data_frame)
 
+    gc.collect()
     for entity_id in ['idmen', 'idfoy', 'idfam']:
+        log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
 
+    log.info('Dealing with loyer')
+    if 'loyer' in data_frame.columns:
+        assert 'loyer' in data_frame.columns
+        data_frame.loyer = data_frame.loyer * 12.0
+    log.info('Set variables to their default values')
     set_variables_default_value(data_frame, year)
+
+    temporary_store['input_{}'.format(year)] = data_frame
     return data_frame
 
+
 if __name__ == '__main__':
-    final(year = 2009)
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    year = 2009
+    final(year = year)

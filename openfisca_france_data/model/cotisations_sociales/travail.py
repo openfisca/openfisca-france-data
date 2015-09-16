@@ -78,3 +78,21 @@ class type_sal(SimpleFormulaColumn):
         contract = (colloc_cont + hosp_cont + etat_cont) > 1
 
         return period, 0 + 1 * cadre + 2 * etat_tit + 3 * militaire + 4 * colloc_tit + 5 * hosp_tit + 6 * contract
+
+
+# @reference_formula
+# class rstbrut(SimpleFormulaColumn):
+#     reference = openfisca_france_tax_benefit_system.column_by_name['rstbrut']
+#
+#     def function(self, simulation, period):
+#         rst = simulation.calculate('rst', period)
+#         return period, rst
+#
+#
+# @reference_formula
+# class salaire_de_base(SimpleFormulaColumn):
+#     reference = openfisca_france_tax_benefit_system.column_by_name['salaire_de_base']
+#
+#     def function(self, simulation, period):
+#         sal = simulation.calculate('sal', period)
+#         return period, sal

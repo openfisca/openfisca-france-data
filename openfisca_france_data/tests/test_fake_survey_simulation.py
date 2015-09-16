@@ -62,11 +62,11 @@ def get_fake_input_data_frame(year = None):
     store = pandas.HDFStore(hdf5_file_realpath)
     input_data_frame = store.select(str(year))
     input_data_frame.rename(
-        columns = dict(sali = 'sal', choi = 'cho', rsti = 'rst'),
+        columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
         inplace = True,
         )
-    input_data_frame.sal[0] = 20000
-    input_data_frame.sal[1] = 10000
+    input_data_frame.salaire_imposable[0] = 20000
+    input_data_frame.salaire_imposable[1] = 10000
 
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
@@ -76,58 +76,70 @@ def test_fake_survey_simulation():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
 
-    assert input_data_frame.sal.loc[0] == 20000
-    assert input_data_frame.sal.loc[1] == 10000
+    assert input_data_frame.salaire_imposable.loc[0] == 20000
+    assert input_data_frame.salaire_imposable.loc[1] == 10000
 
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age_en_mois', 'age'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
         year = year,
         )
-    assert (survey_scenario.input_data_frame.sal.loc[0] == 20000).all()
-    assert (survey_scenario.input_data_frame.sal.loc[1] == 10000).all()
+    assert (survey_scenario.input_data_frame.salaire_imposable.loc[0] == 20000).all()
+    assert (survey_scenario.input_data_frame.salaire_imposable.loc[1] == 10000).all()
 
     simulation = survey_scenario.new_simulation()
 
-    sal = simulation.calculate('sal')
-    assert (sal[0:1] == 20000).all()
+    salaire_imposable = simulation.calculate('salaire_imposable')
+    assert (salaire_imposable[0:1] == 20000).all()
     age = simulation.calculate('age')
     assert age[0] == 77
     assert age[1] == 37
     age_en_mois = simulation.calculate('age_en_mois')
     assert age_en_mois[0] == 924
     assert age_en_mois[1] == 444
+    sal_2003 = simulation.calculate('sal', period = "2003")
+    sal_2004 = simulation.calculate('sal', period = "2004")
+    sal_2005 = simulation.calculate('sal', period = "2005")
+    sal_2006 = simulation.calculate('sal', period = "2006")
 
-    data_frame_by_entity_key_plural = dict(
-        individus = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'idmen',
-                'quimen',
-                'idfoy',
-                'quifoy',
-                'idfam',
-                'quifam',
-                'age',
-                'champm_individus',
-                'sal',
-                'salaire_net',
-                'txtppb',
-                # salsuperbrut # TODO bug in 2006
-                ]])
-            ),
-        foyers_fiscaux = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'impo'
-                ]])
-            ),
-        menages = pandas.DataFrame(
-            dict([(name, simulation.calculate(name)) for name in [
-                'revdisp'
-                ]])
-            ),
+    assert (sal_2003 == 0).all()
+    assert (sal_2004 == sal_2006).all()
+    assert (sal_2005 == sal_2006).all()
+    import itertools
+    for year, month in itertools.product(range(2004, 2007), range(1, 13)):
+        assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
+
+    for year, month in itertools.product(range(2002, 2004), range(1, 13)):
+        assert (simulation.calculate('sal', period = "{}-{}".format(year, month)) == 0).all()
+
+    data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+        variables = [
+            'idmen',
+            'quimen',
+            'idfoy',
+            'quifoy',
+            'idfam',
+            'quifam',
+            'age',
+            'activite',
+            'br_rmi_i',
+            'champm_individus',
+            'salaire_imposable',
+            'salaire_net',
+            'smic55',
+            'txtppb',
+            'af_nbenf',
+            'af',
+            'br_rmi',
+            'rsa',
+            'aspa',
+            'aide_logement_montant_brut',
+            'weight_familles',
+            'revdisp',
+            'impo',
+            ]
         )
-
-    return data_frame_by_entity_key_plural
+    return data_frame_by_entity_key_plural, simulation
 
 
 def create_fake_calibration():
@@ -135,7 +147,7 @@ def create_fake_calibration():
     input_data_frame = get_fake_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['sal', 'cho', 'rst', 'age'],
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age'],
         year = year,
         )
     survey_scenario.new_simulation()
@@ -212,10 +224,7 @@ if __name__ == '__main__':
 #    build_by_extraction(year = year)
 #    df = get_fake_input_data_frame(year = year)
 
-    df_by_entity = test_fake_survey_simulation()
+    df_by_entity, simulation = test_fake_survey_simulation()
     df_i = df_by_entity['individus']
     df_f = df_by_entity['foyers_fiscaux']
     df_m = df_by_entity['menages']
-    print df_i
-    print df_m
-#    calibration = test_fake_calibration_age()
