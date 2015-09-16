@@ -41,13 +41,11 @@ class SurveyScenario(AbstractSurveyScenario):
     def init_from_data_frame(self, input_data_frame = None,input_data_frames_by_entity_key_plural = None,
                              reform = None,tax_benefit_system = None, used_as_input_variables = None, year = None):
         if tax_benefit_system is None:
-            log.info("="*10, reform , "="*10)
             if reform is None:
                 FranceDataTaxBenefitSystem = openfisca_france_data.init_country()
                 france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
                 tax_benefit_system = france_data_tax_benefit_system
             else:
-
                 FranceDataTaxBenefitSystem = openfisca_france_data.init_country()
                 france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
                 reform_tax_benefit_system = reform.build_reform(france_data_tax_benefit_system)
