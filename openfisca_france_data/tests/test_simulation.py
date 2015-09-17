@@ -23,9 +23,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import pandas
-
-
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
 
@@ -53,7 +50,7 @@ def test_survey_simulation():
             'activite',
             'br_rmi_i',
             'champm_individus',
-             'pensions_alimentaires_percues',
+            'pensions_alimentaires_percues',
             'salaire_imposable',
             'salaire_net',
             'smic55',
@@ -68,8 +65,9 @@ def test_survey_simulation():
             ]
         )
 
-    assert (data_frame_by_entity_key_plural['familles'].weight_familles
-        * data_frame_by_entity_key_plural['familles'].af).sum() / 1e9 > 10
+    assert (
+        data_frame_by_entity_key_plural['familles'].weight_familles * data_frame_by_entity_key_plural['familles'].af
+        ).sum() / 1e9 > 10
 
     return data_frame_by_entity_key_plural, simulation
 

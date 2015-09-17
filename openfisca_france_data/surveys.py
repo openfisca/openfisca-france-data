@@ -37,8 +37,8 @@ log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
-    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None, tax_benefit_system = None, used_as_input_variables = None,
-            year = None):
+    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
+        tax_benefit_system = None, used_as_input_variables = None, year = None):
 
         if tax_benefit_system is None:
             TaxBenefitSystem = openfisca_france_data.init_country()

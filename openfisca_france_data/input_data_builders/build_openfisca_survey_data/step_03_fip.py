@@ -35,7 +35,8 @@ import numpy as np
 
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import (
+    year_specific_by_generic_data_frame_name)
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -119,7 +120,7 @@ def create_fip(temporary_store = None, year = None):
     assert fip.type_pac.isin(["F", "G", "H", "I", "J", "N", "R"]).all(), "Certains type de PAC sont inconnus"
     # TODO: find a more explicit message
 
-#    control(fip, debug=True, verbose=True, verbose_columns=['naia'])
+    # control(fip, debug=True, verbose=True, verbose_columns=['naia'])
 
     log.info(u"    1.3 : on enlève les individus F pour lesquels il existe un individu G")
     type_FG = fip[fip.type_pac.isin(['F', 'G'])].copy()  # Filtre pour ne travailler que sur F & G
@@ -166,7 +167,7 @@ def create_fip(temporary_store = None, year = None):
     fip = fip[~(fip.key.isin(pac.key2.values))].copy()
 
     log.info(u"    2.1 new fip created")
-#   We build a dataframe to link the pac to their type and noindiv
+    # We build a dataframe to link the pac to their type and noindiv
     tmp_pac1 = pac[['noindiv', 'key1']].copy()
     tmp_pac2 = pac[['noindiv', 'key2']].copy()
     tmp_indivifip = indivifip[['key', 'type_pac', 'naia']].copy()
@@ -213,15 +214,15 @@ def create_fip(temporary_store = None, year = None):
     log.info("{}".format(pacIndiv.type_pac.value_counts()))
     gc.collect()
 
-# # We keep the fip in the menage of their parents because it is used in to
-# # build the famille. We should build an individual ident (ménage) for the fip that are
-# # older than 18 since they are not in their parents' menage according to the eec
+    # We keep the fip in the menage of their parents because it is used in to
+    # build the famille. We should build an individual ident (ménage) for the fip that are
+    # older than 18 since they are not in their parents' menage according to the eec
 
-# individec1 <- subset(indivi, (declar1 %in% fip$declar) & (persfip=="vous"))
-# individec1 <- individec1[,c("declar1","noidec","ident","rga","ztsai","ztsao")]
-# individec1 <- upData(individec1,rename=c(declar1="declar"))
-# fip1       <- merge(fip,individec1)
-# indivi$noidec <- as.numeric(substr(indivi$declar1,1,2))
+    # individec1 <- subset(indivi, (declar1 %in% fip$declar) & (persfip=="vous"))
+    # individec1 <- individec1[,c("declar1","noidec","ident","rga","ztsai","ztsao")]
+    # individec1 <- upData(individec1,rename=c(declar1="declar"))
+    # fip1       <- merge(fip,individec1)
+    # indivi$noidec <- as.numeric(substr(indivi$declar1,1,2))
     log.info("{}".format(indivi['declar1'].str[0:2].value_counts()))
     log.info("{}".format(indivi['declar1'].str[0:2].describe()))
     log.info("{}".format(indivi['declar1'].str[0:2].notnull().all()))
@@ -235,11 +236,11 @@ def create_fip(temporary_store = None, year = None):
     fip1 = fip.merge(individec1, on = 'declaration')
     log.info(u"    2.3 : fip1 created")
 
-# # TODO: On ne s'occupe pas des declar2 pour l'instant
-# # individec2 <- subset(indivi, (declar2 %in% fip$declar) & (persfip=="vous"))
-# # individec2 <- individec2[,c("declar2","noidec","ident","rga","ztsai","ztsao")]
-# # individec2 <- upData(individec2,rename=c(declar2="declar"))
-# # fip2 <-merge(fip,individec2)
+    # TODO: On ne s'occupe pas des declar2 pour l'instant
+    # individec2 <- subset(indivi, (declar2 %in% fip$declar) & (persfip=="vous"))
+    # individec2 <- individec2[,c("declar2","noidec","ident","rga","ztsai","ztsao")]
+    # individec2 <- upData(individec2,rename=c(declar2="declar"))
+    # fip2 <-merge(fip,individec2)
 
     individec2 = indivi[(indivi.declar2.isin(fip.declaration.values)) & (indivi['persfip'] == "vous")]
     individec2 = individec2[["declar2", "noidec", "ident", "rga", "ztsai", "ztsao"]].copy()
@@ -280,15 +281,15 @@ def create_fip(temporary_store = None, year = None):
     fip['agepr'] = None
     fip['actrec'] = (fip['agepf'] <= 15) * 9 + (fip['agepf'] > 15) * 5
 
-## TODO: probleme actrec des enfants fip entre 16 et 20 ans : on ne sait pas s'ils sont étudiants ou salariés */
-## TODO problème avec les mois des enfants FIP : voir si on ne peut pas remonter à ces valeurs: Alexis : clairement non
+    # TODO: probleme actrec des enfants fip entre 16 et 20 ans : on ne sait pas s'ils sont étudiants ou salariés */
+    # TODO problème avec les mois des enfants FIP : voir si on ne peut pas remonter à ces valeurs: Alexis: clairement non
 
-# Reassigning noi for fip children if they are more than one per foyer fiscal
-# while ( any(duplicated( fip[,c("noi","ident")]) ) ) {
-#   dup <- duplicated( fip[, c("noi","ident")])
-#   tmp <- fip[dup,"noi"]
-#   fip[dup, "noi"] <- (tmp-1)
-# }
+    # Reassigning noi for fip children if they are more than one per foyer fiscal
+    # while ( any(duplicated( fip[,c("noi","ident")]) ) ) {
+    #   dup <- duplicated( fip[, c("noi","ident")])
+    #   tmp <- fip[dup,"noi"]
+    #   fip[dup, "noi"] <- (tmp-1)
+    # }
     # TODO: Le vecteur dup est-il correct
     fip["noi"] = fip["noi"].astype("int64")
     fip["ident"] = fip["ident"].astype("int64")
