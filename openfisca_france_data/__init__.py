@@ -49,7 +49,7 @@ AGGREGATES_DEFAULT_VARS = [
     'af_forf',
     'cf',
     'paje_base',
-    'paje_nais',
+    'paje_naissance',
     'paje_clca',
     'paje_clmg',
     'ars',
