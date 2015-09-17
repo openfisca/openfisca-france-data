@@ -33,22 +33,31 @@ import openfisca_france_data
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
+
 log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-        tax_benefit_system = None, used_as_input_variables = None, year = None):
-
+            reform = None, tax_benefit_system = None, used_as_input_variables = None, year = None):
         if tax_benefit_system is None:
-            TaxBenefitSystem = openfisca_france_data.init_country()
-            tax_benefit_system = TaxBenefitSystem()
+            if reform is None:
+                FranceDataTaxBenefitSystem = openfisca_france_data.init_country()
+                france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
+                tax_benefit_system = france_data_tax_benefit_system
+            else:
+                FranceDataTaxBenefitSystem = openfisca_france_data.init_country()
+                france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
+                reform_tax_benefit_system = reform.build_reform(france_data_tax_benefit_system)
+                tax_benefit_system = reform_tax_benefit_system
+
             # france_tax_benefit_system = TaxBenefitSystem()
             # tax_benefit_system = inversion_revenus.build_reform(france_tax_benefit_system)
 
         super(SurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
             input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
+            reform = reform,
             tax_benefit_system = tax_benefit_system,
             used_as_input_variables = used_as_input_variables,
             year = year)
