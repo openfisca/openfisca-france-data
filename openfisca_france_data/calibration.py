@@ -26,7 +26,7 @@
 import logging
 import numpy
 from numpy import logical_not
-from pandas import concat, DataFrame, read_csv
+from pandas import DataFrame, read_csv
 from openfisca_core.calmar import calmar
 from openfisca_core.columns import AgeCol, BoolCol, EnumCol
 
@@ -113,7 +113,7 @@ class Calibration(object):
             self.output_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
 
         for var, mod in totals.index:
-            if not var in margins:
+            if var not in margins:
                 margins[var] = {}
             margins[var][mod] = totals.get_value((var, mod), year)
 
@@ -125,7 +125,6 @@ class Calibration(object):
                     self.total_population = total_population
             else:
                 self.add_var2(var, margins[var], source = source)
-
 
     def get_parameters(self):
         p = {}

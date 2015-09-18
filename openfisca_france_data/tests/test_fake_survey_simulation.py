@@ -33,9 +33,9 @@ from openfisca_france.reforms import allocations_familiales_imposables
 import numpy
 import pandas
 
-from . import base
-from ..input_data_builders import get_input_data_frame
-from ..surveys import SurveyScenario
+from openfisca_france_data.tests import base
+from openfisca_france_data.input_data_builders import get_input_data_frame
+from openfisca_france_data.surveys import SurveyScenario
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
