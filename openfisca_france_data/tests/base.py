@@ -30,10 +30,10 @@ from .. import init_country
 
 __all__ = [
     'assert_near',
-    'tax_benefit_system',
-    'TaxBenefitSystem',
+    'france_data_tax_benefit_system',
+    'FranceDataTaxBenefitSystem',
     ]
 
 
-TaxBenefitSystem = init_country()
-tax_benefit_system = TaxBenefitSystem()
+FranceDataTaxBenefitSystem = init_country()
+france_data_tax_benefit_system = FranceDataTaxBenefitSystem()

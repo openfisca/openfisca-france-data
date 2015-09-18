@@ -25,19 +25,17 @@
 
 from __future__ import division
 
-
 import os
 
-
+from openfisca_core.tools import assert_near
+from openfisca_france_data.calibration import Calibration
+from openfisca_france.reforms import allocations_familiales_imposables
 import numpy
 import pandas
 
-
-from openfisca_core.tools import assert_near
-from openfisca_france.reforms import allocations_familiales_imposables as reform
-from openfisca_france_data.calibration import Calibration
-from openfisca_france_data.input_data_builders import get_input_data_frame
-from openfisca_france_data.surveys import SurveyScenario
+from . import base
+from ..input_data_builders import get_input_data_frame
+from ..surveys import SurveyScenario
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -227,13 +225,15 @@ def test_reform():
     assert input_data_frame.salaire_imposable.loc[0] == 20000
     assert input_data_frame.salaire_imposable.loc[1] == 10000
 
+    reform = allocations_familiales_imposables.build_reform(base.france_data_tax_benefit_system)
+
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
+        tax_benefit_system = reform,
         used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
-        reform = reform,
         year = year,
         )
-    reference_simulation = survey_scenario.new_simulation(reference = True)
+    reference_simulation = survey_scenario.new_simulation(reference = base.france_data_tax_benefit_system)
     reform_simulation = survey_scenario.new_simulation()
 
     assert 'weight_individus' in reform_simulation.tax_benefit_system.column_by_name
