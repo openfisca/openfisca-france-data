@@ -34,6 +34,7 @@ import pandas
 
 
 from openfisca_core.tools import assert_near
+from openfisca_france.reforms import allocations_familiales_imposables as reform
 from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
@@ -219,17 +220,38 @@ def test_fake_calibration_age():
     return calibration
 
 
+def test_reform():
+    year = 2006
+    input_data_frame = get_fake_input_data_frame(year)
+
+    assert input_data_frame.salaire_imposable.loc[0] == 20000
+    assert input_data_frame.salaire_imposable.loc[1] == 10000
+
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
+        reform = reform,
+        year = year,
+        )
+    reference_simulation = survey_scenario.new_simulation(reference = True)
+    reform_simulation = survey_scenario.new_simulation()
+
+    assert 'weight_individus' in reform_simulation.tax_benefit_system.column_by_name
+    assert 'weight_individus' in reference_simulation.tax_benefit_system.column_by_name
+
+
 if __name__ == '__main__':
     import logging
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
-#    year = 2006
-#    build_by_extraction(year = year)
-#    df = get_fake_input_data_frame(year = year)
+    #    year = 2006
+    #    build_by_extraction(year = year)
+    #    df = get_fake_input_data_frame(year = year)
 
-    df_by_entity, simulation = test_fake_survey_simulation()
-    df_i = df_by_entity['individus']
-    df_f = df_by_entity['foyers_fiscaux']
-    df_m = df_by_entity['menages']
+    #    df_by_entity, simulation = test_fake_survey_simulation()
+    #    df_i = df_by_entity['individus']
+    #    df_f = df_by_entity['foyers_fiscaux']
+    #    df_m = df_by_entity['menages']
+    test_reform()
