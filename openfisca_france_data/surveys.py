@@ -29,6 +29,7 @@ import numpy as np
 
 from openfisca_core import periods, simulations
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
+from openfisca_france_data import init_country
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
 
@@ -36,6 +37,21 @@ log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
+    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
+            tax_benefit_system = None, used_as_input_variables = None, year = None):
+        if tax_benefit_system is None:
+            FranceDataTaxBenefitSystem = init_country()
+            france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
+            tax_benefit_system = france_data_tax_benefit_system
+
+        return super(SurveyScenario, self).init_from_data_frame(
+            input_data_frame = input_data_frame,
+            input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
+            tax_benefit_system = tax_benefit_system,
+            used_as_input_variables = used_as_input_variables,
+            year = year
+            )
+            
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
         person_index = dict()
         id_variables = [

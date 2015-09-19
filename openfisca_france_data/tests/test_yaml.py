@@ -37,7 +37,7 @@ import os
 import numpy as np
 from openfisca_core import conv, periods, scenarios
 from openfisca_core.tools import assert_near
-from openfisca_france_data.tests.base import tax_benefit_system
+from openfisca_france_data.tests.base import france_data_tax_benefit_system as tax_benefit_system
 import yaml
 
 
