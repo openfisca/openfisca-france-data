@@ -29,7 +29,7 @@ import os
 
 from openfisca_core.tools import assert_near
 from openfisca_france_data.calibration import Calibration
-from openfisca_france.reforms import allocations_familiales_imposables
+from openfisca_france.reforms import plf2015
 import numpy
 import pandas
 
@@ -222,23 +222,27 @@ def test_reform():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
 
-    assert input_data_frame.salaire_imposable.loc[0] == 20000
-    assert input_data_frame.salaire_imposable.loc[1] == 10000
+    input_data_frame.salaire_imposable = [20000, 18000]
 
-    reform = allocations_familiales_imposables.build_reform(base.france_data_tax_benefit_system)
+    reform = plf2015.build_reform(base.france_data_tax_benefit_system)
 
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         tax_benefit_system = reform,
+        reference_tax_benefit_system = base.france_data_tax_benefit_system,
         used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
-        year = year,
+        year = 2013,
         )
-    reference_simulation = survey_scenario.new_simulation(reference = base.france_data_tax_benefit_system)
+    reference_simulation = survey_scenario.new_simulation(reference = True)
     reform_simulation = survey_scenario.new_simulation()
 
     assert 'weight_individus' in reform_simulation.tax_benefit_system.column_by_name
     assert 'weight_individus' in reference_simulation.tax_benefit_system.column_by_name
 
+    error_margin = 1
+    assert_near(reference_simulation.calculate('irpp'), [-10124, -869], error_margin)
+    assert_near(reform_simulation.calculate('irpp'), [-10118, -911.4 + (1135 - 911.4)], error_margin)
+    # -911.4 + (1135 - 911.4) = -686.8
 
 if __name__ == '__main__':
     import logging

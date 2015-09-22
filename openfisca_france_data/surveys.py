@@ -38,20 +38,24 @@ log = logging.getLogger(__name__)
 
 class SurveyScenario(AbstractSurveyScenario):
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-            tax_benefit_system = None, used_as_input_variables = None, year = None):
+            reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
+            year = None):
+
+        FranceDataTaxBenefitSystem = init_country()
+        france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
         if tax_benefit_system is None:
-            FranceDataTaxBenefitSystem = init_country()
-            france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
             tax_benefit_system = france_data_tax_benefit_system
+            reference_tax_benefit_system = None
 
         return super(SurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
             input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
+            reference_tax_benefit_system = reference_tax_benefit_system,
             tax_benefit_system = tax_benefit_system,
             used_as_input_variables = used_as_input_variables,
             year = year
             )
-            
+
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
         person_index = dict()
         id_variables = [
