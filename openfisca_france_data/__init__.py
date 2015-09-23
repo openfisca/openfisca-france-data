@@ -82,20 +82,3 @@ FILTERING_VARS = ["champm"]
 PLUGINS_DIR = os.path.join(COUNTRY_DIR, 'plugins')
 WEIGHT = "wprm"
 WEIGHT_INI = "wprm_init"
-
-
-def preproc_inputs(self, datatable):
-    """Preprocess inputs table: country specific manipulations
-
-    Parameters
-    ----------
-    datatable : a DataTable object
-                the DataTable containing the input variables of the model
-
-    """
-    try:
-        datatable.propagate_to_members(WEIGHT, 'ind')
-    #    datatable.propagate_to_members('rfr_n_2', 'ind')
-    #    datatable.propagate_to_members('nbptr_n_2', 'ind')
-    except:
-        pass
