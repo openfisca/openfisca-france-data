@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
@@ -87,11 +88,8 @@ def run_all(year = None, check = False):
 
 if __name__ == '__main__':
     import time
-    import sys
     start = time.time()
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
     run_all(year = 2009, check = False)
     log.info("Script finished after {}".format(time.time() - start))
-    # import pdb
-    # pdb.set_trace()
     print time.time() - start

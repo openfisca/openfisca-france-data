@@ -42,12 +42,12 @@ def test_pivot_table(year = 2009):
         values = ['irpp']
         )
 
-    pivot_table = compute_pivot_table(
-        index = ['decile_rfr', 'nbptr'],
-        survey_scenario = survey_scenario,
-        values = ['irpp'],
-        aggfunc = 'sum',  # does not work with mean
-        )
+#    pivot_table = compute_pivot_table(
+#        index = ['decile_rfr', 'nbptr'],
+#        survey_scenario = survey_scenario,
+#        values = ['irpp'],
+#        aggfunc = 'sum',  # does not work with mean
+#        )
 
 
     return pivot_table

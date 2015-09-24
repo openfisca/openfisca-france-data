@@ -76,12 +76,15 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
         except:
             raise Exception('the dataframe does not contain the required column %s' % var)
 
-    print 'longueur de la data frame =', len(dataframe.index)
+    log.info('longueur de la data frame = {}'.format(len(dataframe.index)))
     if debug:
-        print 'nb de doublons', len(dataframe[dataframe.duplicated()])
-        print 'nb de doublons idfoy/quifoy', len(dataframe[dataframe.duplicated(subset = ['idfoy', 'quifoy'])])
-        print 'nb de doublons idmen/quimen', len(dataframe[dataframe.duplicated(subset = ['idmen', 'quimen'])])
-        print 'nb de doublons idfam/quifam', len(dataframe[dataframe.duplicated(subset = ['idfam', 'quifam'])])
+        log.info('nb de doublons: {}'.format(len(dataframe[dataframe.duplicated()])))
+        log.info('nb de doublons idfoy/quifoy: {}'.format(len(dataframe[dataframe.duplicated(
+            subset = ['idfoy', 'quifoy'])])))
+        log.info('nb de doublons idmen/quimen: {}'.format(len(dataframe[dataframe.duplicated(
+            subset = ['idmen', 'quimen'])])))
+        log.info('nb de doublons idfam/quifam: {}'.format(len(dataframe[dataframe.duplicated(
+            subset = ['idfam', 'quifam'])])))
 
     if not(debug):
         assert not(dataframe.duplicated().any()), 'présence de lignes en double dans la dataframe'
@@ -95,16 +98,15 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
             empty_columns.append(col)
 
     if empty_columns != []:
-        print 'liste des colonnes entièrement vides', empty_columns
+        log.info('liste des colonnes entièrement vides: \n {}'.format(empty_columns))
 
     if verbose is True:
-        print '------ informations détaillées -------'
+        log.info('------ informations détaillées -------')
         print_id(dataframe)
 
         if verbose_columns is None:
-#             print dataframe.head(verbose_length)
             if dataframe.duplicated().any():
-                print dataframe[dataframe.duplicated()].head(verbose_length).to_string()
+                log.info(dataframe[dataframe.duplicated()].head(verbose_length).to_string())
 
         else:
             if dataframe.duplicated(verbose_columns).any():
@@ -131,49 +133,49 @@ def id_formatter(dataframe, entity_id):
 
 def print_id(df):
     try:
-        print "Individus : ", len(df.noindiv), "/", len(df)
+        log.info("Individus : {} / {}".format(len(df.noindiv), len(df)))
     except:
-        print "No noindiv"
+        log.info("No noindiv")
 
     try:
         # Ici, il doit y avoir autant de vous que d'idfoy
-        print "Foyers", len(df.idfoy)
-        print df["quifoy"].value_counts()
+        log.info("Foyers: {}".format(len(df.idfoy)))
+        log.info(df["quifoy"].value_counts())
         if df["idfoy"].isnull().any():
-            print "NaN in idfoy : ", df["idfoy"].isnull().sum()
+            log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
         if df["quifoy"].isnull().any():
-            print "NaN in quifoy : ", df["quifoy"].isnull().sum()
+            log.info("NaN in quifoy : {}".format(df["quifoy"].isnull().sum()))
     except:
-        print "No idfoy or quifoy"
+        log.info("No idfoy or quifoy")
 
     try:
         # Ici, il doit y avoir autant de quimen = 0 que d'idmen
-        print "Ménages", len(df.idmen)
-        print df["quimen"].value_counts()
+        log.info("Ménages {}".format(len(df.idmen)))
+        log.info(df["quimen"].value_counts())
         if df["idmen"].isnull().any():
-            print "NaN in idmen : ", df["idmen"].isnull().sum()
+            log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
         if df["quimen"].isnull().any():
-            print "NaN in quimen : ", df["quimen"].isnull().sum()
+            log.info("NaN in quimen : {} ".format(df["quimen"].isnull().sum()))
     except:
         print "No idmen or quimen"
 
     try:
         # Ici, il doit y avoir autant de quifam = 0 que d'idfam
-        print "Familles", len(df.idfam)
-        print df["quifam"].value_counts()
+        log.info("Familles {}".format(len(df.idfam)))
+        log.info(df["quifam"].value_counts())
         if df["idfam"].isnull().any():
-            print "NaN in idfam : ", df["idfam"].isnull().sum()
+            log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
         if df["quifam"].isnull().any():
-            print "NaN in quifam : ", df["quifam"].isnull().sum()
+            log.info("NaN in quifam : {} ".format(df["quifam"].isnull().sum()))
     except:
-        print "No idfam or quifam"
+        log.info("No idfam or quifam")
 
 
 def check_structure(dataframe):
 
-#    duplicates = dataframe.noindiv.duplicated().sum()
-#    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
-#        df.drop_duplicates("noindiv", inplace = True)
+    #    duplicates = dataframe.noindiv.duplicated().sum()
+    #    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
+    #        df.drop_duplicates("noindiv", inplace = True)
 
     for entity in ["men", "fam", "foy"]:
         log.info("Checking entity {}".format(entity))

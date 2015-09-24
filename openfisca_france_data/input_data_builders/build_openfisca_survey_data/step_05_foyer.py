@@ -55,7 +55,7 @@ def sif(temporary_store = None, year = None):
     year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
-    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
+    erfs_survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 
     log.info("05_foyer: extraction des données foyer")
     # TODO Comment choisir le rfr n -2 pour éxonération de TH ?
@@ -63,9 +63,10 @@ def sif(temporary_store = None, year = None):
     # mnrvkh  revenu TH (revenu fiscal de référence)
     #
     # On récupère les variables du code sif
-    # vars <- c("noindiv", 'sif', "nbptr", "mnrvka")
-    vars = ["noindiv", 'sif', "nbptr", "mnrvka", "rbg", "tsrvbg"]
-    sif = data.get_values(variables = vars, table = year_specific_by_generic["foyer"])
+    sif = erfs_survey.get_values(
+        variables = ["noindiv", 'sif', "nbptr", "mnrvka", "rbg", "tsrvbg", "declar"],
+        table = year_specific_by_generic["foyer"]
+        )
 
     sif['statmarit'] = 0
 
@@ -148,14 +149,17 @@ def sif(temporary_store = None, year = None):
     if (year != 2009):
         sif["nbP"] = sif.sif.str[85 + d: 87 + d]
 
-    del sif["sif"], sif["stamar"]
+    del sif["stamar"]
+
+    duplicated_noindiv = sif.noindiv[sif.noindiv.duplicated()].copy()
+    sif['duplicated_noindiv'] = sif.noindiv.isin(duplicated_noindiv)
+    x = sif.loc[sif.duplicated_noindiv, ['noindiv', 'declar']]
+    sif['change'] = "NONE"
+    sif.loc[sif.duplicated_noindiv, 'change'] = sif.loc[sif.duplicated_noindiv, 'declar'].str[27:28]
 
     log.info("Number of individuals: {}".format(len(sif.noindiv)))
+    log.info("Number of duplicated individuals: {}".format(len(duplicated_noindiv)))
     log.info("Number of distinct individuals: {}".format(len(sif.noindiv.value_counts())))
-
-    sif_drop_duplicated = sif.drop_duplicates("noindiv")
-    assert len(sif["noindiv"].value_counts()) == len(sif_drop_duplicated["noindiv"]), \
-        "Number of distinct individuals after removing duplicates is not correct"
 
     log.info(u"Saving sif")
     temporary_store['sif_{}'.format(year)] = sif
@@ -289,12 +293,12 @@ def foyer_all(temporary_store = None, year = None):
         'f6gu': ['f6gu'],  # Autres pensions alimenaires versées
         'f6dd': ['f6dd'],  # Déductions diverses
         # Epargne retraite PERP
-        'f6rs': ['f6rs','f6rt','f6ru'],  #
-        'f6ss': ['f6ss','f6st','f6su'],  #
-        'f6ps': ['f6ps','f6pt','f6pu'],  #
+        'f6rs': ['f6rs', 'f6rt', 'f6ru'],  #
+        'f6ss': ['f6ss', 'f6st', 'f6su'],  #
+        'f6ps': ['f6ps', 'f6pt', 'f6pu'],  #
         'f6qr': ['f6qr'],  #
         'f6qw': ['f6qw'],  #
-        'f6qs': ['f6qs','f6qt','f6qu'],  #
+        'f6qs': ['f6qs', 'f6qt', 'f6qu'],  #
         # Réductions d'impôt
         'f7ud': ['f7ud'],  # Dons
         'f7ue': ['f7ue'],  # Dons
@@ -304,8 +308,8 @@ def foyer_all(temporary_store = None, year = None):
         'f7xu': ['f7xu'],  # report années antérieures
         'f7xw': ['f7xw'],  # report années antérieures
         'f7xy': ['f7xy'],  # report années antérieures
-        'f7ac': ['f7ac','f7ae','f7ag'],  # Cotisations syndicales
-        'f7ad': ['f7ad','f7af','f7ah'],  #
+        'f7ac': ['f7ac', 'f7ae', 'f7ag'],  # Cotisations syndicales
+        'f7ad': ['f7ad', 'f7af', 'f7ah'],  #
         # Enfants poursuivant leurs études
         'f7ea': ['f7ea'],  #
         'f7ec': ['f7ec'],  #

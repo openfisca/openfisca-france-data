@@ -32,7 +32,7 @@ from pandas import HDFStore
 
 log = logging.getLogger(__name__)
 
-from . import default_config_files_directory
+from openfisca_france_data import default_config_files_directory
 
 
 def temporary_store_decorator(config_files_directory = default_config_files_directory, file_name = None):

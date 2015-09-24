@@ -81,7 +81,7 @@ def invalide(temporary_store = None, year = None):
     assert set(invalides_vars) < set(final.columns), \
         "Variables {} are missing".format(set(invalides_vars).difference(set(final.columns)))
 
-    invalides = final.xs(invalides_vars, axis = 1)
+    invalides = final.xs(invalides_vars, axis = 1).copy()
 
     invalides['invalide'] = False
     invalides['alt'] = False
@@ -89,7 +89,7 @@ def invalide(temporary_store = None, year = None):
         assert invalides[var].notnull().all(), 'NaN values in {}'.format(var)
 
     # Les déclarants invalides
-    invalides.invalide.loc[(invalides['caseP'] == 1) & (invalides['quifoy'] == 0)] = True
+    invalides.loc[(invalides['caseP'] == 1) & (invalides['quifoy'] == 0), 'invalide'] = True
     log.info(u"Il y a {} invalides déclarants".format(invalides["invalide"].sum()))
 
     # Les personnes qui touchent l'aah dans l'enquête emploi

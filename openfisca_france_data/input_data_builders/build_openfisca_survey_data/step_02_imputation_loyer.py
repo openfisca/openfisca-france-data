@@ -247,8 +247,8 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erf.tu99_recoded[erf.tu99 == 8] = 5
     assert erf.tu99_recoded.isin(range(1, 6)).all()
 
-    erf.mcs8[erf.mcs8.isin([4, 8])] = 4
-    erf.mcs8[erf.mcs8.isin([5, 6, 7])] = 5
+    erf.loc[erf.mcs8.isin([4, 8]), 'mcs8'] = 4
+    erf.loc[erf.mcs8.isin([5, 6, 7]), 'mcs8'] = 5
     # TODO: assert erf.mcs8.isin(range(1, 6)).all(), erf.mcs8.value_counts()
     assert erf.mcs8.isin(range(0, 6)).all()
 
