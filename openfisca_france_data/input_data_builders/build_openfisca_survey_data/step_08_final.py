@@ -203,7 +203,7 @@ def final(temporary_store = None, year = None, check = True):
     final.act5 = where(final.actrec == 7, 4, final.act5)  # retraité
     final.act5 = where(final.actrec == 8, 5, final.act5)  # autres inactifs
 
-    log.info("{}".format(final.act5.value_counts()))
+    log.info("Valeurs prises par act5: \n {}".format(final.act5.value_counts()))
 
 #     assert final.act5.notnull().all(), 'there are NaN inside final.act5'
 # final$wprm <- NULL # with the intention to extract wprm from menage to deal with FIPs
@@ -289,7 +289,7 @@ def final(temporary_store = None, year = None, check = True):
 #     final2 = final2.drop_duplicates(['noindiv'])
 
     final2 = final2[~(final2.age.isnull())]
-    log.info(u"longueur de final2 après purge: {}".format(len(final2)))
+    log.info(u"longueur de final2 après purge des ages NaN: {}".format(len(final2)))
     print_id(final2)
 
 #
@@ -307,7 +307,8 @@ def final(temporary_store = None, year = None, check = True):
 # saveTmp(final2, file= "final2.Rdata")
 
     control(final2, debug = True)
-    log.info(final2.age.isnull().sum())
+    temporary_store['final2'] = final2
+    log.info("Nombre de personne d'âge NaN: {} ".format(final2.age.isnull().sum()))
     final2 = final2.drop_duplicates(subset = 'noindiv')
 
     log.info('    Filter to manage the new 3-tables structures:')
@@ -315,24 +316,25 @@ def final(temporary_store = None, year = None, check = True):
     liste_men = unique(final2.loc[final2['quimen'] == 0, 'idmen'].values)
     liste_fam = unique(final2.loc[final2['quifam'] == 0, 'idfam'].values)
     liste_foy = unique(final2.loc[final2['quifoy'] == 0, 'idfoy'].values)
-
-    #On ne conserve dans final2 que ces foyers là :
+    log.info('Somme des salaires {} avant filtrage'.format((final2.sali * final2.wprm).sum()))
+    # On ne conserve dans final2 que ces foyers là :
     log.info('final2 avant le filtrage {}'.format(len(final2)))
     final2 = final2.loc[final2.idmen.isin(liste_men)]
     final2 = final2.loc[final2.idfam.isin(liste_fam)]
     final2 = final2.loc[final2.idfoy.isin(liste_foy)]
     log.info('final2 après le filtrage {}'.format(len(final2)))
+    log.info('Somme des salaires {} après filtrage'.format((final2.sali * final2.wprm).sum()))
 
     rectify_dtype(final2, verbose = False)
-#    home = os.path.expanduser("~")
-#    test_filename = os.path.join(home, filename + ".h5")
-#    if os.path.exists(test_filename):
-#        import warnings
-#        import datetime
-#        time_stamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
-#        renamed_file = os.path.join(DATA_SOURCES_DIR, filename + "_" + time_stamp + ".h5")
-#        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
-#        test_filename = renamed_file
+    #    home = os.path.expanduser("~")
+    #    test_filename = os.path.join(home, filename + ".h5")
+    #    if os.path.exists(test_filename):
+    #        import warnings
+    #        import datetime
+    #        time_stamp = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M')
+    #        renamed_file = os.path.join(DATA_SOURCES_DIR, filename + "_" + time_stamp + ".h5")
+    #        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
+    #        test_filename = renamed_file
     data_frame = final2
 
     if year == 2006:  # Hack crade pur régler un problème rémanent
@@ -341,8 +343,7 @@ def final(temporary_store = None, year = None, check = True):
     for id_variable in ['idfam', 'idfoy', 'idmen', 'noi', 'quifam', 'quifoy', 'quimen']:
         data_frame[id_variable] = data_frame[id_variable].astype('int')
 
-    check = False
-    if check:
+    if False:  # check
         check_structure(data_frame)
 
     gc.collect()
@@ -362,7 +363,6 @@ def final(temporary_store = None, year = None, check = True):
 
 
 if __name__ == '__main__':
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    logging.basicConfig(level = logging.INFO, filename = 'step_08.log', filemode = 'w')
     year = 2009
     final(year = year)

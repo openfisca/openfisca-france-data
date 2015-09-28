@@ -211,8 +211,7 @@ def invalide(temporary_store = None, year = None):
     log.info(u'final complétée et sauvegardée')
 
 if __name__ == '__main__':
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    logging.basicConfig(level = logging.INFO, filename = 'step_06.log', filemode = 'w')
     year = 2009
     invalide(year = year)
     log.info(u"étape 07 création des invalides terminée")

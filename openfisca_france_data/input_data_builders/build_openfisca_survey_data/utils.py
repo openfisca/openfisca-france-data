@@ -140,7 +140,7 @@ def print_id(df):
     try:
         # Ici, il doit y avoir autant de vous que d'idfoy
         log.info("Foyers: {}".format(len(df.idfoy)))
-        log.info(df["quifoy"].value_counts())
+        log.info(df["quifoy"].value_counts(dropna=False))
         if df["idfoy"].isnull().any():
             log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
         if df["quifoy"].isnull().any():
@@ -151,7 +151,7 @@ def print_id(df):
     try:
         # Ici, il doit y avoir autant de quimen = 0 que d'idmen
         log.info("Ménages {}".format(len(df.idmen)))
-        log.info(df["quimen"].value_counts())
+        log.info(df["quimen"].value_counts(dropna=False))
         if df["idmen"].isnull().any():
             log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
         if df["quimen"].isnull().any():
@@ -162,7 +162,7 @@ def print_id(df):
     try:
         # Ici, il doit y avoir autant de quifam = 0 que d'idfam
         log.info("Familles {}".format(len(df.idfam)))
-        log.info(df["quifam"].value_counts())
+        log.info(df["quifam"].value_counts(dropna=False))
         if df["idfam"].isnull().any():
             log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
         if df["quifam"].isnull().any():

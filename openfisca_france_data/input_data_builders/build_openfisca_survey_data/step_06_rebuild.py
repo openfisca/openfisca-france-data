@@ -77,10 +77,10 @@ def create_totals(temporary_store = None, year = None):
         columns = {
             "ident": "idmen",
             "persfip": "quifoy",
-            "zsali": "sali2",  # Inclu les salaires non imposables des agents d'assurance
-            "zchoi": "choi2",
-            "zrsti": "rsti2",
-            "zalri": "alr2"
+            "zsali": "sali",  # Inclu les salaires non imposables des agents d'assurance
+            "zchoi": "choi",
+            "zrsti": "rsti",
+            "zalri": "alr"
             },
         inplace = True,
         )
@@ -93,10 +93,10 @@ def create_totals(temporary_store = None, year = None):
         columns = dict(
             ident = "idmen",
             persfip = "quifoy",
-            zsali = "sali2",  # Inclu les salaires non imposables des agents d'assurance
-            zchoi = "choi2",
-            zrsti = "rsti2",
-            zalri = "alr2",
+            zsali = "sali",  # Inclu les salaires non imposables des agents d'assurance
+            zchoi = "choi",
+            zrsti = "rsti",
+            zalri = "alr",
             ),
         inplace = True,
         )
@@ -117,7 +117,7 @@ def create_totals(temporary_store = None, year = None):
         (indivi.declar1.str[0:2]).convert_objects(convert_numeric=True)
         )
 
-    indivi.loc[fip_imp, "idfoy"] = np.nan
+    # indivi.loc[fip_imp, "idfoy"] = np.nan
     # Certains FIP (ou du moins avec revenus imputés) ont un numéro de déclaration d'impôt ( pourquoi ?)
     fip_has_declar = (fip_imp) & (indivi.declar1.notnull())
 
@@ -238,10 +238,10 @@ def create_totals(temporary_store = None, year = None):
         columns = dict(
             ident = "idmen",
             persfip = "quifoy",
-            zsali = "sali2",  # Inclu les salaires non imposables des agents d'assurance
-            zchoi = "choi2",
-            zrsti = "rsti2",
-            zalri = "alr2"),
+            zsali = "sali",  # Inclu les salaires non imposables des agents d'assurance
+            zchoi = "choi",
+            zrsti = "rsti",
+            zalri = "alr"),
         inplace = True)
 
     is_fip_19_25 = ((year - fip.naia - 1) >= 19) & ((year - fip.naia - 1) < 25)
@@ -301,12 +301,25 @@ def create_totals(temporary_store = None, year = None):
         )
     indivi.loc[indivi_without_declarant_has_declar2, 'idfoy'] = where(decl2_idfoy.isin(with_.values), decl2_idfoy, None)
 
-
     del with_, without, indivi_without_declarant_has_declar2
 
     log.info(u"    5.1 : Elimination idfoy restant")
-    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].drop_duplicates()
-    indivi = indivi[indivi.idfoy.isin(idfoyList.values)]
+    temporary_store['temp_debug'] = indivi
+    # Voiture balai
+    # On a plein d'idfoy vides, on fait 1 ménage = 1 foyer fiscal
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    indivi.loc[indivi_without_idfoy, 'idfoy'] = indivi.loc[indivi_without_idfoy, "idmen"].astype('int') * 100 + 51
+    indivi.loc[indivi_without_idfoy, 'quifoy'] = where(
+        indivi.loc[indivi_without_idfoy, "quimen"] == 0,
+        "vous",
+        "pac")
+    indivi.loc[indivi_without_idfoy, 'quifoy'] = where(
+        indivi.loc[indivi_without_idfoy, "quimen"] == 1,
+        "conj",
+        "pac")
+
     del idfoyList
     print_id(indivi)
 

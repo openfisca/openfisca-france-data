@@ -128,7 +128,7 @@ def sif(temporary_store = None, year = None):
     sif["dateX"] = sif.sif.str[34 + d: 42 + d]
     sif["caseY"] = sif.sif.str[42 + d: 43 + d] == "Y"
     sif["dateY"] = sif.sif.str[43 + d: 51 + d]
-    sif["caseZ"] = sif.sif.str[51 + d: 53 + d] == "Z"
+    sif["caseZ"] = sif.sif.str[51 + d: 52 + d] == "Z"
     sif["dateZ"] = sif.sif.str[52 + d: 60 + d]
     sif["causeXYZ"] = sif.sif.str[60 + d: 61 + d]
 
