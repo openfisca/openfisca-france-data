@@ -185,7 +185,7 @@ def invalide(temporary_store = None, year = None):
     log.info("{}".format(foy_inv_pac['invalide'].describe()))
     invalides.loc[:, 'alt'] = False
     invalides.loc[~(invalides.quifoy.isin([0, 1])), ["alt", "invalide"]] = foy_inv_pac[["alt", "invalide"]].copy().values
-    invalides = invalides[["noindiv", "idmen", "caseP", "caseF", "idfoy", "quifoy", "invalide", 'alt']].copy()
+    invalides = invalides[["noindiv", "invalide", 'alt']].copy()
     invalides['alt'].fillna(False, inplace = True)
 
     log.info(invalides.invalide.value_counts())
@@ -200,8 +200,11 @@ def invalide(temporary_store = None, year = None):
     # table(final[, c("invalide","alt")],useNA="ifany")
 
     log.info('Etape 2 : Initialisation des NA sur alt et inv')
-    assert invalides["invalide"].notnull().all() & invalides.alt.notnull().all()
-    final = final.merge(invalides[['noindiv', 'invalide', 'alt']], on = 'noindiv', how = 'left')
+    assert invalides.invalide.notnull().all() & invalides.alt.notnull().all()
+    final.set_index('noindiv', inplace = True)
+    invalides.set_index('noindiv', inplace = True)
+    final.update(invalides)
+    final.reset_index(inplace = True)
     del invalides
 
     log.info("{}".format(final.invalide.value_counts()))
@@ -211,7 +214,7 @@ def invalide(temporary_store = None, year = None):
     log.info(u'final complétée et sauvegardée')
 
 if __name__ == '__main__':
-    logging.basicConfig(level = logging.INFO, filename = 'step_06.log', filemode = 'w')
+    logging.basicConfig(level = logging.INFO, filename = 'step_07.log', filemode = 'w')
     year = 2009
     invalide(year = year)
     log.info(u"étape 07 création des invalides terminée")

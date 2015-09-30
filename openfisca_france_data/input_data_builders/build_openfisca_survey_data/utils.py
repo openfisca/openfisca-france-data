@@ -133,13 +133,13 @@ def id_formatter(dataframe, entity_id):
 
 def print_id(df):
     try:
-        log.info("Individus : {} / {}".format(len(df.noindiv), len(df)))
+        log.info("Individus with distinc noindiv: {} / {}".format(len(df.noindiv), len(df)))
     except:
         log.info("No noindiv")
 
     try:
         # Ici, il doit y avoir autant de vous que d'idfoy
-        log.info("Foyers: {}".format(len(df.idfoy)))
+        log.info("Individus in Foyers: {}".format(len(df.idfoy)))
         log.info(df["quifoy"].value_counts(dropna=False))
         if df["idfoy"].isnull().any():
             log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
@@ -150,7 +150,7 @@ def print_id(df):
 
     try:
         # Ici, il doit y avoir autant de quimen = 0 que d'idmen
-        log.info("Ménages {}".format(len(df.idmen)))
+        log.info(u"Individus in Ménages {}".format(len(df.idmen)))
         log.info(df["quimen"].value_counts(dropna=False))
         if df["idmen"].isnull().any():
             log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
@@ -161,7 +161,7 @@ def print_id(df):
 
     try:
         # Ici, il doit y avoir autant de quifam = 0 que d'idfam
-        log.info("Familles {}".format(len(df.idfam)))
+        log.info("Individuals in Familles {}".format(len(df.idfam)))
         log.info(df["quifam"].value_counts(dropna=False))
         if df["idfam"].isnull().any():
             log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
@@ -169,14 +169,21 @@ def print_id(df):
             log.info("NaN in quifam : {} ".format(df["quifam"].isnull().sum()))
     except:
         log.info("No idfam or quifam")
+    compute_masses(df)
+
+def compute_masses(dataframe):
+    variables = ['sali', 'choi', 'rsti', 'alr']
+    for variable in variables:
+        if set([variable, 'wprm']).issubset(set(dataframe.columns)):
+            log.info("Mass of {}: {}".format(variable, (dataframe[variable] * dataframe['wprm']).sum() / 1e9))
+        else:
+            log.info("Impossible to compute mass of {}".format(variable))
 
 
 def check_structure(dataframe):
-
-    #    duplicates = dataframe.noindiv.duplicated().sum()
-    #    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
-    #        df.drop_duplicates("noindiv", inplace = True)
-
+    duplicates = dataframe.noindiv.duplicated().sum()
+    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
+    df.drop_duplicates("noindiv", inplace = True)
     for entity in ["men", "fam", "foy"]:
         log.info("Checking entity {}".format(entity))
         role = 'qui' + entity
@@ -196,7 +203,7 @@ def check_structure(dataframe):
                     log.error("There are {} duplicated qui{} = {}".format(errors, entity, position))
 
     for entity in ['fam', 'foy', 'men']:
-        assert len(dataframe['id' + entity].unique()) == (dataframe['qui' + entity] == 0).sum(),\
+        assert len(dataframe['id' + entity].unique()) == (dataframe['qui' + entity] == 0).sum(), \
             "Wronger number of entity/head for {}".format(entity)
 
 

@@ -84,11 +84,11 @@ def create_totals(temporary_store = None, year = None):
             },
         inplace = True,
         )
-
-    indivi_i.quifoy = where(indivi_i.quifoy.isnull(), "vous", indivi_i.quifoy)
+    assert indivi_i.quifoy.notnull().all()
+    indivi_i.loc[indivi_i.quifoy == "", "quifoy"] = "vous"
     indivi_i.quelfic = "FIP_IMP"
 
-    # We merge them with the other individuals
+   # We merge them with the other individuals
     indivim.rename(
         columns = dict(
             ident = "idmen",
@@ -103,12 +103,13 @@ def create_totals(temporary_store = None, year = None):
 
     if not (set(list(indivim.noindiv)) > set(list(indivi_i.noindiv))):
         raise Exception("Individual ")
-    indivim.set_index("noindiv", inplace = True)
-    indivi_i.set_index("noindiv", inplace = True)
+    indivim.set_index("noindiv", inplace = True, verify_integrity = True)
+    indivi_i.set_index("noindiv", inplace = True, verify_integrity = True)
     indivi = indivim
     del indivim
     indivi.update(indivi_i)
     indivi.reset_index(inplace = True)
+    assert not(indivi.noindiv.duplicated().any()), "Doublons"
 
     log.info("Etape 2 : isolation des FIP")
     fip_imp = indivi.quelfic == "FIP_IMP"
@@ -119,19 +120,19 @@ def create_totals(temporary_store = None, year = None):
 
     # indivi.loc[fip_imp, "idfoy"] = np.nan
     # Certains FIP (ou du moins avec revenus imputés) ont un numéro de déclaration d'impôt ( pourquoi ?)
-    fip_has_declar = (fip_imp) & (indivi.declar1.notnull())
+    assert indivi_i.declar1.notnull().all()
+    assert (indivi_i.declar1 == "").sum() > 0
+    fip_has_declar = (fip_imp) & (indivi.declar1 != "")
 
-    indivi["idfoy"] = where(
-        fip_has_declar,
-        indivi.idmen * 100 + indivi.declar1.str[0:2].convert_objects(convert_numeric = True),
-        indivi.idfoy)
+    indivi.loc[fip_has_declar, "idfoy"] = (
+        indivi.idmen * 100 + indivi.declar1.str[0:2].convert_objects(convert_numeric = True))
     del fip_has_declar
 
-    fip_no_declar = (fip_imp) & (indivi.declar1.isnull())
+    fip_no_declar = (fip_imp) & (indivi.declar1 == "")
     del fip_imp
-    indivi["idfoy"] = where(fip_no_declar, indivi["idmen"] * 100 + 50, indivi["idfoy"])
+    indivi.loc[fip_no_declar, "idfoy"] = indivi["idmen"] * 100 + 50
 
-    indivi_fnd = indivi[["idfoy", "noindiv"]][fip_no_declar].copy()
+    indivi_fnd = indivi.loc[fip_no_declar, ["idfoy", "noindiv"]].copy()
 
     while any(indivi_fnd.duplicated(subset = ["idfoy"])):
         indivi_fnd["idfoy"] = where(
@@ -142,20 +143,20 @@ def create_totals(temporary_store = None, year = None):
 
     # assert indivi_fnd["idfoy"].duplicated().value_counts()[False] == len(indivi_fnd["idfoy"].values), \
     #    "Duplicates remaining"
-    assert len(indivi[indivi.duplicated(['noindiv'])]) == 0, "Doublons"
+    assert not(indivi.noindiv.duplicated().any()), "Doublons"
 
     indivi.idfoy.loc[fip_no_declar] = indivi_fnd.idfoy.copy()
     del indivi_fnd, fip_no_declar
 
     log.info(u"Etape 3 : Récupération des EE_NRT")
     nrt = indivi.quelfic == "EE_NRT"
-    indivi.idfoy = where(nrt, indivi.idmen * 100 + indivi.noi, indivi.idfoy)
-    indivi.quifoy.loc[nrt] = "vous"
+    indivi.loc[nrt, 'idfoy'] = indivi.idmen * 100 + indivi.noi
+    indivi.loc[nrt, 'quifoy'] = "vous"
     del nrt
 
     pref_or_cref = indivi.lpr.isin([1, 2])
     adults = (indivi.quelfic.isin(["EE", "EE_CAF"])) & (pref_or_cref)
-    indivi.idfoy = where(adults, indivi.idmen * 100 + indivi.noi, indivi.idfoy)
+    indivi.loc[adults, "idfoy"] = indivi.idmen * 100 + indivi.noi
     indivi.loc[adults, "quifoy"] = "vous"
     del adults
     assert indivi.idfoy[indivi.lpr.dropna().isin([1, 2])].all()
@@ -167,38 +168,47 @@ def create_totals(temporary_store = None, year = None):
     assert indivi.noindiv[enf_ee].notnull().all(), " Some noindiv are not set, which will ruin next stage"
     assert not(indivi.noindiv[enf_ee].duplicated().any()), "Some noindiv appear twice"
 
+    enf_ee_avec_pere = (enf_ee & indivi.noiper != 0).copy()
+    enf_ee_avec_mere = (enf_ee & indivi.noimer != 0).copy()
+
     pere = DataFrame({
-        "noindiv_enf": indivi.noindiv.loc[enf_ee],
-        "noindiv": 100 * indivi.idmen.loc[enf_ee] + indivi.noiper.loc[enf_ee]
+        "noindiv_enf": indivi.noindiv.loc[enf_ee_avec_pere].copy(),
+        "noindiv": 100 * indivi.idmen.loc[enf_ee_avec_pere] + indivi.noiper.loc[enf_ee_avec_pere]
         })
     mere = DataFrame({
-        "noindiv_enf": indivi.noindiv.loc[enf_ee],
-        "noindiv": 100 * indivi.idmen.loc[enf_ee] + indivi.noimer.loc[enf_ee]
+        "noindiv_enf": indivi.noindiv.loc[enf_ee_avec_mere].copy(),
+        "noindiv": 100 * indivi.idmen.loc[enf_ee_avec_mere] + indivi.noimer.loc[enf_ee_avec_mere]
         })
 
     foyer = data.get_values(variables = ["noindiv", "zimpof"], table = year_specific_by_generic["foyer"])
-    pere = pere.merge(foyer, how = "inner", on = "noindiv")
-    mere = mere.merge(foyer, how = "inner", on = "noindiv")
-    df = pere.merge(mere, how = "outer", on = "noindiv_enf", suffixes=('_p', '_m'))
+    pere_with_declar = pere.merge(foyer, how = "inner", on = "noindiv")
+    mere_with_declar = mere.merge(foyer, how = "inner", on = "noindiv")
+    df = pere_with_declar.merge(mere_with_declar, how = "outer", on = "noindiv_enf", suffixes=('_p', '_m'))
+    # df has now columns noindiv_enf noindiv_p noindiv_m zimpof_p zimpof_m with nan when those values do not exist
+    del lpr3_or_lpr4, pere, mere
 
     log.info(u"    4.1 : gestion des personnes dans 2 foyers")
     for col in ["noindiv_p", "noindiv_m", "noindiv_enf"]:
-        df[col] = df[col].fillna(0, inplace = True)  # beacause groupby drop groups with NA in index
+        df[col].fillna(0, inplace = True)  # beacause groupby drop groups with NA in index
     df = df.groupby(by = ["noindiv_p", "noindiv_m", "noindiv_enf"]).sum()
     df.reset_index(inplace = True)
 
     df["which"] = ""
-    df.which = where((df.zimpof_m.notnull()) & (df.zimpof_p.isnull()), "mere", "")
-    df.which = where((df.zimpof_p.notnull()) & (df.zimpof_m.isnull()), "pere", "")
+    df.loc[df.zimpof_m.notnull() & df.zimpof_p.isnull(), 'which'] = "mere"
+    df.loc[df.zimpof_m.isnull() & df.zimpof_p.notnull(), 'which'] = "pere"
     both = (df.zimpof_p.notnull()) & (df.zimpof_m.notnull())
-    df.which = where(both & (df.zimpof_p > df.zimpof_m), "pere", "mere")
-    df.which = where(both & (df.zimpof_m >= df.zimpof_p), "mere", "pere")
+    df.loc[both & (df.zimpof_p > df.zimpof_m), 'which'] = "pere"
+    df.loc[both & (df.zimpof_m >= df.zimpof_p),'which'] = "mere"
 
-    assert df.which.notnull().all(), "Some enf_ee individuals are not matched with any pere or mere"
-    del lpr3_or_lpr4, pere, mere
+    assert (df.which != "").all(), "Some enf_ee individuals are not matched with any pere or mere"
 
     df.rename(columns = {"noindiv_enf": "noindiv"}, inplace = True)
-    df['idfoy'] = where(df.which == "pere", df.noindiv_p, df.noindiv_m)
+    df['idfoy'] = 0
+    assert df.noindiv_p.notnull().all(), "If absent noindiv_p should be 0"
+    assert df.noindiv_m.notnull().all(), "If absent noindiv_m should be 0"
+    df.idfoy = (df.which == "pere") * df.noindiv_p
+    df.idfoy = (df.which == "mere") * df.noindiv_m
+
     df['idfoy'] = where(df.which == "mere", df.noindiv_m, df.noindiv_p)
     assert df["idfoy"].notnull().all()
     dropped = [col for col in df.columns if col not in ["idfoy", "noindiv"]]
@@ -208,16 +218,9 @@ def create_totals(temporary_store = None, year = None):
 
     df.set_index("noindiv", inplace = True, verify_integrity = True)
     indivi.set_index("noindiv", inplace = True, verify_integrity = True)
-
-    ind_notnull = indivi["idfoy"].notnull().sum()
-    ind_isnull = indivi["idfoy"].isnull().sum()
-    indivi = indivi.combine_first(df)
-    assert ind_notnull + ind_isnull == (
-        indivi["idfoy"].notnull().sum() +
-        indivi["idfoy"].isnull().sum()
-        )
+    indivi.update(df)
     indivi.reset_index(inplace = True)
-    assert not(indivi.duplicated().any())
+    assert not(indivi.noindiv.duplicated().any())
 
     # TODO il faut rajouterles enfants_fip et créer un ménage pour les majeurs
     # On suit guide méthodo erf 2003 page 135
@@ -249,25 +252,28 @@ def create_totals(temporary_store = None, year = None):
     # TODO: BUT for the time being we keep them in thier vous menage so the following lines are commented
     # The idmen are of the form 60XXXX we use idmen 61XXXX, 62XXXX for the idmen of the kids over 18 and less than 25
 
-    indivi = concat([indivi, fip.loc[is_fip_19_25]])
+    indivi = concat([indivi, fip.loc[is_fip_19_25].copy()])
+    assert not(indivi.noindiv.duplicated().any())
+
     del is_fip_19_25
     indivi['age'] = year - indivi.naia - 1
     indivi['age_en_mois'] = 12 * indivi.age + 12 - indivi.naim
 
     indivi["quimen"] = 0
-    indivi.quimen.loc[indivi.lpr == 1] = 0
-    indivi.quimen.loc[indivi.lpr == 2] = 1
-    indivi.quimen.loc[indivi.lpr == 3] = 2
-    indivi.quimen.loc[indivi.lpr == 4] = 3
+    indivi.loc[indivi.lpr == 1, 'quimen'] = 0
+    indivi.loc[indivi.lpr == 2, 'quimen'] = 1
+    indivi.loc[indivi.lpr == 3, 'quimen'] = 2
+    indivi.loc[indivi.lpr == 4, 'quimen'] = 3
     indivi['not_pr_cpr'] = None  # Create a new row
-    indivi.not_pr_cpr.loc[indivi.lpr <= 2] = False
-    indivi.not_pr_cpr.loc[indivi.lpr > 2] = True
+    indivi.loc[indivi.lpr <= 2, 'not_pr_cpr'] = False
+    indivi.loc[indivi.lpr > 2, 'not_pr_cpr'] = True
 
     assert indivi.not_pr_cpr.isin([True, False]).all()
 
     log.info(u"    4.3 : Creating non pr=0 and cpr=1 idmen's")
-    indivi.reset_index(inplace = True)
-    test1 = indivi[['quimen', 'idmen']][indivi.not_pr_cpr].copy()
+
+    indivi.set_index('noindiv', inplace = True, verify_integrity = True)
+    test1 = indivi.loc[indivi.not_pr_cpr, ['quimen', 'idmen']].copy()
     test1['quimen'] = 2
 
     j = 2
@@ -276,7 +282,7 @@ def create_totals(temporary_store = None, year = None):
         j += 1
     print_id(indivi)
     indivi.update(test1)
-
+    indivi.reset_index(inplace = True)
     print_id(indivi)
 
     # TODO problème avec certains idfoy qui n'ont pas de vous
@@ -304,123 +310,127 @@ def create_totals(temporary_store = None, year = None):
     del with_, without, indivi_without_declarant_has_declar2
 
     log.info(u"    5.1 : Elimination idfoy restant")
-    temporary_store['temp_debug'] = indivi
     # Voiture balai
     # On a plein d'idfoy vides, on fait 1 ménage = 1 foyer fiscal
     idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
     indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
 
     indivi.loc[indivi_without_idfoy, 'idfoy'] = indivi.loc[indivi_without_idfoy, "idmen"].astype('int') * 100 + 51
-    indivi.loc[indivi_without_idfoy, 'quifoy'] = where(
-        indivi.loc[indivi_without_idfoy, "quimen"] == 0,
-        "vous",
-        "pac")
-    indivi.loc[indivi_without_idfoy, 'quifoy'] = where(
-        indivi.loc[indivi_without_idfoy, "quimen"] == 1,
-        "conj",
-        "pac")
+    indivi.loc[indivi_without_idfoy, 'quifoy'] = "pac"
+    indivi.loc[indivi_without_idfoy & (indivi.quimen == 0), 'quifoy'] = "vous"
+    indivi.loc[indivi_without_idfoy & (indivi.quimen == 1), 'quifoy'] = "conj"
 
     del idfoyList
     print_id(indivi)
 
+
     # Sélectionne les variables à garder pour les steps suivants
-    myvars = [
-        "actrec",
-        "age",
-        "age_en_mois",
-        "chpub",
-        "encadr",
-        "idfoy",
-        "idmen",
-        "nbsala",
-        "noi",
-        "noindiv",
-        "prosa",
-        "quelfic",
-        "quifoy",
-        "quimen",
-        "statut",
-        "titc",
-        "txtppb",
-        "wprm",
-        "rc1rev",
-        "maahe",
-        ]
+    # variables = [
+    #     "actrec",
+    #     "age",
+    #     "age_en_mois",
+    #     "chpub",
+    #     "encadr",
+    #     "idfoy",
+    #     "idmen",
+    #     "nbsala",
+    #     "noi",
+    #     "noindiv",
+    #     "prosa",
+    #     "quelfic",
+    #     "quifoy",
+    #     "quimen",
+    #     "statut",
+    #     "titc",
+    #     "txtppb",
+    #     "wprm",
+    #     "rc1rev",
+    #     "maahe",
+    #     "sali",
+    #     "rsti",
+    #     "choi",
+    #     "alr",
+    #     "wprm",
+    #     ]
+    #
+    # assert set(variables).issubset(set(indivi.columns)), \
+    #     "Manquent les colonnes suivantes : {}".format(set(variables).difference(set(indivi.columns)))
+    #
+    # indivi = indivi[variables].copy()  # produces a copy even without using the copy method
 
-    assert len(set(myvars).difference(set(indivi.columns))) == 0, \
-        "Manquent les colonnes suivantes : {}".format(set(myvars).difference(set(indivi.columns)))
 
-    indivi = indivi[myvars].copy()
+    #  see http://stackoverflow.com/questions/11285613/selecting-columns
+    indivi.reset_index(inplace = True)
+    gc.collect()
+
     # TODO les actrec des fip ne sont pas codées (on le fera à la fin quand on aura rassemblé
     # les infos provenant des déclarations)
     log.info(u"Etape 6 : Création des variables descriptives")
     log.info(u"    6.1 : Variable activité")
-    indivi['activite'] = None
-    indivi.activite.loc[indivi.actrec <= 3] = 0
-    indivi.activite.loc[indivi.actrec == 4] = 1
-    indivi.activite.loc[indivi.actrec == 5] = 2
-    indivi.activite.loc[indivi.actrec == 7] = 3
-    indivi.activite.loc[indivi.actrec == 8] = 4
-    indivi.activite.loc[indivi.age <= 13] = 2  # ce sont en fait les actrec=9
+    log.info(u"Variables présentes; \n {}".format(indivi.columns))
+
+    indivi['activite'] = np.nan
+    indivi.loc[indivi.actrec <= 3, 'activite'] = 0
+    indivi.loc[indivi.actrec == 4, 'activite'] = 1
+    indivi.loc[indivi.actrec == 5, 'activite'] = 2
+    indivi.loc[indivi.actrec == 7, 'activite'] = 3
+    indivi.loc[indivi.actrec == 8, 'activite'] = 4
+    indivi.loc[indivi.age <= 13, 'activite'] = 2  # ce sont en fait les actrec=9
     log.info("Valeurs prises par la variable activité \n {}".format(indivi['activite'].value_counts(dropna = False)))
     # TODO: MBJ problem avec les actrec
     # TODO: FIX AND REMOVE
-    indivi.activite.loc[indivi.actrec.isnull()] = 5
-    indivi.titc.loc[indivi.titc.isnull()] = 0
+    indivi.loc[indivi.actrec.isnull(), 'activite'] = 5
+    indivi.loc[indivi.titc.isnull(), 'titc'] = 0
     assert indivi.titc.notnull().all(), \
         u"Problème avec les titc"  # On a 420 NaN pour les varaibels statut, titc etc
 
     log.info(u"    6.2 : Variable statut")
-    indivi.statut.loc[indivi.statut.isnull()] = 0
+    indivi.loc[indivi.statut.isnull(), 'statut'] = 0
     indivi.statut = indivi.statut.astype('int')
-    indivi.statut.loc[indivi.statut == 11] = 1
-    indivi.statut.loc[indivi.statut == 12] = 2
-    indivi.statut.loc[indivi.statut == 13] = 3
-    indivi.statut.loc[indivi.statut == 21] = 4
-    indivi.statut.loc[indivi.statut == 22] = 5
-    indivi.statut.loc[indivi.statut == 33] = 6
-    indivi.statut.loc[indivi.statut == 34] = 7
-    indivi.statut.loc[indivi.statut == 35] = 8
-    indivi.statut.loc[indivi.statut == 43] = 9
-    indivi.statut.loc[indivi.statut == 44] = 10
-    indivi.statut.loc[indivi.statut == 45] = 11
+    indivi.loc[indivi.statut == 11, 'statut'] = 1
+    indivi.loc[indivi.statut == 12, 'statut'] = 2
+    indivi.loc[indivi.statut == 13, 'statut'] = 3
+    indivi.loc[indivi.statut == 21, 'statut'] = 4
+    indivi.loc[indivi.statut == 22, 'statut'] = 5
+    indivi.loc[indivi.statut == 33, 'statut'] = 6
+    indivi.loc[indivi.statut == 34, 'statut'] = 7
+    indivi.loc[indivi.statut == 35, 'statut'] = 8
+    indivi.loc[indivi.statut == 43, 'statut'] = 9
+    indivi.loc[indivi.statut == 44, 'statut'] = 10
+    indivi.loc[indivi.statut == 45, 'statut'] = 11
     assert indivi.statut.isin(range(12)).all(), u"statut value over range"
     log.info("Valeurs prises par la variable statut \n {}".format(
         indivi['statut'].value_counts(dropna = False)))
 
     log.info(u"    6.3 : variable txtppb")
-    indivi.txtppb.fillna(0, inplace = True)
+    indivi.loc[indivi.txtppb.isnull(), 'txtppb'] = 0
     assert indivi.txtppb.notnull().all()
-    indivi.nbsala.fillna(0, inplace = True)
-    indivi['nbsala'] = indivi.nbsala.astype('int')
-    indivi.nbsala.loc[indivi.nbsala == 99] = 10
+    indivi.loc[indivi.nbsala.isnull(), 'nbsala'] = 0
+    indivi.nbsala = indivi.nbsala.astype('int')
+    indivi.loc[indivi.nbsala == 99, 'nbsala'] = 10
     assert indivi.nbsala.isin(range(11)).all()
     log.info("Valeurs prises par la variable txtppb \n {}".format(
         indivi['txtppb'].value_counts(dropna = False)))
 
-
     log.info(u"    6.4 : variable chpub et CSP")
-    indivi.chpub.fillna(0, inplace = True)
+    indivi.loc[indivi.chpub.isnull(), 'chpub'] = 0
     indivi.chpub = indivi.chpub.astype('int')
-    indivi.chpub.loc[indivi.chpub.isnull()] = 0
     assert indivi.chpub.isin(range(11)).all()
 
     indivi['cadre'] = 0
-    indivi.prosa.fillna(0, inplace = True)
-    assert indivi['prosa'].notnull().all()
+    indivi.loc[indivi.prosa.isnull(), 'prosa'] = 0
+    assert indivi.prosa.notnull().all()
     log.info("Valeurs prises par la variable encadr \n {}".format(indivi['encadr'].value_counts(dropna = False)))
 
     # encadr : 1=oui, 2=non
-    indivi.encadr.fillna(2, inplace = True)
-    indivi.encadr.loc[indivi.encadr == 0] = 2
-
+    indivi.loc[indivi.encadr.isnull(), 'encadr'] = 2
+    indivi.loc[indivi.encadr == 0, 'encadr'] = 2
     assert indivi.encadr.notnull().all()
     assert indivi.encadr.isin([1, 2]).all()
 
-    indivi.cadre.loc[indivi.prosa.isin([7, 8])] = 1
-    indivi.cadre.loc[(indivi.prosa == 9) & (indivi.encadr == 1)] = 1
-    assert indivi['cadre'].isin(range(2)).all()
-
+    indivi.loc[indivi.prosa.isin([7, 8]), 'cadre'] = 1
+    indivi.loc[(indivi.prosa == 9) & (indivi.encadr == 1), 'cadre'] = 1
+    assert indivi.cadre.isin(range(2)).all()
 
     log.info(
         u"Etape 7: on vérifie qu'il ne manque pas d'info sur les liens avec la personne de référence"
@@ -430,18 +440,18 @@ def create_totals(temporary_store = None, year = None):
         )
 
     log.info(u"On crée les n° de personnes à charge dans le foyer fiscal")
-    assert indivi['idfoy'].notnull().all()
+    assert indivi.idfoy.notnull().all()
     print_id(indivi)
     indivi['quifoy_bis'] = 2
-    indivi.quifoy_bis.loc[indivi.quifoy == 'vous'] = 0
-    indivi.quifoy_bis.loc[indivi.quifoy == 'conj'] = 1
-    indivi.quifoy_bis.loc[indivi.quifoy == 'pac'] = 2
+    indivi.loc[indivi.quifoy == 'vous', 'quifoy_bis'] = 0
+    indivi.loc[indivi.quifoy == 'conj', 'quifoy_bis'] = 1
+    indivi.loc[indivi.quifoy == 'pac', 'quifoy_bis'] = 2
     del indivi['quifoy']
-    indivi['quifoy'] = indivi.quifoy_bis
+    indivi['quifoy'] = indivi.quifoy_bis.copy()
     del indivi['quifoy_bis']
 
     print_id(indivi)
-    pac = indivi[['quifoy', 'idfoy', 'noindiv']][indivi['quifoy'] == 2].copy()
+    pac = indivi.loc[indivi['quifoy'] == 2, ['quifoy', 'idfoy', 'noindiv']].copy()
     print_id(pac)
 
     j = 2
@@ -531,27 +541,33 @@ def create_final(temporary_store = None, year = None):
     foy_ind = temporary_store['foy_ind_{}'.format(year)]
     tot3 = temporary_store['tot3_{}'.format(year)]
 
-    foy_ind.set_index(['idfoy', 'quifoy'], inplace = True)
-    tot3.set_index(['idfoy', 'quifoy'], inplace = True)
-    final = concat([tot3, foy_ind], join_axes=[tot3.index], axis=1)
-    final.reset_index(inplace = True)
-    foy_ind.reset_index(inplace = True)
+    log.info(u"Stats on tot3")
+    print_id(tot3)
+    log.info(u"Stats on foy_ind")
+    print_id(foy_ind)
+    foy_ind.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
+    tot3.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
+
+    # tot3 = concat([tot3, foy_ind], join_axes=[tot3.index], axis=1, verify_integrity = True)
+    tot3.update(foy_ind)
     tot3.reset_index(inplace = True)
+    foy_ind.reset_index(inplace = True)
 
     # tot3 = tot3.drop_duplicates(subset=['idfam', 'quifam'])
-    final = final[final.idmen.notnull()]
+    final = tot3[tot3.idmen.notnull()].copy()
 
     control(final, verbose=True)
     del tot3, foy_ind
     gc.collect()
 
-    # final <- merge(final, sif, by = c('noindiv'), all.x = TRUE)
     log.info("    loading fip")
     sif = temporary_store['sif_{}'.format(year)]
-
-    log.info("{}".format(sif.columns))
+    log.info("{Columns from sif dataframe}".format(sif.columns))
     log.info("    update final using fip")
-    final = final.merge(sif, on=["noindiv"], how="left")
+    final.set_index('noindiv', inplace = True, verify_integrity = True)
+    sif.set_index('noindiv', inplace = True, verify_integrity = True)
+    final.update(sif)
+    final.reset_index(inplace = True)
     # TODO: IL FAUT UNE METHODE POUR GERER LES DOUBLES DECLARATIONS
 
     control(final, debug=True)

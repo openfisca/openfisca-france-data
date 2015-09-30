@@ -285,7 +285,7 @@ def create_fip(temporary_store = None, year = None):
     fip['type_pac'] = 0
     fip['key'] = 0
 
-    log.info("{}".format(fip.duplicated('noindiv').value_counts()))
+    log.info("Number of duplicated fip: {}".format(fip.duplicated('noindiv').value_counts()))
     temporary_store['fipDat_{}'.format(year)] = fip
     del fip, fip1, individec1, indivifip, indivi, pac
     log.info(u"fip sauvegardé")

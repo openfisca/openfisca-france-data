@@ -42,11 +42,14 @@ def control_04(dataframe, base):
     log.info(u"contrôle des doublons : il y a {} individus en double".format(
         any(dataframe.duplicated(subset = 'noindiv'))))
     log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
-    log.info(u"Il y a {} de familles différentes".format(len(set(dataframe.noifam.values))))
+    log.info(u"Il y a {} de familles différentes".format(len(dataframe.noifam.unique())))
     log.info(u"contrôle: {} noifam are NaN:".format(len(dataframe[dataframe['noifam'].isnull()])))
     log.info(u"{} lignes dans dataframe vs {} lignes dans base".format(len(dataframe.index), len(base.index)))
     assert len(dataframe.index) <= len(base.index), u"dataframe has too many rows compared to base"
-
+    assert set(dataframe.noifam.unique()).issubset(set(base.noindiv)), \
+        "The following noindiv are not in the dataframe: \n {}".format(
+            dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']]
+        )
 
 def subset_base(base, famille):
     """
@@ -244,7 +247,8 @@ def famille(temporary_store = None, year = None):
 
     log.info(u"    3.4 : personnes seules de catégorie 4")
     seul4 = subset_base(base, famille)
-    seul4 = seul4[(seul4.lpr == 4) & seul4.p16m20 & ~(seul4.smic55) & (seul4.noimer.isnull()) &
+    assert seul4.noimer.notnull().all()
+    seul4 = seul4[(seul4.lpr == 4) & seul4.p16m20 & ~(seul4.smic55) & (seul4.noimer == 0) &
                   (seul4.persfip == 'vous')].copy()
     if len(seul4.index) > 0:
         seul4['noifam'] = (100 * seul4.ident + seul4.noi).astype(int)
@@ -258,7 +262,7 @@ def famille(temporary_store = None, year = None):
     log.info(u"    4.1 : enfant avec mère")
     avec_mere = subset_base(base, famille)
     avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.p16m20 == 1) | (avec_mere.m15 == 1)) &
-                           (avec_mere.noimer.notnull()))].copy()
+                           (avec_mere.noimer > 0))].copy()
     avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
     avec_mere['famille'] = 41
     avec_mere['kid'] = True
@@ -283,7 +287,8 @@ def famille(temporary_store = None, year = None):
     famille = famille[~(famille.noindiv.isin(mere.noindiv.values))].copy()
     control_04(famille, base)
     # on retrouve les conjoints des mères
-    conj_mereid = mere[['ident', 'noicon', 'noifam']].copy()[mere.noicon.notnull()].copy()
+    assert mere.noicon.notnull().all()
+    conj_mereid = mere.loc[mere.noicon > 0, ['ident', 'noicon', 'noifam']].copy()
     conj_mereid['noindiv'] = 100 * conj_mereid.ident + conj_mereid.noicon
     assert_dtype(conj_mereid[series_name], "int")
     conj_mereid = conj_mereid[['noindiv', 'noifam']].copy()
@@ -294,15 +299,17 @@ def famille(temporary_store = None, year = None):
     for series_name in ['famille', 'noifam']:
         assert_dtype(conj_mereid[series_name], "int")
     famille = famille[~(famille.noindiv.isin(conj_mere.noindiv.values))].copy()
+
     famille = concat([famille, avec_mere, mere, conj_mere])
     control_04(famille, base)
     del avec_mere, mere, conj_mere, mereid, conj_mereid
 
     log.info(u"    4.2 : enfants avec père")
     avec_pere = subset_base(base, famille)
+    assert avec_pere.noiper.notnull().all()
     avec_pere = avec_pere[(avec_pere.lpr == 4) &
                           ((avec_pere.p16m20 == 1) | (avec_pere.m15 == 1)) &
-                          (avec_pere.noiper.notnull())]
+                          (avec_pere.noiper > 0)]
     avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
     avec_pere['famille'] = 44
     avec_pere['kid'] = True
@@ -323,7 +330,8 @@ def famille(temporary_store = None, year = None):
     famille = famille[~(famille.noindiv.isin(pere.noindiv.values))].copy()
 
     # On récupère les conjoints des pères
-    conj_pereid = pere[['ident', 'noicon', 'noifam']].copy()[pere.noicon.notnull()].copy()
+    assert pere.noicon.notnull().all()
+    conj_pereid = pere.loc[pere.noicon > 0, ['ident', 'noicon', 'noifam']].copy()
     conj_pereid['noindiv'] = (100 * conj_pereid.ident + conj_pereid.noicon).astype(int)
     conj_pereid = conj_pereid[['noindiv', 'noifam']].copy()
 
@@ -582,13 +590,16 @@ def famille(temporary_store = None, year = None):
     famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
     log.info(u"Vérifications sur famille")
     # TODO: we drop duplicates if any
-    log.info(u"There are {} duplicates of quifam inside famille, we drop them".format(
-        famille.duplicated(subset = ['idfam', 'quifam']).sum())
-        )
-    famille.drop_duplicates(subset = ['idfam', 'quifam'], inplace = True)
-    # assert not(famille.duplicated(subset = ['idfam', 'quifam']).any()), \
-    #   'There are {} duplicates of quifam inside famille'.format(
-    #       famille.duplicated(subset = ['idfam', 'quifam']).sum())
+
+    duplicated_famillle_count = famille.duplicated(subset = ['idfam', 'quifam']).sum()
+    if duplicated_famillle_count > 0:
+        log.info(u"There are {} duplicates of quifam inside famille, we drop them".format(
+            )
+            )
+        famille.drop_duplicates(subset = ['idfam', 'quifam'], inplace = True)
+        # assert not(famille.duplicated(subset = ['idfam', 'quifam']).any()), \
+        #   'There are {} duplicates of quifam inside famille'.format(
+        #       famille.duplicated(subset = ['idfam', 'quifam']).sum())
 
     temporary_store["famc_{}".format(year)] = famille
     del indivi, enfants_a_naitre
@@ -596,6 +607,7 @@ def famille(temporary_store = None, year = None):
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    # logging.basicConfig(level = logging.INFO,  filename = 'step_06.log', filemode = 'w')
     year = 2009
     famille(year = year)
     log.info(u"étape 04 famille terminée")
