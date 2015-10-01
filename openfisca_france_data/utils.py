@@ -337,7 +337,7 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
                 index_other_entity = individual_data_frame.loc[boolean_index, "id{}".format(other_entity)].values
                 for column_name, column_series in data_frame_by_entity[other_entity].iteritems():
                     individual_data_frame.loc[boolean_index, column_name] \
-                        = column_series.iloc[index_other_entity].values
+                        = column_series.loc[index_other_entity].values
                     individual_data_frame[column_name].fillna(0)
 
         if entity == 'ind' and force_sum is False:

@@ -40,6 +40,7 @@ from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     check_structure,
     control,
+    normalizes_roles_in_entity,
     id_formatter,
     print_id,
     rectify_dtype,
@@ -60,7 +61,7 @@ def final(temporary_store = None, year = None, check = True):
     # On définit comme célibataires les individus dont on n'a pas retrouvé la déclaration
     final = temporary_store['final_{}'.format(year)]
     log.info('check doublons'.format(len(final[final.duplicated(['noindiv'])])))
-    final.statmarit = where(final.statmarit.isnull(), 2, final.statmarit)
+    final.statmarit.fillna(2, inplace = True)
 
     # activite des fip
     log.info('    gestion des FIP de final')
@@ -306,15 +307,22 @@ def final(temporary_store = None, year = None, check = True):
 
     log.info('    Filter to manage the new 3-tables structures:')
     # On récupère les foyer, famille, ménages qui ont un chef :
-    liste_men = unique(final2.loc[final2['quimen'] == 0, 'idmen'].values)
-    liste_fam = unique(final2.loc[final2['quifam'] == 0, 'idfam'].values)
-    liste_foy = unique(final2.loc[final2['quifoy'] == 0, 'idfoy'].values)
     # On ne conserve dans final2 que ces foyers là :
     log.info('final2 avant le filtrage {}'.format(len(final2)))
     print_id(final2)
-    final2 = final2.loc[final2.idmen.isin(liste_men)]
-    final2 = final2.loc[final2.idfam.isin(liste_fam)]
-    final2 = final2.loc[final2.idfoy.isin(liste_foy)]
+
+    liste_foy = final2.loc[final2['quifoy'] == 0, 'idfoy'].unique()
+    log.info("Dropping {} foyers".format((~final2.idfoy.isin(liste_foy)).sum()))
+    final2 = final2.loc[final2.idfoy.isin(liste_foy)].copy()
+
+    liste_fam = final2.loc[final2['quifam'] == 0, 'idfam'].unique()
+    log.info("Dropping {} famille".format((~final2.idfam.isin(liste_fam)).sum()))
+    final2 = final2.loc[final2.idfam.isin(liste_fam)].copy()
+
+    liste_men = final2.loc[final2['quimen'] == 0, 'idmen'].unique()
+    log.info(u"Dropping {} ménages".format((~final2.idmen.isin(liste_men)).sum()))
+    final2 = final2.loc[final2.idmen.isin(liste_men)].copy()
+
     log.info('final2 après le filtrage {}'.format(len(final2)))
     print_id(final2)
     rectify_dtype(final2, verbose = False)
@@ -328,6 +336,8 @@ def final(temporary_store = None, year = None, check = True):
     #        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
     #        test_filename = renamed_file
     data_frame = final2
+    assert not data_frame.duplicated(['idmen', 'quimen']).any(), 'bad ménages indexing'
+
 
     if year == 2006:  # Hack crade pur régler un problème rémanent
         data_frame = data_frame[data_frame.idfam != 602177906].copy()
@@ -335,13 +345,26 @@ def final(temporary_store = None, year = None, check = True):
     for id_variable in ['idfam', 'idfoy', 'idmen', 'noi', 'quifam', 'quifoy', 'quimen']:
         data_frame[id_variable] = data_frame[id_variable].astype('int')
 
-    if False:  # check
+    temporary_store['final2bis'] = data_frame
+
+    data_frame = normalizes_roles_in_entity(data_frame, 'fam')
+    data_frame = normalizes_roles_in_entity(data_frame, 'foy')
+    data_frame = normalizes_roles_in_entity(data_frame, 'men')
+    gc.collect()
+    temporary_store['final3'] = data_frame
+
+    if check:
         check_structure(data_frame)
+    temporary_store['final4'] = data_frame
+
+    assert not data_frame.duplicated(['idmen', 'quimen']).any(), 'bad ménages indexing'
 
     gc.collect()
     for entity_id in ['idmen', 'idfoy', 'idfam']:
         log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
+
+    assert not data_frame.duplicated(['idmen', 'quimen']).any(), 'bad ménages indexing'
 
     log.info('Dealing with loyer')
     if 'loyer' in data_frame.columns:

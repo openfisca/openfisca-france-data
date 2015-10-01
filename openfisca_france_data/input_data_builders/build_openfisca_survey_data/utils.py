@@ -180,10 +180,9 @@ def compute_masses(dataframe):
             log.info("Impossible to compute mass of {}".format(variable))
 
 
-def check_structure(dataframe):
+def check_structure_old(dataframe):
     duplicates = dataframe.noindiv.duplicated().sum()
     assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
-    df.drop_duplicates("noindiv", inplace = True)
     for entity in ["men", "fam", "foy"]:
         log.info("Checking entity {}".format(entity))
         role = 'qui' + entity
@@ -205,6 +204,38 @@ def check_structure(dataframe):
     for entity in ['fam', 'foy', 'men']:
         assert len(dataframe['id' + entity].unique()) == (dataframe['qui' + entity] == 0).sum(), \
             "Wronger number of entity/head for {}".format(entity)
+
+
+def check_entity_structure(dataframe, entity):
+    log.info("Checking entity {}".format(entity))
+    role = 'qui' + entity
+    entity_id = 'id' + entity
+
+    assert not dataframe[role].isnull().any(), "there are NaN in qui{}".format(entity)
+    max_entity_role_value = dataframe[role].max().astype("int")
+
+    id_count = len(dataframe['id' + entity].unique())
+    head_count = (dataframe['qui' + entity] == 0).sum()
+    assert id_count == head_count, \
+        "Wronger number of  for {}: {} different ids for {} heads".format(entity, id_count, head_count)
+
+    entity_ids_by_role = dict()
+    for role_value in range(max_entity_role_value + 1, 1, -1):
+        log.info("Dealing with role {} of entity {}".format(role_value, entity))
+        entity_ids_by_role[role_value] = set(dataframe.loc[dataframe[role] == role_value, entity_id].unique())
+        if role_value < max_entity_role_value:
+            if not entity_ids_by_role[role_value + 1].issubset(entity_ids_by_role[role_value]):
+                log.info("Problem with entity {} at role = {}".format(entity, role_value))
+                return False
+    return True
+
+
+def check_structure(dataframe):
+    duplicates = dataframe.noindiv.duplicated().sum()
+    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
+
+    for entity in ['fam', 'foy', 'men']:
+        assert check_entity_structure(dataframe, entity)
 
 
 def rectify_dtype(dataframe, verbose = True):
@@ -253,6 +284,21 @@ NaN are present : {}
         print set(series_to_rectify).difference(rectified_series)
 
 
+def normalizes_roles_in_entity(dataframe, entity_suffix):
+    entity_id_name = 'id' + entity_suffix
+    entity_role_name = 'qui' + entity_suffix
+    dataframe.set_index('noindiv', inplace = True, verify_integrity = True)
+    test1 = dataframe.loc[dataframe[entity_role_name] >= 2, [entity_id_name, entity_role_name]].copy()
+    test1.loc[:, entity_role_name] = 2
+    j = 2
+    while any(test1.duplicated([entity_id_name, entity_role_name])):
+        test1.loc[test1.duplicated([entity_id_name, entity_role_name]), entity_role_name] = j + 1
+        j += 1
+    dataframe.update(test1)
+    dataframe.reset_index(inplace = True)
+    return dataframe.copy()
+
+
 def set_variables_default_value(dataframe, year):
     import openfisca_france
     TaxBenefitSystem = openfisca_france.init_country()
@@ -262,7 +308,3 @@ def set_variables_default_value(dataframe, year):
         if column_name in dataframe.columns:
             dataframe[column_name].fillna(column.default, inplace = True)
             dataframe[column_name] = dataframe[column_name].astype(column.dtype)
-
-
-def search_nan_presence(dataframe, year):
-    pass

@@ -201,9 +201,9 @@ def invalide(temporary_store = None, year = None):
 
     log.info('Etape 2 : Initialisation des NA sur alt et inv')
     assert invalides.invalide.notnull().all() & invalides.alt.notnull().all()
-    final.set_index('noindiv', inplace = True)
-    invalides.set_index('noindiv', inplace = True)
-    final.update(invalides)
+    final.set_index('noindiv', inplace = True, verify_integrity = True)
+    invalides.set_index('noindiv', inplace = True, verify_integrity = True)
+    final = final.join(invalides)
     final.reset_index(inplace = True)
     del invalides
 

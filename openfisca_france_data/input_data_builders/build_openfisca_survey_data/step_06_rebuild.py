@@ -323,41 +323,40 @@ def create_totals(temporary_store = None, year = None):
     del idfoyList
     print_id(indivi)
 
+    # Sélectionne les variables à garder pour les steps suivants
+    variables = [
+        "actrec",
+        "age",
+        "age_en_mois",
+        "chpub",
+        "encadr",
+        "idfoy",
+        "idmen",
+        "nbsala",
+        "noi",
+        "noindiv",
+        "prosa",
+        "quelfic",
+        "quifoy",
+        "quimen",
+        "statut",
+        "titc",
+        "txtppb",
+        "wprm",
+        "rc1rev",
+        "maahe",
+        "sali",
+        "rsti",
+        "choi",
+        "alr",
+        "wprm",
+        ]
 
-    # Sélectionne les variables à garder pour les steps suivants
-    # variables = [
-    #     "actrec",
-    #     "age",
-    #     "age_en_mois",
-    #     "chpub",
-    #     "encadr",
-    #     "idfoy",
-    #     "idmen",
-    #     "nbsala",
-    #     "noi",
-    #     "noindiv",
-    #     "prosa",
-    #     "quelfic",
-    #     "quifoy",
-    #     "quimen",
-    #     "statut",
-    #     "titc",
-    #     "txtppb",
-    #     "wprm",
-    #     "rc1rev",
-    #     "maahe",
-    #     "sali",
-    #     "rsti",
-    #     "choi",
-    #     "alr",
-    #     "wprm",
-    #     ]
-    #
-    # assert set(variables).issubset(set(indivi.columns)), \
-    #     "Manquent les colonnes suivantes : {}".format(set(variables).difference(set(indivi.columns)))
-    #
-    # indivi = indivi[variables].copy()  # produces a copy even without using the copy method
+    assert set(variables).issubset(set(indivi.columns)), \
+        "Manquent les colonnes suivantes : {}".format(set(variables).difference(set(indivi.columns)))
 
+    dropped_columns = [variable for variable in indivi.columns if variable not in variables]
+    indivi.drop(dropped_columns, axis = 1, inplace = True)
 
     #  see http://stackoverflow.com/questions/11285613/selecting-columns
     indivi.reset_index(inplace = True)
@@ -549,12 +548,16 @@ def create_final(temporary_store = None, year = None):
     tot3.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
 
     # tot3 = concat([tot3, foy_ind], join_axes=[tot3.index], axis=1, verify_integrity = True)
-    tot3.update(foy_ind)
+
+    # TODO improve this
+    foy_ind.drop([u'alr', u'rsti', u'sali', u'choi'], axis = 1, inplace = True)
+    tot3 = tot3.join(foy_ind)
     tot3.reset_index(inplace = True)
     foy_ind.reset_index(inplace = True)
 
     # tot3 = tot3.drop_duplicates(subset=['idfam', 'quifam'])
-    final = tot3[tot3.idmen.notnull()].copy()
+    control(tot3, verbose=True)
+    final = tot3.loc[tot3.idmen.notnull(), :].copy()
 
     control(final, verbose=True)
     del tot3, foy_ind
@@ -562,13 +565,19 @@ def create_final(temporary_store = None, year = None):
 
     log.info("    loading fip")
     sif = temporary_store['sif_{}'.format(year)]
-    log.info("{Columns from sif dataframe}".format(sif.columns))
+    log.info("Columns from sif dataframe: {}".format(sif.columns))
     log.info("    update final using fip")
     final.set_index('noindiv', inplace = True, verify_integrity = True)
-    sif.set_index('noindiv', inplace = True, verify_integrity = True)
-    final.update(sif)
-    final.reset_index(inplace = True)
+
     # TODO: IL FAUT UNE METHODE POUR GERER LES DOUBLES DECLARATIONS
+    #  On ne garde que les sif.noindiv qui correspondent à des idfoy == "vous"
+    #  Et on enlève les duplicates
+    idfoys = final.loc[final.quifoy == 0, "idfoy"]
+    sif = sif[sif.noindiv.isin(idfoys) & ~(sif.change.isin(['M', 'S', 'Z']))].copy()
+    sif.drop_duplicates(subset = ['noindiv'], inplace = True)
+    sif.set_index('noindiv', inplace = True, verify_integrity = True)
+    final = final.join(sif)
+    final.reset_index(inplace = True)
 
     control(final, debug=True)
 
@@ -583,6 +592,6 @@ def create_final(temporary_store = None, year = None):
 if __name__ == '__main__':
     year = 2009
     logging.basicConfig(level = logging.INFO, filename = 'step_06.log', filemode = 'w')
-    create_totals(year = year)
+    # create_totals(year = year)
     create_final(year = year)
     log.info(u"étape 06 remise en forme des données terminée")
