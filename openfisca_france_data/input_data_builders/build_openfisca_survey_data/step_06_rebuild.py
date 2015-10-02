@@ -44,7 +44,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
-def create_totals(temporary_store = None, year = None):
+def create_totals_first_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
     year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
@@ -130,7 +130,8 @@ def create_totals(temporary_store = None, year = None):
 
     fip_no_declar = (fip_imp) & (indivi.declar1 == "")
     del fip_imp
-    indivi.loc[fip_no_declar, "idfoy"] = indivi["idmen"] * 100 + 50
+    indivi.loc[fip_no_declar, "idfoy"] = 100 * indivi.loc[fip_no_declar, "idmen"] + indivi.loc[fip_no_declar, "noi"]
+    # WAS indivi["idmen"] * 100 + 50
 
     indivi_fnd = indivi.loc[fip_no_declar, ["idfoy", "noindiv"]].copy()
 
@@ -150,13 +151,13 @@ def create_totals(temporary_store = None, year = None):
 
     log.info(u"Etape 3 : Récupération des EE_NRT")
     nrt = indivi.quelfic == "EE_NRT"
-    indivi.loc[nrt, 'idfoy'] = indivi.idmen * 100 + indivi.noi
+    indivi.loc[nrt, 'idfoy'] = indivi.loc[nrt, 'idmen'] * 100 + indivi.loc[nrt, 'noi']
     indivi.loc[nrt, 'quifoy'] = "vous"
     del nrt
 
     pref_or_cref = indivi.lpr.isin([1, 2])
     adults = (indivi.quelfic.isin(["EE", "EE_CAF"])) & (pref_or_cref)
-    indivi.loc[adults, "idfoy"] = indivi.idmen * 100 + indivi.noi
+    indivi.loc[adults, "idfoy"] = indivi.loc[adults, 'idmen'] * 100 + indivi.loc[adults, 'noi']
     indivi.loc[adults, "quifoy"] = "vous"
     del adults
     assert indivi.idfoy[indivi.lpr.dropna().isin([1, 2])].all()
@@ -260,6 +261,7 @@ def create_totals(temporary_store = None, year = None):
     indivi['age_en_mois'] = 12 * indivi.age + 12 - indivi.naim
 
     indivi["quimen"] = 0
+    assert indivi.lpr.notnull().all()
     indivi.loc[indivi.lpr == 1, 'quimen'] = 0
     indivi.loc[indivi.lpr == 2, 'quimen'] = 1
     indivi.loc[indivi.lpr == 3, 'quimen'] = 2
@@ -308,17 +310,31 @@ def create_totals(temporary_store = None, year = None):
     indivi.loc[indivi_without_declarant_has_declar2, 'idfoy'] = where(decl2_idfoy.isin(with_.values), decl2_idfoy, None)
 
     del with_, without, indivi_without_declarant_has_declar2
+    temporary_store['indivi_step_06_{}'.format(year)] = indivi
+    gc.collect()
+    return
+
+
+@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+def create_totals_second_pass(temporary_store = None, year = None):
+    assert temporary_store is not None
+    assert year is not None
+    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     log.info(u"    5.1 : Elimination idfoy restant")
     # Voiture balai
     # On a plein d'idfoy vides, on fait 1 ménage = 1 foyer fiscal
+    indivi = temporary_store['indivi_step_06_{}'.format(year)]
     idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
     indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
 
-    indivi.loc[indivi_without_idfoy, 'idfoy'] = indivi.loc[indivi_without_idfoy, "idmen"].astype('int') * 100 + 51
     indivi.loc[indivi_without_idfoy, 'quifoy'] = "pac"
-    indivi.loc[indivi_without_idfoy & (indivi.quimen == 0), 'quifoy'] = "vous"
-    indivi.loc[indivi_without_idfoy & (indivi.quimen == 1), 'quifoy'] = "conj"
+
+    indivi.loc[indivi_without_idfoy & (indivi.quimen == 0) & (indivi.age >= 18), 'quifoy'] = "vous"
+    indivi.loc[indivi_without_idfoy & (indivi.quimen == 0) & (indivi.age >= 18), 'idfoy'] = (
+        indivi.loc[indivi_without_idfoy, "idmen"].astype('int') * 100 + 51
+        )
+    indivi.loc[indivi_without_idfoy & (indivi.quimen == 1) & (indivi.age >= 18), 'quifoy'] = "conj"
 
     del idfoyList
     print_id(indivi)
@@ -592,6 +608,7 @@ def create_final(temporary_store = None, year = None):
 if __name__ == '__main__':
     year = 2009
     logging.basicConfig(level = logging.INFO, filename = 'step_06.log', filemode = 'w')
-    # create_totals(year = year)
+    create_totals_first_pass(year = year)
+    create_totals_second_pass(year = year)
     create_final(year = year)
     log.info(u"étape 06 remise en forme des données terminée")

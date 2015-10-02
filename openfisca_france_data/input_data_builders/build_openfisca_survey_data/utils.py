@@ -180,44 +180,20 @@ def compute_masses(dataframe):
             log.info("Impossible to compute mass of {}".format(variable))
 
 
-def check_structure_old(dataframe):
-    duplicates = dataframe.noindiv.duplicated().sum()
-    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
-    for entity in ["men", "fam", "foy"]:
-        log.info("Checking entity {}".format(entity))
-        role = 'qui' + entity
-        entity_id = 'id' + entity
-        assert not dataframe[role].isnull().any(), "there are NaN in qui{}".format(entity)
-        max_entity = dataframe[role].max().astype("int")
-
-        for position in range(0, max_entity + 1):
-            test = dataframe[[role, entity_id]].groupby(by = entity_id).agg(lambda x: (x == position).sum())
-            if position == 0:
-                errors = (test[role] != 1).sum()
-                if errors > 0:
-                    log.error("There are {} errors for the head of {}".format(errors, entity))
-            else:
-                errors = (test[role] > 1).sum()
-                if errors > 0:
-                    log.error("There are {} duplicated qui{} = {}".format(errors, entity, position))
-
-    for entity in ['fam', 'foy', 'men']:
-        assert len(dataframe['id' + entity].unique()) == (dataframe['qui' + entity] == 0).sum(), \
-            "Wronger number of entity/head for {}".format(entity)
-
-
 def check_entity_structure(dataframe, entity):
     log.info("Checking entity {}".format(entity))
     role = 'qui' + entity
     entity_id = 'id' + entity
+    error_messages = list()
 
-    assert not dataframe[role].isnull().any(), "there are NaN in qui{}".format(entity)
+    if dataframe[role].isnull().any():
+        error_messages.append("there are NaN in qui{}".format(entity))
     max_entity_role_value = dataframe[role].max().astype("int")
-
     id_count = len(dataframe['id' + entity].unique())
     head_count = (dataframe['qui' + entity] == 0).sum()
-    assert id_count == head_count, \
-        "Wronger number of  for {}: {} different ids for {} heads".format(entity, id_count, head_count)
+    if id_count != head_count:
+        error_messages.append("Wrong number of heads for {}: {} different ids for {} heads".format(
+            entity, id_count, head_count))
 
     entity_ids_by_role = dict()
     for role_value in range(max_entity_role_value + 1, 1, -1):
@@ -225,17 +201,22 @@ def check_entity_structure(dataframe, entity):
         entity_ids_by_role[role_value] = set(dataframe.loc[dataframe[role] == role_value, entity_id].unique())
         if role_value < max_entity_role_value:
             if not entity_ids_by_role[role_value + 1].issubset(entity_ids_by_role[role_value]):
-                log.info("Problem with entity {} at role = {}".format(entity, role_value))
-                return False
-    return True
+                error_messages.append("Problem with entity {} at role = {}".format(entity, role_value))
+                return False, error_messages
+    return True, None
 
 
 def check_structure(dataframe):
     duplicates = dataframe.noindiv.duplicated().sum()
-    assert duplicates == 0, "There are {} duplicated individuals".format(duplicates)
-
+    messages = list()
+    if duplicates != 0:
+        messages.append("There are {} duplicated individuals".format(duplicates))
     for entity in ['fam', 'foy', 'men']:
-        assert check_entity_structure(dataframe, entity)
+        checked, error_messages = check_entity_structure(dataframe, entity)
+        if not checked:
+            messages.append('Structure error for {}'.format(entity))
+            messages.append(error_messages)
+    assert not messages, '\n'.join('{}'.format(item) for item in messages)
 
 
 def rectify_dtype(dataframe, verbose = True):

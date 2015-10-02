@@ -60,7 +60,9 @@ def final(temporary_store = None, year = None, check = True):
 
     # On définit comme célibataires les individus dont on n'a pas retrouvé la déclaration
     final = temporary_store['final_{}'.format(year)]
-    log.info('check doublons'.format(len(final[final.duplicated(['noindiv'])])))
+    if check:
+        check_structure(final)
+
     final.statmarit.fillna(2, inplace = True)
 
     # activite des fip
@@ -72,7 +74,7 @@ def final(temporary_store = None, year = None, check = True):
         final_fip[var].fillna(0, inplace = True)
         assert final_fip[var].notnull().all(), "Some NaN are remaining in column {}".format(var)
 
-    final_fip["activite"] = 2 # TODO comment choisr la valeur par défaut ?
+    final_fip["activite"] = 2  # TODO comment choisr la valeur par défaut ?
     final_fip.activite = where(final_fip.choi > 0, 1, final_fip.activite)
     final_fip.activite = where(final_fip.sali > 0, 0, final_fip.activite)
     final_fip.activite = where(final_fip.age > 21, 2, final_fip.activite)  # ne peuvent être rattachés que les étudiants
@@ -311,13 +313,24 @@ def final(temporary_store = None, year = None, check = True):
     log.info('final2 avant le filtrage {}'.format(len(final2)))
     print_id(final2)
 
-    liste_foy = final2.loc[final2['quifoy'] == 0, 'idfoy'].unique()
-    log.info("Dropping {} foyers".format((~final2.idfoy.isin(liste_foy)).sum()))
-    final2 = final2.loc[final2.idfoy.isin(liste_foy)].copy()
 
     liste_fam = final2.loc[final2['quifam'] == 0, 'idfam'].unique()
     log.info("Dropping {} famille".format((~final2.idfam.isin(liste_fam)).sum()))
     final2 = final2.loc[final2.idfam.isin(liste_fam)].copy()
+
+    if check:
+        check_structure(final2)
+
+    final2 = normalizes_roles_in_entity(final2, 'fam')
+    final2 = normalizes_roles_in_entity(final2, 'foy')
+    final2 = normalizes_roles_in_entity(final2, 'men')
+
+    temporary_store['final2bis'] = final2
+
+    liste_foy = final2.loc[final2['quifoy'] == 0, 'idfoy'].unique()
+    log.info("Dropping {} foyers".format((~final2.idfoy.isin(liste_foy)).sum()))
+    final2 = final2.loc[final2.idfoy.isin(liste_foy)].copy()
+
 
     liste_men = final2.loc[final2['quimen'] == 0, 'idmen'].unique()
     log.info(u"Dropping {} ménages".format((~final2.idmen.isin(liste_men)).sum()))
@@ -336,6 +349,9 @@ def final(temporary_store = None, year = None, check = True):
     #        warnings.warn("A file with the same name already exists \n Renaming current output and saving to " + renamed_file)
     #        test_filename = renamed_file
     data_frame = final2
+
+    temporary_store['final3'] = data_frame
+
     assert not data_frame.duplicated(['idmen', 'quimen']).any(), 'bad ménages indexing'
 
 
@@ -345,13 +361,7 @@ def final(temporary_store = None, year = None, check = True):
     for id_variable in ['idfam', 'idfoy', 'idmen', 'noi', 'quifam', 'quifoy', 'quimen']:
         data_frame[id_variable] = data_frame[id_variable].astype('int')
 
-    temporary_store['final2bis'] = data_frame
-
-    data_frame = normalizes_roles_in_entity(data_frame, 'fam')
-    data_frame = normalizes_roles_in_entity(data_frame, 'foy')
-    data_frame = normalizes_roles_in_entity(data_frame, 'men')
     gc.collect()
-    temporary_store['final3'] = data_frame
 
     if check:
         check_structure(data_frame)
