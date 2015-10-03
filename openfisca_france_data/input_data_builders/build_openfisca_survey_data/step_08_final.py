@@ -30,7 +30,7 @@ import gc
 
 import logging
 import numpy as np
-from numpy import where, NaN, random, unique
+from numpy import where, NaN, random
 from pandas import read_csv
 import os
 
@@ -131,7 +131,7 @@ def final(temporary_store = None, year = None, check = True):
 #   menagem[is.na(menagem$nafg17npr), "nafg17npr" ] <- "-1"  # Sans objet
 # }
 #
-#TODO: TODO: pytohn translation needed
+# TODO: pytohn translation needed
 #    if "naf16pr" in menagem.columns:
 #        naf16pr <- factor(menagem$naf16pr)
 #   levels(naf16pr) <-  0:16

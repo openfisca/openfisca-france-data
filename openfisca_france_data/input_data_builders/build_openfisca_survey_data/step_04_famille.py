@@ -23,9 +23,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import gc
 import logging
 from pandas import concat, DataFrame
-
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import temporary_store_decorator
@@ -477,13 +477,14 @@ def famille(temporary_store = None, year = None):
     control_04(parent_fip, base)
     control_04(famille, base)
     famille = famille.merge(parent_fip, how='outer')
+    del enfant_fip, fip, parent_fip
+    gc.collect()
     # duplicated_individuals = famille.noindiv.duplicated()
     # TODO: How to prevent failing in the next assert and avoiding droppping duplicates ?
     # assert not duplicated_individuals.any(), "{} duplicated individuals in famille".format(
     # duplicated_individuals.sum())
     famille = famille.drop_duplicates(subset = 'noindiv', take_last = True)
     control_04(famille, base)
-    del enfant_fip, fip, parent_fip
 
 # # message('Etape 6 : non attribué')
 # # non_attribue1 <- base[(!base$noindiv %in% famille$noindiv),]
@@ -605,9 +606,9 @@ def famille(temporary_store = None, year = None):
     del indivi, enfants_a_naitre
 
 if __name__ == '__main__':
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    # logging.basicConfig(level = logging.INFO,  filename = 'step_06.log', filemode = 'w')
+    # import sys
+    # logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    logging.basicConfig(level = logging.INFO,  filename = 'step_04.log', filemode = 'w')
     year = 2009
     famille(year = year)
     log.info(u"étape 04 famille terminée")
