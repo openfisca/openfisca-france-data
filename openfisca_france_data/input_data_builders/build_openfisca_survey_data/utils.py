@@ -197,26 +197,45 @@ def check_entity_structure(dataframe, entity):
 
     entity_ids_by_role = dict()
     for role_value in range(max_entity_role_value + 1, 1, -1):
+        print entity, role_value
         log.info("Dealing with role {} of entity {}".format(role_value, entity))
         entity_ids_by_role[role_value] = set(dataframe.loc[dataframe[role] == role_value, entity_id].unique())
+
         if role_value < max_entity_role_value:
+            difference = entity_ids_by_role[role_value + 1].difference(entity_ids_by_role[role_value])
             if not entity_ids_by_role[role_value + 1].issubset(entity_ids_by_role[role_value]):
-                error_messages.append("Problem with entity {} at role = {}".format(entity, role_value))
-                return False, error_messages
-    return True, None
+                error_messages.append(
+                    "Problem with entity {} at role = {} for id {}".format(
+                        entity, role_value, difference
+                        )
+                    )
+                erroneous_ids = difference
+                return False, error_messages, erroneous_ids
+            else:
+                continue
+    print 'exit ok'
+    return True, None, None
 
 
 def check_structure(dataframe):
     duplicates = dataframe.noindiv.duplicated().sum()
     messages = list()
+    erroneous_ids_by_entity = dict()
     if duplicates != 0:
         messages.append("There are {} duplicated individuals".format(duplicates))
     for entity in ['fam', 'foy', 'men']:
-        checked, error_messages = check_entity_structure(dataframe, entity)
+        print entity
+        checked, error_messages, erroneous_ids = check_entity_structure(dataframe, entity)
+        print checked, error_messages, erroneous_ids
         if not checked:
             messages.append('Structure error for {}'.format(entity))
             messages.append(error_messages)
-    assert not messages, '\n'.join('{}'.format(item) for item in messages)
+            erroneous_ids_by_entity[entity] = erroneous_ids
+    if not messages:
+        return True, None
+    else:
+        log.info('\n'.join('{}'.format(item) for item in messages))
+        return False, erroneous_ids_by_entity
 
 
 def rectify_dtype(dataframe, verbose = True):

@@ -60,6 +60,11 @@ def final(temporary_store = None, year = None, check = True):
 
     # On définit comme célibataires les individus dont on n'a pas retrouvé la déclaration
     final = temporary_store['final_{}'.format(year)]
+
+    if year == 2009:
+        final = normalizes_roles_in_entity(final, 'foy')
+        final = normalizes_roles_in_entity(final, 'men')
+
     if check:
         check_structure(final)
 
@@ -320,10 +325,6 @@ def final(temporary_store = None, year = None, check = True):
 
     if check:
         check_structure(final2)
-
-    final2 = normalizes_roles_in_entity(final2, 'fam')
-    final2 = normalizes_roles_in_entity(final2, 'foy')
-    final2 = normalizes_roles_in_entity(final2, 'men')
 
     temporary_store['final2bis'] = final2
 

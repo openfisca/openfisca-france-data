@@ -418,6 +418,9 @@ def foyer_all(temporary_store = None, year = None):
 
 if __name__ == '__main__':
     year = 2009
+    # import sys
+    # logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    logging.basicConfig(level = logging.INFO,  filename = 'step_05.log', filemode = 'w')
     sif(year = year)
     foyer_all(year = year)
     log.info(u"étape 05 foyer terminée")

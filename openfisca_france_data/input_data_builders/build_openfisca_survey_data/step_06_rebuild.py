@@ -27,7 +27,7 @@
 import gc
 import logging
 
-from pandas import Series, concat, DataFrame
+from pandas import Series, concat
 import numpy as np
 from numpy import where
 
@@ -47,15 +47,11 @@ log = logging.getLogger(__name__)
 def create_totals_first_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
-    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     # On part de la table individu de l'ERFS
     # on renomme les variables
     log.info(u"Creating Totals")
     log.info(u"Etape 1 : Chargement des données")
-
-    erfs_survey_collection = SurveyCollection.load(collection = 'erfs', config_files_directory = config_files_directory)
-    data = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 
     indivim = temporary_store['indivim_{}'.format(year)]
 
@@ -114,7 +110,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     log.info("Etape 2 : isolation des FIP")
     fip_imp = indivi.quelfic == "FIP_IMP"
     indivi["idfoy"] = (
-        indivi.idmen.astype("int64") * 100 +
+        indivi.idmen.astype('int') * 100 +
         (indivi.declar1.str[0:2]).convert_objects(convert_numeric=True)
         )
 
@@ -157,80 +153,416 @@ def create_totals_first_pass(temporary_store = None, year = None):
 
     pref_or_cref = indivi.lpr.isin([1, 2])
     adults = (indivi.quelfic.isin(["EE", "EE_CAF"])) & (pref_or_cref)
-    indivi.loc[adults, "idfoy"] = indivi.loc[adults, 'idmen'] * 100 + indivi.loc[adults, 'noi']
-    indivi.loc[adults, "quifoy"] = "vous"
-    del adults
+    pref = adults & (indivi.lpr == 1)
+    cref = adults & (indivi.lpr == 2)
+    indivi.loc[adults, "idfoy"] = indivi.loc[adults, 'idmen'] * 100 + indivi.loc[adults, 'noiprm']
+    indivi.loc[pref, "quifoy"] = "vous"
+    indivi.loc[cref, "quifoy"] = "conj"
+    del adults, pref, cref
     assert indivi.idfoy[indivi.lpr.dropna().isin([1, 2])].all()
 
-    log.info(u"Etape 4 : Rattachement des enfants aux déclarations")
-    assert not(indivi.noindiv.duplicated().any()), "Some noindiv appear twice"
-    lpr3_or_lpr4 = indivi['lpr'].isin([3, 4])
-    enf_ee = (lpr3_or_lpr4) & (indivi.quelfic.isin(["EE", "EE_CAF"]))
-    assert indivi.noindiv[enf_ee].notnull().all(), " Some noindiv are not set, which will ruin next stage"
-    assert not(indivi.noindiv[enf_ee].duplicated().any()), "Some noindiv appear twice"
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+    log.info(u"Il reste {} idfoy problématiques".format(
+        indivi_without_idfoy.sum()
+        ))
 
-    enf_ee_avec_pere = (enf_ee & indivi.noiper != 0).copy()
-    enf_ee_avec_mere = (enf_ee & indivi.noimer != 0).copy()
+    # Conjoints qui dont il n'existe pas de vous avec leur idfoy.
+    # Problème de double déclaration: si leur conjoint à un noindiv à leur idfoy on switch les déclarants
+    log.info("{} conj without a valid idfoy".format(
+        (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj'])).sum()
+        ))
 
-    pere = DataFrame({
-        "noindiv_enf": indivi.noindiv.loc[enf_ee_avec_pere].copy(),
-        "noindiv": 100 * indivi.idmen.loc[enf_ee_avec_pere] + indivi.noiper.loc[enf_ee_avec_pere]
-        })
-    mere = DataFrame({
-        "noindiv_enf": indivi.noindiv.loc[enf_ee_avec_mere].copy(),
-        "noindiv": 100 * indivi.idmen.loc[enf_ee_avec_mere] + indivi.noimer.loc[enf_ee_avec_mere]
-        })
+    if (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj'])).any():
+        # On traite les gens qui ont quifoy=conj mais dont l'idfoy n'a pas de vous
+        # 1) s'ils ont un conjoint et qu'il est vous avec un idfoy valide on leur attribue son idfoy:
+        avec_conjoint = (
+            indivi_without_idfoy &
+            indivi.idfoy.notnull() &
+            indivi.quifoy.isin(['conj']) &
+            (indivi.noicon != 0) &
+            (100 * indivi.idmen + indivi.noicon).isin(idfoyList)
+            )
+        indivi.loc[avec_conjoint, 'idfoy'] = (
+            100 * indivi.loc[avec_conjoint, 'idmen'] + indivi.loc[avec_conjoint, 'noicon']
+            )
+        indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)  # mise à jour des cas problématiques
+        del avec_conjoint
 
-    foyer = data.get_values(variables = ["noindiv", "zimpof"], table = year_specific_by_generic["foyer"])
-    pere_with_declar = pere.merge(foyer, how = "inner", on = "noindiv")
-    mere_with_declar = mere.merge(foyer, how = "inner", on = "noindiv")
-    df = pere_with_declar.merge(mere_with_declar, how = "outer", on = "noindiv_enf", suffixes=('_p', '_m'))
-    # df has now columns noindiv_enf noindiv_p noindiv_m zimpof_p zimpof_m with nan when those values do not exist
-    del lpr3_or_lpr4, pere, mere
+    if (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj'])).any():
+        # 2) sinon ils deviennent vous
+        devient_vous = (
+            indivi_without_idfoy &
+            indivi.idfoy.notnull() &
+            indivi.quifoy.isin(['conj']) &
+            (indivi.noicon == 0)
+            )
+        indivi.loc[devient_vous, 'idfoy'] = indivi.loc[devient_vous, 'noindiv'].copy()
+        indivi.loc[devient_vous, 'quifoy'] = 'vous'
+        idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+        indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)  # Mise à jour des cas problématiques
+        del devient_vous
 
-    log.info(u"    4.1 : gestion des personnes dans 2 foyers")
-    for col in ["noindiv_p", "noindiv_m", "noindiv_enf"]:
-        df[col].fillna(0, inplace = True)  # beacause groupby drop groups with NA in index
-    df = df.groupby(by = ["noindiv_p", "noindiv_m", "noindiv_enf"]).sum()
-    df.reset_index(inplace = True)
+    problem = (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj']))
+    if problem.sum() > 0:
+        log.info("Dropping {} conj without valid idfoy".format(
+            problem.sum()
+        ))
+        indivi.drop(indivi[problem].index, inplace = True)
+        indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)  # Mise à jour des cas problématiques
+        problem = (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj']))
+        assert not problem.any()
 
-    df["which"] = ""
-    df.loc[df.zimpof_m.notnull() & df.zimpof_p.isnull(), 'which'] = "mere"
-    df.loc[df.zimpof_m.isnull() & df.zimpof_p.notnull(), 'which'] = "pere"
-    both = (df.zimpof_p.notnull()) & (df.zimpof_m.notnull())
-    df.loc[both & (df.zimpof_p > df.zimpof_m), 'which'] = "pere"
-    df.loc[both & (df.zimpof_m >= df.zimpof_p),'which'] = "mere"
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+    log.info("Remainning {} non valid idfoy".format(
+        indivi_without_idfoy.sum()
+        ))
+    # Les personnes à charge de personnes repérées comme conjoint idfoy = conj_noindiv
+    # (problème des doubles déclarations) doivent récupérer l'idfoy de celles-ci
+    pac = (
+        indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['pac'])
+        )
+    log.info(u"Dealing with {} non valid idfoy of pacs".format(
+        pac.sum()
+        ))
+    conj_noindiv = indivi.idfoy[pac].copy()
+    new_idfoy_by_old = indivi.loc[
+        indivi.noindiv.isin(conj_noindiv), ['noindiv', 'idfoy']
+        ].astype('int').set_index('noindiv').squeeze().to_dict()
+    indivi.loc[pac, 'idfoy'] = indivi.loc[pac, 'idfoy'].map(new_idfoy_by_old)
+    del pac
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)  # Mise à jour des cas problématiques
+    assert not (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['pac'])).any()
 
-    assert (df.which != "").all(), "Some enf_ee individuals are not matched with any pere or mere"
+    # Il faut traiter les idfoy non attribués
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+    assert (indivi_without_idfoy == indivi.idfoy.isnull()).all()
+    log.info(u"Il faut traiter les {} idfoy non attribués".format(
+        indivi_without_idfoy.sum()
+        ))
 
-    df.rename(columns = {"noindiv_enf": "noindiv"}, inplace = True)
-    df['idfoy'] = 0
-    assert df.noindiv_p.notnull().all(), "If absent noindiv_p should be 0"
-    assert df.noindiv_m.notnull().all(), "If absent noindiv_m should be 0"
-    df.idfoy = (df.which == "pere") * df.noindiv_p
-    df.idfoy = (df.which == "mere") * df.noindiv_m
+    # Adultes non enfants avec conjoints déclarants
+    married_adult_with_vous = (
+        indivi_without_idfoy &
+        ((indivi.noiper == 0) | (indivi.noimer == 0)) &
+        (indivi.age >= 25) &
+        (indivi.noicon > 0) &
+        (100 * indivi.idmen + indivi.noicon).isin(idfoyList)
+        )
+    indivi.loc[married_adult_with_vous, 'idfoy'] = (
+        100 * indivi.loc[married_adult_with_vous, 'idmen'] + indivi.loc[married_adult_with_vous, 'noicon']
+        )
+    indivi.loc[married_adult_with_vous, 'quifoy'] = 'conj'
+    log.info(
+        u"""Il y a {} adultes > 25 ans non enfants avec conjoints déclarants""".format(
+            married_adult_with_vous.sum()
+            )
+        )
 
-    df['idfoy'] = where(df.which == "mere", df.noindiv_m, df.noindiv_p)
-    assert df["idfoy"].notnull().all()
-    dropped = [col for col in df.columns if col not in ["idfoy", "noindiv"]]
-    df.drop(dropped, axis = 1, inplace = True)
+    # Les deux membres du couples n'ont pas d'idfoy
+    married_adult_without_vous = (
+        indivi_without_idfoy &
+        ((indivi.noiper == 0) | (indivi.noimer == 0)) &
+        (indivi.age >= 18) &
+        (indivi.noicon > 0) &
+        (~married_adult_with_vous)
+        )
+    # On les groupes par ménages, on vérifie qu'ils ne sont que deux
+    couple_by_idmen = (
+        (indivi.loc[
+            married_adult_without_vous, ['idmen', 'noindiv']
+            ].groupby('idmen').agg('count')) == 2).astype('int').squeeze().to_dict()
 
-    assert not(df.duplicated().any())
+    couple_idmens = list(idmen for idmen in couple_by_idmen.keys() if couple_by_idmen[idmen])
+    # On crée un foyer vous-conj si couple
+    vous = married_adult_without_vous & (
+        ((indivi.sexe == 1) & indivi.idmen.isin(couple_idmens)) |
+        (~indivi.idmen.isin(couple_idmens))
+        )
+    conj = married_adult_without_vous & (~vous) & indivi.idmen.isin(couple_idmens)
+    indivi.loc[vous, 'idfoy'] = indivi.loc[vous, 'noindiv'].copy()
+    indivi.loc[vous, 'quifoy'] = 'vous'
+    indivi.loc[conj, 'idfoy'] = 100 * indivi.loc[conj, 'idmen'] + indivi.loc[conj, 'noicon']
+    indivi.loc[conj, 'quifoy'] = 'conj'
+    del vous, conj
+    log.info(
+        u"""Il y a {} adultes > 25 ans non enfants sans conjoints déclarants: on crée un foyer""".format(
+            married_adult_without_vous.sum()
+            )
+        )
 
-    df.set_index("noindiv", inplace = True, verify_integrity = True)
-    indivi.set_index("noindiv", inplace = True, verify_integrity = True)
-    indivi.update(df)
-    indivi.reset_index(inplace = True)
-    assert not(indivi.noindiv.duplicated().any())
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
 
-    # TODO il faut rajouterles enfants_fip et créer un ménage pour les majeurs
-    # On suit guide méthodo erf 2003 page 135
-    # On supprime les conjoints FIP et les FIP de 25 ans et plus;
-    # On conserve les enfants FIP de 19 à 24 ans;
-    # On supprime les FIP de 18 ans et moins, exceptés les FIP nés en 2002 dans un
-    # ménage en 6ème interrogation car ce sont des enfants nés aprés la date d'enquète
-    # EEC que l'on ne retrouvera pas dans les EEC suivantes.
-    #
+    # Cas des enfants agés sans conjoint >= 25 ans
+    non_married_aged_kids = (
+        indivi_without_idfoy &
+        ((indivi.noiper > 0) | (indivi.noimer > 0)) &
+        (indivi.age >= 25) &
+        (indivi.noicon == 0)
+        )
+    indivi.loc[non_married_aged_kids, 'idfoy'] = indivi.loc[non_married_aged_kids, 'noindiv'].copy()
+    indivi.loc[non_married_aged_kids, 'quifoy'] = 'vous'
+    log.info(
+        u"""On crée un foyer fiscal indépendants pour les {} enfants agés de plus de 25 ans sans conjoint
+vivant avec leurs parents""".format(
+            non_married_aged_kids.sum()
+            )
+        )
+    del non_married_aged_kids
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    # Cas des enfants agés avec conjoint >= 18 ans
+    married_aged_kids = (
+        indivi_without_idfoy &
+        ((indivi.noiper > 0) | (indivi.noimer > 0)) &
+        (indivi.age >= 18) &
+        (indivi.noicon != 0)
+        )
+
+    # Cas des enfants agés avec conjoint >= 18 ans
+    married_aged_kids = (
+        indivi_without_idfoy &
+        ((indivi.noiper > 0) | (indivi.noimer > 0)) &
+        (indivi.age >= 18) &
+        (indivi.noicon != 0)
+        )
+    noiconjs = 100 * indivi.idmen + indivi.noicon
+    quifoy_by_noiconj = indivi.loc[
+        indivi.noindiv.isin(noiconjs[married_aged_kids]), ['noindiv', 'quifoy']
+        ].set_index('noindiv').dropna().squeeze().to_dict()
+    is_conj_vous = noiconjs.map(quifoy_by_noiconj) == "vous"
+    indivi.loc[married_aged_kids & is_conj_vous, 'quifoy'] = "conj"
+    indivi.loc[married_aged_kids & is_conj_vous, 'idfoy'] = noiconjs[married_aged_kids & is_conj_vous].copy()
+
+    log.info("""Il y a {} enfants agés de plus de 25 ans avec conjoint
+vivant avec leurs parents qui ne sont pas traités""".format(
+        married_aged_kids.sum()
+        ))  # Il n'y en a pas en 2009
+    del married_aged_kids, noiconjs, is_conj_vous
+
+    # Colocations
+    if indivi_without_idfoy.any():
+        potential_idmens = indivi.loc[indivi_without_idfoy, 'idmen'].copy()
+        colocs = indivi.loc[indivi.idmen.isin(potential_idmens), ['idmen', 'age', 'quifoy']].copy()
+        coloc_by_idmen = colocs.groupby('idmen').agg({
+            'age':
+                lambda x:
+                    (abs((x.min() - x.max())) < 20) & (x.min() >= 18),
+            'quifoy':
+                lambda x:
+                    (x == 'vous').sum() >= 1,
+                }
+            )
+        coloc_dummy_by_idmen = (coloc_by_idmen.age * coloc_by_idmen.quifoy)
+        coloc_idmens = coloc_dummy_by_idmen.index[coloc_dummy_by_idmen.astype('bool')].tolist()
+        colocataires = indivi_without_idfoy & indivi.idmen.isin(coloc_idmens)
+        indivi.loc[colocataires, 'quifoy'] = 'vous'
+        indivi.loc[colocataires, 'idfoy'] = indivi.loc[colocataires, 'noindiv'].copy()
+        log.info(u"Il y a {} colocataires".format(
+            colocataires.sum()
+            ))
+        del colocataires, coloc_dummy_by_idmen, coloc_by_idmen, coloc_idmens, colocs
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    # On met le reste des adultes de plus de 25 ans dans des foyers uniques
+    other_adults = indivi_without_idfoy & (indivi.age >= 25)
+    if indivi_without_idfoy.any():
+        indivi.loc[other_adults, 'quifoy'] = 'vous'
+        indivi.loc[other_adults, 'idfoy'] = indivi.loc[other_adults, 'noindiv'].copy()
+        log.info(u"Il y a {} autres adultes seuls à qui l'on crée un foyer individuel".format(
+            other_adults.sum()
+            ))
+        del other_adults
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    # Cas des enfants jeunes < 25 ans
+    kids = (
+        indivi_without_idfoy &
+        (indivi.age < 25) &
+        ((indivi.noiper > 0) | (indivi.noimer > 0))
+        )
+    # On rattache les enfants au foyer de leur pères s'il existe
+    log.info(u"On traite le cas des {} enfants (noiper ou noimer non nuls) repérés non rattachés".format(
+        kids.sum()
+        ))
+    if kids.any():
+        pere_declarant_potentiel = kids & (indivi.noiper > 0)
+        indivi['pere_noindiv'] = (100 * indivi.idmen.fillna(0) + indivi.noiper.fillna(0)).astype('int')
+        pere_noindiv = (
+            100 * indivi.loc[pere_declarant_potentiel, 'idmen'].fillna(0) +
+            indivi.loc[pere_declarant_potentiel, 'noiper'].fillna(0)
+            ).astype('int')
+        idfoy_by_noindiv = indivi.loc[
+            indivi.noindiv.isin(pere_noindiv), ['noindiv', 'idfoy']
+            ].dropna().astype('int').set_index('noindiv').squeeze().to_dict()
+        pere_declarant_potentiel_idfoy = indivi['pere_noindiv'].map(idfoy_by_noindiv)
+        pere_veritable_declarant = pere_declarant_potentiel & pere_declarant_potentiel_idfoy.isin(idfoyList)
+        indivi.loc[pere_veritable_declarant, 'idfoy'] = (
+            pere_declarant_potentiel_idfoy[pere_veritable_declarant].astype('int')
+            )
+        indivi.loc[pere_veritable_declarant, 'quifoy'] = 'pac'
+    log.info(u"{} enfants rattachés au père ".format(
+        pere_veritable_declarant.sum()
+        ))
+    del pere_declarant_potentiel, pere_declarant_potentiel_idfoy, pere_noindiv, \
+        pere_veritable_declarant, idfoy_by_noindiv
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+    kids = (
+        indivi_without_idfoy &
+        (indivi.age < 25) &
+        ((indivi.noiper > 0) | (indivi.noimer > 0))
+        )
+    log.info(u"Il reste {} enfants (noimer non nuls) repérés non rattachés".format(
+        kids.sum()
+        ))
+    # Et de leurs mères sinon
+    if kids.any():
+        mere_declarant_potentiel = kids & (indivi.noimer > 0)
+        indivi['mere_noindiv'] = (100 * indivi.idmen.fillna(0) + indivi.noimer.fillna(0)).astype('int')
+        mere_noindiv = (
+            100 * indivi.loc[mere_declarant_potentiel, 'idmen'].fillna(0) +
+            indivi.loc[mere_declarant_potentiel, 'noimer'].fillna(0)
+            ).astype('int')
+        idfoy_by_noindiv = indivi.loc[
+            indivi.noindiv.isin(mere_noindiv), ['noindiv', 'idfoy']
+            ].dropna().astype('int').set_index('noindiv').squeeze().to_dict()
+        mere_declarant_potentiel_idfoy = indivi['mere_noindiv'].map(idfoy_by_noindiv)
+        mere_veritable_declarant = mere_declarant_potentiel & mere_declarant_potentiel_idfoy.isin(idfoyList)
+        indivi.loc[mere_veritable_declarant, 'idfoy'] = (
+            mere_declarant_potentiel_idfoy[mere_veritable_declarant].astype('int')
+            )
+        indivi.loc[mere_veritable_declarant, 'quifoy'] = 'pac'
+    log.info(u"{} enfants rattachés à la mère".format(
+        mere_veritable_declarant.sum()
+        ))
+    del mere_declarant_potentiel, mere_declarant_potentiel_idfoy, mere_noindiv, \
+        mere_veritable_declarant, idfoy_by_noindiv
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    # Enfants avec parents pas indiqués (noimer et noiper = 0)
+    if indivi_without_idfoy.any():
+        potential_idmens = indivi.loc[indivi_without_idfoy, 'idmen'].copy()
+        parents = indivi.loc[indivi.idmen.isin(potential_idmens), [
+            'idmen', 'age', 'quifoy', 'lpr', 'noiper', 'noimer']].copy()
+        parents_by_idmen = parents.groupby('idmen').agg({
+            'quifoy':
+                lambda quifoy: (quifoy == 'vous').sum() == 1,
+            }
+        )
+        parents_dummy_by_idmen = parents_by_idmen.quifoy.copy()
+        parents_idmens = parents_dummy_by_idmen.index[
+            parents_dummy_by_idmen.astype('bool')].tolist()
+        parents_idfoy_by_idmem = indivi.loc[
+            indivi.idmen.isin(parents_idmens) & (indivi.quifoy == 'vous'),
+            ['idmen', 'noindiv']].dropna().astype('int').set_index('idmen').squeeze().to_dict()
+        avec_parents = (
+            indivi_without_idfoy &
+            indivi.idmen.isin(parents_idmens) &
+            (
+                (indivi.age < 18) |
+                (
+                    (indivi.age < 25) &
+                    (indivi.sali == 0) &
+                    (indivi.choi == 0) &
+                    (indivi.alr == 0)
+                    )
+                ) &
+            (indivi.lpr == 4) &
+            (indivi.noiper == 0) &
+            (indivi.noimer == 0) &
+            (indivi.lpr == 4)
+            )
+        indivi.loc[avec_parents, 'idfoy'] = (
+            indivi.loc[avec_parents, 'idmen'].map(parents_idfoy_by_idmem))
+        indivi.loc[avec_parents, 'quifoy'] = 'pac'
+
+        log.info(u"Il y a {} enfants sans noiper ni noimer avec le seul vous du ménage".format(
+            avec_parents.sum()
+            ))
+        del parents, parents_by_idmen, parents_dummy_by_idmen, parents_idfoy_by_idmem, parents_idmens
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    if indivi_without_idfoy.any():
+        potential_idmens = indivi.loc[indivi_without_idfoy, 'idmen'].copy()
+        parents_non_pr = indivi.loc[
+            indivi.idmen.isin(potential_idmens) & (indivi.quifoy == 'vous'),
+            ['idmen', 'quifoy', 'noindiv', 'lpr']].copy()
+        parents_by_idmen = parents_non_pr.groupby('idmen').filter(
+            lambda df: (
+                ((df.quifoy == 'vous').sum() >= 1) &
+                (df.lpr > 2).any()
+            )).query('lpr > 2')
+        parents_idfoy_by_idmem = parents_by_idmen[
+            ['idmen', 'noindiv']
+            ].dropna().astype('int').set_index('idmen').squeeze().to_dict()
+        avec_parents_non_pr = (
+            indivi_without_idfoy &
+            indivi.idmen.isin(parents_idfoy_by_idmem.keys()) &
+            (indivi.age < 18) &
+            (indivi.lpr == 4) &
+            (indivi.noiper == 0) &
+            (indivi.noimer == 0)
+            )
+        indivi.loc[avec_parents_non_pr, 'idfoy'] = (
+            indivi.loc[avec_parents_non_pr, 'idmen'].map(parents_idfoy_by_idmem))
+        indivi.loc[avec_parents_non_pr, 'quifoy'] = 'pac'
+
+        log.info(u"Il y a {} enfants sans noiper ni noimer avec le seul vous du ménage".format(
+            avec_parents_non_pr.sum()
+            ))
+        del parents_non_pr, parents_by_idmen, parents_idfoy_by_idmem, avec_parents_non_pr
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    if indivi_without_idfoy.any():
+        other_enfants = indivi_without_idfoy & (indivi.age < 18)
+        potential_idmens = indivi.loc[other_enfants, 'idmen'].copy()
+        declarants = indivi.loc[
+            indivi.idmen.isin(potential_idmens) & (indivi.quifoy == 'vous'),
+            ['idmen', 'idfoy']].dropna().astype('int').copy()
+        declarants_by_idmen = declarants.groupby('idmen').agg({
+            'idfoy': 'max'
+            }).squeeze().to_dict()
+        indivi.loc[other_enfants, 'idfoy'] = indivi.loc[other_enfants, 'idmen'].copy().map(declarants_by_idmen)
+        indivi.loc[other_enfants, 'quifoy'] = 'pac'
+
+        log.info(u"Il y a {} autres enfants que l'on met avec un vous du ménage".format(
+            other_enfants.sum()
+            ))
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    if indivi_without_idfoy.any():
+        other_grands_enfants = indivi_without_idfoy & (indivi.age >= 18)
+        indivi.loc[other_grands_enfants, 'idfoy'] = indivi.loc[other_grands_enfants, 'noindiv']
+        indivi.loc[other_grands_enfants, 'quifoy'] = 'vous'
+
+        log.info(u"Il y a {} autres grans enfants (>= 18) que l'on met avec un vous du ménage".format(
+            other_grands_enfants.sum()
+            ))
+
+    idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
+    indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
+
+    temporary_store['indivi_step_06_{}'.format(year)] = indivi
+
+    assert not indivi_without_idfoy.any()
+
     log.info(u"    4.2 : On enlève les individus pour lesquels il manque le déclarant")
     fip = temporary_store['fipDat_{}'.format(year)]
     fip["declar"] = np.nan
@@ -254,6 +586,8 @@ def create_totals_first_pass(temporary_store = None, year = None):
     # The idmen are of the form 60XXXX we use idmen 61XXXX, 62XXXX for the idmen of the kids over 18 and less than 25
 
     indivi = concat([indivi, fip.loc[is_fip_19_25].copy()])
+    temporary_store['indivi_step_06_{}'.format(year)] = indivi
+
     assert not(indivi.noindiv.duplicated().any())
 
     del is_fip_19_25
@@ -287,29 +621,6 @@ def create_totals_first_pass(temporary_store = None, year = None):
     indivi.reset_index(inplace = True)
     print_id(indivi)
 
-    # TODO problème avec certains idfoy qui n'ont pas de vous
-    log.info(u"Etape 5 : Gestion des idfoy qui n'ont pas de vous")
-    with_ = indivi.loc[indivi.quifoy == 'vous', 'idfoy'].copy().drop_duplicates()
-    without = indivi.loc[~(indivi.idfoy.isin(with_.values)), ['noindiv', 'idfoy']].copy()
-    log.info(u"{} foyers n'ont pas de vous".format(len(without)))
-    log.info(u"On cherche si le déclarant donné par la deuxième déclaration est bien un vous")
-
-    # TODO: the following should be delt with at the import of the tables
-    indivi.replace(
-        to_replace = {
-            'declar2': {'NA': np.nan, '': np.nan}
-            },
-        inplace = True
-        )
-
-    indivi_without_declarant_has_declar2 = (indivi.idfoy.isin(without.idfoy.values)) & (indivi.declar2.notnull())
-    decl2_idfoy = (
-        indivi.loc[indivi_without_declarant_has_declar2, "idmen"].astype('int') * 100 +
-        indivi.loc[indivi_without_declarant_has_declar2, "declar2"].str[0:2].astype('int')
-        )
-    indivi.loc[indivi_without_declarant_has_declar2, 'idfoy'] = where(decl2_idfoy.isin(with_.values), decl2_idfoy, None)
-
-    del with_, without, indivi_without_declarant_has_declar2
     temporary_store['indivi_step_06_{}'.format(year)] = indivi
     gc.collect()
     return
@@ -319,7 +630,6 @@ def create_totals_first_pass(temporary_store = None, year = None):
 def create_totals_second_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
-    year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     log.info(u"    5.1 : Elimination idfoy restant")
     # Voiture balai
@@ -339,7 +649,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     del idfoyList
     print_id(indivi)
 
-    # Sélectionne les variables à garder pour les steps suivants
+    # Sélectionne les variables à garder pour les steps suivants
     variables = [
         "actrec",
         "age",
@@ -374,7 +684,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     dropped_columns = [variable for variable in indivi.columns if variable not in variables]
     indivi.drop(dropped_columns, axis = 1, inplace = True)
 
-    #  see http://stackoverflow.com/questions/11285613/selecting-columns
+    #  see http://stackoverflow.com/questions/11285613/selecting-columns
     indivi.reset_index(inplace = True)
     gc.collect()
 
@@ -480,8 +790,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     indivi['quifoy'] = where(indivi['quifoy_x'] == 2, indivi['quifoy_y'], indivi['quifoy_x'])
     del indivi['quifoy_x'], indivi['quifoy_y']
     print_id(indivi)
-
-    del pac, fip
+    del pac
     assert len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])]) == 0, \
         u"Il y a {} doublons idfoy/quifoy".format(
             len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])])
@@ -502,9 +811,6 @@ def create_totals_second_pass(temporary_store = None, year = None):
     temporary_store['tot2_{}'.format(year)] = tot2
     del indivi
     log.info(u"    tot2 saved")
-
-    tot2.merge(foyer, how = 'left')
-
     tot2 = tot2[tot2.idmen.notnull()].copy()
 
     print_id(tot2)
@@ -542,8 +848,8 @@ def create_totals_second_pass(temporary_store = None, year = None):
     control(tot3)
 
     del tot2, allvars, tot3, vars2
-    log.info(u"tot3 sauvegardé")
     gc.collect()
+    log.info(u"tot3 sauvegardé")
 
 
 @temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
@@ -563,7 +869,7 @@ def create_final(temporary_store = None, year = None):
     foy_ind.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
     tot3.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
 
-    # tot3 = concat([tot3, foy_ind], join_axes=[tot3.index], axis=1, verify_integrity = True)
+    # tot3 = concat([tot3, foy_ind], join_axes=[tot3.index], axis=1, verify_integrity = True)
 
     # TODO improve this
     foy_ind.drop([u'alr', u'rsti', u'sali', u'choi'], axis = 1, inplace = True)
@@ -586,8 +892,8 @@ def create_final(temporary_store = None, year = None):
     final.set_index('noindiv', inplace = True, verify_integrity = True)
 
     # TODO: IL FAUT UNE METHODE POUR GERER LES DOUBLES DECLARATIONS
-    #  On ne garde que les sif.noindiv qui correspondent à des idfoy == "vous"
-    #  Et on enlève les duplicates
+    #  On ne garde que les sif.noindiv qui correspondent à des idfoy == "vous"
+    #  Et on enlève les duplicates
     idfoys = final.loc[final.quifoy == 0, "idfoy"]
     sif = sif[sif.noindiv.isin(idfoys) & ~(sif.change.isin(['M', 'S', 'Z']))].copy()
     sif.drop_duplicates(subset = ['noindiv'], inplace = True)
