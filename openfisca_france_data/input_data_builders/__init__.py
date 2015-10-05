@@ -33,11 +33,12 @@ def get_input_data_frame(year):
     input_data_frame = openfisca_survey.get_values(table = "input")
     input_data_frame.rename(
         columns = dict(
+            alr = 'pensions_alimentaires_percues',
             choi = 'cho',
             cho_ld = 'chomeur_longue_duree',
             fra = 'frais_reels',
-            sali = 'salaire_imposable',
             rsti = 'rst',
+            sali = 'salaire_imposable',
             ),
         inplace = True,
         )

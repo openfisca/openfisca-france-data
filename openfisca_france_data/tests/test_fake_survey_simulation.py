@@ -80,7 +80,6 @@ def test_fake_survey_simulation():
 
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
         year = year,
         )
     assert (survey_scenario.input_data_frame.salaire_imposable.loc[0] == 20000).all()
@@ -151,7 +150,6 @@ def create_fake_calibration():
     input_data_frame = get_fake_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age'],
         year = year,
         )
     survey_scenario.new_simulation()
@@ -230,7 +228,6 @@ def test_reform():
         input_data_frame = input_data_frame,
         tax_benefit_system = reform,
         reference_tax_benefit_system = base.france_data_tax_benefit_system,
-        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age'],
         year = 2013,
         )
     reference_simulation = survey_scenario.new_simulation(reference = True)
