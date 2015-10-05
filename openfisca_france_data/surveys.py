@@ -37,9 +37,18 @@ log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
+
+    default_used_as_input_variables = [
+        'salaire_imposable', 'cho', 'rst', 'age_en_mois',
+        'nbF, nbG', 'nbH', 'nbI', 'nbJ', 'nbN', 'nbR'
+        ]
+
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
             year = None):
+
+        if used_as_input_variables is None:
+            used_as_input_variables = self.default_used_as_input_variables
 
         FranceDataTaxBenefitSystem = init_country()
         france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
@@ -99,7 +108,7 @@ class SurveyScenario(AbstractSurveyScenario):
                 holder = simulation.get_or_new_holder(variable_name)
                 holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
 
-        simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, 50)
+        simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, .50)
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,

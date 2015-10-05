@@ -32,7 +32,9 @@ def test_pivot_table(year = 2009):
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = ['salaire_imposable', 'cho', 'rst', 'age_en_mois', 'smic55'],
+        used_as_input_variables = [
+            'salaire_imposable', 'cho', 'rst', 'age_en_mois', 'smic55',
+            'nbF, nbG', 'nbH', 'nbI', 'nbJ', 'nbN', 'nbR'],
         year = year,
         )
     pivot_table = compute_pivot_table(
