@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 class SurveyScenario(AbstractSurveyScenario):
 
     default_used_as_input_variables = [
-        'salaire_imposable', 'cho', 'rst', 'age_en_mois',
+        'salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age', 'smic55',
         'nbF, nbG', 'nbH', 'nbI', 'nbJ', 'nbN', 'nbR'
         ]
 
