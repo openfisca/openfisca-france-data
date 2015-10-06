@@ -94,20 +94,22 @@ class SurveyScenario(AbstractSurveyScenario):
             data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
         return data_frame
 
+    def custom_initialize(self):
+        for simulation in [self.simulation, self.reference_simulation]:
+            if simulation is None:
+                continue
+            for offset in [0, -1, -2]:
+                for variable_name in ['salaire_imposable', 'cho', 'rst', 'pensions_alimentaires_percues']:
+                    holder = simulation.get_or_new_holder(variable_name)
+                    holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
+
+            simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, .50)
+
     def initialize_weights(self):
         self.weight_column_name_by_entity_key_plural['menages'] = 'wprm'
         self.weight_column_name_by_entity_key_plural['familles'] = 'weight_familles'
         self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foyers'
         self.weight_column_name_by_entity_key_plural['individus'] = 'weight_individus'
-
-    def custom_initialize(self):
-        simulation = self.simulation
-        for offset in [0, -1, -2]:
-            for variable_name in ['salaire_imposable', 'cho', 'rst']:
-                holder = simulation.get_or_new_holder(variable_name)
-                holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
-
-        simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, .50)
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
