@@ -27,6 +27,8 @@ import logging
 import numpy
 from pandas import Series
 
+import openfisca_france
+
 
 log = logging.getLogger(__name__)
 
@@ -236,6 +238,24 @@ def check_structure(dataframe):
     else:
         log.info('\n'.join('{}'.format(item) for item in messages))
         return False, erroneous_ids_by_entity
+
+
+def make_dic_var(year, cerfa_feuilles):
+    TaxBenefitSystem = openfisca_france.init_country()  # Initialisation de la classe décrivant le système socio-fiscal
+    tax_benefit_system = TaxBenefitSystem()  # Création d'une instance du système socio-fiscal français
+    dic_var = dict()
+    for name, column in tax_benefit_system.column_by_name.iteritems():
+        for l in range(0, len(cerfa_feuilles)):
+            if name.startswith('f{}'.format(cerfa_feuilles[l])):
+                start = column.start if column.start is not None else None
+                end = column.end if column.end is not None else None
+                if (start is None or start.year <= year) and (end is None or end.year >= year):
+                    if column.entity == 'ind':
+                        cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
+                    if column.entity == 'foy':
+                        cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
+                    dic_var[name.encode('ascii', 'ignore')] = cerfa_field
+    return dic_var
 
 
 def rectify_dtype(dataframe, verbose = True):
