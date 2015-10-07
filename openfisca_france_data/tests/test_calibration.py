@@ -35,15 +35,14 @@ openfisca_france_data_location = pkg_resources.get_distribution('openfisca-franc
 
 
 def test_calibration():
-    year = 2006
+    year = 2009
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         year = year,
         )
     survey_scenario.initialize_weights()
-    calibration = Calibration()
-    calibration.set_survey_scenario(survey_scenario)
+    calibration = Calibration(survey_scenario)
     calibration.parameters['method'] = 'linear'
     print calibration.initial_total_population
     calibration.total_population = calibration.initial_total_population * 1.123

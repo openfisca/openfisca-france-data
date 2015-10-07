@@ -28,9 +28,11 @@ import numpy as np
 
 
 from openfisca_core import periods, simulations
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
-from openfisca_france_data import init_country
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
+
+from openfisca_france_data import init_country
+from openfisca_france_data.calibration import Calibration
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 
 
 log = logging.getLogger(__name__)
@@ -93,6 +95,25 @@ class SurveyScenario(AbstractSurveyScenario):
         for entity in simulation.entity_by_key_singular.values():
             data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
         return data_frame
+
+    def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
+        survey_scenario = self
+        survey_scenario.initialize_weights()
+        calibration = Calibration(survey_scenario)
+
+        if parameters is not None:
+            # TODO assert correct values for calibration parameters
+            calibration.parameters.update(parameters)
+        if total_population:
+            calibration.total_population = total_population
+
+        if target_margins_by_variable is not None:
+            calibration.set_target_margins(target_margins_by_variable)
+
+        calibration.calibrate()
+        calibration.set_calibrated_weights()
+        self.calibration = calibration
+
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:
