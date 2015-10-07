@@ -25,33 +25,60 @@
 
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
-from openfisca_survey_manager.scenarios import compute_pivot_table
 
 
-def test_pivot_table(year = 2009):
+def test_pivot_table_1d_mean(year = 2009):
     input_data_frame = get_input_data_frame(year)
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
-        used_as_input_variables = [
-            'salaire_imposable', 'cho', 'rst', 'age_en_mois', 'smic55',
-            'nbF, nbG', 'nbH', 'nbI', 'nbJ', 'nbN', 'nbR'],
         year = year,
         )
-    pivot_table = compute_pivot_table(
+    pivot_table = survey_scenario.compute_pivot_table(
         columns = ['decile_rfr'],
-        index = ['nbptr'],
-        survey_scenario = survey_scenario,
         values = ['irpp']
         )
-
-#    pivot_table = compute_pivot_table(
-#        index = ['decile_rfr', 'nbptr'],
-#        survey_scenario = survey_scenario,
-#        values = ['irpp'],
-#        aggfunc = 'sum',  # does not work with mean
-#        )
+    return pivot_table
 
 
+def test_pivot_table_1d_sum(year = 2009):
+    input_data_frame = get_input_data_frame(year)
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        year = year,
+        )
+    pivot_table = survey_scenario.compute_pivot_table(
+        aggfunc = 'sum',
+        columns = ['decile_rfr'],
+        values = ['irpp']
+        )
+    return pivot_table
+
+
+def test_pivot_table_1d_count(year = 2009):
+    input_data_frame = get_input_data_frame(year)
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        year = year,
+        )
+    pivot_table = survey_scenario.compute_pivot_table(
+        aggfunc = 'count',
+        columns = ['decile_rfr'],
+        values = ['irpp']
+        )
+    return pivot_table
+
+
+def test_pivot_table_2d(year = 2009):
+    input_data_frame = get_input_data_frame(year)
+    survey_scenario = SurveyScenario().init_from_data_frame(
+        input_data_frame = input_data_frame,
+        year = year,
+        )
+    pivot_table = survey_scenario.compute_pivot_table(
+        columns = ['decile_rfr'],
+        index = ['nbptr'],
+        values = ['irpp']
+        )
     return pivot_table
 
 
@@ -63,5 +90,5 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     start = time.time()
-    pivot_table = test_pivot_table(year = 2009)
+    pivot_table = test_pivot_table_1d(year = 2009)
     print time.time() - start

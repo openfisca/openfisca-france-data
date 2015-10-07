@@ -392,17 +392,48 @@ class decile_rfr(SimpleFormulaColumn):
             ])
         )
     entity_class = FoyersFiscaux
-    label = u"Décile de niveau de revenu fiscal de référence"
+    label = u"Décile de revenu fiscal de référence"
 
     def function(self, simulation, period):
         rfr = simulation.calculate('rfr', period)
         weight_foyers = simulation.calculate('weight_foyers', period)
-        import numpy
-        labels = numpy.arange(1, 11)
+        labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
         decile, values = weighted_quantiles(rfr, labels, weight_foyers, return_quantiles = True)
+        return period, decile
+
+
+@reference_formula
+class decile_rfr_par_part(SimpleFormulaColumn):
+    column = EnumCol(
+        enum = Enum([
+            u"Hors champ",
+            u"1er décile",
+            u"2nd décile",
+            u"3e décile",
+            u"4e décile",
+            u"5e décile",
+            u"6e décile",
+            u"7e décile",
+            u"8e décile",
+            u"9e décile",
+            u"10e décile"
+            ])
+        )
+    entity_class = FoyersFiscaux
+    label = u"Décile de revenu fiscal de référence par part fiscale"
+
+    def function(self, simulation, period):
+        rfr = simulation.calculate('rfr', period)
+        nbptr = simulation.calculate('nbptr', period)
+        weight_foyers = simulation.calculate('weight_foyers', period)
+        labels = arange(1, 11)
+        # Alternative method
+        # method = 2
+        # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr / nbptr, labels, weight_foyers, return_quantiles = True)
         return period, decile
 
 

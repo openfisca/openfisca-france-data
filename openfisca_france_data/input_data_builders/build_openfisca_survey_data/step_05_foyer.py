@@ -193,6 +193,7 @@ def foyer_all(temporary_store = None, year = None):
     # On récupère les variables individualisables
     var_dict = {
         'sali': ['f1aj', 'f1bj', 'f1cj', 'f1dj', 'f1ej'],
+        'hsup': ['f1au', 'f1bu', 'f1cu', 'f1du', 'f1eu'],
         'choi': ['f1ap', 'f1bp', 'f1cp', 'f1dp', 'f1ep'],
         'fra': ['f1ak', 'f1bk', 'f1ck', 'f1dk', 'f1ek'],
         'cho_ld': ['f1ai', 'f1bi', 'f1ci', 'f1di', 'f1ei'],
