@@ -41,8 +41,10 @@ import re
 
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import year_specific_by_generic_data_frame_name
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, make_dic_var
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import (
+    year_specific_by_generic_data_frame_name)
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
+    print_id, build_cerfa_fields_by_column_name)
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
@@ -284,7 +286,7 @@ def foyer_all(temporary_store = None, year = None):
         'nbnc_pvce': ['f5qj', 'f5rj', 'f5sj'],
         'demenage': ['f1ar', 'f1br', 'f1cr', 'f1dr', 'f1er'],  # (déménagement) uniquement en 2006
         }
-    cases_f6_f7_f8 = make_dic_var(year = year, cerfa_feuilles = [6, 7, 8])
+    cases_f6_f7_f8 = build_cerfa_fields_by_column_name(year = year, sections_cerfa = [6, 7, 8])
     var_dict.update(cases_f6_f7_f8)
     vars_sets = [set(var_list) for var_list in var_dict.values()]
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))

@@ -100,7 +100,6 @@ def test_fake_survey_simulation():
     sal_2004 = simulation.calculate_add('salaire_imposable', period = "2004")
     sal_2005 = simulation.calculate_add('salaire_imposable', period = "2005")
     sal_2006 = simulation.calculate_add('salaire_imposable', period = "2006")
-
     assert (sal_2003 == 0).all()
     assert (sal_2004 == sal_2006).all()
     assert (sal_2005 == sal_2006).all()
@@ -154,7 +153,6 @@ def create_fake_calibration():
         )
     survey_scenario.new_simulation()
     calibration = Calibration(survey_scenario = survey_scenario)
-    calibration.set_survey_scenario(survey_scenario)
     calibration.set_parameters('invlo', 3)
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
@@ -163,7 +161,6 @@ def create_fake_calibration():
 
 def test_fake_calibration_float():
     calibration = create_fake_calibration()
-    survey_scenario = calibration.survey_scenario
     calibration.total_population = calibration.initial_total_population * 1.123
 
     revdisp_target = 7e6
@@ -171,7 +168,7 @@ def test_fake_calibration_float():
 
     calibration.calibrate()
     calibration.set_calibrated_weights()
-    simulation = survey_scenario.simulation
+    simulation = calibration.survey_scenario.simulation
     assert_near(
         simulation.calculate("wprm").sum(),
         calibration.total_population,
@@ -206,10 +203,10 @@ def test_fake_calibration_age():
     age = survey_scenario.simulation.calculate('age'),
     wprm = survey_scenario.simulation.calculate('wprm')
 
-    for category, target in calibration.margins_by_name['age']['target'].iteritems():
+    for category, target in calibration.margins_by_variable['age']['target'].iteritems():
         assert_near(
             ((age == category) * wprm).sum() / wprm.sum(),
-            target / numpy.sum(calibration.margins_by_name['age']['target'].values()),
+            target / numpy.sum(calibration.margins_by_variable['age']['target'].values()),
             absolute_error_margin = None,
             relative_error_margin = .00001
             )
@@ -251,8 +248,8 @@ if __name__ == '__main__':
     #    build_by_extraction(year = year)
     #    df = get_fake_input_data_frame(year = year)
 
-    #    df_by_entity, simulation = test_fake_survey_simulation()
+    # df_by_entity, simulation = test_fake_survey_simulation()
     #    df_i = df_by_entity['individus']
     #    df_f = df_by_entity['foyers_fiscaux']
     #    df_m = df_by_entity['menages']
-    test_reform()
+    test_fake_calibration_age()

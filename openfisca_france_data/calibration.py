@@ -196,6 +196,7 @@ class Calibration(object):
     def set_target_margin(self, variable, target):
         survey_scenario = self.survey_scenario
         simulation = survey_scenario.simulation
+        assert simulation is not None
         column_by_name = survey_scenario.tax_benefit_system.column_by_name
         assert variable in column_by_name
         column = survey_scenario.tax_benefit_system.column_by_name[variable]

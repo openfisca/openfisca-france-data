@@ -240,22 +240,22 @@ def check_structure(dataframe):
         return False, erroneous_ids_by_entity
 
 
-def make_dic_var(year, cerfa_feuilles):
-    TaxBenefitSystem = openfisca_france.init_country()  # Initialisation de la classe décrivant le système socio-fiscal
-    tax_benefit_system = TaxBenefitSystem()  # Création d'une instance du système socio-fiscal français
-    dic_var = dict()
+def build_cerfa_fields_by_column_name(year, sections_cerfa):
+    TaxBenefitSystem = openfisca_france.init_country()
+    tax_benefit_system = TaxBenefitSystem()
+    cerfa_fields_by_column_name = dict()
     for name, column in tax_benefit_system.column_by_name.iteritems():
-        for l in range(0, len(cerfa_feuilles)):
-            if name.startswith('f{}'.format(cerfa_feuilles[l])):
-                start = column.start if column.start is not None else None
-                end = column.end if column.end is not None else None
+        for section_cerfa in sections_cerfa:
+            if name.startswith('f{}'.format(section_cerfa)):
+                start = column.start or None
+                end = column.end or None
                 if (start is None or start.year <= year) and (end is None or end.year >= year):
                     if column.entity == 'ind':
                         cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
-                    if column.entity == 'foy':
+                    elif column.entity == 'foy':
                         cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
-                    dic_var[name.encode('ascii', 'ignore')] = cerfa_field
-    return dic_var
+                    cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
+    return cerfa_fields_by_column_name
 
 
 def rectify_dtype(dataframe, verbose = True):

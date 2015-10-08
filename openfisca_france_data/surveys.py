@@ -114,7 +114,6 @@ class SurveyScenario(AbstractSurveyScenario):
         calibration.set_calibrated_weights()
         self.calibration = calibration
 
-
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:
             if simulation is None:
