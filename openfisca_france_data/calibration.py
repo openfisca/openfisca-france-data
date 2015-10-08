@@ -129,10 +129,15 @@ class Calibration(object):
 
     def get_parameters(self):
         p = {}
-        p['method'] = self.parameters['method']
-        p['lo'] = 1 / self.parameters['invlo']
-        p['up'] = self.parameters['up']
-        p['use_proportions'] = self.parameters['use_proportions']
+        p['method'] = self.parameters.get('method', 'linear')
+        if self.parameters.get('invlo') is not None:
+            p['lo'] = 1 / self.parameters.get('invlo')
+        p['up'] = self.parameters.get('up')
+        if p['method'] == 'logit':
+            assert self.parameters.get('invlo') is not None and self.parameters.get('up') is not None
+            p['lo'] = 1 / self.parameters.get('invlo')
+            p['up'] = self.parameters.get('up')
+        p['use_proportions'] = self.parameters.get('use_proportions', True)
         p['pondini'] = self.weight_name + ""
         return p
 

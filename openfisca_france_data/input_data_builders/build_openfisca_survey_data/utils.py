@@ -174,7 +174,7 @@ def print_id(df):
     compute_masses(df)
 
 def compute_masses(dataframe):
-    variables = ['sali', 'choi', 'rsti', 'alr']
+    variables = ['sali', 'choi', 'rsti', 'alr', 'hsup']
     for variable in variables:
         if set([variable, 'wprm']).issubset(set(dataframe.columns)):
             log.info("Mass of {}: {}".format(variable, (dataframe[variable] * dataframe['wprm']).sum() / 1e9))

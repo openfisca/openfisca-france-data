@@ -100,6 +100,7 @@ def test_fake_survey_simulation():
     sal_2004 = simulation.calculate_add('salaire_imposable', period = "2004")
     sal_2005 = simulation.calculate_add('salaire_imposable', period = "2005")
     sal_2006 = simulation.calculate_add('salaire_imposable', period = "2006")
+
     assert (sal_2003 == 0).all()
     assert (sal_2004 == sal_2006).all()
     assert (sal_2005 == sal_2006).all()

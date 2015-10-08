@@ -41,9 +41,35 @@ log = logging.getLogger(__name__)
 class SurveyScenario(AbstractSurveyScenario):
 
     default_used_as_input_variables = [
-        'salaire_imposable', 'cho', 'rst', 'age_en_mois', 'age', 'smic55',
-        'nbF, nbG', 'nbH', 'nbI', 'nbJ', 'nbN', 'nbR'
+        'age_en_mois',
+        'age',
+        'cho',
+        'hsup',
+        'nbF',
+        'nbG',
+        'nbH',
+        'nbI',
+        'nbJ',
+        'nbN',
+        'nbR',
+        'rst',
+        'salaire_imposable',
+        'smic55',
         ]
+    filtering_variable_by_entity_key_plural = dict(
+        (entity, "champm_{}".format(entity)) for entity in ['individus', 'foyers_fiscaux', 'familles']
+        )
+    filtering_variable_by_entity_key_plural['menages'] = 'champm'
+
+    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
+
+        if filter_by is None:
+            tax_benefit_system = self.tax_benefit_system
+            entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
+            filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
+
+        return super(SurveyScenario, self).compute_aggregate(aggfunc = aggfunc, variable = variable,
+            filter_by = filter_by, period = period, reference = reference)
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
@@ -113,6 +139,7 @@ class SurveyScenario(AbstractSurveyScenario):
         calibration.calibrate()
         calibration.set_calibrated_weights()
         self.calibration = calibration
+
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:

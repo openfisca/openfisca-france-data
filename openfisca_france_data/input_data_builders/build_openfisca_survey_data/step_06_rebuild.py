@@ -675,6 +675,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
         "rsti",
         "choi",
         "alr",
+        "hsup",
         "wprm",
         ]
 
