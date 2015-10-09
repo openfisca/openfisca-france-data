@@ -53,11 +53,11 @@ def run_all(year = None, check = False):
     assert year is not None
     pre_processing.create_indivim_menagem(year = year)
     pre_processing.create_enfants_a_naitre(year = year)
-#    try:
-#        imputation_loyer.imputation_loyer(year = year)
-#    except Exception, e:
-#        log.info('Do not impute loyer because of the following error: \n {}'.format(e))
-#        pass
+    #    try:
+    #        imputation_loyer.imputation_loyer(year = year)
+    #    except Exception, e:
+    #        log.info('Do not impute loyer because of the following error: \n {}'.format(e))
+    #        pass
     fip.create_fip(year = year)
     famille.famille(year = year)
     foyer.sif(year = year)

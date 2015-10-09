@@ -154,7 +154,7 @@ class SurveyScenario(AbstractSurveyScenario):
             if simulation is None:
                 continue
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'cho', 'rst', 'pensions_alimentaires_percues']:
+                for variable_name in ['salaire_imposable', 'cho', 'rst', 'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
 
