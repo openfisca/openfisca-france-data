@@ -39,7 +39,7 @@ class Calibration(object):
     """
     filter_by_name = None
     initial_total_population = None
-    margins_by_variable = None
+    margins_by_variable = dict()
     parameters = {
         'use_proportions': True,
         'pondini': None,
@@ -56,12 +56,6 @@ class Calibration(object):
         self.filter_by_name = "champm"
         assert survey_scenario is not None
         self._set_survey_scenario(survey_scenario)
-
-    def set_total_population(self, total_population):
-        """
-        Sets total population
-        """
-        self.total_population = total_population
 
     def reset(self):
         """
@@ -96,36 +90,36 @@ class Calibration(object):
         else:
             self.parameters[parameter] = value
 
-    def set_margins_target_from_file(self, filename, year, source):
-        """
-        Sets margins for inputs variable from file
-        """
-        # TODO read from h5 files
-        with open(filename) as f_tot:
-            totals = read_csv(f_tot, index_col = (0, 1))
-        # if data for the configured year is not availbale leave margins empty
-        year = str(year)
-        if year not in totals:
-            return
-        margins = {}
-        if source == "input":
-            self.input_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
-        elif source == 'output':
-            self.output_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
-
-        for var, mod in totals.index:
-            if var not in margins:
-                margins[var] = {}
-            margins[var][mod] = totals.get_value((var, mod), year)
-
-        for var in margins.keys():
-            if var == 'total_population':
-                if source == "input" or source == "config":
-                    total_population = margins.pop('total_population')[0]
-                    margins['total_population'] = total_population
-                    self.total_population = total_population
-            else:
-                self.add_var2(var, margins[var], source = source)
+#    def set_margins_target_from_file(self, filename, year, source):
+#        """
+#        Sets margins for inputs variable from file
+#        """
+#        # TODO read from h5 files
+#        with open(filename) as f_tot:
+#            totals = read_csv(f_tot, index_col = (0, 1))
+#        # if data for the configured year is not availbale leave margins empty
+#        year = str(year)
+#        if year not in totals:
+#            return
+#        margins = {}
+#        if source == "input":
+#            self.input_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
+#        elif source == 'output':
+#            self.output_margins_data_frame = totals.rename(columns = {year: 'target'}, inplace = False)
+#
+#        for var, mod in totals.index:
+#            if var not in margins:
+#                margins[var] = {}
+#            margins[var][mod] = totals.get_value((var, mod), year)
+#
+#        for var in margins.keys():
+#            if var == 'total_population':
+#                if source == "input" or source == "config":
+#                    total_population = margins.pop('total_population')[0]
+#                    margins['total_population'] = total_population
+#                    self.total_population = total_population
+#            else:
+#                self.add_var2(var, margins[var], source = source)
 
     def get_parameters(self):
         p = {}
@@ -169,15 +163,15 @@ class Calibration(object):
         return updated_margins
 
     def calibrate(self):
-        """
-        Calibrate according to margins found in frame
-        """
         margins_by_variable = self.margins_by_variable
         parameters = self.get_parameters()
 
-        simple_margins_by_variable = dict([
-            (variable, margins_by_type['target'])
-            for variable, margins_by_type in margins_by_variable.iteritems()])
+        if margins_by_variable is not None:
+            simple_margins_by_variable = dict([
+                (variable, margins_by_type['target'])
+                for variable, margins_by_type in margins_by_variable.iteritems()])
+        else:
+            simple_margins_by_variable = dict()
 
         if self.total_population:
             simple_margins_by_variable['total_population'] = self.total_population

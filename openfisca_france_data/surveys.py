@@ -128,8 +128,16 @@ class SurveyScenario(AbstractSurveyScenario):
         calibration = Calibration(survey_scenario)
 
         if parameters is not None:
-            # TODO assert correct values for calibration parameters
-            calibration.parameters.update(parameters)
+            assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
+                "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
+            if parameters['method'] == 'logit':
+                assert parameters['invlo'] is not None
+                assert parameters['up'] is not None
+        else:
+            parameters = dict(method = 'logit', up = 3, invlo = 3)
+
+        calibration.parameters.update(parameters)
+
         if total_population:
             calibration.total_population = total_population
 
