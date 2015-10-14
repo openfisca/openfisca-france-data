@@ -62,7 +62,6 @@ class SurveyScenario(AbstractSurveyScenario):
     filtering_variable_by_entity_key_plural['menages'] = 'champm'
 
     def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
-
         if filter_by is None:
             tax_benefit_system = self.tax_benefit_system
             entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
