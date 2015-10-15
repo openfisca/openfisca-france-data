@@ -183,10 +183,14 @@ class Calibration(object):
         """
         Modify the weights to use the calibrated weights
         """
-        simulation = self.survey_scenario.simulation
-        holder = simulation.get_or_new_holder(self.weight_name)
-        holder.array = numpy.array(self.weight, dtype = holder.column.dtype)
-        # TODO: propagation to other weights
+        survey_scenario = self.survey_scenario
+        assert survey_scenario.simulation is not None
+        for simulation in [survey_scenario.simulation, survey_scenario.reference_simulation]:
+            if simulation is None:
+                continue
+            holder = simulation.get_or_new_holder(self.weight_name)
+            holder.array = numpy.array(self.weight, dtype = holder.column.dtype)
+            # TODO: propagation to other weights
 
     def set_target_margins(self, target_margin_by_variable):
         for variable, target in target_margin_by_variable.iteritems():

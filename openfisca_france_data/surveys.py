@@ -70,6 +70,20 @@ class SurveyScenario(AbstractSurveyScenario):
         return super(SurveyScenario, self).compute_aggregate(aggfunc = aggfunc, variable = variable,
             filter_by = filter_by, period = period, reference = reference)
 
+    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
+            period = None, reference = False, values = None):
+        if filter_by is None:
+            tax_benefit_system = self.tax_benefit_system
+            entity_key_plural = tax_benefit_system.column_by_name[values[0]].entity_key_plural
+            filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
+
+        return super(SurveyScenario, self).compute_pivot_table(aggfunc = aggfunc, columns = columns,
+            difference = difference, filter_by = filter_by, index = index, period = period, reference = reference,
+            values = values)
+
+
+
+
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
             year = None):

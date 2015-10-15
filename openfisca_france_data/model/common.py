@@ -397,11 +397,12 @@ class decile_rfr(SimpleFormulaColumn):
     def function(self, simulation, period):
         rfr = simulation.calculate('rfr', period)
         weight_foyers = simulation.calculate('weight_foyers', period)
+        champm_foyers_fiscaux = simulation.calculate('champm_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(rfr, labels, weight_foyers, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
         return period, decile
 
 
@@ -429,11 +430,19 @@ class decile_rfr_par_part(SimpleFormulaColumn):
         rfr = simulation.calculate('rfr', period)
         nbptr = simulation.calculate('nbptr', period)
         weight_foyers = simulation.calculate('weight_foyers', period)
+        champm_foyers_fiscaux = simulation.calculate('champm_foyers_fiscaux', period)
+        salaire_imposable = simulation.calculate('salaire_imposable', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(rfr / nbptr, labels, weight_foyers, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+        print values
+        print (weight_foyers * champm_foyers_fiscaux * rfr / nbptr).sum()
+        print weight_foyers.sum()
+        print champm_foyers_fiscaux.sum()
+        print (weight_foyers * champm_foyers_fiscaux).sum()
+        print 'salaire_imposable', salaire_imposable.sum()
         return period, decile
 
 
