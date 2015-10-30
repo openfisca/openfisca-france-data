@@ -5,17 +5,8 @@
 ## Presentation
 
 [OpenFisca](http://www.openfisca.fr/) is a versatile microsimulation free software.
+
 This is the France-Data module.
-
-Please consult http://www.openfisca.fr/presentation
-
-## Documentation
-
-Please consult http://www.openfisca.fr/documentation
-
-## Installation
-
-Please consult http://www.openfisca.fr/installation if you want to develop with OpenFisca on your computer.
 
 ## Contribute
 
