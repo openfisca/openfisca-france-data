@@ -170,6 +170,14 @@ class SurveyScenario(AbstractSurveyScenario):
                 for variable_name in ['salaire_imposable', 'cho', 'rst', 'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
+                    if variable_name == 'salaire_imposable':
+                        try:
+                            holder = simulation.get_or_new_holder('salaire_imposable_pour_inversion')
+                            holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
+                            log.info('salaire_imposable_pour_inversion initialized')
+                        except KeyError:
+                            log.info('WARNING salaire_imposable_pour_inversion not present and thus not initialized')
+                            pass
 
             simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, .50)
 
