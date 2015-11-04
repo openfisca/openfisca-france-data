@@ -28,9 +28,11 @@ from openfisca_core.tools import assert_near
 
 from openfisca_france.reforms import (
     allocations_familiales_imposables,
+    inversion_directe_salaires,
     cesthra_invalidee,
-    plf2016,
     plf2015,
+    plf2016,
+    plf2016_ayrault_muet,
     plfr2014,
     trannoy_wasmer,
     )
@@ -56,7 +58,9 @@ france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
 
 build_reform_function_by_key = {
     'allocations_familiales_imposables': allocations_familiales_imposables.build_reform,
+    'ayrault_muet': plf2016_ayrault_muet.build_reform,
     'cesthra_invalidee': cesthra_invalidee.build_reform,
+    'inversion_directe_salaires': inversion_directe_salaires.build_reform,
     'plf2016': plf2016.build_reform,
     'plf2016_counterfactual': plf2016.build_counterfactual_reform,
     'plf2015': plf2015.build_reform,
