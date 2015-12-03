@@ -33,8 +33,7 @@ from ..base import *  # noqa analysis:ignore
 log = logging.getLogger(__name__)
 
 
-@reference_formula
-class taille_entreprise(SimpleFormulaColumn):
+class taille_entreprise(Variable):
     reference = openfisca_france_tax_benefit_system.column_by_name['taille_entreprise']
 
     def function(self, simulation, period):
@@ -48,8 +47,7 @@ class taille_entreprise(SimpleFormulaColumn):
         return period, 0 + 1 * (nbsala >= 1) + 1 * (nbsala >= 4) + 1 * (nbsala >= 5) + 1 * (nbsala >= 7)
 
 
-@reference_formula
-class type_sal(SimpleFormulaColumn):
+class type_sal(Variable):
     reference = openfisca_france_tax_benefit_system.column_by_name['type_sal']
 
     def function(self, simulation, period):
@@ -80,8 +78,8 @@ class type_sal(SimpleFormulaColumn):
         return period, 0 + 1 * cadre + 2 * etat_tit + 3 * militaire + 4 * colloc_tit + 5 * hosp_tit + 6 * contract
 
 
-# @reference_formula
-# class rstbrut(SimpleFormulaColumn):
+#
+# class rstbrut(Variable):
 #     reference = openfisca_france_tax_benefit_system.column_by_name['rstbrut']
 #
 #     def function(self, simulation, period):
@@ -89,8 +87,8 @@ class type_sal(SimpleFormulaColumn):
 #         return period, rst
 #
 #
-# @reference_formula
-# class salaire_de_base(SimpleFormulaColumn):
+#
+# class salaire_de_base(Variable):
 #     reference = openfisca_france_tax_benefit_system.column_by_name['salaire_de_base']
 #
 #     def function(self, simulation, period):

@@ -194,8 +194,8 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 #            )
 #        )
 
-@reference_formula
-class champm_individus(SimpleFormulaColumn):
+
+class champm_individus(Variable):
     column = BoolCol
     entity_class = Individus
     label = u"L'individu est dans un ménage du champ ménage",
@@ -205,8 +205,7 @@ class champm_individus(SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
 
 
-@reference_formula
-class champm_familles(SimpleFormulaColumn):
+class champm_familles(Variable):
     column = BoolCol
     entity_class = Familles
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
@@ -216,8 +215,7 @@ class champm_familles(SimpleFormulaColumn):
         return period, self.filter_role(champm_individus, role = CHEF)
 
 
-@reference_formula
-class champm_foyers_fiscaux(SimpleFormulaColumn):
+class champm_foyers_fiscaux(Variable):
     column = BoolCol
     entity_class = FoyersFiscaux
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
@@ -227,8 +225,7 @@ class champm_foyers_fiscaux(SimpleFormulaColumn):
         return period, self.filter_role(champm_individus, role = VOUS)
 
 
-@reference_formula
-class decile(SimpleFormulaColumn):
+class decile(Variable):
     column = EnumCol(
         enum = Enum([
             u"Hors champ"
@@ -268,8 +265,7 @@ class decile(SimpleFormulaColumn):
         return period, decile * champm
 
 
-@reference_formula
-class decile_net(SimpleFormulaColumn):
+class decile_net(Variable):
     column = EnumCol(
         enum = Enum([
             u"Hors champ"
@@ -300,8 +296,7 @@ class decile_net(SimpleFormulaColumn):
         return period, decile * champm
 
 
-@reference_formula
-class pauvre40(SimpleFormulaColumn):
+class pauvre40(Variable):
     column = EnumCol(
         enum = Enum([
             u"Ménage au dessus du seuil de pauvreté à 40%",
@@ -324,8 +319,7 @@ class pauvre40(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-@reference_formula
-class pauvre50(SimpleFormulaColumn):
+class pauvre50(Variable):
     column = EnumCol(
         enum = Enum([
             u"Ménage au dessus du seuil de pauvreté à 50%",
@@ -349,8 +343,7 @@ class pauvre50(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-@reference_formula
-class pauvre60(SimpleFormulaColumn):
+class pauvre60(Variable):
     column = EnumCol(
         enum = Enum([
             u"Ménage au dessus du seuil de pauvreté à 60%",
@@ -374,8 +367,7 @@ class pauvre60(SimpleFormulaColumn):
         return period, (nivvie <= threshold) * champm
 
 
-@reference_formula
-class decile_rfr(SimpleFormulaColumn):
+class decile_rfr(Variable):
     column = EnumCol(
         enum = Enum([
             u"Hors champ",
@@ -406,8 +398,7 @@ class decile_rfr(SimpleFormulaColumn):
         return period, decile
 
 
-@reference_formula
-class decile_rfr_par_part(SimpleFormulaColumn):
+class decile_rfr_par_part(Variable):
     column = EnumCol(
         enum = Enum([
             u"Hors champ",
@@ -446,8 +437,7 @@ class decile_rfr_par_part(SimpleFormulaColumn):
         return period, decile
 
 
-@reference_formula
-class weight_individus(SimpleFormulaColumn):
+class weight_individus(Variable):
     column = FloatCol
     entity_class = Individus
     label = u"Poids de l'individu"
@@ -457,8 +447,7 @@ class weight_individus(SimpleFormulaColumn):
         return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
 
 
-@reference_formula
-class weight_familles(SimpleFormulaColumn):
+class weight_familles(Variable):
     column = FloatCol
     entity_class = Familles
     label = u"Poids de la famille"
@@ -468,8 +457,7 @@ class weight_familles(SimpleFormulaColumn):
         return period, self.filter_role(weight_individus_holder, entity = "famille", role = CHEF)
 
 
-@reference_formula
-class weight_foyers(SimpleFormulaColumn):
+class weight_foyers(Variable):
     column = FloatCol
     entity_class = FoyersFiscaux
     label = u"Poids du foyer fiscal",
