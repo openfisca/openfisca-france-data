@@ -27,7 +27,7 @@ from openfisca_core import reforms
 
 import openfisca_france
 from openfisca_france.model.base import (BoolCol, CHEF, ENFS, Enum, EnumCol, Familles, FloatCol, FoyersFiscaux,
-    Individus, IntCol, Menages, QUIFAM, QUIFOY, PART, SimpleFormulaColumn, VOUS)
+    Individus, IntCol, Menages, QUIFAM, QUIFOY, PART, Variable, VOUS)
 
 
 __all__ = [
@@ -46,9 +46,8 @@ __all__ = [
     'PART',
     'QUIFAM',
     'QUIFOY',
-    'reference_formula',
     'reference_input_variable',
-    'SimpleFormulaColumn',
+    'Variable',
     'TaxBenefitSystem',
     'VOUS',
     ]
@@ -62,5 +61,4 @@ TaxBenefitSystem = reforms.make_reform(
     reference = openfisca_france_tax_benefit_system,
     )
 
-reference_formula = TaxBenefitSystem.formula
 reference_input_variable = TaxBenefitSystem.input_variable

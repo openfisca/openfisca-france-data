@@ -32,8 +32,7 @@ from numpy import arange, array, floor, where
 from .base import *  # noqa
 
 
-@reference_formula
-class nbinde(SimpleFormulaColumn):
+class nbinde(Variable):
     column = EnumCol(default = 0, enum = Enum(
         [
             "Une personne",
@@ -104,8 +103,7 @@ def _nb_ageq0(self, age_en_mois_holder):
     return nb
 
 
-@reference_formula
-class cohab(SimpleFormulaColumn):
+class cohab(Variable):
     column = BoolCol(default = False)
     entity_class = Menages
     label = u"Vie en couple"
@@ -123,8 +121,7 @@ class cohab(SimpleFormulaColumn):
         return period, quimen == 1
 
 
-@reference_formula
-class act_cpl(SimpleFormulaColumn):
+class act_cpl(Variable):
     column = PeriodSizeIndependentIntCol(default = 0)
     entity_class = Menages
     label = u"Nombre d'actifs parmi la personne de référence du méange et son conjoint"
@@ -143,8 +140,7 @@ class act_cpl(SimpleFormulaColumn):
         return period, 1 * (activite[PREF] <= 1) + 1 * (activite[CREF] <= 1) * cohab
 
 
-@reference_formula
-class act_enf(SimpleFormulaColumn):
+class act_enf(Variable):
     column = PeriodSizeIndependentIntCol(default = 0)
     entity_class = Menages
     label = u"Nombre d'enfants actifs"
@@ -174,8 +170,7 @@ def _nb_act(act_cpl, act_enf):
 
 
 # def _cplx(typmen15):
-@reference_formula
-class cplx(SimpleFormulaColumn):
+class cplx(Variable):
     column = BoolCol(default = False)
     entity_class = Menages
     label = u"Indicatrice de ménage complexe"
@@ -209,8 +204,7 @@ class cplx(SimpleFormulaColumn):
     # return (typmen15 > 12)
 
 
-@reference_formula
-class typmen15(SimpleFormulaColumn):
+class typmen15(Variable):
     column = EnumCol(default = 0, enum = Enum(
         [
             u"Personne seule active",
