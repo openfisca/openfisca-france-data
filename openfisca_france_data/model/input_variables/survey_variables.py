@@ -26,26 +26,25 @@
 from ..base import * # noqa  analysis:ignore
 
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF ",
-    name = "idmen_original",
-    )
+class idmen_original(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages
+    label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF"
 
-reference_input_variable(
-    column = IntCol,
-    entity_class = FoyersFiscaux,
-    label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF",
-    name = "idfoy_original",
-)
-reference_input_variable(
-    column = IntCol,
-    entity_class = Familles,
-    label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF",
-    name = "idfam_original",
-)
-reference_input_variable(
+
+class idfoy_original(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = FoyersFiscaux
+    label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF"
+
+
+class idfam_original(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Familles
+    label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF"
+
+
+class titc(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -55,13 +54,13 @@ reference_input_variable(
                 u"Contractuel",
                 ]
             ),
-        ),
-    entity_class = Individus,
-    label = u"Statut, pour les agents de l'Etat des collectivités locales, ou des hôpitaux",
-    name = "titc",
-    # survey_only = True,
-    )
-reference_input_variable(
+        )
+    entity_class = Individus
+    label = u"Statut, pour les agents de l'Etat des collectivités locales, ou des hôpitaux"
+    # survey_only = True
+
+
+class statut(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -79,12 +78,12 @@ reference_input_variable(
                 u"Autres contrats (Etat, coll.loc.)",
                 ]
             ),
-        ),
-    entity_class = Individus,
-    label = u"Statut détaillé mis en cohérence avec la profession",
-    name = "statut",
-    )
-reference_input_variable(
+        )
+    entity_class = Individus
+    label = u"Statut détaillé mis en cohérence avec la profession"
+
+
+class txtppb(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -96,12 +95,12 @@ reference_input_variable(
                 u"Plus de 80%",
                 ],
             ),
-        ),
-    entity_class = Individus,
-    label = u"Taux du temps partiel",
-    name = "txtppb",
-    )
-reference_input_variable(
+        )
+    entity_class = Individus
+    label = u"Taux du temps partiel"
+
+
+class chpub(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -114,21 +113,21 @@ reference_input_variable(
                 u"Entreprise privée, association",
                 ],
             ),
-        ),
-    entity_class = Individus,
-    label = u"Nature de l'employeur principal",
-    name = "chpub",
-    )
-reference_input_variable(
-    column = BoolCol(),
-    entity_class = Individus,
-    label = u"Cadre salarié du privé",
-    name = "cadre",
-    )
+        )
+    entity_class = Individus
+    label = u"Nature de l'employeur principal"
+
+
+class cadre(TaxBenefitSystem.Variable):
+    column = BoolCol()
+    entity_class = Individus
+    label = u"Cadre salarié du privé"
+
 
 #   zones apl and calibration
 
-reference_input_variable(
+
+class tu99(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -143,12 +142,12 @@ reference_input_variable(
                 u'agglomération parisienne'
                 ],
             ),
-        ),
-    entity_class = Menages,
-    label = u"Tranche d'unité urbaine",
-    name = "tu99",
-    )
-reference_input_variable(
+        )
+    entity_class = Menages
+    label = u"Tranche d'unité urbaine"
+
+
+class tau99(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -165,12 +164,12 @@ reference_input_variable(
                 u'Aire urbaine de Paris'
                 ]
             ),
-        ),
-    label = u"tranche d'aire urbaine",
-    entity_class = Menages,
-    name = "tau99",
-    )
-reference_input_variable(
+        )
+    label = u"tranche d'aire urbaine"
+    entity_class = Menages
+
+
+class reg(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -198,12 +197,12 @@ reference_input_variable(
                 u'Corse'
                 ],
             ),
-        ),
-    label = u"Région",
-    entity_class = Menages,
-    name = "reg",
-    )
-reference_input_variable(
+        )
+    label = u"Région"
+    entity_class = Menages
+
+
+class pol99(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -213,12 +212,12 @@ reference_input_variable(
                 u"Espace à dominante rurale"
                 ]
             ),
-        ),
-    label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains",
-    entity_class = Menages,
-    name = "pol99",
-    )
-reference_input_variable(
+        )
+    label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains"
+    entity_class = Menages
+
+
+class cstotpragr(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -233,12 +232,12 @@ reference_input_variable(
                 u"Autres inactifs"
                 ],
             ),
-        ),
-    label = u"catégorie socio_professionelle agrégée de la personne de référence",
-    entity_class = Menages,
-    name = "cstotpragr",
-    )
-reference_input_variable(
+        )
+    label = u"catégorie socio_professionelle agrégée de la personne de référence"
+    entity_class = Menages
+
+
+class naf16pr(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -263,12 +262,12 @@ reference_input_variable(
                 ],
             start = -1,  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
             ),
-        ),
-    entity_class = Menages,
-    label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence",
-    name = "naf16pr",
-    )
-reference_input_variable(
+        )
+    entity_class = Menages
+    label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence"
+
+
+class nafg17npr(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -294,11 +293,10 @@ reference_input_variable(
                 ],
             start = -1,
             ),  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
-        ),
-    label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence ",
-    entity_class = Menages,
-    name = "nafg17npr",
-    )
+        )
+    label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence"
+    entity_class = Menages
+
 
 #    build_survey_column('typmen15', column = EnumCol(label = u"Type de ménage",
 #                       entity_class = Menages,
@@ -317,7 +315,9 @@ reference_input_variable(
 #                                    u"Autres ménages, 1 actif",
 #                                    u"Autres ménages, 2 actifs ou plus",
 #                                    u"Autres ménages, tous inactifs"],start = 1)))
-reference_input_variable(
+
+
+class ageq(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -336,11 +336,11 @@ reference_input_variable(
                 u"80 ans et plus",
                 ],
             ),
-        ),
-    label = u"âge quinquennal de la personne de référence",
-    entity_class = Menages,
-    name = "ageq",
-    )
+        )
+    label = u"âge quinquennal de la personne de référence"
+    entity_class = Menages
+
+
 #    build_survey_column_couple('nbinde, column = EnumCol(label = u"taille du ménage",
 #                     entity_class = Menages,
 #                     enum = Enum([u"Une personne",
@@ -350,7 +350,8 @@ reference_input_variable(
 #                                  u"Cinq personnes",
 #                                  u"Six personnes et plus"], start = 1))),
 
-reference_input_variable(
+
+class ddipl(TaxBenefitSystem.Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -364,12 +365,12 @@ reference_input_variable(
                 ],
             start = 1,
             ),
-        ),
-    entity_class = Individus,
-    name = "ddipl",
-)
+        )
+    entity_class = Individus
 
-reference_input_variable(
+
+class act5(TaxBenefitSystem.Variable):
+    # 5 postes normalement TODO: check = 0
     column = EnumCol(
         enum = Enum([
             u"Salarié",
@@ -379,58 +380,56 @@ reference_input_variable(
             u"Inactif"],
             start = 1,
             ),
-        ),
-    entity_class = Individus,
-    label = u"activité",
-    name = "act5",
-    # survey_only = True,
-    )  # 5 postes normalement TODO: check = 0
+        )
+    entity_class = Individus
+    label = u"activité"
+    # survey_only = True
+
 
 # to remove
-reference_input_variable(
-    column = BoolCol(default = True),
-    entity_class = Menages,
-    name = "champm",
-    )
-reference_input_variable(
-    column = FloatCol(default = 1),
-    entity_class = Menages,
-    label = u"Effectifs",
-    name = "wprm",
-    )
-reference_input_variable(
-    column = FloatCol,
-    entity_class = Menages,
-    label = u"Effectifs",
-    name = "wprm_init",
-    )
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    name = "m_afeamam",
-    )
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    name = "m_agedm",
-    )
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    name = "m_clcam",
-    )
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    name = "m_colcam",
-    )
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    name = "m_mgamm",
-    )
-reference_input_variable(
-    column = IntCol,
-    entity_class = Menages,
-    name = "m_mgdomm",
-    )
+
+class champm(TaxBenefitSystem.Variable):
+    column = BoolCol(default = True)
+    entity_class = Menages
+
+
+class wprm(TaxBenefitSystem.Variable):
+    column = FloatCol(default = 1)
+    entity_class = Menages
+    label = u"Effectifs"
+
+
+class wprm_init(TaxBenefitSystem.Variable):
+    column = FloatCol
+    entity_class = Menages
+    label = u"Effectifs"
+
+
+class m_afeamam(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages
+
+
+class m_agedm(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages
+
+
+class m_clcam(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages
+
+
+class m_colcam(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages
+
+
+class m_mgamm(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages
+
+
+class m_mgdomm(TaxBenefitSystem.Variable):
+    column = IntCol
+    entity_class = Menages

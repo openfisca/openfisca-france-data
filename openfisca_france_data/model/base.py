@@ -46,9 +46,8 @@ __all__ = [
     'PART',
     'QUIFAM',
     'QUIFOY',
-    'reference_input_variable',
-    'Variable',
     'TaxBenefitSystem',
+    'Variable',
     'VOUS',
     ]
 
@@ -60,5 +59,3 @@ TaxBenefitSystem = reforms.make_reform(
     name = u"OpenFisca for survey data",
     reference = openfisca_france_tax_benefit_system,
     )
-
-reference_input_variable = TaxBenefitSystem.input_variable
