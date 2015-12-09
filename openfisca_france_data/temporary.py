@@ -39,11 +39,14 @@ def temporary_store_decorator(config_files_directory = default_config_files_dire
     parser = SafeConfigParser()
     config_local_ini = os.path.join(config_files_directory, 'config_local.ini')
     config_ini = os.path.join(config_files_directory, 'config.ini')
-    _ = parser.read([config_ini, config_local_ini])
+    read_config_file_name = parser.read([config_ini, config_local_ini])
     tmp_directory = parser.get('data', 'tmp_directory')
-    assert tmp_directory is not None, 'Temporary directory is not set'
-    assert os.path.isabs(tmp_directory), 'Temporary directory path should be an absolut path'
-    assert os.path.isdir(tmp_directory), 'Temporary directory does not exist'
+    assert tmp_directory is not None, \
+        'tmp_directory is not set: {!r} in {}'.format(tmp_directory, read_config_file_name)
+    assert os.path.isabs(tmp_directory), \
+        'tmp_directory should be an absolut path: {!r} in {}'.format(tmp_directory, read_config_file_name)
+    assert os.path.isdir(tmp_directory), \
+        'tmp_directory does not exist: {!r} in {}'.format(tmp_directory, read_config_file_name)
 
     assert file_name is not None
     if not file_name.endswith('.h5'):
