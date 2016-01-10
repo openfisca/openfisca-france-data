@@ -81,9 +81,6 @@ class SurveyScenario(AbstractSurveyScenario):
             difference = difference, filter_by = filter_by, index = index, period = period, reference = reference,
             values = values)
 
-
-
-
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
             year = None):
@@ -160,7 +157,6 @@ class SurveyScenario(AbstractSurveyScenario):
         calibration.calibrate()
         calibration.set_calibrated_weights()
         self.calibration = calibration
-
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:
