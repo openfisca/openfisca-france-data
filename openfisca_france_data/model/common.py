@@ -194,7 +194,10 @@ def mark_weighted_percentiles(a, labels, weights, method, return_quantiles=False
 #            )
 #        )
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> openfisca/master
 class champm_individus(Variable):
     column = BoolCol
     entity_class = Individus
