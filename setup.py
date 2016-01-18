@@ -65,7 +65,6 @@ setup(
         'numpy',
         'OpenFisca-France',
         'pandas',
-        'scipy',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
         ],
