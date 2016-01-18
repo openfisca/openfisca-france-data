@@ -175,7 +175,7 @@ class SurveyScenario(AbstractSurveyScenario):
                             log.info('WARNING salaire_imposable_pour_inversion not present and thus not initialized')
                             pass
 
-            simulation.get_or_new_holder('taux_invalidite').set_input(simulation.period, .50)
+            simulation.get_or_new_holder('taux_incapacite').set_input(simulation.period, .50)
 
     def initialize_weights(self):
         self.weight_column_name_by_entity_key_plural['menages'] = 'wprm'
