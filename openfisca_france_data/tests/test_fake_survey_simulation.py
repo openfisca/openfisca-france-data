@@ -59,7 +59,7 @@ def build_by_extraction(year = None):
 def get_fake_input_data_frame(year = None):
     assert year is not None
     store = pandas.HDFStore(hdf5_file_realpath)
-    input_data_frame = store.select(str(year))
+    input_data_frame = store[str(year)]
     input_data_frame.rename(
         columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
         inplace = True,
