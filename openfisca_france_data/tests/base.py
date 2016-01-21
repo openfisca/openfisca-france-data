@@ -54,6 +54,7 @@ __all__ = [
 FranceDataTaxBenefitSystem = init_country()
 france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
 
+
 # Reforms cache, used by long scripts like test_yaml.py
 
 build_reform_function_by_key = {
