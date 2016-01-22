@@ -27,13 +27,15 @@ from openfisca_core import reforms
 
 import openfisca_france
 from openfisca_france.model.base import (BoolCol, CHEF, ENFS, Enum, EnumCol, Familles, FloatCol, FoyersFiscaux,
-    Individus, IntCol, Menages, QUIFAM, QUIFOY, PART, Variable, VOUS)
+    Individus, IntCol, Menages, QUIFAM, QUIFOY, PART, VOUS)
 
 
 __all__ = [
     'BoolCol',
     'CHEF',
+    'DatedVariable',
     'ENFS',
+    'EntityToPersonColumn',
     'Enum',
     'EnumCol',
     'Familles',
@@ -44,6 +46,7 @@ __all__ = [
     'Menages',
     'openfisca_france_tax_benefit_system',
     'PART',
+    'PersonToEntityColumn',
     'QUIFAM',
     'QUIFOY',
     'TaxBenefitSystem',
@@ -59,3 +62,9 @@ TaxBenefitSystem = reforms.make_reform(
     name = u"OpenFisca for survey data",
     reference = openfisca_france_tax_benefit_system,
     )
+
+# Export reform classes to register variables in reform column_by_name dict.
+DatedVariable = TaxBenefitSystem.DatedVariable
+EntityToPersonColumn = TaxBenefitSystem.EntityToPersonColumn
+PersonToEntityColumn = TaxBenefitSystem.PersonToEntityColumn
+Variable = TaxBenefitSystem.Variable
