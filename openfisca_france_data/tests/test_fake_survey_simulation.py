@@ -40,6 +40,9 @@ from openfisca_france_data.surveys import SurveyScenario
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 hdf5_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.h5')
+csv_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.csv')
+
+
 
 
 def build_by_extraction(year = None):
@@ -51,15 +54,21 @@ def build_by_extraction(year = None):
     output.loc[0, 'sali'] = 20000
     output.loc[1, 'sali'] = 10000
     output['wprm'] = 100
-    store = pandas.HDFStore(hdf5_file_realpath)
-    store.put(str(year), output)
-    store.close()
+    output.to_csv(csv_file_realpath)
+    output.to_hdf(hdf5_file_realpath)
+
+
+def build_csv_from_hdf(year):
+    output = pandas.read_hdf(hdf5_file_realpath, key = str(year))
+    output.to_csv(csv_file_realpath)
 
 
 def get_fake_input_data_frame(year = None):
     assert year is not None
-    store = pandas.HDFStore(hdf5_file_realpath)
-    input_data_frame = store[str(year)]
+    try:
+        input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
+    except:
+        input_data_frame = pandas.read_csv(csv_file_realpath)
     input_data_frame.rename(
         columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
         inplace = True,
@@ -253,4 +262,4 @@ if __name__ == '__main__':
     #    df_i = df_by_entity['individus']
     #    df_f = df_by_entity['foyers_fiscaux']
     #    df_m = df_by_entity['menages']
-    test_fake_calibration_age()
+    build_csv_from_hdf(2006)

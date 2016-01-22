@@ -64,6 +64,7 @@ setup(
         'Babel >= 0.9.4',
         'numpy',
         'OpenFisca-France',
+	'OpenFisca-Survey-Manager',
         'pandas',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
