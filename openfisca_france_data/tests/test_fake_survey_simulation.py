@@ -43,8 +43,6 @@ hdf5_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_inp
 csv_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.csv')
 
 
-
-
 def build_by_extraction(year = None):
     assert year is not None
     df = get_input_data_frame(year)
