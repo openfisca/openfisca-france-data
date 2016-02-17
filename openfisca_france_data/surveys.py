@@ -43,7 +43,7 @@ class SurveyScenario(AbstractSurveyScenario):
     default_used_as_input_variables = [
         'age_en_mois',
         'age',
-        'cho',
+        'chomage_imposable',
         'hsup',
         'nbF',
         'nbG',
@@ -52,7 +52,7 @@ class SurveyScenario(AbstractSurveyScenario):
         'nbJ',
         'nbN',
         'nbR',
-        'rst',
+        'retraite_imposable',
         'salaire_imposable',
         'autonomie_financiere',
         ]
