@@ -1,4 +1,4 @@
--e git+https://github.com/openfisca/openfisca-core.git#egg=OpenFisca-Core
--e git+https://github.com/benjello/openfisca-france.git@ayrault_muet#egg=OpenFisca-France
--e git+https://github.com/openfisca/openfisca-survey-manager.git#egg=OpenFisca-Survey-Manager
+-e git+https://github.com/openfisca/openfisca-core.git@master#egg=OpenFisca-Core
+-e git+https://github.com/openfisca/openfisca-france.git@master#egg=OpenFisca-France
+-e git+https://github.com/openfisca/openfisca-survey-manager.git@master#egg=OpenFisca-Survey-Manager
 -e .
