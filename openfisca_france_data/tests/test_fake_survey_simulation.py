@@ -68,7 +68,7 @@ def get_fake_input_data_frame(year = None):
     except:
         input_data_frame = pandas.read_csv(csv_file_realpath)
     input_data_frame.rename(
-        columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
+        columns = dict(sali = 'salaire_imposable', choi = 'chomage_imposable', rsti = 'retraite_imposable'),
         inplace = True,
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000

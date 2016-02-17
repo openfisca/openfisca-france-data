@@ -43,7 +43,7 @@ class SurveyScenario(AbstractSurveyScenario):
     default_used_as_input_variables = [
         'age_en_mois',
         'age',
-        'cho',
+        'chomage_imposable',
         'hsup',
         'nbF',
         'nbG',
@@ -52,7 +52,7 @@ class SurveyScenario(AbstractSurveyScenario):
         'nbJ',
         'nbN',
         'nbR',
-        'rst',
+        'retraite_imposable',
         'salaire_imposable',
         'smic55',
         ]
@@ -163,7 +163,7 @@ class SurveyScenario(AbstractSurveyScenario):
             if simulation is None:
                 continue
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'cho', 'rst', 'pensions_alimentaires_percues', 'hsup']:
+                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable', 'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
                     if variable_name == 'salaire_imposable':
