@@ -30,7 +30,7 @@ import numpy as np
 from openfisca_core import periods, simulations
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
-from openfisca_france_data import init_country
+from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 
@@ -88,8 +88,7 @@ class SurveyScenario(AbstractSurveyScenario):
         if used_as_input_variables is None:
             used_as_input_variables = self.default_used_as_input_variables
 
-        FranceDataTaxBenefitSystem = init_country()
-        france_data_tax_benefit_system = FranceDataTaxBenefitSystem()
+
         if tax_benefit_system is None:
             tax_benefit_system = france_data_tax_benefit_system
             reference_tax_benefit_system = None
@@ -163,7 +162,7 @@ class SurveyScenario(AbstractSurveyScenario):
             if simulation is None:
                 continue
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'cho', 'rst', 'pensions_alimentaires_percues', 'hsup']:
+                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable', 'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
                     if variable_name == 'salaire_imposable':
@@ -171,7 +170,7 @@ class SurveyScenario(AbstractSurveyScenario):
                             holder = simulation.get_or_new_holder('salaire_imposable_pour_inversion')
                             holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
                             log.info('salaire_imposable_pour_inversion initialized')
-                        except KeyError:
+                        except AssertionError:
                             log.info('WARNING salaire_imposable_pour_inversion not present and thus not initialized')
                             pass
 

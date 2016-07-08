@@ -23,28 +23,28 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from ..base import * # noqa  analysis:ignore
+from .base import * # noqa  analysis:ignore
 
 
-class idmen_original(TaxBenefitSystem.Variable):
+class idmen_original(Variable):
     column = IntCol
     entity_class = Menages
     label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF"
 
 
-class idfoy_original(TaxBenefitSystem.Variable):
+class idfoy_original(Variable):
     column = IntCol
     entity_class = FoyersFiscaux
     label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF"
 
 
-class idfam_original(TaxBenefitSystem.Variable):
+class idfam_original(Variable):
     column = IntCol
     entity_class = Familles
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF"
 
 
-class titc(TaxBenefitSystem.Variable):
+class titc(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -60,7 +60,7 @@ class titc(TaxBenefitSystem.Variable):
     # survey_only = True
 
 
-class statut(TaxBenefitSystem.Variable):
+class statut(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -83,7 +83,7 @@ class statut(TaxBenefitSystem.Variable):
     label = u"Statut détaillé mis en cohérence avec la profession"
 
 
-class txtppb(TaxBenefitSystem.Variable):
+class txtppb(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -100,7 +100,7 @@ class txtppb(TaxBenefitSystem.Variable):
     label = u"Taux du temps partiel"
 
 
-class chpub(TaxBenefitSystem.Variable):
+class chpub(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -118,7 +118,7 @@ class chpub(TaxBenefitSystem.Variable):
     label = u"Nature de l'employeur principal"
 
 
-class cadre(TaxBenefitSystem.Variable):
+class cadre(Variable):
     column = BoolCol()
     entity_class = Individus
     label = u"Cadre salarié du privé"
@@ -127,7 +127,7 @@ class cadre(TaxBenefitSystem.Variable):
 #   zones apl and calibration
 
 
-class tu99(TaxBenefitSystem.Variable):
+class tu99(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -147,7 +147,7 @@ class tu99(TaxBenefitSystem.Variable):
     label = u"Tranche d'unité urbaine"
 
 
-class tau99(TaxBenefitSystem.Variable):
+class tau99(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -169,7 +169,7 @@ class tau99(TaxBenefitSystem.Variable):
     entity_class = Menages
 
 
-class reg(TaxBenefitSystem.Variable):
+class reg(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -202,7 +202,7 @@ class reg(TaxBenefitSystem.Variable):
     entity_class = Menages
 
 
-class pol99(TaxBenefitSystem.Variable):
+class pol99(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -217,7 +217,7 @@ class pol99(TaxBenefitSystem.Variable):
     entity_class = Menages
 
 
-class cstotpragr(TaxBenefitSystem.Variable):
+class cstotpragr(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -237,7 +237,7 @@ class cstotpragr(TaxBenefitSystem.Variable):
     entity_class = Menages
 
 
-class naf16pr(TaxBenefitSystem.Variable):
+class naf16pr(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -267,7 +267,7 @@ class naf16pr(TaxBenefitSystem.Variable):
     label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence"
 
 
-class nafg17npr(TaxBenefitSystem.Variable):
+class nafg17npr(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -317,7 +317,7 @@ class nafg17npr(TaxBenefitSystem.Variable):
 #                                    u"Autres ménages, tous inactifs"],start = 1)))
 
 
-class ageq(TaxBenefitSystem.Variable):
+class ageq(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -351,7 +351,7 @@ class ageq(TaxBenefitSystem.Variable):
 #                                  u"Six personnes et plus"], start = 1))),
 
 
-class ddipl(TaxBenefitSystem.Variable):
+class ddipl(Variable):
     column = EnumCol(
         enum = Enum(
             [
@@ -369,7 +369,7 @@ class ddipl(TaxBenefitSystem.Variable):
     entity_class = Individus
 
 
-class act5(TaxBenefitSystem.Variable):
+class act5(Variable):
     # 5 postes normalement TODO: check = 0
     column = EnumCol(
         enum = Enum([
@@ -388,48 +388,48 @@ class act5(TaxBenefitSystem.Variable):
 
 # to remove
 
-class champm(TaxBenefitSystem.Variable):
+class champm(Variable):
     column = BoolCol(default = True)
     entity_class = Menages
 
 
-class wprm(TaxBenefitSystem.Variable):
+class wprm(Variable):
     column = FloatCol(default = 1)
     entity_class = Menages
     label = u"Effectifs"
 
 
-class wprm_init(TaxBenefitSystem.Variable):
+class wprm_init(Variable):
     column = FloatCol
     entity_class = Menages
     label = u"Effectifs"
 
 
-class m_afeamam(TaxBenefitSystem.Variable):
+class m_afeamam(Variable):
     column = IntCol
     entity_class = Menages
 
 
-class m_agedm(TaxBenefitSystem.Variable):
+class m_agedm(Variable):
     column = IntCol
     entity_class = Menages
 
 
-class m_clcam(TaxBenefitSystem.Variable):
+class m_clcam(Variable):
     column = IntCol
     entity_class = Menages
 
 
-class m_colcam(TaxBenefitSystem.Variable):
+class m_colcam(Variable):
     column = IntCol
     entity_class = Menages
 
 
-class m_mgamm(TaxBenefitSystem.Variable):
+class m_mgamm(Variable):
     column = IntCol
     entity_class = Menages
 
 
-class m_mgdomm(TaxBenefitSystem.Variable):
+class m_mgdomm(Variable):
     column = IntCol
     entity_class = Menages

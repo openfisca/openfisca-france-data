@@ -27,9 +27,13 @@ from __future__ import division
 
 from numpy import arange, argsort, asarray, cumsum, linspace, logical_and as and_, repeat
 
+# from openfisca_core.variables import Variable
 
-from openfisca_survey_manager.statshelpers import weighted_quantiles
 
+try:
+    from openfisca_survey_manager.statshelpers import weighted_quantiles
+except ImportError:
+    weighted_quantiles = None
 
 from .base import *  # noqa analysis:ignore
 
@@ -427,13 +431,14 @@ class decile_rfr_par_part(Variable):
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
-        print values
-        print (weight_foyers * champm_foyers_fiscaux * rfr / nbptr).sum()
-        print weight_foyers.sum()
-        print champm_foyers_fiscaux.sum()
-        print (weight_foyers * champm_foyers_fiscaux).sum()
-        print 'salaire_imposable', salaire_imposable.sum()
+        decile, values = weighted_quantiles(
+            rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+        # print values
+        # print (weight_foyers * champm_foyers_fiscaux * rfr / nbptr).sum()
+        # print weight_foyers.sum()
+        # print champm_foyers_fiscaux.sum()
+        # print (weight_foyers * champm_foyers_fiscaux).sum()
+        # print 'salaire_imposable', salaire_imposable.sum()
         return period, decile
 
 

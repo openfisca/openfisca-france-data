@@ -27,14 +27,13 @@ from __future__ import division
 
 import logging
 
-from ..base import *  # noqa analysis:ignore
+from ..base import Variable  # noqa analysis:ignore
 
 
 log = logging.getLogger(__name__)
 
 
 class taille_entreprise(Variable):
-    reference = openfisca_france_tax_benefit_system.column_by_name['taille_entreprise']
 
     def function(self, simulation, period):
         # Pour mémoire
@@ -47,8 +46,7 @@ class taille_entreprise(Variable):
         return period, 0 + 1 * (nbsala >= 1) + 1 * (nbsala >= 4) + 1 * (nbsala >= 5) + 1 * (nbsala >= 7)
 
 
-class type_sal(Variable):
-    reference = openfisca_france_tax_benefit_system.column_by_name['type_sal']
+class categorie_salarie(Variable):
 
     def function(self, simulation, period):
         cadre = simulation.calculate('cadre', period)
