@@ -52,7 +52,7 @@ def test_survey_simulation():
             'pensions_alimentaires_percues',
             'salaire_imposable',
             'salaire_net',
-            'smic55',
+            'autonomie_financiere',
             'txtppb',
             'af_nbenf',
             'af',

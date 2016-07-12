@@ -29,7 +29,7 @@
       age_en_mois:
         2015-01: 9 * 12
   output_variables:
-    smic55:
+    autonomie_financiere:
       2015-01:
         - false
         - false

@@ -54,7 +54,7 @@ class SurveyScenario(AbstractSurveyScenario):
         'nbR',
         'rst',
         'salaire_imposable',
-        'smic55',
+        'autonomie_financiere',
         ]
     filtering_variable_by_entity_key_plural = dict(
         (entity, "champm_{}".format(entity)) for entity in ['individus', 'foyers_fiscaux', 'familles']

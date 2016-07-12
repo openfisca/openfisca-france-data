@@ -135,7 +135,7 @@ def test_fake_survey_simulation():
             'champm_individus',
             'salaire_imposable',
             'salaire_net',
-            'smic55',
+            'autonomie_financiere',
             'txtppb',
             'af_nbenf',
             'af',
