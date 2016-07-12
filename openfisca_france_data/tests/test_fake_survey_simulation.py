@@ -67,9 +67,8 @@ def get_fake_input_data_frame(year = None):
         input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
     except:
         input_data_frame = pandas.read_csv(csv_file_realpath)
-    input_data_frame.rename(
+    input_data_frame = input_data_frame.rename(
         columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
-        inplace = True,
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
     input_data_frame.loc[1, 'salaire_imposable'] = 10000
