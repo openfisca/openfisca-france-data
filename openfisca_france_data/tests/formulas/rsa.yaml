@@ -13,7 +13,7 @@
         2014-12: 25000 / 12
         2015-01: 25000 / 12
   output_variables:
-    br_rmi:
+    rsa_base_ressources:
       2015-01: 25000 / 12
     rsa:
       2015-01:
@@ -47,7 +47,7 @@
 
   output_variables:
     activite: 0
-    br_rmi:
+    rsa_base_ressources:
       2009-12: 25000 / 12
       2009-01: 0
 
