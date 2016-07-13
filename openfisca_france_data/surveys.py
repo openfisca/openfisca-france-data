@@ -118,7 +118,7 @@ class SurveyScenario(AbstractSurveyScenario):
 
         final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
 
-        for entities in simulation.entity_by_key_singular.values():
+        for entity in simulation.entity_by_key_singular.values():
             if entity.index_for_person_variable_name in id_variables:
                 other_entity_index = \
                     data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
@@ -162,7 +162,8 @@ class SurveyScenario(AbstractSurveyScenario):
             if simulation is None:
                 continue
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable', 'pensions_alimentaires_percues', 'hsup']:
+                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable',
+                        'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
                     if variable_name == 'salaire_imposable':
