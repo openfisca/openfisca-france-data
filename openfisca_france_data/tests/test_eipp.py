@@ -43,6 +43,7 @@ def get_input_data_frame(year):
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
 
+
 # TODO, move to SurveyScenario
 def filter_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
     symbol = filter_entity.symbol
@@ -72,8 +73,7 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
 def test_survey_simulation():
     year = 2011
     input_data_frame = get_input_data_frame(year)
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system_class = TaxBenefitSystem
+    tax_benefit_system_class = openfisca_france.FranceTaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         tax_benefit_system_class = tax_benefit_system_class,
@@ -108,8 +108,7 @@ def test_survey_simulation():
 def test_weights_building():
     year = 2011
     input_data_frame = get_input_data_frame(year)
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system_class = TaxBenefitSystem
+    tax_benefit_system_class = openfisca_france.FranceTaxBenefitSystem()
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         tax_benefit_system_class = tax_benefit_system_class,

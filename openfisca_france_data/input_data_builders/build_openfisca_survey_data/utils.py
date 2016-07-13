@@ -112,7 +112,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
 
         else:
             if dataframe.duplicated(verbose_columns).any():
-                print 'nb lignes lignes dupliquées_____', len(dataframe[dataframe.duplicated(verbose_columns)])
+                print 'nb lignes lignes dupliquées _____', len(dataframe[dataframe.duplicated(verbose_columns)])
                 print dataframe.loc[:, verbose_columns].describe()
             for col in verbose_columns:
                 print 'nombre de NaN dans %s : ' % (col), dataframe[col].isnull().sum()
@@ -172,6 +172,7 @@ def print_id(df):
     except:
         log.info("No idfam or quifam")
     compute_masses(df)
+
 
 def compute_masses(dataframe):
     variables = ['sali', 'choi', 'rsti', 'alr', 'hsup']
@@ -241,8 +242,7 @@ def check_structure(dataframe):
 
 
 def build_cerfa_fields_by_column_name(year, sections_cerfa):
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
+    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
     cerfa_fields_by_column_name = dict()
     for name, column in tax_benefit_system.column_by_name.iteritems():
         for section_cerfa in sections_cerfa:
@@ -321,8 +321,7 @@ def normalizes_roles_in_entity(dataframe, entity_suffix):
 
 def set_variables_default_value(dataframe, year):
     import openfisca_france
-    TaxBenefitSystem = openfisca_france.init_country()
-    tax_benefit_system = TaxBenefitSystem()
+    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 
     for column_name, column in tax_benefit_system.column_by_name.iteritems():
         if column_name in dataframe.columns:

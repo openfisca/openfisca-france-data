@@ -42,17 +42,16 @@ def adaptation_eipp_to_OF(years = None, filename = "test", check = False):
         log.error("A list of years to process is needed")
 
     for year in years:
-    # load data
+        # load data
         eipp_survey_collection = SurveyCollection.load(collection = 'eipp')
         survey = eipp_survey_collection.surveys['eipp_{}'.format(year)]
         base = survey.get_values(table = "base")
         ipp2of_input_variables, ipp2of_output_variables = build_ipp2of_variables()
-#        print 'avant',list(base.columns.values)
-#        base.rename(columns = ipp2of_input_variables, inplace = True)
-#        print 'après',list(base.columns.values)
+        # print 'avant',list(base.columns.values)
+        # base.rename(columns = ipp2of_input_variables, inplace = True)
+        # print 'après',list(base.columns.values)
 
-        TaxBenefitSystem = openfisca_france.init_country()
-        tax_benefit_system = TaxBenefitSystem()
+        tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 
     data_frame = build_input_OF(base, ipp2of_input_variables, tax_benefit_system)
     return data_frame
@@ -86,10 +85,10 @@ def dump_data_frame(data_frame, year):
     survey_collection.dump(collection = "eipp")
 
 if __name__ == '__main__':
-    #import time
-    #start = time.time()
+    # import time
+    # start = time.time()
     data_frame = adaptation_eipp_to_OF(years = [2011], check = False)
     dump_data_frame(data_frame, 2011)
-    #log.info("{}".format( time.time() - start ))
+    # log.info("{}".format( time.time() - start ))
     # import pdb
     # pdb.set_trace()
