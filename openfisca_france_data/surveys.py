@@ -27,7 +27,7 @@ import logging
 import numpy as np
 
 
-from openfisca_core import periods, simulations
+from openfisca_core import periods, simulations, taxbenefitsystems
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
 from openfisca_france_data import france_data_tax_benefit_system
@@ -171,7 +171,7 @@ class SurveyScenario(AbstractSurveyScenario):
                             holder = simulation.get_or_new_holder('salaire_imposable_pour_inversion')
                             holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
                             log.info('salaire_imposable_pour_inversion initialized')
-                        except AssertionError:
+                        except taxbenefitsystems.VariableNotFound:
                             log.info('WARNING salaire_imposable_pour_inversion not present and thus not initialized')
                             pass
 
