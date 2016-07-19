@@ -61,6 +61,7 @@ setup(
         ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
     install_requires = [
+        'OpenFisca-Core>=2.0.3',
         'OpenFisca-France',
         'OpenFisca-Survey-Manager',
         'pandas >= 0.16',
