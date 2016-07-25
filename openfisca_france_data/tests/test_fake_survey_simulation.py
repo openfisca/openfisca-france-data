@@ -112,7 +112,7 @@ def test_fake_survey_simulation():
     assert (sal_2005 == sal_2006).all()
     import itertools
 
-    for year, month in itertools.product(range(2002, 2004), range(1, 13)):
+    for year, month in itertools.product(range(2003, 2004), range(1, 13)):
         assert (simulation.calculate_add('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
 
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):
