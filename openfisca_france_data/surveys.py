@@ -88,7 +88,6 @@ class SurveyScenario(AbstractSurveyScenario):
         if used_as_input_variables is None:
             used_as_input_variables = self.default_used_as_input_variables
 
-
         if tax_benefit_system is None:
             tax_benefit_system = france_data_tax_benefit_system
             reference_tax_benefit_system = None
