@@ -29,7 +29,7 @@ import os
 
 from openfisca_core.tools import assert_near
 from openfisca_france_data.calibration import Calibration
-from openfisca_france.reforms import plf2015
+import openfisca_france.tests.base as france_base 
 import numpy
 import pandas
 
@@ -227,7 +227,10 @@ def test_reform():
 
     input_data_frame.salaire_imposable = [20000, 18000]
 
-    reform = plf2015.build_reform(base.france_data_tax_benefit_system)
+    reform = france_base.get_cached_reform(
+        reform_key = 'plf2015',
+        tax_benefit_system = base.france_data_tax_benefit_system,
+        )
 
     survey_scenario = SurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,

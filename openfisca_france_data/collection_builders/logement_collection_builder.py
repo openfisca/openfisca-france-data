@@ -2,29 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-
-
 import ConfigParser
 # import getpass
 import logging
@@ -68,7 +45,7 @@ def build_survey_collection(name = None, erase_collection_json = False, overwrit
             assert os.path.isdir(input_data_directory)
 
         data_file_by_format = create_data_file_by_format(data_directory_path)
-        print data_file_by_format
+        print(data_file_by_format)
         survey_name = '{}_{}'.format(name, year)
         add_survey_to_collection(
             survey_name = survey_name,
@@ -90,9 +67,9 @@ if __name__ == '__main__':
     start_time = datetime.datetime.now()
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-#    years = [2006, 2007, 2008, 2009]
-#    erfs_survey_collection = build_survey_collection(name = 'erfs', years = years, erase_collection_json = True,
-#        overwrite_surveys = False)
+    #    years = [2006, 2007, 2008, 2009]
+    #    erfs_survey_collection = build_survey_collection(name = 'erfs', years = years, erase_collection_json = True,
+    #        overwrite_surveys = False)
 
     logement_survey_collection = build_survey_collection(
         name = 'logement',
@@ -104,39 +81,36 @@ if __name__ == '__main__':
         )
 
     log.info("The program have been executed in {}".format(datetime.datetime.now() - start_time))
-
-
-
-#        if yr == "03":
-#            lgt_men = "menage"
-#            lgt_logt = None
-#            renameidlgt = dict(ident='ident')
-#
-#        elif yr in ["06" ,"07", "08", "09"]: # TODO: clean this
-#            lgt_men = "menage1"
-#            lgt_lgt = "logement"
-#            renameidlgt = dict(idlog='ident')
-#
-#        logement_tables = {
-#            "adresse" : "adresse",
-#            "lgt_menage" : lgt_men,
-#            "lgt_logt" : lgt_lgt,
-#            }
-#
-#        RData_directory = os.path.join(os.path.dirname(input_data_directory),'R','logement', str(year))
-#        SasData_directory = os.path.join(os.path.dirname(input_data_directory),'enqlog2006/enq_06')
-#
-#
-#        for name, Rdata_table in logement_tables.iteritems():
-#          Rdata_file = os.path.join(RData_directory, "{}.Rdata".format(Rdata_table))
-#          sas_file = os.path.join(SasData_directory, "{}.sas7bdat".format(Rdata_table))
-#          survey.insert_table(name = name,
-#                              year = year,
-#                              Rdata_file = Rdata_file,
-#                              Rdata_table = Rdata_table,
-#                              sas_file = sas_file
-#                              )
-#
-#    return logement_survey_collection
-#
-#
+    #        if yr == "03":
+    #            lgt_men = "menage"
+    #            lgt_logt = None
+    #            renameidlgt = dict(ident='ident')
+    #
+    #        elif yr in ["06" ,"07", "08", "09"]: # TODO: clean this
+    #            lgt_men = "menage1"
+    #            lgt_lgt = "logement"
+    #            renameidlgt = dict(idlog='ident')
+    #
+    #        logement_tables = {
+    #            "adresse" : "adresse",
+    #            "lgt_menage" : lgt_men,
+    #            "lgt_logt" : lgt_lgt,
+    #            }
+    #
+    #        RData_directory = os.path.join(os.path.dirname(input_data_directory),'R','logement', str(year))
+    #        SasData_directory = os.path.join(os.path.dirname(input_data_directory),'enqlog2006/enq_06')
+    #
+    #
+    #        for name, Rdata_table in logement_tables.iteritems():
+    #          Rdata_file = os.path.join(RData_directory, "{}.Rdata".format(Rdata_table))
+    #          sas_file = os.path.join(SasData_directory, "{}.sas7bdat".format(Rdata_table))
+    #          survey.insert_table(name = name,
+    #                              year = year,
+    #                              Rdata_file = Rdata_file,
+    #                              Rdata_table = Rdata_table,
+    #                              sas_file = sas_file
+    #                              )
+    #
+    #    return logement_survey_collection
+    #
+    #
