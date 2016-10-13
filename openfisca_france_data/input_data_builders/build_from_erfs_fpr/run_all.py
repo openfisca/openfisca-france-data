@@ -7,15 +7,8 @@ import os
 
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data import (  # analysis:ignore
+from openfisca_france_data.input_data_builders.build_from_erfs_fpr  import (  # analysis:ignore
     step_01_pre_processing as pre_processing,
-    step_02_imputation_loyer as imputation_loyer,
-    step_03_fip as fip,
-    step_04_famille as famille,
-    step_05_foyer as foyer,
-    step_06_rebuild as rebuild,
-    step_07_invalides as invalides,
-    step_08_final as final,
     )
 from openfisca_france_data.temporary import get_store
 
@@ -29,22 +22,6 @@ log = logging.getLogger(__name__)
 def run_all(year = None, check = False):
 
     assert year is not None
-    pre_processing.create_indivim_menagem(year = year)
-    pre_processing.create_enfants_a_naitre(year = year)
-    #    try:
-    #        imputation_loyer.imputation_loyer(year = year)
-    #    except Exception, e:
-    #        log.info('Do not impute loyer because of the following error: \n {}'.format(e))
-    #        pass
-    fip.create_fip(year = year)
-    famille.famille(year = year)
-    foyer.sif(year = year)
-    foyer.foyer_all(year = year)
-    rebuild.create_totals_first_pass(year = year)
-    rebuild.create_totals_second_pass(year = year)
-    rebuild.create_final(year = year)
-    invalides.invalide(year = year)
-    final.final(year = year, check = check)
 
     temporary_store = get_store(file_name = 'erfs')
     data_frame = temporary_store['input_{}'.format(year)]
