@@ -67,8 +67,9 @@ def get_fake_input_data_frame(year = None):
         input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
     except:
         input_data_frame = pandas.read_csv(csv_file_realpath)
-    input_data_frame = input_data_frame.rename(
+    input_data_frame.rename(
         columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
+        inplace = True,
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
     input_data_frame.loc[1, 'salaire_imposable'] = 10000
@@ -112,7 +113,7 @@ def test_fake_survey_simulation():
     assert (sal_2005 == sal_2006).all()
     import itertools
 
-    for year, month in itertools.product(range(2002, 2004), range(1, 13)):
+    for year, month in itertools.product(range(2003, 2004), range(1, 13)):
         assert (simulation.calculate_add('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
 
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):

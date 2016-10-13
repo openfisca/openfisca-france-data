@@ -81,7 +81,7 @@ class categorie_salarie(Variable):
 #     reference = openfisca_france_tax_benefit_system.column_by_name['rstbrut']
 #
 #     def function(self, simulation, period):
-#         rst = simulation.calculate('rst', period)
+#         rst = simulation.calculate('retraite_imposable', period)
 #         return period, rst
 #
 #
