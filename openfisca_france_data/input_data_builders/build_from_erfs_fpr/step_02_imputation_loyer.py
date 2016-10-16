@@ -33,69 +33,107 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def create_comparable_erf_data_frame(temporary_store = None, year = None):
-    '''
-    Imputation des loyers
-    '''
+def prepare_erf_menage(temporary_store = None, year = None, kind = None):
+    u"""
+    Préparation de la sous-table ERFS de travail
+    """
     assert temporary_store is not None
     assert year is not None
-    # Préparation des variables qui serviront à l'imputation
-    # Année achèvement de l'immeuble (8 postes) aai1
-    # Année achèvement de l'immeuble aai2
-    menage_variables = [
-        "aai1",
+
+    log.info(u"Préparation de la table ménage de l'ERF")
+    if kind == "erfs_fpr":
+        # revenus_variables = [
+        #     "chomage",
+        #     "rag",
+        #     "retraites",
+        #     "rev_etranger"
+        #     "rev_financier_prelev_lib_imputes",
+        #     "rev_fonciers_bruts",
+        #     "rev_valeurs_mobilieres_bruts",
+        #     "ric",
+        #     "rnc",
+        #     ]
+        revenus_variables = ["revdecm"]
+        localisation_variables = [
+            "pol10",
+            "tau10",
+            "tu10",
+            ]
+        nationalite_variables = [
+            "nfr"
+            ]
+    else:
+        revenus_variables = [
+            "zperm",
+            "zracm",
+            "zragm",
+            "zricm",
+            "zrncm",
+            "ztsam",
+            ]
+        localisation_variables = [
+            "aai1",  # aai1: Année achèvement de l'immeuble (8 postes); Année achèvement de l'immeuble aai2
+            "pol99",
+            "tau99",
+            "tu99",
+            ]
+        nationalite_variables = [
+            "nat28pr",
+            ]
+
+    menage_variables = revenus_variables + localisation_variables + [
         "agpr",
         "cstotpr",
         "ident",
-        "nat28pr",
         "nb_uci",
         "nbenfc",
         "nbpiec",
-        "pol99",
         "reg",
         "so",
         "spr",
-        "tau99",
-        "tu99",
         "typmen5",
         "wprm",
-        "zperm",
-        "zracm",
-        "zragm",
-        "zricm",
-        "zrncm",
-        "ztsam",
         ]
 
     if year == 2008:  # Tau99 not present
         menage_variables = menage_variables.pop('tau99')
 
-    # Travail sur la base ERF
-    log.info(u"Préparation de la table ménage de l'ERF")
     erf_menages = temporary_store['menagem_{}'.format(year)]
     erf_menages = erf_menages[menage_variables].copy()
-    erf_menages['revtot'] = (
-        erf_menages.zperm +
-        erf_menages.zragm +
-        erf_menages.zricm +
-        erf_menages.zrncm +
-        erf_menages.ztsam +
-        erf_menages.zracm
-        )
+
+    if kind == "erfs_fpr":
+        erf_menages['revtot'] = 0  # TODO change this
+    else:
+        erf_menages['revtot'] = (
+            erf_menages.zperm +
+            erf_menages.zragm +
+            erf_menages.zricm +
+            erf_menages.zrncm +
+            erf_menages.ztsam +
+            erf_menages.zracm
+            )
+
     # Niveau de vie de la personne de référence
     erf_menages['nvpr'] = erf_menages.revtot.astype('float') / erf_menages.nb_uci.astype('float')
-    erf_menages.loc[erf_menages.nvpr < 0, nvpr] = 0
+    erf_menages.loc[erf_menages.nvpr < 0, 'nvpr'] = 0
     erf_menages.rename(columns = dict(so = 'statut_occupation'), inplace = True)
 
     log.info(u"Preparation de la tables individus de l'ERF")
-    indm_vars = ['dip11', 'ident', 'lpr', 'noi']
     erfindm = temporary_store['indivim_{}'.format(year)]
     erfindm = erfindm.loc[erfindm.lpr == 1, ['ident', 'dip11']].copy()
 
     log.info(u"Fusion des tables menage et individus de l'ERF")
     erf = erf_menages.merge(erfindm, on = 'ident', how = 'inner')
-    erf = erf.drop_duplicates('ident')
+    del erf_menages, erfindm
+    assert not erf.duplicated().any(), \
+        "Il y a {} ménages dupliqués".format(erf.duplicated().sum())
+    # erf = erf.drop_duplicates('ident')
+    gc.collect()
 
+    return erf
+
+
+def compute_decile(erf):
     dec, values = mark_weighted_percentiles(
         erf.nvpr.values,
         numpy.arange(1, 11),
@@ -119,6 +157,17 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     assert erf.deci.isin(range(1, 11)).all()
     del dec, values
     gc.collect()
+
+
+def create_comparable_erf_data_frame(temporary_store = None, year = None):
+    u"""
+    Préparation des variables de la table ERFS qui serviront à l'imputation
+    """
+    assert temporary_store is not None
+    assert year is not None
+
+    erf = prepare_erf_menage(temporary_store = temporary_store, year = year, kind = "erfs_fpr")
+    compute_decile(erf)  # deci = decile de revenu par unité de consommation
 
     # TODO: faire le lien avec men_vars,
     # il manque "pol99","reg","tau99" et ici on a en plus logt, 'nvpr','revtot','dip11','deci'
@@ -147,7 +196,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         'zrncm',
         'ztsam',
         ]
-    erf = erf.loc[[erf.statut_occupation.isin(range(3, 6))], variables]
+    erf = erf.loc[erf.statut_occupation.isin(range(3, 6)), variables]
     erf.rename(
         columns = {
             'dip11': 'mdiplo',
@@ -195,7 +244,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erf.loc[erf.mnatio == 10, 'mnatio'] = 1
     mnatio_range = range(11, 16) + range(21, 30) + range(31, 33) + range(41, 49) + range(51, 53) + [60] + [62]
     erf.loc[erf.mnatio.isin(mnatio_range), 'mnatio'] = 2
-    assert erf.mnatio.isin(range(1, 3)).all()
+    assert erf.mnatio.isin(range(1, 3)).all(), 'valeurs pour mnatio\n{}'.format(erf.mnatio.value_counts())
 
     # iaat_bis is a contraction of iaat varaible of enquête logement
     # iaat_bis DATE D'ACHEVEMENT DE LA CONSTRUCTION
@@ -309,8 +358,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     if year > 2005 and year < 2010:
         year_lgt = 2006
 
-    logement_survey_collection = SurveyCollection.load(collection = 'logement',
-            config_files_directory = config_files_directory)
+    logement_survey_collection = SurveyCollection.load(collection = 'logement')
     logement_survey = logement_survey_collection.get_survey('logement_{}'.format(year_lgt))
 
     log.info("Preparing logement menage table")
@@ -496,16 +544,16 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     return logement
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+@temporary_store_decorator(file_name = 'erfs_fpr')
 def imputation_loyer(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
     erf = create_comparable_erf_data_frame(temporary_store = temporary_store, year = year)
-
     logement = create_comparable_logement_data_frame(temporary_store = temporary_store, year = year)
-    log.info("dropping {} observations form logement".format(logement.lmlm.isnull().sum()))
+
     logement = logement.loc[logement.lmlm.notnull()].copy()
+    log.info("Dropping {} observations form logement".format(logement.lmlm.isnull().sum()))
 
     allvars = [
         'deci',
@@ -611,9 +659,6 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2012
-
-
-
-    # erf, logement = imputation_loyer(year = year)
+    imputation_loyer(year = year)
 
 

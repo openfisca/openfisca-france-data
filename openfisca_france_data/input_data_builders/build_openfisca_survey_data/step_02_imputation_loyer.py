@@ -23,7 +23,6 @@ try:
 except ImportError:
     rpy2 = None
 
-from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     assert_variable_in_range, count_NA)
 from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
@@ -43,7 +42,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     # Préparation des variables qui serviront à l'imputation
     # Année achèvement de l'immeuble (8 postes) aai1
     # Année achèvement de l'immeuble aai2
-    menm_vars = [
+    menage_variables = [
         "aai1",
         "agpr",
         "cstotpr",
@@ -69,22 +68,27 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         ]
 
     if year == 2008:  # Tau99 not present
-        menm_vars = menm_vars.pop('tau99')
+        menage_variables = menage_variables.pop('tau99')
 
     # Travail sur la base ERF
-    # Preparing ERF menages tables
-    erfmenm = temporary_store['menagem_{}'.format(year)]
-    erfmenm = erfmenm.xs(menm_vars, axis = 1)
-    erfmenm['revtot'] = (
-        erfmenm.ztsam + erfmenm.zperm + erfmenm.zragm + erfmenm.zricm + erfmenm.zrncm + erfmenm.zracm
+    log.info(u"Préparation de la table ménage de l'ERF")
+    erf_menages = temporary_store['menagem_{}'.format(year)]
+    erf_menages = erf_menages[menage_variables].copy()
+
+    erf_menages['revtot'] = (
+        erf_menages.zperm +
+        erf_menages.zragm +
+        erf_menages.zricm +
+        erf_menages.zrncm +
+        erf_menages.ztsam +
+        erf_menages.zracm
         )
     # Niveau de vie de la personne de référence
-    erfmenm['nvpr'] = erfmenm.revtot.astype('float') / erfmenm.nb_uci.astype('float')
-    erfmenm.nvpr[erfmenm.nvpr < 0] = 0
-    erfmenm.rename(columns = dict(so = 'statut_occupation'), inplace = True)
+    erf_menages['nvpr'] = erf_menages.revtot.astype('float') / erf_menages.nb_uci.astype('float')
+    erf_menages.loc[erf_menages.nvpr < 0, 'nvpr'] = 0
+    erf_menages.rename(columns = dict(so = 'statut_occupation'), inplace = True)
 
-    # Preparing ERF individuals table
-    indm_vars = ["dip11", 'ident', "lpr", "noi"]
+    log.info(u"Preparation de la tables individus de l'ERF")
     erfindm = temporary_store['indivim_{}'.format(year)]
     erfindm = erfindm[['ident', 'dip11']][erfindm.lpr == 1].copy()
 
@@ -593,7 +597,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2009
 
-    erf, logement = imputation_loyer(year = year)
+    imputation_loyer(year = year)
 
     #menagem, erf, fill_erf_nnd, logement = imputation_loyer(year = year)
 

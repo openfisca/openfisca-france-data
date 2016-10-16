@@ -10,23 +10,18 @@ from openfisca_france_data.input_data_builders.build_openfisca_survey_data.step_
     create_actrec_variable,
     create_variable_locataire,
     )
-
-from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.survey_collections import SurveyCollection
-
 
 
 log = logging.getLogger(__name__)
 
+
 @temporary_store_decorator(file_name = "erfs_fpr")
 def merge_tables(temporary_store = None, year = None):
     assert temporary_store is not None
-    year = 2012
-    # load data
+    # Chargement des tables
     erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
-
     survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
-
     fpr_menage = survey.get_values(table = 'fpr_menage_2012_retropole')
     eec_menage = survey.get_values(table = 'fpr_mrf12e12t4')
     eec_individu = survey.get_values(table = 'fpr_irf12e12t4')
@@ -80,8 +75,10 @@ def merge_tables(temporary_store = None, year = None):
         ])
 
     for var in var_list:
-        assert np.issubdtype(indivim[var].dtype , np.integer), "Variable {} dtype is {} and should be an integer".format(
-            var, indivim[var].dtype)
+        assert np.issubdtype(indivim[var].dtype, np.integer), \
+            "Variable {} dtype is {} and should be an integer".format(
+                var, indivim[var].dtype
+                )
 
     create_actrec_variable(indivim)
     create_variable_locataire(menagem)
@@ -90,20 +87,18 @@ def merge_tables(temporary_store = None, year = None):
         )
 
     temporary_store['menagem_{}'.format(year)] = menagem
-    del eecmen, erfmen, menagem
+    del eec_menage, fpr_menage, menagem
     gc.collect()
     temporary_store['indivim_{}'.format(year)] = indivim
-    del erfind, eecind
-
+    del eec_individu, fpr_individu
 
 
 if __name__ == '__main__':
-#    import time
-#    start = time.time()
-#    logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
-
-
-
-
-#    log.info("Script finished after {}".format(time.time() - start))
-#    print time.time() - start
+    import time
+    start = time.time()
+    logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
+    year = 2012
+    merge_tables(year = year)
+    # TODO: create_enfants_a_naitre(year = year)
+    log.info("Script finished after {}".format(time.time() - start))
+    print time.time() - start
