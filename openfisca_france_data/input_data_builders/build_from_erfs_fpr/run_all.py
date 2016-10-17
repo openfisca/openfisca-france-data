@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 def run_all(year = None, check = False):
     assert year is not None
     preprocessing.merge_tables(year = year)
-    imputation_loyer(year = year)
+    imputation_loyer.imputation_loyer(year = year)
     # try:
     #     imputation_loyer.imputation_loyer(year = year)
     # except Exception, e:

@@ -26,6 +26,7 @@ except ImportError:
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
     assert_variable_in_range, count_NA)
 from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
+from openfisca_survey_manager import matching
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -128,6 +129,16 @@ def prepare_erf_menage(temporary_store = None, year = None, kind = None):
     assert not erf.duplicated().any(), \
         "Il y a {} ménages dupliqués".format(erf.duplicated().sum())
     # erf = erf.drop_duplicates('ident')
+    erf.rename(
+        columns = {
+            'dip11': 'mdiplo',
+            'nat28pr': 'mnatio',
+            'nbpiec': 'hnph2',
+            },
+        inplace = True,
+        )
+    # Extraction des seuls locataires
+    erf = erf.loc[erf.statut_occupation.isin(range(3, 6))]
     gc.collect()
 
     return erf
@@ -157,6 +168,159 @@ def compute_decile(erf):
     assert erf.deci.isin(range(1, 11)).all()
     del dec, values
     gc.collect()
+
+
+def format_variable_magtr(erf):
+    """
+    Format varaible magtr
+    TODO describe using enquête logement
+    """
+    if (erf.agpr == '.').any():
+        erf = erf[erf.agpr != '.'].copy()
+    erf['agpr'] = erf.agpr.astype('int')
+    erf['magtr'] = 3
+    erf.loc[erf.agpr < 65, 'magtr'] = 2
+    erf.loc[erf.agpr < 40, 'magtr'] = 1
+    assert erf.magtr.isin(range(1, 5)).all()
+    del erf['agpr']
+
+
+def format_variable_mcs8(erf):
+    assert erf.cstotpr.notnull().all()
+    erf['mcs8'] = erf.cstotpr.astype('float') / 10.0
+    erf.mcs8 = numpy.floor(erf.mcs8).astype('int')
+    # TODO: assert erf.mcs8.isin(range(1, 9))
+    del erf['cstotpr']
+    assert erf.mcs8.isin(range(0, 9)).all()
+    erf.loc[erf.mcs8.isin([4, 8]), 'mcs8'] = 4
+    erf.loc[erf.mcs8.isin([5, 6, 7]), 'mcs8'] = 5
+    # TODO: assert erf.mcs8.isin(range(1, 6)).all(), erf.mcs8.value_counts()
+    assert erf.mcs8.isin(range(0, 6)).all()
+
+
+def format_variable_mtybd(erf):
+    erf['mtybd'] = 0
+    erf.loc[(erf.typmen5 == 1) & (erf.spr != 2), 'mtybd'] = 1
+    erf.loc[(erf.typmen5 == 1) & (erf.spr == 2), 'mtybd'] = 2
+    erf.loc[erf.typmen5 == 5, 'mtybd'] = 3
+    erf.loc[erf.typmen5 == 3, 'mtybd'] = 7
+    erf.loc[erf.nbenfc == 1, 'mtybd'] = 4
+    erf.loc[erf.nbenfc == 2, 'mtybd'] = 5
+    erf.loc[erf.nbenfc >= 3, 'mtybd'] = 6
+    erf.drop(
+        ['nbenfc', 'spr', 'typmen5'],
+        axis = 1,
+        inplace = True,
+        )
+    assert erf.mtybd.isin(range(0, 8)).all()
+    # TODO: assert erf.mtybd.isin(range(1,8)).all(),
+
+
+def format_variable_hnph2(erf):
+    # 3 logements ont 0 pièces !!
+    erf.loc[erf.hnph2 < 1, 'hnph2'] = 1
+    erf.loc[erf.hnph2 >= 6, 'hnph2'] = 6
+    assert erf.hnph2.isin(range(1, 7)).all()
+    # TODO: il reste un NA 2003
+    #       il rest un NA en 2008  (Not rechecked)
+
+
+def format_variable_mnatio(erf, kind = None):
+    if kind == 'erfs_fpr':
+        pass
+    else:
+        erf.loc[erf.mnatio == 10, 'mnatio'] = 1
+        mnatio_range = range(11, 16) + range(21, 30) + range(31, 33) + range(41, 49) + range(51, 53) + [60] + [62]
+        erf.loc[erf.mnatio.isin(mnatio_range), 'mnatio'] = 2
+        assert erf.mnatio.isin(range(1, 3)).all(), 'valeurs pour mnatio\n{}'.format(erf.mnatio.value_counts())
+
+
+def format_variable_iaat_bis(erf, kind = None):
+    # iaat_bis is a contraction of iaat varaible of enquête logement
+    # iaat_bis DATE D'ACHEVEMENT DE LA CONSTRUCTION
+    # Voir http://www.insee.fr/fr/ppp/bases-de-donnees/fichiers_detail/eec10/doc/pdf/eec10_qlogement.pdf
+    if kind == 'erfs_fpr':
+        pass
+    else:
+        erf['iaat_bis'] = 0
+        erf.loc[erf.aai1.isin([1, 2, 3]), 'iaat_bis'] = 1
+        erf.loc[erf.aai1 == 4, 'iaat_bis'] = 2
+        erf.loc[erf.aai1 == 5, 'iaat_bis'] = 3
+        erf.loc[erf.aai1 == 6, 'iaat_bis'] = 4
+        erf.loc[erf.aai1 == 7, 'iaat_bis'] = 5
+        erf.loc[erf.aai1 == 8, 'iaat_bis'] = 6
+        # TODO: assert erf.iaat_bis.isin(range(1, 7)).all()
+        assert erf.iaat_bis.isin(range(0, 7)).all()
+
+
+def format_variable_mdiplo(erf):
+    erf.loc[erf.mdiplo.isin([71, ""]), 'mdiplo'] = 1
+    erf.loc[erf.mdiplo.isin([70, 60, 50]), 'mdiplo'] = 2
+    erf.loc[erf.mdiplo.isin([41, 42, 31, 33]), 'mdiplo'] = 3
+    erf.loc[erf.mdiplo.isin([10, 11, 30]), 'mdiplo'] = 4
+    # TODO: assert erf.mdiplo.isin(range(1, 5)).all()
+    assert erf.mdiplo.isin(range(0, 5)).all()
+
+
+def format_variable_tu99_recoded(erf, kind = None):
+    if kind == 'erfs_fpr':
+        # TODO use tu10
+        pass
+    else:
+        erf['tu99_recoded'] = erf.tu99.copy()
+        erf.loc[erf.tu99 == 0, 'tu99_recoded'] = 1
+        erf.loc[erf.tu99.isin([1, 2, 3]), 'tu99_recoded'] = 2
+        erf.loc[erf.tu99.isin([4, 5, 6]), 'tu99_recoded'] = 3
+        erf.loc[erf.tu99 == 7, 'tu99_recoded'] = 4
+        erf.loc[erf.tu99 == 8, 'tu99_recoded'] = 5
+        assert erf.tu99_recoded.isin(range(1, 6)).all()
+        del erf['tu99']
+
+
+def check(erf, kind = None):
+    erf.wprm = erf.wprm.astype('int')
+    if kind == 'erfs_fpr':
+        check_variables = [
+            'hnph2',
+            'magtr',
+            'mcs8',
+            'mdiplo',
+            'mtybd',
+            'statut_occupation',
+            ]
+    else:
+        check_variables = [
+            'hnph2',
+            'iaat_bis',
+            'magtr',
+            'mcs8',
+            'mdiplo',
+            'mnatio',
+            'mtybd',
+            'statut_occupation',
+            'tu99_recoded',
+            ]
+    gc.collect()
+
+    non_integer_variables_to_filter = list()
+    integer_variables_to_filter = list()
+    for check_variable in check_variables:
+        if erf[check_variable].isnull().any():
+            log.info("Des valeurs NaN sont encore présentes dans la variable {} la table ERF".format(check_variable))
+            non_integer_variables_to_filter.append(check_variable)
+
+        if (erf[check_variable] == 0).any():
+            if numpy.issubdtype(erf[check_variable].dtype, numpy.integer):
+                log.info(
+                    "Des valeurs nulles sont encore présentes dans la variable {} la table ERF".format(check_variable))
+                integer_variables_to_filter.append(check_variable)
+
+    assert len(non_integer_variables_to_filter) == 0, non_integer_variables_to_filter
+    # assert len(integer_variables_to_filter) == 0, integer_variables_to_filter
+
+    # On vérifie au final que l'on n'a pas de doublons d'individus
+    assert not erf.ident.duplicated().any(), 'Il y a {} doublons'.format(erf.ident.duplicated().sum())
+    return erf
 
 
 def create_comparable_erf_data_frame(temporary_store = None, year = None):
@@ -196,131 +360,17 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         'zrncm',
         'ztsam',
         ]
-    erf = erf.loc[erf.statut_occupation.isin(range(3, 6)), variables]
-    erf.rename(
-        columns = {
-            'dip11': 'mdiplo',
-            'nbpiec': 'hnph2',
-            'nat28pr': 'mnatio',
-            'nbpiec': 'hnph2',
-            },
-        inplace = True,
-        )
 
-    if (erf.agpr == '.').any():
-        erf = erf[erf.agpr != '.'].copy()
+    format_variable_magtr(erf)
+    format_variable_mcs8(erf)
+    format_variable_mtybd(erf)
+    format_variable_hnph2(erf)
 
-    erf['agpr'] = erf.agpr.astype('int')
-    erf['magtr'] = 3
-    erf.loc[erf.agpr < 65, 'magtr'] = 2
-    erf.loc[erf.agpr < 40, 'magtr'] = 1
-    assert erf.magtr.isin(range(1, 5)).all()
-
-    assert erf.cstotpr.notnull().all()
-    erf['mcs8'] = erf.cstotpr.astype('float') / 10.0
-    erf.mcs8 = numpy.floor(erf.mcs8).astype('int')
-    # TODO: assert erf.mcs8.isin(range(1, 9))
-    assert erf.mcs8.isin(range(0, 9)).all()
-
-    erf['mtybd'] = 0
-    erf.loc[(erf.typmen5 == 1) & (erf.spr != 2), 'mtybd'] = 1
-    erf.loc[(erf.typmen5 == 1) & (erf.spr == 2), 'mtybd'] = 2
-    erf.loc[erf.typmen5 == 5, 'mtybd'] = 3
-    erf.loc[erf.typmen5 == 3, 'mtybd'] = 7
-    erf.loc[erf.nbenfc == 1, 'mtybd'] = 4
-    erf.loc[erf.nbenfc == 2, 'mtybd'] = 5
-    erf.loc[erf.nbenfc >= 3, 'mtybd'] = 6
-    assert erf.mtybd.isin(range(0, 8)).all()
-    # TODO: assert erf.mtybd.isin(range(1,8)).all(),
-
-    # 3 logements ont 0 pièces !!
-    erf.loc[erf.hnph2 < 1, 'hnph2'] = 1
-    erf.loc[erf.hnph2 >= 6, 'hnph2'] = 6
-    assert erf.hnph2.isin(range(1, 7)).all()
-
-    # TODO: il reste un NA 2003
-    #       il rest un NA en 2008  (Not rechecked)
-
-    erf.loc[erf.mnatio == 10, 'mnatio'] = 1
-    mnatio_range = range(11, 16) + range(21, 30) + range(31, 33) + range(41, 49) + range(51, 53) + [60] + [62]
-    erf.loc[erf.mnatio.isin(mnatio_range), 'mnatio'] = 2
-    assert erf.mnatio.isin(range(1, 3)).all(), 'valeurs pour mnatio\n{}'.format(erf.mnatio.value_counts())
-
-    # iaat_bis is a contraction of iaat varaible of enquête logement
-    # iaat_bis DATE D'ACHEVEMENT DE LA CONSTRUCTION
-    # Voir http://www.insee.fr/fr/ppp/bases-de-donnees/fichiers_detail/eec10/doc/pdf/eec10_qlogement.pdf
-    erf['iaat_bis'] = 0
-    erf.loc[erf.aai1.isin([1, 2, 3]), 'iaat_bis'] = 1
-    erf.loc[erf.aai1 == 4, 'iaat_bis'] = 2
-    erf.loc[erf.aai1 == 5, 'iaat_bis'] = 3
-    erf.loc[erf.aai1 == 6, 'iaat_bis'] = 4
-    erf.loc[erf.aai1 == 7, 'iaat_bis'] = 5
-    erf.loc[erf.aai1 == 8, 'iaat_bis'] = 6
-    # TODO: assert erf.iaat_bis.isin(range(1, 7)).all()
-    assert erf.iaat_bis.isin(range(0, 7)).all()
-
-    # Il reste un NA en 2003
-    # reste un NA en 2008
-    # TODO: comparer logement et erf pour être sur que cela colle ???
-    erf.loc[erf.mdiplo.isin([71, ""]), 'mdiplo'] = 1
-    erf.loc[erf.mdiplo.isin([70, 60, 50]), 'mdiplo'] = 2
-    erf.loc[erf.mdiplo.isin([41, 42, 31, 33]), 'mdiplo'] = 3
-    erf.loc[erf.mdiplo.isin([10, 11, 30]), 'mdiplo'] = 4
-    # TODO: assert erf.mdiplo.isin(range(1, 5)).all()
-    assert erf.mdiplo.isin(range(0, 5)).all()
-
-    erf['tu99_recoded'] = erf.tu99.copy()
-    erf.loc[erf.tu99 == 0, 'tu99_recoded'] = 1
-    erf.loc[erf.tu99.isin([1, 2, 3]), 'tu99_recoded'] = 2
-    erf.loc[erf.tu99.isin([4, 5, 6]), 'tu99_recoded'] = 3
-    erf.loc[erf.tu99 == 7, 'tu99_recoded'] = 4
-    erf.loc[erf.tu99 == 8, 'tu99_recoded'] = 5
-    assert erf.tu99_recoded.isin(range(1, 6)).all()
-
-    erf.loc[erf.mcs8.isin([4, 8]), 'mcs8'] = 4
-    erf.loc[erf.mcs8.isin([5, 6, 7]), 'mcs8'] = 5
-    # TODO: assert erf.mcs8.isin(range(1, 6)).all(), erf.mcs8.value_counts()
-    assert erf.mcs8.isin(range(0, 6)).all()
-
-    erf.wprm = erf.wprm.astype('int')
-    erf.drop(
-        ['agpr', 'cstotpr', 'nbenfc', 'spr', 'tu99', 'typmen5'],
-        axis = 1,
-        inplcae = True,
-        )
-
-    gc.collect()
-
-    check_variables = [
-        'hnph2',
-        'iaat_bis',
-        'magtr',
-        'mcs8',
-        'mdiplo',
-        'mnatio',
-        'mtybd',
-        'statut_occupation',
-        'tu99_recoded',
-        ]
-
-    non_integer_variables_to_filter = list()
-    integer_variables_to_filter = list()
-    for check_variable in check_variables:
-        if erf[check_variable].isnull().any():
-            log.info("Des valeurs NaN sont encore présentes dans la variable {} la table ERF".format(check_variable))
-            non_integer_variables_to_filter.append(check_variable)
-
-        if (erf[check_variable] == 0).any():
-            if numpy.issubdtype(erf[check_variable].dtype, numpy.integer):
-                log.info(
-                    "Des valeurs nulles sont encore présentes dans la variable {} la table ERF".format(check_variable))
-                integer_variables_to_filter.append(check_variable)
-
-    assert len(non_integer_variables_to_filter) == 0, non_integer_variables_to_filter
-    # assert len(integer_variables_to_filter) == 0, integer_variables_to_filter
-
-    # On vérifie au final que l'on n'a pas de doublons d'individus
-    assert not erf.ident.duplicated().any(), 'Il y a {} doublons'.format(erf.ident.duplicated().sum())
+    format_variable_mnatio(erf, kind = 'erfs_fpr')
+    format_variable_iaat_bis(erf, kind = 'erfs_fpr')
+    format_variable_mdiplo(erf)
+    format_variable_tu99_recoded(erf, kind = 'erfs_fpr')
+    check(erf, kind = 'erfs_fpr')
     return erf
 
 
@@ -346,7 +396,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     if year == 2003:
         logement_menage_variables.extend(["hnph2", "ident", "lmlm", "mnatior", "typse"])
         logement_adresse_variables.extend(["iaat", "ident", "tu99"])
-    if year < 2010 and year > 2005:
+    if year > 2005:  # and year < 2010:
         logement_menage_variables.extend(["idlog", "mnatio"])
         logement_adresse_variables.extend(["idlog"])  # pas de typse en 2006
         logement_logement_variables = ["hnph2", "iaat", "idlog", "lmlm", "tu99"]  # pas de typse en 2006
@@ -355,7 +405,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     # Table menage
     if year == 2003:
         year_lgt = 2003
-    if year > 2005 and year < 2010:
+    if year > 2005:  # and year < 2010:
         year_lgt = 2006
 
     logement_survey_collection = SurveyCollection.load(collection = 'logement')
@@ -365,7 +415,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
 
     try:
         logement_menage = logement_survey.get_values(
-            table = "lgt_menage", variables = logement_menage_variables)
+            table = "menage", variables = logement_menage_variables)
     except:
         logement_menage = logement_survey.get_values(
             table = "menage1", variables = logement_menage_variables)
@@ -436,12 +486,12 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     data = data.loc[data.mnatior.notnull()].copy()
     data = data.loc[data.sec1.notnull()].copy()
     data['tmp'] = data.sec1.astype("int")
-    data[data.sec1.isin([21, 22, 23]), 'tmp'] = 3
-    data[data.sec1 == 24, 'tmp'] = 4
-    data[data.sec1 == 30, 'tmp'] = 5
+    data.loc[data.sec1.isin([21, 22, 23]), 'tmp'] = 3
+    data.loc[data.sec1 == 24, 'tmp'] = 4
+    data.loc[data.sec1 == 30, 'tmp'] = 5
     data['statut_occupation'] = data.tmp
     count_NA('statut_occupation', data)
-    logement_menage = data[data.statut_occupation.notnull()].COPY()
+    logement_menage = data[data.statut_occupation.notnull()].copy()
 
     # Table adresse
     log.info(u"Préparation de la table adresse de l'enquête logement")
@@ -462,8 +512,8 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     # TODO : ici problème je transforme les 07 en 7
     # car Python considère les 0n comme des nombres octaux ( < 08 ).
     # J'espère que ce n'est pas important.
-    Logement.mnatior[Logement['mnatior'].isin([0, 1])] = 1
-    Logement.mnatior[Logement['mnatior'].isin([2, 3, 4, 5, 6, 7, 8, 9, 10, 11])] = 2
+    Logement.loc[Logement.mnatior.isin([0, 1]), 'mnatior'] = 1
+    Logement.loc[Logement.mnatior.isin([2, 3, 4, 5, 6, 7, 8, 9, 10, 11]), 'mnatior'] = 2
     count_NA('mnatior', Logement)
     assert_variable_in_range('mnatior', [1, 3], Logement)
 
@@ -549,25 +599,38 @@ def imputation_loyer(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
+    kind = 'erfs_fpr'
     erf = create_comparable_erf_data_frame(temporary_store = temporary_store, year = year)
     logement = create_comparable_logement_data_frame(temporary_store = temporary_store, year = year)
 
     logement = logement.loc[logement.lmlm.notnull()].copy()
     log.info("Dropping {} observations form logement".format(logement.lmlm.isnull().sum()))
 
-    allvars = [
-        'deci',
-        'hnph2',
-        'iaat_bis',
-        'magtr',
-        'mcs8',
-        'mdiplo',
-        'mtybd',
-        'statut_occupation',
-        'tu99_recoded',
-        ]
+    if kind == 'erfs_fpr':
+        allvars = [
+            'deci',
+            'hnph2',
+            'magtr',
+            'mcs8',
+            'mdiplo',
+            'mtybd',
+            'statut_occupation',
+            ]
+    else:
+        allvars = [
+            'deci',
+            'hnph2',
+            'iaat_bis',
+            'magtr',
+            'mcs8',
+            'mdiplo',
+            'mtybd',
+            'statut_occupation',
+            'tu99_recoded',
+            ]
 
     # TODO keep the variable indices
+
     erf = erf[allvars + ['ident', 'wprm']].copy()
 
     for variable in allvars:
@@ -586,63 +649,36 @@ concerns {} observations
                 erf[variable].isin(erf_unique_values - logement_unique_values).sum()
                 )
 
-    log.info("dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0'))))
-    erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
+    if kind == 'erfs_fpr':
+        log.info("dropping {} erf observations".format(len(erf.query('mtybd == 0 | mcs8 == 0'))))
+        erf = erf.query('mtybd != 0 & mcs8 != 0').copy()
+
+    else:
+        log.info("dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0'))))
+        erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
 
     for variable in allvars:
         erf_unique_values = set(erf[variable].unique())
         logement_unique_values = set(logement[variable].unique())
         assert erf_unique_values <= logement_unique_values
 
-    classes = ['deci', 'tu99_recoded']
+    if kind == 'erfs_fpr':
+        classes = "deci"
+    else:
+        classes = ['deci', 'tu99_recoded']
+
     matchvars = list(set(allvars) - set(classes))
 
-    # Clean for unicode column names
-    erf.rename(
-        columns = dict([(col, str(col)) for col in erf.columns]),
-        inplace = True
+    fill_erf_nnd, fill_erf_nnd_1 = matching.nnd_hotdeck_using_rpy2(
+        receiver = erf,
+        donor = logement,
+        matching_variables = matchvars,
+        z_variables = u"lmlm",
+        donor_classes = classes,
         )
 
-    save_hdf_r_readable(erf.astype('int32'), file_name = "erf_imputation")
-    save_hdf_r_readable(logement.astype('int32'), file_name = "logement_imputation")
-
-    import subprocess
-    import os
-    os.path.abspath
-    imputation_loyer_R = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'imputation_loyer.R')
-    temporary_store_directory = os.path.dirname(temporary_store.filename)
-    print imputation_loyer_R
-    try:
-        subprocess.check_call(['/usr/bin/Rscript', imputation_loyer_R, temporary_store_directory])
-    except WindowsError:
-        subprocess.check_call(['C:/Program Files/R/R-2.15.1/bin/x64/Rscript.exe',
-            imputation_loyer_R, temporary_store_directory], shell = True)
-
-    fill_erf_nnd = pandas.read_hdf(os.path.join(temporary_store_directory, 'imputation.h5'), 'fill_erf_nnd')
-    assert set(fill_erf_nnd.ident) == set(erf.ident.astype('int32'))
-
-#    rpy2.robjects.pandas2ri.activate()  # Permet à rpy2 de convertir les dataframes
-#    sm = rpy2.robjects.packages.importr("StatMatch")  # Launch R you need to have StatMatch installed in R
-#
-#    out_nnd = sm.NND_hotdeck(
-#        data_rec = erf.astype('int32'),
-#        data_don = logement.astype('int32'),
-#        match_vars = rpy2.robjects.vectors.StrVector(matchvars),
-#        don_class = rpy2.robjects.vectors.StrVector(classes),
-#        dist_fun = "Gower",
-#        )
-#
-#
-#    mtc_ids = out_nnd[0].reshape(len(erf), 2)  # Essential to avoid a bug in next line
-#
-#    fill_erf_nnd = sm.create_fused(
-#        data_rec = erf.astype('int32'),
-#        data_don = logement.astype('int32'),
-#        mtc_ids = mtc_ids,
-#        z_vars = "lmlm",
-#        )
-
     fill_erf_nnd.rename(columns = {'lmlm': 'loyer'}, inplace = True)
+
     loyers_imputes = fill_erf_nnd[['ident', 'loyer']].copy()
     menagem = temporary_store['menagem_{}'.format(year)]
     for loyer_var in ['loyer_x', 'loyer_y', 'loyer']:
