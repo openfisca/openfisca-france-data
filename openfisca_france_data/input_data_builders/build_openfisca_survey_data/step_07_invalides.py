@@ -59,7 +59,7 @@ def invalide(temporary_store = None, year = None):
     log.info(u"    1.1 : déclarants invalides")
     final = temporary_store['final_{}'.format(year)]
     if "invalide" in final:
-        # on drop les colones inv et alt au cas ou on aurait déjà lancé le step07
+        # on drop les colonnes inv et alt au cas ou on aurait déjà lancé le step07
         final.drop(["invalide", "alt"], axis = 1, inplace = True)
 
     invalides_vars = [

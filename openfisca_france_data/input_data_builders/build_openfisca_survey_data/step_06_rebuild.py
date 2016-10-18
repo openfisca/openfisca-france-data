@@ -32,18 +32,14 @@ import numpy as np
 from numpy import where
 
 from openfisca_france_data.temporary import temporary_store_decorator
-from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import (
-    year_specific_by_generic_data_frame_name
-    )
+
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, control
-from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+@temporary_store_decorator(file_name = 'erfs_fpr')
 def create_totals_first_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None

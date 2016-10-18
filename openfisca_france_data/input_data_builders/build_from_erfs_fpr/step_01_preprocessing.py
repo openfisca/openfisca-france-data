@@ -7,7 +7,6 @@ import numpy as np
 
 from openfisca_france_data.temporary import temporary_store_decorator
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.step_01_pre_processing import (
-    create_actrec_variable,
     create_variable_locataire,
     )
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -79,8 +78,7 @@ def merge_tables(temporary_store = None, year = None):
             "Variable {} dtype is {} and should be an integer".format(
                 var, indivim[var].dtype
                 )
-
-    create_actrec_variable(indivim)
+                
     create_variable_locataire(menagem)
     menagem = menagem.merge(
         indivim.loc[indivim.lpr == 1, ['ident', 'ddipl']].copy()

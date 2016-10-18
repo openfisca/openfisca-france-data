@@ -64,6 +64,12 @@ def create_variable_locataire(menagem):
     assert_dtype(menagem.locataire, "bool")
 
 
+def check_integer_dtype(indivim, var_list):
+    for var in var_list:
+        assert np.issubdtype(indivim[var].dtype, np.integer), \
+            "Variable {} dtype is {} and should be an integer".format(var, indivim[var].dtype)
+
+
 def manually_remove_noindiv_errors(indivim):
     '''
     This method is here because some oddities can make it through the controls throughout the procedure
@@ -111,7 +117,6 @@ def merge_tables(temporary_store = None, year = None):
     # fusion enquete emploi et source fiscale
     menagem = erfmen.merge(eecmen)
     indivim = eecind.merge(erfind, on = ['noindiv', 'ident', 'noi'], how = "inner")
-
     var_list = [
         'acteu',
         'agepr',
@@ -130,13 +135,10 @@ def merge_tables(temporary_store = None, year = None):
         'rstg',
         'statut',
         'stc',
-        'titc',
+        'otitc',
         'txtppb',
         ]
-
-    for var in var_list:
-        assert np.issubdtype(indivim[var].dtype, np.integer), \
-            "Variable {} dtype is {} and should be an integer".format(var, indivim[var].dtype)
+    check_integer_dtype(indivim, var_list)
 
     create_actrec_variable(indivim)
     create_variable_locataire(menagem)
