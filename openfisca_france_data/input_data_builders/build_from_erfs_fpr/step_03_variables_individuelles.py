@@ -29,12 +29,12 @@ def create_variables_individuelles(temporary_store = None, year = None):
 
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
-    indivim = temporary_store['indivim_{}'.format(year)]
+    individus = temporary_store['individus_{}'.format(year)]
 
-    create_age_variables(indivim, year)
-    create_activite_variable(indivim)
-    create_revenus_variables(indivim)
-    create_travail(indivim)
+    create_age_variables(individus, year)
+    create_activite_variable(individus)
+    create_revenus_variables(individus)
+    create_travail(individus)
     variables = [
         'activite',
         'age',
@@ -55,8 +55,8 @@ def create_variables_individuelles(temporary_store = None, year = None):
         'quifam',
         'noindiv',
         ]
-    data_frame = create_ids_and_roles(indivim)[variables].copy()
-    del indivim
+    data_frame = create_ids_and_roles(individus)[variables].copy()
+    del individus
     gc.collect()
     for entity_id in ['idmen', 'idfoy', 'idfam']:
         log.info('Reformat ids: {}'.format(entity_id))
@@ -68,7 +68,7 @@ def create_variables_individuelles(temporary_store = None, year = None):
 
 # helpers
 
-def create_activite_variable(indivim):
+def create_activite_variable(individus):
     """
     Création de la variable activite
     0 = Actif occupé
@@ -77,74 +77,74 @@ def create_activite_variable(indivim):
     3 = Retraité
     4 = Autre inactif
     """
-    create_actrec_variable(indivim)
+    create_actrec_variable(individus)
 
-    indivim['activite'] = np.nan
-    indivim.loc[indivim.actrec <= 3, 'activite'] = 0
-    indivim.loc[indivim.actrec == 4, 'activite'] = 1
-    indivim.loc[indivim.actrec == 5, 'activite'] = 2
-    indivim.loc[indivim.actrec == 7, 'activite'] = 3
-    indivim.loc[indivim.actrec == 8, 'activite'] = 4
-    indivim.loc[indivim.age <= 13, 'activite'] = 2  # ce sont en fait les actrec=9
-    message = "Valeurs prises par la variable activité \n {}".format(indivim['activite'].value_counts(dropna = False))
-    assert indivim.activite.notnull().all(), message
-    assert indivim.activite.isin(range(5)).all(), message
+    individus['activite'] = np.nan
+    individus.loc[individus.actrec <= 3, 'activite'] = 0
+    individus.loc[individus.actrec == 4, 'activite'] = 1
+    individus.loc[individus.actrec == 5, 'activite'] = 2
+    individus.loc[individus.actrec == 7, 'activite'] = 3
+    individus.loc[individus.actrec == 8, 'activite'] = 4
+    individus.loc[individus.age <= 13, 'activite'] = 2  # ce sont en fait les actrec=9
+    message = "Valeurs prises par la variable activité \n {}".format(individus['activite'].value_counts(dropna = False))
+    assert individus.activite.notnull().all(), message
+    assert individus.activite.isin(range(5)).all(), message
 
 
-def create_actrec_variable(indivim):
+def create_actrec_variable(individus):
     """
     Création de la variables actrec
     pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
     """
-    assert "actrec" not in indivim.columns
-    indivim["actrec"] = np.nan
+    assert "actrec" not in individus.columns
+    individus["actrec"] = np.nan
     # Attention : Pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
     # la même nomenclature à été adopée
     # 3: contrat a durée déterminée
-    indivim.loc[indivim.acteu == 1, 'actrec'] = 3
+    individus.loc[individus.acteu == 1, 'actrec'] = 3
     # 8: femme (homme) au foyer, autre inactif
-    indivim.loc[indivim.acteu == 3, 'actrec'] = 8
+    individus.loc[individus.acteu == 3, 'actrec'] = 8
     # 1: actif occupé non salarié
-    filter1 = (indivim.acteu == 1) & (indivim.stc.isin([1, 3]))  # actifs occupés non salariés à son compte ou pour un
-    indivim.loc[filter1, 'actrec'] = 1                              # membre de sa famille
+    filter1 = (individus.acteu == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte ou pour un
+    individus.loc[filter1, 'actrec'] = 1                              # membre de sa famille
     # 2: salarié pour une durée non limitée
-    filter2 = (indivim.acteu == 1) & (((indivim.stc == 2) & (indivim.contra == 1)) | (indivim.titc == 2))
-    indivim.loc[filter2, 'actrec'] = 2
+    filter2 = (individus.acteu == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
+    individus.loc[filter2, 'actrec'] = 2
     # 4: au chomage
-    filter4 = (indivim.acteu == 2) | ((indivim.acteu == 3) & (indivim.mrec == 1))
-    indivim.loc[filter4, 'actrec'] = 4
+    filter4 = (individus.acteu == 2) | ((individus.acteu == 3) & (individus.mrec == 1))
+    individus.loc[filter4, 'actrec'] = 4
     # 5: élève étudiant , stagiaire non rémunéré
-    filter5 = (indivim.acteu == 3) & ((indivim.forter == 2) | (indivim.rstg == 1))
-    indivim.loc[filter5, 'actrec'] = 5
+    filter5 = (individus.acteu == 3) & ((individus.forter == 2) | (individus.rstg == 1))
+    individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
-    filter7 = (indivim.acteu == 3) & ((indivim.retrai == 1) | (indivim.retrai == 2))
-    indivim.loc[filter7, 'actrec'] = 7
+    filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+    individus.loc[filter7, 'actrec'] = 7
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
-    indivim.loc[indivim.acteu == 0, 'actrec'] = 9
+    individus.loc[individus.acteu == 0, 'actrec'] = 9
 
-    assert indivim.actrec.notnull().all()
-    indivim.actrec = indivim.actrec.astype("int8")
-    assert_dtype(indivim.actrec, "int8")
+    assert individus.actrec.notnull().all()
+    individus.actrec = individus.actrec.astype("int8")
+    assert_dtype(individus.actrec, "int8")
 
-    assert (indivim.actrec != 6).all(), 'actrec ne peut pas être égale à 6'
-    assert indivim.actrec.isin(range(1, 10)).all(), 'actrec values are outside the interval [1, 9]'
+    assert (individus.actrec != 6).all(), 'actrec ne peut pas être égale à 6'
+    assert individus.actrec.isin(range(1, 10)).all(), 'actrec values are outside the interval [1, 9]'
 
 
-def create_age_variables(indivim, year = None):
+def create_age_variables(individus, year = None):
     """
     Création de la variables actrec
     pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
     """
     assert year is not None
-    indivim['age'] = year - indivim.naia - 1
-    indivim['age_en_mois'] = 12 * indivim.age + 12 - indivim.naim  # TODO why 12 - naim
+    individus['age'] = year - individus.naia - 1
+    individus['age_en_mois'] = 12 * individus.age + 12 - individus.naim  # TODO why 12 - naim
 
     for variable in ['age', 'age_en_mois']:
-        assert indivim[variable].notnull().all(), "Il y a {} entrées non renseignées pour la variable {}".format(
-            indivim[variable].notnull().sum(), variable)
+        assert individus[variable].notnull().all(), "Il y a {} entrées non renseignées pour la variable {}".format(
+            individus[variable].notnull().sum(), variable)
 
 
-def create_revenus_variables(indivim):
+def create_revenus_variables(individus):
     old_by_new_variables = {
         'chomage_i': 'chomage_imposable',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
@@ -155,23 +155,23 @@ def create_revenus_variables(indivim):
         'salaires_i': 'salaire_imposable',
         }
     for variable in old_by_new_variables.keys():
-        #print variable, variable in indivim.columns.tolist()
-        assert variable in indivim.columns.tolist(), "La variable {} n'est pas présente".format(variable)
+        #print variable, variable in individus.columns.tolist()
+        assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
 
-    indivim.rename(
+    individus.rename(
         columns = old_by_new_variables,
         inplace = True,
         )
 
     for variable in old_by_new_variables.values():
-        if (indivim[variable] < 0).any():
+        if (individus[variable] < 0).any():
             log.info("La variable {} contient des valeurs négatives\n {}".format(
                 variable,
-                indivim[variable].value_counts().loc[indivim[variable].value_counts().index < 0]
+                individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
                 )
             )
 
-def create_travail(indivim):
+def create_travail(individus):
     """
     Création de la variable categorie_salarie :
         u"prive_non_cadre
@@ -183,7 +183,17 @@ def create_travail(indivim):
         u"public_non_titulaire
 
     A partir des variables de l'ecc' :
-    Statut :
+    chpub :
+        1 - Etat
+        2 - Collectivités locales, HLM
+        3 - Hôpitaux publics
+        4 - Particulier
+        5 - Entreprise publique (La Poste, EDF-GDF, etc.)
+        6 - Entreprise privée, association
+    encadr : (encadrement de personnes)
+        1 - Oui
+        2 - Non
+    statut :
         11 - Indépendants
         12 - Employeurs
         13 - Aides familiaux
@@ -195,129 +205,140 @@ def create_travail(indivim):
         43 - CDD (Etat, coll.loc.), hors contrats aides
         44 - Stagiaires et contrats aides (Etat, coll.loc.)
         45 - Autres contrats (Etat, coll.loc.)
-    chpub :
-        1 - Etat
-        2 - Collectivités locales, HLM
-        3 - Hôpitaux publics
-        4 - Particulier
-        5 - Entreprise publique (La Poste, EDF-GDF, etc.)
-        6 - Entreprise privée, association
-    encadr : (encadrement de personnes)
-        1 - Oui
-        2 - Non
     titc :
         1 - Elève fonctionnaire ou stagiaire
         2 - Agent titulaire
         3 - Contractuel
 
     """
-    # Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
+    # TODO: Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
 
-    cadre = indivim.encadr
-    chpub = indivim.chpub
-    titc = indivim.titc
-    statut = indivim.statut
+    assert individus.chpub.isin(range(0, 7)).all(), \
+        "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts())
 
-    assert indivim.chpub.isin(range(0, 7)).all(), \
-        'chpub values are outside the interval [1, 6]\n{}'.format(indivim.chpub.value_counts())
+    chpub = individus.chpub
+    titc = individus.titc
+    statut = individus.statut
 
-    cadre = (statut == 35) * (chpub > 3) * cadre
-    # noncadre = (statut ==8)*(chpub>3)*not_(cadre)
+    # encadrement
+    assert individus.encadr.isin(range(1, 3)).all(), \
+        "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts())
 
-    # etat_stag = (chpub==1)*(titc == 1)
-    etat_tit = (chpub == 1) * (titc == 2)
-    etat_cont = (chpub == 1) * (titc == 3)
+    assert individus.prosa.isin(range(0, 10)).all(), \
+        "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
 
-    militaire = 0  # TODO:
+    individus.loc[individus.encadr == 0, 'encadr'] = 2
+    individus.loc[individus.encadr == 0, 'encadr'] = 2
+    assert individus.encadr.notnull().all()
+    assert individus.encadr.isin([1, 2]).all()
 
-    # collect_stag = (chpub==2)*(titc == 1)
-    collect_tit = (chpub == 2) * (titc == 2)
-    collect_cont = (chpub == 2) * (titc == 3)
+    assert 'cadre' not in individus.columns
+    individus['cadre'] = False
+    individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
+    individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
+    cadre = (statut == 35) & (chpub > 3) & individus.cadre
+    del individus['cadre']
+
+    # etat_stag = (chpub==1) & (titc == 1)
+    etat_titulaire = (chpub == 1) & (titc == 2)
+    etat_contractuel = (chpub == 1) & (titc == 3)
+
+    militaire = False  # TODO:
+
+    # collect_stag = (chpub==2) & (titc == 1)
+    collectivites_locales_titulaire = (chpub == 2) & (titc == 2)
+    collectivites_locales_contractuel = (chpub == 2) & (titc == 3)
 
     # hosp_stag = (chpub==2)*(titc == 1)
-    hosp_tit = (chpub == 3) * (titc == 2)
-    hosp_cont = (chpub == 3) * (titc == 3)
+    hopital_titulaire = (chpub == 3) * (titc == 2)
+    hopital_contractuel = (chpub == 3) * (titc == 3)
 
-    contract = (collect_cont + hosp_cont + etat_cont >= 1)
+    contract = (collectivites_locales_contractuel + hopital_contractuel + etat_contractuel >= 1)
 
-    indivim['categorie_salarie'] = (
-        0 + 1 * cadre + 2 * etat_tit + 3 * militaire + 4 * collect_tit + 5 * hosp_tit + 6 * contract
+    individus['categorie_salarie'] = (
+        0 +
+        1 * cadre +
+        2 * etat_titulaire +
+        3 * militaire +
+        4 * collectivites_locales_titulaire +
+        5 * hopital_titulaire +
+        6 * contract
         )
-    print(indivim['categorie_salarie'].value_counts())
+    print(individus['categorie_salarie'].value_counts())
 
 
-def create_ids_and_roles(indivim):
+def create_ids_and_roles(individus):
     old_by_new_variables = {
         'ident': 'idmen',
         }
-    indivim.rename(
+    individus.rename(
         columns = old_by_new_variables,
         inplace = True,
         )
-    indivim['quimen'] = 9
-    indivim.loc[indivim.lpr == 1, 'quimen'] = 0
-    indivim.loc[indivim.lpr == 2, 'quimen'] = 1
+    individus['quimen'] = 9
+    individus.loc[individus.lpr == 1, 'quimen'] = 0
+    individus.loc[individus.lpr == 2, 'quimen'] = 1
 
-    indivim['idfoy'] = indivim['idmen'].copy()
-    indivim['idfam'] = indivim['idmen'].copy()
-    indivim['quifoy'] = indivim['quimen'].copy()
-    indivim['quifam'] = indivim['quimen'].copy()
+    individus['idfoy'] = individus['idmen'].copy()
+    individus['idfam'] = individus['idmen'].copy()
+    individus['quifoy'] = individus['quimen'].copy()
+    individus['quifam'] = individus['quimen'].copy()
 
-    return indivim.loc[indivim.quimen <= 1].copy()
+    return individus.loc[individus.quimen <= 1].copy()
 
 
-def todo_create(indivim):
-    indivim.loc[indivim.titc.isnull(), 'titc'] = 0
-    assert indivim.titc.notnull().all(), \
+def todo_create(individus):
+    individus.loc[individus.titc.isnull(), 'titc'] = 0
+    assert individus.titc.notnull().all(), \
         u"Problème avec les titc"  # On a 420 NaN pour les varaibels statut, titc etc
 
     log.info(u"    6.2 : Variable statut")
-    indivim.loc[indivim.statut.isnull(), 'statut'] = 0
-    indivim.statut = indivim.statut.astype('int')
-    indivim.loc[indivim.statut == 11, 'statut'] = 1
-    indivim.loc[indivim.statut == 12, 'statut'] = 2
-    indivim.loc[indivim.statut == 13, 'statut'] = 3
-    indivim.loc[indivim.statut == 21, 'statut'] = 4
-    indivim.loc[indivim.statut == 22, 'statut'] = 5
-    indivim.loc[indivim.statut == 33, 'statut'] = 6
-    indivim.loc[indivim.statut == 34, 'statut'] = 7
-    indivim.loc[indivim.statut == 35, 'statut'] = 8
-    indivim.loc[indivim.statut == 43, 'statut'] = 9
-    indivim.loc[indivim.statut == 44, 'statut'] = 10
-    indivim.loc[indivim.statut == 45, 'statut'] = 11
-    assert indivim.statut.isin(range(12)).all(), u"statut value over range"
+    individus.loc[individus.statut.isnull(), 'statut'] = 0
+    individus.statut = individus.statut.astype('int')
+    individus.loc[individus.statut == 11, 'statut'] = 1
+    individus.loc[individus.statut == 12, 'statut'] = 2
+    individus.loc[individus.statut == 13, 'statut'] = 3
+    individus.loc[individus.statut == 21, 'statut'] = 4
+    individus.loc[individus.statut == 22, 'statut'] = 5
+    individus.loc[individus.statut == 33, 'statut'] = 6
+    individus.loc[individus.statut == 34, 'statut'] = 7
+    individus.loc[individus.statut == 35, 'statut'] = 8
+    individus.loc[individus.statut == 43, 'statut'] = 9
+    individus.loc[individus.statut == 44, 'statut'] = 10
+    individus.loc[individus.statut == 45, 'statut'] = 11
+    assert individus.statut.isin(range(12)).all(), u"statut value over range"
     log.info("Valeurs prises par la variable statut \n {}".format(
-        indivim['statut'].value_counts(dropna = False)))
+        individus['statut'].value_counts(dropna = False)))
 
     log.info(u"    6.3 : variable txtppb")
-    indivim.loc[indivim.txtppb.isnull(), 'txtppb'] = 0
-    assert indivim.txtppb.notnull().all()
-    indivim.loc[indivim.nbsala.isnull(), 'nbsala'] = 0
-    indivim.nbsala = indivim.nbsala.astype('int')
-    indivim.loc[indivim.nbsala == 99, 'nbsala'] = 10
-    assert indivim.nbsala.isin(range(11)).all()
+    individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
+    assert individus.txtppb.notnull().all()
+    individus.loc[individus.nbsala.isnull(), 'nbsala'] = 0
+    individus.nbsala = individus.nbsala.astype('int')
+    individus.loc[individus.nbsala == 99, 'nbsala'] = 10
+    assert individus.nbsala.isin(range(11)).all()
     log.info("Valeurs prises par la variable txtppb \n {}".format(
-        indivim['txtppb'].value_counts(dropna = False)))
+        individus['txtppb'].value_counts(dropna = False)))
 
     log.info(u"    6.4 : variable chpub et CSP")
-    indivim.loc[indivim.chpub.isnull(), 'chpub'] = 0
-    indivim.chpub = indivim.chpub.astype('int')
-    assert indivim.chpub.isin(range(11)).all()
+    individus.loc[individus.chpub.isnull(), 'chpub'] = 0
+    individus.chpub = individus.chpub.astype('int')
+    assert individus.chpub.isin(range(11)).all()
 
-    indivim['cadre'] = 0
-    indivim.loc[indivim.prosa.isnull(), 'prosa'] = 0
-    assert indivim.prosa.notnull().all()
-    log.info("Valeurs prises par la variable encadr \n {}".format(indivim['encadr'].value_counts(dropna = False)))
+    individus['cadre'] = 0
+    individus.loc[individus.prosa.isnull(), 'prosa'] = 0
+    assert individus.prosa.notnull().all()
+    log.info("Valeurs prises par la variable encadr \n {}".format(individus['encadr'].value_counts(dropna = False)))
 
     # encadr : 1=oui, 2=non
-    indivim.loc[indivim.encadr.isnull(), 'encadr'] = 2
-    indivim.loc[indivim.encadr == 0, 'encadr'] = 2
-    assert indivim.encadr.notnull().all()
-    assert indivim.encadr.isin([1, 2]).all()
+    individus.loc[individus.encadr.isnull(), 'encadr'] = 2
+    individus.loc[individus.encadr == 0, 'encadr'] = 2
+    assert individus.encadr.notnull().all()
+    assert individus.encadr.isin([1, 2]).all()
 
-    indivim.loc[indivim.prosa.isin([7, 8]), 'cadre'] = 1
-    indivim.loc[(indivim.prosa == 9) & (indivim.encadr == 1), 'cadre'] = 1
-    assert indivim.cadre.isin(range(2)).all()
+    individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = 1
+    individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = 1
+    assert individus.cadre.isin(range(2)).all()
 
 
 

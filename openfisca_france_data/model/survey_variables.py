@@ -118,11 +118,6 @@ class chpub(Variable):
     label = u"Nature de l'employeur principal"
 
 
-class cadre(Variable):
-    column = BoolCol()
-    entity_class = Individus
-    label = u"Cadre salarié du privé"
-
 
 #   zones apl and calibration
 

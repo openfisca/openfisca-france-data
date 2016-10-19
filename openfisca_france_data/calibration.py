@@ -24,11 +24,14 @@
 
 
 import logging
+
 import numpy
 from numpy import logical_not
-from pandas import DataFrame, read_csv
-from openfisca_core.calmar import calmar
+from pandas import DataFrame
+
 from openfisca_core.columns import AgeCol, BoolCol, EnumCol
+from openfisca_survey_manager.calmar import calmar
+
 
 log = logging.getLogger(__name__)
 

@@ -99,7 +99,7 @@ def prepare_erf_menage(temporary_store = None, year = None, kind = None):
     if year == 2008:  # Tau99 not present
         menage_variables = menage_variables.pop('tau99')
 
-    erf_menages = temporary_store['menagem_{}'.format(year)]
+    erf_menages = temporary_store['menages_{}'.format(year)]
     erf_menages = erf_menages[menage_variables].copy()
 
     if kind == "erfs_fpr":
@@ -120,7 +120,7 @@ def prepare_erf_menage(temporary_store = None, year = None, kind = None):
     erf_menages.rename(columns = dict(so = 'statut_occupation'), inplace = True)
 
     log.info(u"Preparation de la tables individus de l'ERF")
-    erfindm = temporary_store['indivim_{}'.format(year)]
+    erfindm = temporary_store['individus_{}'.format(year)]
     erfindm = erfindm.loc[erfindm.lpr == 1, ['ident', 'dip11']].copy()
 
     log.info(u"Fusion des tables menage et individus de l'ERF")
@@ -680,15 +680,15 @@ concerns {} observations
     fill_erf_nnd.rename(columns = {'lmlm': 'loyer'}, inplace = True)
 
     loyers_imputes = fill_erf_nnd[['ident', 'loyer']].copy()
-    menagem = temporary_store['menagem_{}'.format(year)]
+    menages = temporary_store['menages_{}'.format(year)]
     for loyer_var in ['loyer_x', 'loyer_y', 'loyer']:
-        if loyer_var in menagem.columns:
-            del menagem[loyer_var]
+        if loyer_var in menages.columns:
+            del menages[loyer_var]
 
-    menagem = menagem.merge(loyers_imputes, on = 'ident', how = 'left')
-    assert 'loyer' in menagem.columns, u"La variable loyer n'est pas présente dans menagem"
+    menages = menages.merge(loyers_imputes, on = 'ident', how = 'left')
+    assert 'loyer' in menages.columns, u"La variable loyer n'est pas présente dans menages"
 
-    temporary_store['menagem_{}'.format(year)] = menagem
+    temporary_store['menages_{}'.format(year)] = menages
     return
 
 if __name__ == '__main__':

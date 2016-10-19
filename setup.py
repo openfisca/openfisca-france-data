@@ -61,10 +61,11 @@ setup(
         ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
     install_requires = [
-        'OpenFisca-Core>=2.0.3',
-        'OpenFisca-France',
-        'OpenFisca-Survey-Manager',
-        'pandas >= 0.16',
+        'configparser',
+        'OpenFisca-Core >= 3.0.0, < 4.0',
+        'OpenFisca-France >= 4.0.0, < 5.0',
+        'OpenFisca-Survey-Manager[calmar] >= 0.4',
+        'pandas >= 0.19',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
         ],
@@ -73,7 +74,6 @@ setup(
             ('**.py', 'python', None),
             ],
         },
-    # package_data = {'openfisca_france_data': ['i18n/*/LC_MESSAGES/*.mo']},
     packages = find_packages(),
     zip_safe = False,
     )
