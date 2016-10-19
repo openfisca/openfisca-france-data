@@ -9,6 +9,7 @@ openfisca_france_data/tests/saved_fake_survey
 openfisca_france_data/tests/saved_fake_survey_collection
 
 # Spyder junk
+.spyproject
 .spyderworkspace
 .spyderproject
 

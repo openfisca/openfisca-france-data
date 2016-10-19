@@ -2,11 +2,15 @@
 # -*- coding: utf-8 -*-
 
 
+import gc
 import logging
 import numpy as np
 
 from openfisca_france_data.temporary import temporary_store_decorator
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
+from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
+    assert_dtype, 
+    id_formatter,
+    )
 
 log = logging.getLogger(__name__)
 
@@ -30,6 +34,33 @@ def create_variables_individuelles(temporary_store = None, year = None):
     create_activite_variable(indivim)
     create_revenus_variables(indivim)
 
+    variables = [
+        'activite',
+        'age',
+        'age_en_mois',
+        'chomage_imposable',
+        'pensions_alimentaires_percues',
+        'rag',
+        'retraite_imposable',
+        'ric',
+        'rnc',
+        'salaire_imposable',
+        'idmen',
+        'quimen',
+        'idfoy',
+        'quifoy',
+        'idfam',
+        'quifam',
+        'noindiv',
+        ]
+    data_frame = create_ids_and_roles(indivim)[variables].copy()
+    del indivim
+    gc.collect()
+    for entity_id in ['idmen', 'idfoy', 'idfam']:
+        log.info('Reformat ids: {}'.format(entity_id))
+        data_frame = id_formatter(data_frame, entity_id)
+    data_frame.reset_index(inplace = True)
+    temporary_store['input_{}'.format(year)] = data_frame
     log.info(u"step_03_variables_individuelles terminée")
 
 
@@ -104,7 +135,7 @@ def create_age_variables(indivim, year = None):
     """
     assert year is not None
     indivim['age'] = year - indivim.naia - 1
-    indivim['age_en_mois'] = 12 * indivim.age + 12 - indivim.naim
+    indivim['age_en_mois'] = 12 * indivim.age + 12 - indivim.naim  # TODO why 12 - naim
 
     for variable in ['age', 'age_en_mois']:
         assert indivim[variable].notnull().all(), "Il y a {} entrées non renseignées pour la variable {}".format(
@@ -112,7 +143,6 @@ def create_age_variables(indivim, year = None):
 
 
 def create_revenus_variables(indivim):
-
     old_by_new_variables = {
         'chomage_i': 'chomage_imposable',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
@@ -138,6 +168,26 @@ def create_revenus_variables(indivim):
                 indivim[variable].value_counts().loc[indivim[variable].value_counts().index < 0]
                 )
             )
+
+
+def create_ids_and_roles(indivim):
+    old_by_new_variables = {
+        'ident': 'idmen',
+        }
+    indivim.rename(
+        columns = old_by_new_variables,
+        inplace = True,
+        )
+    indivim['quimen'] = 9
+    indivim.loc[indivim.lpr == 1, 'quimen'] = 0
+    indivim.loc[indivim.lpr == 2, 'quimen'] = 1
+
+    indivim['idfoy'] = indivim['idmen'].copy()
+    indivim['idfam'] = indivim['idmen'].copy()
+    indivim['quifoy'] = indivim['quimen'].copy()
+    indivim['quifam'] = indivim['quimen'].copy()
+
+    return indivim.loc[indivim.quimen <= 1].copy()
 
 
 def todo_create(indivim):
