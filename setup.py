@@ -61,7 +61,7 @@ setup(
         ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
     install_requires = [
-        'configparser','
+        'configparser',
         'OpenFisca-Core >= 3.0.0, < 4.0',
         'OpenFisca-France >= 4.0.0, < 5.0',
         'OpenFisca-Survey-Manager',
