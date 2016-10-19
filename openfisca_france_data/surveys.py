@@ -17,7 +17,6 @@ log = logging.getLogger(__name__)
 
 
 class SurveyScenario(AbstractSurveyScenario):
-
     default_used_as_input_variables = [
         'age_en_mois',
         'age',

@@ -6,11 +6,12 @@ import gc
 import logging
 import numpy as np
 
-from openfisca_france_data.temporary import temporary_store_decorator
+
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
-    assert_dtype, 
+    assert_dtype,
     id_formatter,
     )
+from openfisca_france_data.temporary import temporary_store_decorator
 
 log = logging.getLogger(__name__)
 
@@ -33,12 +34,13 @@ def create_variables_individuelles(temporary_store = None, year = None):
     create_age_variables(indivim, year)
     create_activite_variable(indivim)
     create_revenus_variables(indivim)
-
+    create_travail(indivim)
     variables = [
         'activite',
         'age',
         'age_en_mois',
         'chomage_imposable',
+        'categorie_salarie',
         'pensions_alimentaires_percues',
         'rag',
         'retraite_imposable',
@@ -153,7 +155,7 @@ def create_revenus_variables(indivim):
         'salaires_i': 'salaire_imposable',
         }
     for variable in old_by_new_variables.keys():
-        print variable, variable in indivim.columns.tolist()
+        #print variable, variable in indivim.columns.tolist()
         assert variable in indivim.columns.tolist(), "La variable {} n'est pas présente".format(variable)
 
     indivim.rename(
@@ -168,6 +170,80 @@ def create_revenus_variables(indivim):
                 indivim[variable].value_counts().loc[indivim[variable].value_counts().index < 0]
                 )
             )
+
+def create_travail(indivim):
+    """
+    Création de la variable categorie_salarie :
+        u"prive_non_cadre
+        u"prive_cadre
+        u"public_titulaire_etat
+        u"public_titulaire_militaire
+        u"public_titulaire_territoriale
+        u"public_titulaire_hospitaliere
+        u"public_non_titulaire
+
+    A partir des variables de l'ecc' :
+    Statut :
+        11 - Indépendants
+        12 - Employeurs
+        13 - Aides familiaux
+        21 - Intérimaires
+        22 - Apprentis
+        33 - CDD (hors Etat, coll.loc.), hors contrats aides
+        34 - Stagiaires et contrats aides (hors Etat, coll.loc.)
+        35 - Autres contrats (hors Etat, coll.loc.)
+        43 - CDD (Etat, coll.loc.), hors contrats aides
+        44 - Stagiaires et contrats aides (Etat, coll.loc.)
+        45 - Autres contrats (Etat, coll.loc.)
+    chpub :
+        1 - Etat
+        2 - Collectivités locales, HLM
+        3 - Hôpitaux publics
+        4 - Particulier
+        5 - Entreprise publique (La Poste, EDF-GDF, etc.)
+        6 - Entreprise privée, association
+    encadr : (encadrement de personnes)
+        1 - Oui
+        2 - Non
+    titc :
+        1 - Elève fonctionnaire ou stagiaire
+        2 - Agent titulaire
+        3 - Contractuel
+
+    """
+    # Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
+
+    cadre = indivim.encadr
+    chpub = indivim.chpub
+    titc = indivim.titc
+    statut = indivim.statut
+
+    assert indivim.chpub.isin(range(0, 7)).all(), \
+        'chpub values are outside the interval [1, 6]\n{}'.format(indivim.chpub.value_counts())
+
+    cadre = (statut == 35) * (chpub > 3) * cadre
+    # noncadre = (statut ==8)*(chpub>3)*not_(cadre)
+
+    # etat_stag = (chpub==1)*(titc == 1)
+    etat_tit = (chpub == 1) * (titc == 2)
+    etat_cont = (chpub == 1) * (titc == 3)
+
+    militaire = 0  # TODO:
+
+    # collect_stag = (chpub==2)*(titc == 1)
+    collect_tit = (chpub == 2) * (titc == 2)
+    collect_cont = (chpub == 2) * (titc == 3)
+
+    # hosp_stag = (chpub==2)*(titc == 1)
+    hosp_tit = (chpub == 3) * (titc == 2)
+    hosp_cont = (chpub == 3) * (titc == 3)
+
+    contract = (collect_cont + hosp_cont + etat_cont >= 1)
+
+    indivim['categorie_salarie'] = (
+        0 + 1 * cadre + 2 * etat_tit + 3 * militaire + 4 * collect_tit + 5 * hosp_tit + 6 * contract
+        )
+    print(indivim['categorie_salarie'].value_counts())
 
 
 def create_ids_and_roles(indivim):
