@@ -64,7 +64,7 @@ setup(
         'configparser',
         'OpenFisca-Core >= 3.0.0, < 4.0',
         'OpenFisca-France >= 4.0.0, < 5.0',
-        'OpenFisca-Survey-Manager',
+        'OpenFisca-Survey-Manager[calmar] >= 0.4',
         'pandas >= 0.19',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
