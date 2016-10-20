@@ -88,8 +88,8 @@ class Debugger(object):
         column_by_name = self.column_by_name
         temp = (build_erf_aggregates(variables=[variable], year= self.survey_scenario.year))
         selection = openfisca_aggregates.aggr_frame["Mesure"] == column_by_name[variable].label
-        print openfisca_aggregates.aggr_frame[selection]
-        print temp
+        print(openfisca_aggregates.aggr_frame[selection])
+        print(temp)
         # TODO: clean this
         return
 
@@ -103,7 +103,7 @@ class Debugger(object):
 
     def get_all_parameters(self, column_list):
         global x
-        print [column.name for column in column_list]
+        print([column.name for column in column_list])
         x = x + 1
         if x == 20:
             boum
@@ -116,7 +116,7 @@ class Debugger(object):
             return []
         else:
             column_name = column_list[0].name
-            print column_name
+            print(column_name)
             if extractor.get_input_variables(column_by_name[column_name]) is None:
                 return column_list
             else:
@@ -128,14 +128,13 @@ class Debugger(object):
                 other_columns = list(
                     set(self.get_all_parameters(column_list[1:])) - set(first_column + input_columns)
                     )
-                print 'input_variables: ', [column.name for column in input_columns]
+                print('input_variables: ', [column.name for column in input_columns])
 
-                print 'new_variables: ', [column.name for column in other_columns]
+                print('new_variables: ', [column.name for column in other_columns])
 
                 new_column_list = first_column + input_columns + other_columns
-                print 'final list: ',  [column.name for column in new_column_list]
+                print('final list: ', [column.name for column in new_column_list])
                 return new_column_list
-
 
     def build_columns_to_fetch(self):
         column_by_name = self.column_by_name
@@ -188,7 +187,6 @@ class Debugger(object):
             {'idmen': idmen_original_by_idmen}, inplace = True)
         self.data_frame_by_entity_key_plural = data_frame_by_entity_key_plural
 
-
     def project_on(self, receiving_entity_key_plural = 'menages', data_frame_by_entity_key_plural = None):
         tax_benefit_system = self.survey_scenario.tax_benefit_system
         assert data_frame_by_entity_key_plural is not None
@@ -220,7 +218,6 @@ class Debugger(object):
 
         assert data_frame.notnull().all().all()
         return data_frame
-
 
     def build_erf_data_frames(self):
         # TODO: remove this
@@ -340,7 +337,7 @@ class Debugger(object):
             pass
         table.sort(columns = variable + "_rel_diff", ascending = False, inplace = True)
 
-        print table[:10].to_string()
+        print(table[:10].to_string())
         return table
 
     def describe_discrepancies(self, fov = 10, consumers = False, parameters = True, descending = True, to_men = False):
@@ -383,7 +380,7 @@ class Debugger(object):
             on = 'idmen',
             )
 
-        print debug_data_frame.to_string()
+        print(debug_data_frame.to_string())
 
         debug_data_frame = debug_data_frame.merge(
             self.extract(of_individus_data_frame, entities = entities_ind),
@@ -408,10 +405,12 @@ class Debugger(object):
         entity_class_by_key_plural = self.survey_scenario.tax_benefit_system.entity_class_by_key_plural
         menages_entity = entity_class_by_key_plural['menages']
         idmen_by_idmen_original = self.idmen_by_idmen_original
-        idmen_original = self.describe_discrepancies(descending = False)[menages_entity.index_for_person_variable_name].iloc[0]
+        idmen_original = self.describe_discrepancies(descending = False)[
+            menages_entity.index_for_person_variable_name].iloc[0]
         idmen = idmen_by_idmen_original[idmen_original]
         input_data_frame = self.survey_scenario.input_data_frame
-        individus_index = input_data_frame.index[input_data_frame[menages_entity.index_for_person_variable_name] == idmen]
+        individus_index = input_data_frame.index[
+            input_data_frame[menages_entity.index_for_person_variable_name] == idmen]
         index_by_entity = {
             entity_class_by_key_plural['individus']: individus_index,
             }
@@ -448,13 +447,13 @@ if __name__ == '__main__':
     debugger.build_openfisca_data_frames()
     debugger.build_erf_data_frames()
 
-#    df_menage = debugger.data_frame_by_entity_key_plural['menages']
-#    df_famille = debugger.data_frame_by_entity_key_plural['familles']
-#    df_individus = debugger.data_frame_by_entity_key_plural['individus']
+    # df_menage = debugger.data_frame_by_entity_key_plural['menages']
+    # df_famille = debugger.data_frame_by_entity_key_plural['familles']
+    # df_individus = debugger.data_frame_by_entity_key_plural['individus']
 
-    #df = debugger.get_major_differences()
+    # df = debugger.get_major_differences()
 
-    #    debugger.show_aggregates()
+    # debugger.show_aggregates()
     df = debugger.describe_discrepancies(descending = False)
     df = debugger.generate_test_case()
 

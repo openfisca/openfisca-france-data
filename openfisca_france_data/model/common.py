@@ -3,7 +3,7 @@
 
 from __future__ import division
 
-from numpy import arange, argsort, asarray, cumsum, linspace, logical_and as and_, repeat
+from numpy import arange
 
 
 try:
