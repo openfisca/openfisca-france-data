@@ -8,6 +8,9 @@
 openfisca_france_data/tests/saved_fake_survey
 openfisca_france_data/tests/saved_fake_survey_collection
 
+# vscode
+.vscode/
+
 # Spyder junk
 .spyproject
 .spyderworkspace
