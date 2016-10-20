@@ -1,4 +1,4 @@
-- name: "rto"
+- name: "retraite_titre_onereux_declarant1"
   description: rente viagères à titre onéreux
   period: 2009
   absolute_error_margin: 0.005
@@ -18,10 +18,10 @@
     - id: "parent2"
       age: 40
   output_variables:
-    rto:
+    retraite_titre_onereux_declarant1:
       2009-01:
         40000 / 12
-    rto_declarant1:
+    retraite_titre_onereux_declarant1_declarant1:
       2009-01:
         - 40000 / 12
         - 0
