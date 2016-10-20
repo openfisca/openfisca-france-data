@@ -26,7 +26,7 @@ import pkg_resources
 import os
 
 
-from openfisca_france_data.calibration import Calibration
+from openfisca_survey_manager.calibration import Calibration
 from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.surveys import SurveyScenario
 
