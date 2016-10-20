@@ -41,7 +41,7 @@ def test_erfs_fpr_survey_simulation(year = 2012):
     print data_frame_by_entity_key_plural['familles']
     print data_frame_by_entity_key_plural['individus']
 
-    print (
+    print(
         data_frame_by_entity_key_plural['familles'].weight_familles * data_frame_by_entity_key_plural['familles'].af
         ).sum()
 
