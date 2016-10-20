@@ -25,8 +25,6 @@ def create_variables_individuelles(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
-    kind = 'erfs_fpr'
-
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
     individus = temporary_store['individus_{}'.format(year)]
@@ -34,7 +32,8 @@ def create_variables_individuelles(temporary_store = None, year = None):
     create_age_variables(individus, year)
     create_activite_variable(individus)
     create_revenus_variables(individus)
-    create_travail(individus)
+    create_categorie_salarie_variable(individus)
+    create_effectif_entreprise_variable(individus)
     variables = [
         'activite',
         'age',
@@ -105,8 +104,8 @@ def create_actrec_variable(individus):
     # 8: femme (homme) au foyer, autre inactif
     individus.loc[individus.acteu == 3, 'actrec'] = 8
     # 1: actif occupé non salarié
-    filter1 = (individus.acteu == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte ou pour un
-    individus.loc[filter1, 'actrec'] = 1                              # membre de sa famille
+    filter1 = (individus.acteu == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte
+    individus.loc[filter1, 'actrec'] = 1                             # ou pour un membre de sa famille
     # 2: salarié pour une durée non limitée
     filter2 = (individus.acteu == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
     individus.loc[filter2, 'actrec'] = 2
@@ -137,43 +136,16 @@ def create_age_variables(individus, year = None):
     """
     assert year is not None
     individus['age'] = year - individus.naia - 1
-    individus['age_en_mois'] = 12 * individus.age + 12 - individus.naim  # TODO why 12 - naim
+    individus['age_en_mois'] = 12 * individus.age + 12 - individus.naim  # TODO why 12 - naim
 
     for variable in ['age', 'age_en_mois']:
         assert individus[variable].notnull().all(), "Il y a {} entrées non renseignées pour la variable {}".format(
             individus[variable].notnull().sum(), variable)
 
 
-def create_revenus_variables(individus):
-    old_by_new_variables = {
-        'chomage_i': 'chomage_imposable',
-        'pens_alim_recue_i': 'pensions_alimentaires_percues',
-        'rag_i': 'rag',
-        'retraites_i': 'retraite_imposable',
-        'ric_i': 'ric',
-        'rnc_i': 'rnc',
-        'salaires_i': 'salaire_imposable',
-        }
-    for variable in old_by_new_variables.keys():
-        #print variable, variable in individus.columns.tolist()
-        assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
-
-    individus.rename(
-        columns = old_by_new_variables,
-        inplace = True,
-        )
-
-    for variable in old_by_new_variables.values():
-        if (individus[variable] < 0).any():
-            log.info("La variable {} contient des valeurs négatives\n {}".format(
-                variable,
-                individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
-                )
-            )
-
-def create_travail(individus):
+def create_categorie_salarie_variable(individus):
     """
-    Création de la variable categorie_salarie :
+    Création de la variable categorie_salarie:
         u"prive_non_cadre
         u"prive_cadre
         u"public_titulaire_etat
@@ -216,27 +188,37 @@ def create_travail(individus):
     assert individus.chpub.isin(range(0, 7)).all(), \
         "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts())
 
-    chpub = individus.chpub
-    titc = individus.titc
-    statut = individus.statut
+    assert individus.chpub.isin(range(0, 7)).all(), \
+        "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts())
 
-    # encadrement
+    individus.loc[individus.encadr == 0, 'encadr'] = 2
     assert individus.encadr.isin(range(1, 3)).all(), \
         "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts())
 
     assert individus.prosa.isin(range(0, 10)).all(), \
         "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
 
-    individus.loc[individus.encadr == 0, 'encadr'] = 2
-    individus.loc[individus.encadr == 0, 'encadr'] = 2
-    assert individus.encadr.notnull().all()
-    assert individus.encadr.isin([1, 2]).all()
+    statut_values = [0, 11, 12, 13, 21, 22, 33, 34, 35, 43, 44, 45]
+    assert individus.statut.isin(statut_values).all(), \
+        "statut n'est pas toujours dans l'ensemble {} des valeurs antendues.\n{}".format(
+            statut_values,
+            individus.statut.value_counts()
+            )
 
+    assert individus.titc.isin(range(4)).all(), \
+        "titc n'est pas toujours dans l'ensemble [0, 3] des valeurs antendues.\n{}".format(
+            individus.statut.value_counts()
+            )
+
+    chpub = individus.chpub
+    titc = individus.titc
+
+    # encadrement
     assert 'cadre' not in individus.columns
     individus['cadre'] = False
     individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
     individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
-    cadre = (statut == 35) & (chpub > 3) & individus.cadre
+    cadre = (individus.statut == 35) & (chpub > 3) & individus.cadre
     del individus['cadre']
 
     # etat_stag = (chpub==1) & (titc == 1)
@@ -250,21 +232,96 @@ def create_travail(individus):
     collectivites_locales_contractuel = (chpub == 2) & (titc == 3)
 
     # hosp_stag = (chpub==2)*(titc == 1)
-    hopital_titulaire = (chpub == 3) * (titc == 2)
-    hopital_contractuel = (chpub == 3) * (titc == 3)
+    hopital_titulaire = (chpub == 3) & (titc == 2)
+    hopital_contractuel = (chpub == 3) & (titc == 3)
 
-    contract = (collectivites_locales_contractuel + hopital_contractuel + etat_contractuel >= 1)
+    contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
-    individus['categorie_salarie'] = (
-        0 +
-        1 * cadre +
-        2 * etat_titulaire +
-        3 * militaire +
-        4 * collectivites_locales_titulaire +
-        5 * hopital_titulaire +
-        6 * contract
+    individus['categorie_salarie'] = np.select(
+        [0, 1, 2, 3, 4, 5, 6],
+        [0, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel]
         )
-    print(individus['categorie_salarie'].value_counts())
+
+    assert individus['categorie_salarie'].isin(range(10)).all(), \
+        "categorie_salarie n'est pas toujours dans l'intervalle [0, 9]\n{}".format(
+            individus.categorie_salarie.value_counts())
+
+
+def create_effectif_entreprise_variable(individus):
+    """
+    Création de la variable effectif_entreprise
+    à partir de la variable nbsala qui prend les valeurs suivantes:
+        0 - Non pertinent
+        1 - Aucun salarié
+        2 - 1 ou 4 salariés
+        3 - 5 à 9 salariés
+        4 - 10 à 19 salariés
+        5 - 20 à 49 salariés
+        6 - 50 à 199 salariés
+        7 - 200 à 499 salariés
+        8 - 500 à 999 salariés
+        9 - 1000 salariés ou plus
+        99 - Ne sait pas
+    """
+
+    assert individus.nbsala.isin(range(0, 10) + [99]).all(), \
+        "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
+            individus.nbsala.value_counts())
+    individus['effectif_entreprise'] = np.select(
+        [0, 1, 5, 10, 20, 50, 200, 500, 1000],
+        [
+            individus.nbsala.isin([0, 1]),  # 0
+            individus.nbsala == 2,  # 1
+            individus.nbsala == 3,  # 5
+            individus.nbsala == 4,  # 10
+            individus.nbsala == 5,  # 20
+            (individus.nbsala == 6) | (individus.nbsala == 99),  # 50
+            individus.nbsala == 7,  # 200
+            individus.nbsala == 8,  # 500
+            individus.nbsala == 9,  # 1000
+            ]
+        )
+
+    assert individus.effectif_entreprise.isin([0, 1, 5, 10, 20, 50, 200, 500, 1000]).all(), \
+        "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
+            individus.effectif_entreprise.value_counts())
+
+
+def create_revenus_variables(individus):
+    """
+    Création des variables:
+        chomage_imposable,
+        pensions_alimentaires_percues,
+        rag,
+        retraite_imposable,
+        ric,
+        rnc,
+        salaire_imposable,
+    """
+    old_by_new_variables = {
+        'chomage_i': 'chomage_imposable',
+        'pens_alim_recue_i': 'pensions_alimentaires_percues',
+        'rag_i': 'rag',
+        'retraites_i': 'retraite_imposable',
+        'ric_i': 'ric',
+        'rnc_i': 'rnc',
+        'salaires_i': 'salaire_imposable',
+        }
+    for variable in old_by_new_variables.keys():
+        assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
+
+    individus.rename(
+        columns = old_by_new_variables,
+        inplace = True,
+        )
+
+    for variable in old_by_new_variables.values():
+        if (individus[variable] < 0).any():
+            log.info("La variable {} contient des valeurs négatives\n {}".format(
+                variable,
+                individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
+                )
+            )
 
 
 def create_ids_and_roles(individus):
@@ -288,27 +345,6 @@ def create_ids_and_roles(individus):
 
 
 def todo_create(individus):
-    individus.loc[individus.titc.isnull(), 'titc'] = 0
-    assert individus.titc.notnull().all(), \
-        u"Problème avec les titc"  # On a 420 NaN pour les varaibels statut, titc etc
-
-    log.info(u"    6.2 : Variable statut")
-    individus.loc[individus.statut.isnull(), 'statut'] = 0
-    individus.statut = individus.statut.astype('int')
-    individus.loc[individus.statut == 11, 'statut'] = 1
-    individus.loc[individus.statut == 12, 'statut'] = 2
-    individus.loc[individus.statut == 13, 'statut'] = 3
-    individus.loc[individus.statut == 21, 'statut'] = 4
-    individus.loc[individus.statut == 22, 'statut'] = 5
-    individus.loc[individus.statut == 33, 'statut'] = 6
-    individus.loc[individus.statut == 34, 'statut'] = 7
-    individus.loc[individus.statut == 35, 'statut'] = 8
-    individus.loc[individus.statut == 43, 'statut'] = 9
-    individus.loc[individus.statut == 44, 'statut'] = 10
-    individus.loc[individus.statut == 45, 'statut'] = 11
-    assert individus.statut.isin(range(12)).all(), u"statut value over range"
-    log.info("Valeurs prises par la variable statut \n {}".format(
-        individus['statut'].value_counts(dropna = False)))
 
     log.info(u"    6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
@@ -320,27 +356,6 @@ def todo_create(individus):
     log.info("Valeurs prises par la variable txtppb \n {}".format(
         individus['txtppb'].value_counts(dropna = False)))
 
-    log.info(u"    6.4 : variable chpub et CSP")
-    individus.loc[individus.chpub.isnull(), 'chpub'] = 0
-    individus.chpub = individus.chpub.astype('int')
-    assert individus.chpub.isin(range(11)).all()
-
-    individus['cadre'] = 0
-    individus.loc[individus.prosa.isnull(), 'prosa'] = 0
-    assert individus.prosa.notnull().all()
-    log.info("Valeurs prises par la variable encadr \n {}".format(individus['encadr'].value_counts(dropna = False)))
-
-    # encadr : 1=oui, 2=non
-    individus.loc[individus.encadr.isnull(), 'encadr'] = 2
-    individus.loc[individus.encadr == 0, 'encadr'] = 2
-    assert individus.encadr.notnull().all()
-    assert individus.encadr.isin([1, 2]).all()
-
-    individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = 1
-    individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = 1
-    assert individus.cadre.isin(range(2)).all()
-
-
 
 if __name__ == '__main__':
     import sys
@@ -348,4 +363,3 @@ if __name__ == '__main__':
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
     year = 2012
     create_variables_individuelles(year = year)
-

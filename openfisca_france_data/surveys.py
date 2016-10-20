@@ -9,7 +9,6 @@ from openfisca_core import periods, simulations, taxbenefitsystems
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
 from openfisca_france_data import france_data_tax_benefit_system
-from openfisca_france_data.calibration import Calibration
 from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import id_formatter
 
 
@@ -37,26 +36,6 @@ class SurveyScenario(AbstractSurveyScenario):
         (entity, "champm_{}".format(entity)) for entity in ['individus', 'foyers_fiscaux', 'familles']
         )
     filtering_variable_by_entity_key_plural['menages'] = 'champm'
-
-    def compute_aggregate(self, variable = None, aggfunc = 'sum', filter_by = None, period = None, reference = False):
-        if filter_by is None:
-            tax_benefit_system = self.tax_benefit_system
-            entity_key_plural = tax_benefit_system.column_by_name[variable].entity_key_plural
-            filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
-
-        return super(SurveyScenario, self).compute_aggregate(aggfunc = aggfunc, variable = variable,
-            filter_by = filter_by, period = period, reference = reference)
-
-    def compute_pivot_table(self, aggfunc = 'mean', columns = None, difference = None, filter_by = None, index = None,
-            period = None, reference = False, values = None):
-        if filter_by is None:
-            tax_benefit_system = self.tax_benefit_system
-            entity_key_plural = tax_benefit_system.column_by_name[values[0]].entity_key_plural
-            filter_by = self.filtering_variable_by_entity_key_plural.get(entity_key_plural)
-
-        return super(SurveyScenario, self).compute_pivot_table(aggfunc = aggfunc, columns = columns,
-            difference = difference, filter_by = filter_by, index = index, period = period, reference = reference,
-            values = values)
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
@@ -106,32 +85,6 @@ class SurveyScenario(AbstractSurveyScenario):
         for entity in simulation.entity_by_key_singular.values():
             data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
         return data_frame
-
-    def calibrate(self, target_margins_by_variable = None, parameters = None, total_population = None):
-        survey_scenario = self
-        survey_scenario.initialize_weights()
-        calibration = Calibration(survey_scenario)
-
-        if parameters is not None:
-            assert parameters['method'] in ['linear', 'raking ratio', 'logit'], \
-                "Incorect parameter value: method should be 'linear', 'raking ratio' or 'logit'"
-            if parameters['method'] == 'logit':
-                assert parameters['invlo'] is not None
-                assert parameters['up'] is not None
-        else:
-            parameters = dict(method = 'logit', up = 3, invlo = 3)
-
-        calibration.parameters.update(parameters)
-
-        if total_population:
-            calibration.total_population = total_population
-
-        if target_margins_by_variable is not None:
-            calibration.set_target_margins(target_margins_by_variable)
-
-        calibration.calibrate()
-        calibration.set_calibrated_weights()
-        self.calibration = calibration
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:

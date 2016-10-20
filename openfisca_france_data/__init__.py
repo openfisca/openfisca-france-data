@@ -1,28 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
-
 import inspect
 import os
 import pkg_resources
@@ -35,7 +13,6 @@ import openfisca_france
 
 # Load input variables and output variables into entities
 from .model import common, survey_variables # noqa analysis:ignore
-from .model.cotisations_sociales import travail
 
 
 def get_variables_from_module(module):
@@ -55,7 +32,7 @@ def get_variables_from_modules(modules):
     return variables
 
 
-variables = get_variables_from_modules([common, survey_variables, travail])
+variables = get_variables_from_modules([common, survey_variables])
 
 
 class openfisca_france_data(reforms.Reform):
