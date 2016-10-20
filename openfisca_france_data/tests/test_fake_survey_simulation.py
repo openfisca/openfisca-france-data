@@ -6,7 +6,7 @@ from __future__ import division
 import os
 
 from openfisca_core.tools import assert_near
-from openfisca_france_data.calibration import Calibration
+from openfisca_survey_manager.calibration import Calibration
 import openfisca_france.tests.base as france_base 
 import numpy
 import pandas
