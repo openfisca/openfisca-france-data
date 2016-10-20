@@ -44,9 +44,9 @@ def test_calibration():
     survey_scenario.initialize_weights()
     calibration = Calibration(survey_scenario)
     calibration.parameters['method'] = 'linear'
-    print calibration.initial_total_population
+    log.info('initial_total_population: {} '.format(calibration.initial_total_population))
     calibration.total_population = calibration.initial_total_population * 1.123
-    print calibration.total_population
+    log.info('calibration.total_population: {} '.format(calibration.total_population))
 
     filename = os.path.join(
         openfisca_france_data_location,
@@ -59,6 +59,7 @@ def test_calibration():
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
     calibration.calibrate()
+
 
 if __name__ == '__main__':
     import logging
