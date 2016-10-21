@@ -2,4 +2,4 @@
 
 
 from . import common  # noqa analysis:ignore
-from .cotisations_sociales import travail  # noqa analysis:ignore
+from .cotisations_sociales import survey_variables # noqa analysis:ignore
