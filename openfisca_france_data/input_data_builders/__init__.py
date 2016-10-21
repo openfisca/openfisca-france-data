@@ -9,7 +9,7 @@ def get_input_data_frame(year):
     openfisca_survey_collection = SurveyCollection.load(
         collection = "openfisca", config_files_directory = config_files_directory)
     openfisca_survey = openfisca_survey_collection.get_survey("openfisca_data_{}".format(year))
-    input_data_frame = openfisca_survey.get_values(table = "input")
+    input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
     input_data_frame.rename(
         columns = dict(
             alr = 'pensions_alimentaires_percues',
@@ -21,14 +21,4 @@ def get_input_data_frame(year):
             ),
         inplace = True,
         )
-    input_data_frame.reset_index(inplace = True)
-    return input_data_frame
-
-
-def get_erfs_fpr_input_data_frame(year):
-    openfisca_survey_collection = SurveyCollection.load(
-        collection = "openfisca", config_files_directory = config_files_directory)
-    openfisca_survey = openfisca_survey_collection.get_survey("openfisca_erfs_fpr_data_{}".format(year))
-    input_data_frame = openfisca_survey.get_values(table = "input")
-    input_data_frame.reset_index(inplace = True)
     return input_data_frame

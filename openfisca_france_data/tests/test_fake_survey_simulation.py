@@ -3,17 +3,16 @@
 
 from __future__ import division
 
-import os
-
-from openfisca_core.tools import assert_near
-from openfisca_survey_manager.calibration import Calibration
-import openfisca_france.tests.base as france_base 
 import numpy
+import os
 import pandas
 
+from openfisca_core.tools import assert_near
+import openfisca_france.tests.base as france_base
 from openfisca_france_data.tests import base
 from openfisca_france_data.input_data_builders import get_input_data_frame
-from openfisca_france_data.surveys import SurveyScenario
+from openfisca_france_data.surveys import ErfsSurveyScenario
+from openfisca_survey_manager.calibration import Calibration
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -63,7 +62,7 @@ def test_fake_survey_simulation():
     assert input_data_frame.salaire_imposable.loc[0] == 20000
     assert input_data_frame.salaire_imposable.loc[1] == 10000
 
-    survey_scenario = SurveyScenario().init_from_data_frame(
+    survey_scenario = ErfsSurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         year = year,
         )
@@ -95,9 +94,9 @@ def test_fake_survey_simulation():
         assert (simulation.calculate_add('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
 
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):
-        print "{}-{}".format(year, month)
-        print simulation.calculate_add_divide('salaire_imposable', period = "{}-{}".format(year, month))
-        print sal_2006 / 12
+        # print "{}-{}".format(year, month)
+        # print simulation.calculate_add_divide('salaire_imposable', period = "{}-{}".format(year, month))
+        # print sal_2006 / 12
         assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
@@ -133,7 +132,7 @@ def test_fake_survey_simulation():
 def create_fake_calibration():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-    survey_scenario = SurveyScenario().init_from_data_frame(
+    survey_scenario = ErfsSurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         year = year,
         )
