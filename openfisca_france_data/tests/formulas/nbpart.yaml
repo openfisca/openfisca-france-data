@@ -23,7 +23,7 @@
     - id: "enfant1"
       age: 9
       salaire_imposable: 25000
-      handicap: true
+      invalidite: true
     - id: "enfant2"
       age: 9
   output_variables:
