@@ -37,13 +37,6 @@ def test_erfs_fpr_survey_simulation(year = 2012):
             'revdisp',
             ]
         )
-    print data_frame_by_entity_key_plural.keys()
-    print data_frame_by_entity_key_plural['familles']
-    print data_frame_by_entity_key_plural['individus']
-
-    print(
-        data_frame_by_entity_key_plural['familles'].weight_familles * data_frame_by_entity_key_plural['familles'].af
-        ).sum()
 
     return data_frame_by_entity_key_plural, simulation
 
@@ -114,4 +107,4 @@ if __name__ == '__main__':
     data_frame_familles = data_frame_by_entity_key_plural['familles']
     # ra_rsa = simulation.calculate('ra_rsa', "2009-01")
     # salaire_net = simulation.calculate('salaire_net', "2009-01")
-    print time.time() - start
+    print(time.time() - start)
