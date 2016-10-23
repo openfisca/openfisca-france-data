@@ -2,28 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 import gc
 import logging
 
@@ -33,13 +11,13 @@ from numpy import where
 
 from openfisca_france_data.temporary import temporary_store_decorator
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import print_id, control
+from openfisca_france_data.utils import print_id, control
 
 
 log = logging.getLogger(__name__)
 
 
-@temporary_store_decorator(file_name = 'erfs_fpr')
+@temporary_store_decorator(file_name = 'erfs')
 def create_totals_first_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
@@ -622,7 +600,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
     return
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+@temporary_store_decorator(file_name = 'erfs')
 def create_totals_second_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
@@ -848,7 +826,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     log.info(u"tot3 sauvegardé")
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+@temporary_store_decorator(file_name = 'erfs')
 def create_final(temporary_store = None, year = None):
 
     assert temporary_store is not None

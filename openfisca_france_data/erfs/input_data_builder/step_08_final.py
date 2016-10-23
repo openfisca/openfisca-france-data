@@ -15,7 +15,7 @@ import os
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
 from openfisca_france_data.temporary import temporary_store_decorator
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
+from openfisca_france_data.utils import (
     check_structure,
     control,
     normalizes_roles_in_entity,

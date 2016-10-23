@@ -7,7 +7,7 @@ import logging
 from pandas import concat, DataFrame
 
 from openfisca_france_data.temporary import temporary_store_decorator
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import assert_dtype
+from openfisca_france_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)
 

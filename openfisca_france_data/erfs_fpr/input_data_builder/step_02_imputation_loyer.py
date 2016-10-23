@@ -23,7 +23,7 @@ try:
 except ImportError:
     rpy2 = None
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
+from openfisca_france_data.utils import (
     assert_variable_in_range, count_NA)
 from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
 from openfisca_survey_manager import matching

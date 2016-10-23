@@ -23,8 +23,7 @@ try:
 except ImportError:
     rpy2 = None
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
-    assert_variable_in_range, count_NA)
+from openfisca_france_data.utils import assert_variable_in_range, count_NA
 from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -307,8 +306,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     if year > 2005 and year < 2010:
         year_lgt = 2006
 
-    logement_survey_collection = SurveyCollection.load(collection = 'logement',
-            config_files_directory = config_files_directory)
+    logement_survey_collection = SurveyCollection.load(collection = 'logement')
     logement_survey = logement_survey_collection.get_survey('logement_{}'.format(year_lgt))
 
     log.info("Preparing logement menage table")
@@ -326,7 +324,12 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     logement_menage['mrret'].fillna(0, inplace = True)
     logement_menage['mrsal'].fillna(0, inplace = True)
     logement_menage['mrtns'].fillna(0, inplace = True)
-    logement_menage['revtot'] = logement_menage['mrcho'] + logement_menage ['mrret'] + logement_menage['mrsal'] + logement_menage['mrtns'] # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
+    logement_menage['revtot'] = (
+        logement_menage['mrcho'] +
+        logement_menage['mrret'] +
+        logement_menage['mrsal'] +
+        logement_menage['mrtns']
+        )  # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
     assert logement_menage.revtot.notnull().all()
     logement_menage['nvpr'] = 10.0 * logement_menage['revtot'] / logement_menage['muc1']
 
@@ -490,7 +493,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     return logement
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+@temporary_store_decorator(file_name = 'erfs')
 def imputation_loyer(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None

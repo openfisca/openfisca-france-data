@@ -27,7 +27,7 @@
 import logging
 
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import control, print_id
+from openfisca_france_data.utils import control, print_id
 from openfisca_france_data.temporary import temporary_store_decorator
 
 

@@ -23,7 +23,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
+from openfisca_france_data.utils import (
     build_cerfa_fields_by_column_name)
 
 

@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import (
+from openfisca_france_data.utils import (
     assert_dtype,
     id_formatter,
     )

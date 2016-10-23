@@ -34,7 +34,7 @@ import numpy
 from pandas import merge, concat, DataFrame
 
 from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.base import (
+from openfisca_france_data.erfs.input_data_builder.base import (
     year_specific_by_generic_data_frame_name)
 from openfisca_france_data.utils import simulation_results_as_data_frame
 from openfisca_france_data.erf import get_erf2of, get_of2erf
