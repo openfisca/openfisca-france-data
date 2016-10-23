@@ -6,7 +6,7 @@ import os
 
 
 from openfisca_survey_manager.calibration import Calibration
-from openfisca_france_data.surveys import ErfsSurveyScenario
+from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 
 
 openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location

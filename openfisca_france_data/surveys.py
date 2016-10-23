@@ -6,13 +6,9 @@ import numpy as np
 
 
 from openfisca_core import periods, simulations, taxbenefitsystems
-from openfisca_france_data import (
-    france_data_tax_benefit_system, default_config_files_directory as config_files_directory
-    )
-from openfisca_france_data.input_data_builders.build_openfisca_survey_data.utils import \
-    id_formatter
+from openfisca_france_data import france_data_tax_benefit_system
+from openfisca_france_data.utils import id_formatter
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
-from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
@@ -23,26 +19,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         (entity, "champm_{}".format(entity)) for entity in ['individus', 'foyers_fiscaux', 'familles']
         )
     filtering_variable_by_entity_key_plural['menages'] = 'champm'
-
-    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
-            reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
-            year = None):
-
-        if used_as_input_variables is None:
-            used_as_input_variables = self.default_used_as_input_variables
-
-        if tax_benefit_system is None:
-            tax_benefit_system = france_data_tax_benefit_system
-            reference_tax_benefit_system = None
-
-        return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
-            input_data_frame = input_data_frame,
-            input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
-            reference_tax_benefit_system = reference_tax_benefit_system,
-            tax_benefit_system = tax_benefit_system,
-            used_as_input_variables = used_as_input_variables,
-            year = year
-            )
 
     def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
         person_index = dict()
@@ -92,6 +68,26 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                             pass
 
             simulation.get_or_new_holder('taux_incapacite').set_input(simulation.period, .50)
+
+    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
+            reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
+            year = None):
+
+        if used_as_input_variables is None:
+            used_as_input_variables = self.default_used_as_input_variables
+
+        if tax_benefit_system is None:
+            tax_benefit_system = france_data_tax_benefit_system
+            reference_tax_benefit_system = None
+
+        return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
+            input_data_frame = input_data_frame,
+            input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
+            reference_tax_benefit_system = reference_tax_benefit_system,
+            tax_benefit_system = tax_benefit_system,
+            used_as_input_variables = used_as_input_variables,
+            year = year
+            )
 
     def initialize_weights(self):
         self.weight_column_name_by_entity_key_plural['menages'] = 'wprm'
@@ -163,86 +159,3 @@ def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all =
         holder.array = np.array(array, dtype = holder.column.dtype)
 
     return simulation
-
-
-class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
-    default_used_as_input_variables = [
-        'age_en_mois',
-        'age',
-        'chomage_imposable',
-        'retraite_imposable',
-        'salaire_imposable',
-        'autonomie_financiere',
-        ]
-
-    @classmethod
-    def create(cls, year = None):
-        assert year is not None
-        openfisca_survey_collection = SurveyCollection.load(
-            collection = "openfisca", config_files_directory = config_files_directory)
-        openfisca_survey = openfisca_survey_collection.get_survey("openfisca_erfs_fpr_data_{}".format(year))
-        input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-        return cls().init_from_data_frame(
-            input_data_frame = input_data_frame,
-            year = year,
-            )
-
-
-class ErfsSurveyScenario(AbstractErfsSurveyScenario):
-    default_used_as_input_variables = [
-        'age_en_mois',
-        'age',
-        'chomage_imposable',
-        'hsup',
-        'nbF',
-        'nbG',
-        'nbH',
-        'nbI',
-        'nbJ',
-        'nbN',
-        'nbR',
-        'retraite_imposable',
-        'salaire_imposable',
-        'autonomie_financiere',
-        ]
-
-    @classmethod
-    def create(cls, year = None, input_data_frame = None):
-        assert year is not None
-        openfisca_survey_collection = SurveyCollection.load(
-            collection = "openfisca", config_files_directory = config_files_directory)
-        openfisca_survey = openfisca_survey_collection.get_survey("openfisca_data_{}".format(year))
-        if input_data_frame:
-            input_data_frame = (input_data_frame
-                .reset_index(drop = True)
-                .rename(
-                    columns = dict(
-                        alr = 'pensions_alimentaires_percues',
-                        choi = 'chomage_imposable',
-                        cho_ld = 'chomeur_longue_duree',
-                        fra = 'frais_reels',
-                        rsti = 'retraite_imposable',
-                        sali = 'salaire_imposable',
-                        ),
-                    inplace = True,
-                    )
-                )
-        else:
-            input_data_frame = (openfisca_survey.get_values(table = "input")
-                .reset_index(drop = True)
-                .rename(
-                    columns = dict(
-                        alr = 'pensions_alimentaires_percues',
-                        choi = 'chomage_imposable',
-                        cho_ld = 'chomeur_longue_duree',
-                        fra = 'frais_reels',
-                        rsti = 'retraite_imposable',
-                        sali = 'salaire_imposable',
-                        ),
-                    inplace = True,
-                    )
-                )
-        return cls().init_from_data_frame(
-            input_data_frame = input_data_frame,
-            year = year,
-            )

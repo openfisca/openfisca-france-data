@@ -1,10 +1,5 @@
-# -*- coding:utf-8 -*-
-# Created on 7 avr. 2013
-# This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright © #2013 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+# -*- coding: utf-8 -*-
+
 
 import os
 import pkg_resources
@@ -498,45 +493,45 @@ def build_erfs_survey_collection():
                 df.rename(columns = {var: erf2of[var]}, inplace=True)
         return df
 
-def test():
-    '''
-    Validate check_consistency
-    '''
-    #===========================================================================
-    # from pandas import DataFrame
-    #res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
-    # print res
-    #===========================================================================
+## def test():
+##     '''
+##     Validate check_consistency
+##     '''
+##     #===========================================================================
+##     # from pandas import DataFrame
+##     #res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
+##     # print res
+##     #===========================================================================
 
-    store = HDFStore(os.path.join(os.path.dirname(os.path.join(SRC_PATH,'countries','france','data','erf')),'fichiertest.h5'))
-    datatable = store.get('test12')
-    test_simu = store.get('test_simu')
-    print check_consistency(test_simu, datatable)
+##     store = HDFStore(os.path.join(os.path.dirname(os.path.join(SRC_PATH,'countries','france','data','erf')),'fichiertest.h5'))
+##     datatable = store.get('test12')
+##     test_simu = store.get('test_simu')
+##     print check_consistency(test_simu, datatable)
 
-def test3():
-    year=2006
-    erf = SurveyCollection(year=year)
-    df = erf.get_of_values(table = "eec_menage")
-    from openfisca_core.simulations import SurveySimulation
-    simulation = SurveySimulation()
-    simulation.set_config(year=year)
-    simulation.set_param()
-    simulation.compute() # TODO: this should not be mandatory
-    check_consistency(simulation.input_table, df)
+## def test3():
+##     year=2006
+##     erf = SurveyCollection(year=year)
+##     df = erf.get_of_values(table = "eec_menage")
+##     from openfisca_core.simulations import SurveySimulation
+##     simulation = SurveySimulation()
+##     simulation.set_config(year=year)
+##     simulation.set_param()
+##     simulation.compute() # TODO: this should not be mandatory
+##     check_consistency(simulation.input_table, df)
 
-def test_init():
+## def test_init():
 
-    for year in range(2009,2010):
-        data = DataCollection(year=year)
-        data.initialize(tables=["eec_indivi"])
-        data.set_config()
+##     for year in range(2009,2010):
+##         data = SurveyCollection(year=year)
+##         data.initialize(tables=["eec_indivi"])
+##         data.set_config()
 
-#def test_reading_stata_tables():
-#    from pandas.io.stata import StataReader, read_stata # TODO: wait for the next release ...
-#
-#    filename = os.path.join(DATA_DIR,"erf","2006","Tables complémentaires","icomprf06e07t1.dta")
-#    reader = StataReader(filename)
-#    print reader.data()
+## #def test_reading_stata_tables():
+## #    from pandas.io.stata import StataReader, read_stata # TODO: wait for the next release ...
+## #
+## #    filename = os.path.join(DATA_DIR,"erf","2006","Tables complémentaires","icomprf06e07t1.dta")
+## #    reader = StataReader(filename)
+## #    print reader.data()
 
 
 

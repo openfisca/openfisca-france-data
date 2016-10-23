@@ -4,7 +4,7 @@
 import logging
 import sys
 
-from openfisca_france_data.surveys import ErfsSurveyScenario
+from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 
 log = logging.getLogger(__name__)
 

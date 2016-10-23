@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_france_data.surveys import ErfsSurveyScenario, ErfsFprSurveyScenario
+from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
+from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 
 
 def test_erfs_fpr_survey_simulation(year = 2012):

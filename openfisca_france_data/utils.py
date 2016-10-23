@@ -1,356 +1,327 @@
 # -*- coding: utf-8 -*-
 
 
-import os
+import logging
+import numpy
+from pandas import Series
 
-from pandas import DataFrame, concat
-
-from openfisca_core.columns import EnumCol, IntCol, BoolCol, AgeCol, FloatCol, DateCol
+import openfisca_france
 
 
-def check_consistency(table_simu, dataframe, corrige = True):
+log = logging.getLogger(__name__)
+
+
+def assert_dtype(series, dtype_string):
+    assert isinstance(series, Series), "First argument is not of Series type"
+    try:
+        assert series.dtype == numpy.dtype(dtype_string), "Series {} dtype is {} instead of {}".format(
+            series.name, series.dtype, dtype_string)
+    except AssertionError:
+        assert numpy.issubdtype(series.dtype, numpy.dtype(dtype_string)), "Series {} dtype is {} instead of {}".format(
+            series.name, series.dtype, dtype_string)
+
+
+def assert_variable_in_range(name, wrange, table):
     '''
-    Studies dataframe columns as described in a simulation table columns attribute, and should eventually
-    TODO table_simu -> input_table
+    Assert if transformed variables are in correct range
+    wrange is a list like [minimum, maximum]
+    '''
+    temp = (table[table[name].notnull()])
+    range_1 = wrange[0]
+    range_2 = wrange[1]
+    for v in temp[name]:
+        assert v in range(range_1, range_2), 'some non-null values for %s not in wanted %s: %s' % (
+            name, str(wrange), str(v))
+
+
+def control(dataframe, verbose = False, verbose_columns = None, debug = False, verbose_length = 5, ignore = None):
+    """
+    Function to help debugging the data crunchin' files.
+
     Parameters
-    ----------
-    table_simu : datatable object, typically output table of a simulation
-    dataframe : dataframe object that we want to compare
-    corrige : if corrige is True, the function tries to correct errors in datatable by passing default values
-    '''
-    # check_inputs_enumcols(simulation):
-    # TODO: eventually should be a method of SurveySimulation specific for france
+    ---------
+    verbose: Default False
+    Indicates whether to print the dataframe itself or just perform reguler checks.
 
-    is_ok = True
-    message = "\n"
-    missing_variables = []
-    present_variables = []
-    count = 0
+    verbose_columns: List
+    The columns of the dataframe to print
 
-    from .data.erf.build_survey.utilitaries import control
-    print 'Controlling simulation input_table'
-    control(table_simu.table, verbose = True)
-
-    # First : study of the datatable / the specification of columns given by table_simu
-    for var, varcol in table_simu.column_by_name.iteritems():
+    verbose_length: Int
+    the number of rows to print
+    """
+    std_list = ['idfoy', 'quifoy', 'idmen', 'quimen', 'idfam', 'quifam']
+    for var in std_list:
         try:
-            serie = dataframe[var]
-            simu_serie = table_simu.table[var]
-            present_variables.append(var)
-            # First checks for all if there is any missing data
-            if serie.isnull().any() or simu_serie.isnull().any():
-                is_ok = False
-                if serie.isnull().any():
-                    message += "Some missing values in dataframe column %s, \n" % var
-                if simu_serie.isnull().any():
-                    message += 'Some missing values in input_table column %s \n' % var
-                cnt = len(set(simu_serie.isnull())) - len(set(serie.isnull()))
-                if 0 < cnt:
-                    message += "Warning : %s More NA's in simulation than in original dataframe for %s \n" % (
-                        str(cnt), var)
-
-                if corrige:
-                    try:
-                        message += "Filling NA's with default values for %s... \n" % var
-                        serie[serie.isnull()] = varcol.default
-                        message += "Done \n"
-                    except:
-                        message += " Cannot fill NA for column %s, maybe _.default doesn't exist \n" % var
-
-            if not corrige:  # On ne modifie pas la série donc on peut l'amputer, elle n'est pas en return
-                serie = serie[serie.notnull()]
-
-            # Then checks if all values are of specified datatype
-            # verify type, force type
-
-            if isinstance(varcol, EnumCol):
-                try:
-                    if set(serie.unique()) > set(sorted(varcol.enum._nums.values())):
-                        message += "Some variables out of range for EnumCol variable %s : \n" % var
-                        message += str(set(serie.unique()) - set(sorted(varcol.enum._nums.values()))) + "\n"
-                        # print varcol.enum._nums
-                        # print sorted(serie.unique()), "\n"
-                        is_ok = False
-
-                except:
-                    is_ok = False
-                    message += "Error : no _num attribute for EnumCol.enum %s \n" % var
-                    # print varcol.enum
-                    # print sorted(serie.unique()), "\n"
-                try:
-                    varcol.enum._vars
-
-                except:
-                    is_ok = False
-                    message += "Error : no _var attribute for EnumCol.enum %s \n" % var
-                    # print varcol.enum
-                    # print sorted(serie.unique())
-                    # print "\n"
-                try:
-                    n = varcol.enum._count
-                    if n < len(set(serie.unique())):
-                        message += "More types of enum than expected : %s ( expected : %s) \n" % (
-                            str(set(serie.unique())), str(n))
-                except:
-                    message += "Error : no _count attribute for EnumCol.enum %s \n" % var
-                try:
-                    varcol.enum
-                except:
-                    is_ok = False
-                    message += "Error : not enum attribute for EnumCol %s ! \n" % var
-                    # Never happening, enum attribute is initialized to None at least
-
-            if isinstance(varcol, IntCol):
-                if serie.dtype not in ('int', 'int16', 'int32', 'int64'):
-                    is_ok = False
-                    # print serie[serie.notnull()]
-                    message += "Some values in column %s are not integer as wanted: %s \n" % (var, serie.dtype)
-                    stash = []
-                    for v in serie:
-                        if not isinstance(v, int):
-                            stash.append(v)
-                    message += str(list(set(stash))) + " \n"
-                    if corrige:
-                        message += "Warning, forcing type integer for %s..." % var
-                        try:
-                            serie = serie.astype(varcol.dtype)
-                            message += "Done \n"
-                        except:
-                            message += "sorry, cannot force type.\n"
-                else:
-                    message += "Values for %s are in range [%s,%s]\n" % (var, str(serie.min()), str(serie.max()))
-
-            if isinstance(varcol, BoolCol):
-                if serie.dtype != 'bool':
-                    is_ok = False
-                    # print serie[serie.notnull()]
-                    message += "Some values in column %s are not boolean as wanted \n" % var
-                    if corrige:
-                        message += "Warning, forcing type boolean for %s..." % var
-                        try:
-                            serie = serie.astype(varcol.dtype)
-                            message += "Done \n"
-                        except:
-                            message += "sorry, cannot force type.\n"
-
-            if isinstance(varcol, AgeCol):
-                if serie.dtype not in ('int', 'int16', 'int32', 'int64'):
-                    is_ok = False
-                    message += "Age variable %s not of type int: \n"
-                    stash = list(set(serie.value) - set(range(serie.min(), serie.max() + 1)))
-                    message += str(stash) + "\n"
-                    message += "Total frequency for non-integers for %s is %s \n" % (var, str(len(stash)))
-                    if corrige:
-                        pass
-
-                if not serie.isin(range(-1, 156)).all():  # Pas plus vieux que 100 ans ?
-                    is_ok = False
-                    # print serie[serie.notnull()]
-                    message += "Age variable %s not in wanted range: \n" % var
-                    stash = list(set(serie.unique()) - set(range(-1, 156)))
-                    message += str(stash) + "\n"
-                    message += "Total frequency of outranges for %s is %s \n" % (var, str(len(stash)))
-                    del stash
-                    if corrige:
-                        try:
-                            message += "Fixing the outranges for %s... " % var
-                            tmp = serie[serie.isin(range(-1, 156))]
-                            serie[~(serie.isin(range(-1, 156)))] = tmp.median()
-                            message += "Done \n"
-                            del tmp
-                        except:
-                            message += "sorry, cannot fix outranges.\n"
-
-            if isinstance(varcol, FloatCol):
-                if serie.dtype not in ('float', 'float32', 'float64', 'float16'):
-                    is_ok = False
-                    message += "Some values in column %s are not float as wanted \n" % var
-                    stash = list(set(serie.unique()) - set(range(serie.min(), serie.max() + 1)))
-                    message += str(stash) + "\n"
-                    message += "Total frequency for non-integers for %s is %s \n" % (var, str(len(stash)))
-
-            if isinstance(varcol, DateCol):
-                if serie.dtype != 'np.datetime64':
-                    is_ok = False
-                    # print serie[serie.notnull()]
-                    message += "Some values in column %s are not of type date as wanted \n" % var
-
-            if corrige:
-                dataframe[var] = serie
-            count += 1
-            del serie, varcol
+            assert var in dataframe.columns
         except:
-            is_ok = False
-            missing_variables.append(var)
-            # message = "Oh no ! Something went wrong in the tests. You may have coded like a noob"
+            raise Exception('the dataframe does not contain the required column %s' % var)
 
-    # TODO : Then, comparaison between datatable and table_simu.table ?
+    log.info('longueur de la data frame = {}'.format(len(dataframe.index)))
+    if debug:
+        log.info('nb de doublons: {}'.format(len(dataframe[dataframe.duplicated()])))
+        log.info('nb de doublons idfoy/quifoy: {}'.format(len(dataframe[dataframe.duplicated(
+            subset = ['idfoy', 'quifoy'])])))
+        log.info('nb de doublons idmen/quimen: {}'.format(len(dataframe[dataframe.duplicated(
+            subset = ['idmen', 'quimen'])])))
+        log.info('nb de doublons idfam/quifam: {}'.format(len(dataframe[dataframe.duplicated(
+            subset = ['idfam', 'quifam'])])))
 
-    if len(missing_variables) > 0:
-        message += "Some variables were not present in the datatable or caused an error:\n" \
-            + str(sorted(missing_variables)) + "\n"
-        message += "Variables present in both tables :\n" + str(sorted(present_variables)) + "\n"
-    else:
-        message += "All variables were present in the datatable and were handled without error \n"
+    if not(debug):
+        assert not(dataframe.duplicated().any()), 'présence de lignes en double dans la dataframe'
+        assert ~(dataframe.duplicated(subset = ['idfoy', 'quifoy'])).all(), 'duplicate of tuple idfoy/quifoy'
+        assert ~(dataframe.duplicated(subset = ['idmen', 'quimen'])).all(), 'duplicate of tuple idmen/quimen'
+        assert ~(dataframe.duplicated(subset = ['idfam', 'quifam'])).all(), 'duplicate of tuple idfam/quifam'
 
-    if is_ok:
-        print "All is well. Sleep mode activated."
-    else:
-        print message
+    empty_columns = []
+    for col in dataframe:
+        if dataframe[col].isnull().all():
+            empty_columns.append(col)
 
-    if corrige:
-        return dataframe
-    else:
-        return
+    if empty_columns != []:
+        log.info('liste des colonnes entièrement vides: \n {}'.format(empty_columns))
 
-    # NotImplementedError
+    if verbose is True:
+        log.info('------ informations détaillées -------')
+        print_id(dataframe)
+
+        if verbose_columns is None:
+            if dataframe.duplicated().any():
+                log.info(dataframe[dataframe.duplicated()].head(verbose_length).to_string())
+
+        else:
+            if dataframe.duplicated(verbose_columns).any():
+                print 'nb lignes lignes dupliquées _____', len(dataframe[dataframe.duplicated(verbose_columns)])
+                print dataframe.loc[:, verbose_columns].describe()
+            for col in verbose_columns:
+                print 'nombre de NaN dans %s : ' % (col), dataframe[col].isnull().sum()
+            print 'colonnes contrôlées ------>', verbose_columns
+    print 'vérifications terminées'
 
 
-def dump_simulation_results_data_frame(survey_scenario, collection = None):
-    assert collection is not None
-    year = survey_scenario.year
-    data_frame_by_entity = get_calculated_data_frame_by_entity(survey_scenario)
-    openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
-    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
-    survey_name = "openfisca_data_{}".format(year)
-    for entity, data_frame in data_frame_by_entity.iteritems():
+def count_NA(name, table):
+    '''Counts the number of Na's in a specified axis'''
+    print "count of NA's for %s is %s" % (name, str(sum(table[name].isnull())))
+
+
+def id_formatter(dataframe, entity_id):
+    dataframe[entity_id + "_original"] = dataframe[entity_id].copy()
+    id_unique = dataframe[entity_id].unique()
+    new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
+    dataframe[entity_id].replace(to_replace = new_id_by_old_id, inplace = True)
+    return dataframe
+
+
+def print_id(df):
+    try:
+        log.info("Individus with distinc noindiv: {} / {}".format(len(df.noindiv), len(df)))
+    except:
+        log.info("No noindiv")
+
+    try:
+        # Ici, il doit y avoir autant de vous que d'idfoy
+        log.info("Individus in Foyers: {}".format(len(df.idfoy)))
+        log.info(df["quifoy"].value_counts(dropna=False))
+        if df["idfoy"].isnull().any():
+            log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
+        if df["quifoy"].isnull().any():
+            log.info("NaN in quifoy : {}".format(df["quifoy"].isnull().sum()))
+    except:
+        log.info("No idfoy or quifoy")
+
+    try:
+        # Ici, il doit y avoir autant de quimen = 0 que d'idmen
+        log.info(u"Individus in Ménages {}".format(len(df.idmen)))
+        log.info(df["quimen"].value_counts(dropna=False))
+        if df["idmen"].isnull().any():
+            log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
+        if df["quimen"].isnull().any():
+            log.info("NaN in quimen : {} ".format(df["quimen"].isnull().sum()))
+    except:
+        print "No idmen or quimen"
+
+    try:
+        # Ici, il doit y avoir autant de quifam = 0 que d'idfam
+        log.info("Individuals in Familles {}".format(len(df.idfam)))
+        log.info(df["quifam"].value_counts(dropna=False))
+        if df["idfam"].isnull().any():
+            log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
+        if df["quifam"].isnull().any():
+            log.info("NaN in quifam : {} ".format(df["quifam"].isnull().sum()))
+    except:
+        log.info("No idfam or quifam")
+    compute_masses(df)
+
+
+def compute_masses(dataframe):
+    variables = ['sali', 'choi', 'rsti', 'alr', 'hsup']
+    for variable in variables:
+        if set([variable, 'wprm']).issubset(set(dataframe.columns)):
+            log.info("Mass of {}: {}".format(variable, (dataframe[variable] * dataframe['wprm']).sum() / 1e9))
+        else:
+            log.info("Impossible to compute mass of {}".format(variable))
+
+
+def check_entity_structure(dataframe, entity):
+    log.info("Checking entity {}".format(entity))
+    role = 'qui' + entity
+    entity_id = 'id' + entity
+    error_messages = list()
+
+    if dataframe[role].isnull().any():
+        error_messages.append("there are NaN in qui{}".format(entity))
+    max_entity_role_value = dataframe[role].max().astype("int")
+    id_count = len(dataframe['id' + entity].unique())
+    head_count = (dataframe['qui' + entity] == 0).sum()
+    if id_count != head_count:
+        error_messages.append("Wrong number of heads for {}: {} different ids for {} heads".format(
+            entity, id_count, head_count))
+
+    entity_ids_by_role = dict()
+    for role_value in range(max_entity_role_value + 1, 1, -1):
+        print entity, role_value
+        log.info("Dealing with role {} of entity {}".format(role_value, entity))
+        entity_ids_by_role[role_value] = set(dataframe.loc[dataframe[role] == role_value, entity_id].unique())
+
+        if role_value < max_entity_role_value:
+            difference = entity_ids_by_role[role_value + 1].difference(entity_ids_by_role[role_value])
+            if not entity_ids_by_role[role_value + 1].issubset(entity_ids_by_role[role_value]):
+                error_messages.append(
+                    "Problem with entity {} at role = {} for id {}".format(
+                        entity, role_value, difference
+                        )
+                    )
+                erroneous_ids = difference
+                return False, error_messages, erroneous_ids
+            else:
+                continue
+    print 'exit ok'
+    return True, None, None
+
+
+def check_structure(dataframe):
+    duplicates = dataframe.noindiv.duplicated().sum()
+    messages = list()
+    erroneous_ids_by_entity = dict()
+    if duplicates != 0:
+        messages.append("There are {} duplicated individuals".format(duplicates))
+    for entity in ['fam', 'foy', 'men']:
         print entity
-        table = entity
-        hdf5_file_path = os.path.join(
-            os.path.dirname(output_data_directory),
-            "{}{}".format(survey_name, ".h5"),
-            )
-        survey = Survey(
-            name = survey_name,
-            hdf5_file_path = hdf5_file_path,
-            )
-        survey.insert_table(name = table)
-        survey.fill_hdf(table, data_frame)
-        openfisca_survey_collection.surveys[survey_name] = survey
-        openfisca_survey_collection.dump(collection = "openfisca")
-
-
-def get_data_frame(columns_name, survey_scenario, load_first = False, collection = None):
-    year = survey_scenario.year
-    if survey_scenario.simulation is None:
-        survey_scenario.new_simulation()
-    simulation = survey_scenario.simulation
-    if load_first:
-        assert collection is not None
-        entities = [simulation.tax_benefit_system.column_by_name[column_name].entity for column_name in columns_name]
-        assert len(set(entities)) == 1
-        # entity_symbol = entities[0]
-        for entity_key_plural in simulation.entity_by_key_plural:
-            if columns_name[0] in simulation.entity_by_key_plural[entity_key_plural].column_by_name:
-                entity = entity_key_plural
-                break
-        openfisca_survey_collection = SurveyCollection.load(collection = collection)
-        survey_name = "openfisca_data_{}".format(year)
-        survey = openfisca_survey_collection.surveys[survey_name]
-        table = entity
-        data_frame = survey.get_values(variables = columns_name, table = table)
+        checked, error_messages, erroneous_ids = check_entity_structure(dataframe, entity)
+        print checked, error_messages, erroneous_ids
+        if not checked:
+            messages.append('Structure error for {}'.format(entity))
+            messages.append(error_messages)
+            erroneous_ids_by_entity[entity] = erroneous_ids
+    if not messages:
+        return True, None
     else:
-        data_frame = DataFrame(dict([(column_name, simulation.calculate_add(column_name)) for column_name in columns_name]))
-    return data_frame
+        log.info('\n'.join('{}'.format(item) for item in messages))
+        return False, erroneous_ids_by_entity
 
 
-def get_calculated_data_frame_by_entity(survey_scenario = None):
-    if survey_scenario.simulation is None:
-        survey_scenario.new_simulation()
-    simulation = survey_scenario.simulation
-    data_frame_by_entity = dict()
-    for entity in simulation.entity_by_key_plural.itervalues():
-        variables_name = entity.column_by_name.keys()
-        data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
-    return data_frame_by_entity
+def build_cerfa_fields_by_column_name(year, sections_cerfa):
+    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    cerfa_fields_by_column_name = dict()
+    for name, column in tax_benefit_system.column_by_name.iteritems():
+        for section_cerfa in sections_cerfa:
+            if name.startswith('f{}'.format(section_cerfa)):
+                start = column.start or None
+                end = column.end or None
+                if (start is None or start.year <= year) and (end is None or end.year >= year):
+                    if column.entity == 'ind':
+                        cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
+                    elif column.entity == 'foy':
+                        cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
+                    cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
+    return cerfa_fields_by_column_name
 
 
+def rectify_dtype(dataframe, verbose = True):
+    series_to_rectify = []
+    rectified_series = []
+    for serie_name, serie in dataframe.iteritems():
+        if serie.dtype.char == 'O':  # test for object
+            series_to_rectify.append(serie_name)
+            if verbose:
+                print """
+Variable name: {}
+NaN are present : {}
+{}""".format(serie_name, serie.isnull().sum(), serie.value_counts())
+            # bool
+            if serie.dropna().isin([True, False]).all():
+                if serie.isnull().any():
+                    serie = serie.fillna(False).copy()
+                dataframe[serie_name] = serie.astype('bool', copy = True)
+                rectified_series.append(serie_name)
+            # Nombre 01-99
+            elif serie.dropna().str.match("\d\d$").all():
+                if serie.isnull().any():
+                    serie = serie.fillna(0)
+                dataframe[serie_name] = serie.astype('int', copy = True)
+                rectified_series.append(serie_name)
+            # year
+            elif serie_name in ['birthvous', 'birthconj', 'caseH']:
+                if serie.isnull().any():
+                    serie = serie.fillna(9999)
+                dataframe[serie_name] = serie.astype('int', copy = True)
+                rectified_series.append(serie_name)
+            # datetime
+            elif serie_name[0:4] == "date":
+                from pandas import to_datetime
+                dataframe[serie_name] = to_datetime(
+                    serie.str[:2] + "-" + serie.str[2:4] + "-" + serie.str[4:8],
+                    coerce = True)
+                rectified_series.append(serie_name)
+
+            if serie_name in rectified_series:
+                if verbose:
+                    print """Converted to {}
+{}""".format(dataframe[serie_name].dtype, dataframe[serie_name].value_counts())
+
+    if verbose:
+        print set(series_to_rectify).difference(rectified_series)
 
 
-def simulation_results_as_data_frame(survey_scenario = None, column_names = None, entity = None, force_sum = False):
-    assert survey_scenario is not None
-    assert force_sum is False or entity != 'ind', "force_sum cannot be True when entity is 'ind'"
-    simulation = survey_scenario.simulation
-    column_by_name = simulation.tax_benefit_system.column_by_name
-    assert set(column_names) <= set(column_by_name), \
-        "Variables {} do not exist".format(list(set(column_names) - set(column_by_name)))
-    entities = list(set([column_by_name[column_name].entity for column_name in column_names] + [entity]))
-
-    if force_sum is False and entity != 'ind':
-        assert len(entities) == 1
-        data_frame = get_data_frame(column_names, survey_scenario, load_first = False, collection = None)
-    else:
-        if 'ind' in entities:
-            entities.remove('ind')
-        if entity is None and len(entities) == 1:
-            entity = entities[0]
-
-        data_frame_by_entity = dict()
-        individual_column_names = [
-            column_name for column_name in column_names if column_by_name[column_name].entity == 'ind'
-            ]
-        for selected_entity in entities:
-            id_variables_column_names = ["id{}".format(selected_entity), "qui{}".format(selected_entity)]
-            individual_column_names.extend(id_variables_column_names)
-            selected_entity_column_names = [
-                column_name for column_name in column_names if column_by_name[column_name].entity == selected_entity
-                ]
-            data_frame_by_entity[selected_entity] = get_data_frame(
-                selected_entity_column_names,
-                survey_scenario,
-                load_first = False,
-                collection = None
-                )
-            data_frame_by_entity[selected_entity]["id{}".format(entity)] = data_frame_by_entity[selected_entity].index
-
-        individual_data_frame = get_data_frame(
-            individual_column_names,
-            survey_scenario,
-            load_first = False,
-            collection = None
-            )
-
-        for other_entity in entities:
-            if other_entity != entity:
-                boolean_index = individual_data_frame["qui{}".format(other_entity)] == 0
-                index_other_entity = individual_data_frame.loc[boolean_index, "id{}".format(other_entity)].values
-                for column_name, column_series in data_frame_by_entity[other_entity].iteritems():
-                    individual_data_frame.loc[boolean_index, column_name] \
-                        = column_series.loc[index_other_entity].values
-                    individual_data_frame[column_name].fillna(0)
-
-        if entity == 'ind' and force_sum is False:
-            return individual_data_frame
-
-        entity_column_names = [
-            column_name for column_name in column_names if column_by_name[column_name].entity == entity
-            ]
-        entity_data_frame = get_data_frame(
-            entity_column_names,
-            survey_scenario,
-            load_first = False,
-            collection = None
-            )
-
-        grouped_data_frame = individual_data_frame.groupby(by = "id{}".format(entity)).agg(sum)
-        grouped_data_frame.drop("qui{}".format(entity), axis = 1, inplace = True)
-        data_frame = concat([entity_data_frame, grouped_data_frame], axis = 1)
-
-    return data_frame
+def normalizes_roles_in_entity(dataframe, entity_suffix):
+    entity_id_name = 'id' + entity_suffix
+    entity_role_name = 'qui' + entity_suffix
+    dataframe.set_index('noindiv', inplace = True, verify_integrity = True)
+    test1 = dataframe.loc[dataframe[entity_role_name] >= 2, [entity_id_name, entity_role_name]].copy()
+    test1.loc[:, entity_role_name] = 2
+    j = 2
+    while any(test1.duplicated([entity_id_name, entity_role_name])):
+        test1.loc[test1.duplicated([entity_id_name, entity_role_name]), entity_role_name] = j + 1
+        j += 1
+    dataframe.update(test1)
+    dataframe.reset_index(inplace = True)
+    return dataframe.copy()
 
 
-if __name__ == '__main__':
-    import logging
-    log = logging.getLogger(__name__)
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+def set_variables_default_value(dataframe, year):
+    import openfisca_france
+    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 
-    from openfisca_survey_manager.surveys import Survey, SurveyCollection
-    from openfisca_plugin_aggregates.tests.test_aggregates import create_survey_scenario
+    for column_name, column in tax_benefit_system.column_by_name.iteritems():
+        if column_name in dataframe.columns:
+            dataframe[column_name].fillna(column.default, inplace = True)
+            dataframe[column_name] = dataframe[column_name].astype(column.dtype)
 
-    year = 2006
-    survey_scenario = create_survey_scenario(year)
-#    dump_simulation_results_data_frame(survey_scenario, collection = "openfisca")
 
-    df = get_data_frame(["af"], survey_scenario, load_first = True, collection = "openfisca")
-    print df
+def store_input_data_frame(data_frame = None, collection = None, survey = None):
+    assert data_frame is not None
+    assert collection is not None
+    assert survey is not None
+    openfisca_survey_collection = SurveyCollection(name = collection, config_files_directory = config_files_directory)
+    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    survey_name = survey
+    table = "input"
+    hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
+    survey = Survey(
+        name = survey_name,
+        hdf5_file_path = hdf5_file_path,
+        )
+    survey.insert_table(name = table, data_frame = data_frame)
+    openfisca_survey_collection.surveys.append(survey)
+    collections_directory = openfisca_survey_collection.config.get('collections', 'collections_directory')
+    json_file_path = os.path.join(collections_directory, 'openfisca_erfs_fpr.json')
+    openfisca_survey_collection.dump(json_file_path = json_file_path)

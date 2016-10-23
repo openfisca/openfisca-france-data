@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_france_data.surveys import ErfsSurveyScenario
+from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 
 
 def test_pivot_table_1d_mean(year = 2009):

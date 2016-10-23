@@ -11,7 +11,7 @@ from openfisca_core.tools import assert_near
 import openfisca_france.tests.base as france_base
 from openfisca_france_data.tests import base
 from openfisca_france_data.input_data_builders import get_input_data_frame
-from openfisca_france_data.surveys import ErfsSurveyScenario
+from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_survey_manager.calibration import Calibration
 
 
