@@ -36,8 +36,8 @@ def test_erfs_fpr_survey_simulation(year = 2012):
     return data_frame_by_entity_key_plural
 
 
-def test_survey_simulation():
-    year = 2009
+def test_erfs_survey_simulation(year = 2009):
+
     survey_scenario = ErfsSurveyScenario.create(year = year)
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
         variables = [
