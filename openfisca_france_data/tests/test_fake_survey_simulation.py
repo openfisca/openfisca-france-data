@@ -10,14 +10,32 @@ import pandas
 from openfisca_core.tools import assert_near
 import openfisca_france.tests.base as france_base
 from openfisca_france_data.tests import base
-from openfisca_france_data.input_data_builders import get_input_data_frame
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_survey_manager.calibration import Calibration
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 hdf5_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.h5')
 csv_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.csv')
+
+
+def get_input_data_frame(year):
+    openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
+    openfisca_survey = openfisca_survey_collection.get_survey("openfisca_data_{}".format(year))
+    input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+    input_data_frame.rename(
+        columns = dict(
+            alr = 'pensions_alimentaires_percues',
+            choi = 'chomage_imposable',
+            cho_ld = 'chomeur_longue_duree',
+            fra = 'frais_reels',
+            rsti = 'retraite_imposable',
+            sali = 'salaire_imposable',
+            ),
+        inplace = True,
+        )
+    return input_data_frame
 
 
 def build_by_extraction(year = None):
