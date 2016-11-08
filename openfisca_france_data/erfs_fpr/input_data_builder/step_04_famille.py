@@ -19,23 +19,28 @@ def control_04(dataframe, base):
         log.info(u"contrôle des doublons : il y a {} individus en double".format(
             dataframe.duplicated(subset = 'noindiv').sum()))
     log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
-    log.info(u"Il y a {} de familles différentes".format(len(dataframe.noifam.unique())))
+    log.info(u"Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
     if dataframe.noifam.isnull().any():
         log.info(u"contrôle: {} noifam are NaN:".format(dataframe.noifam.isnull().sum()))
 
     log.info(u"{} lignes dans dataframe vs {} lignes dans base".format(len(dataframe.index), len(base.index)))
     assert len(dataframe.index) <= len(base.index), u"dataframe has too many rows compared to base"
     assert set(dataframe.noifam.unique()).issubset(set(base.noindiv)), \
-        "The following noindiv are not in the dataframe: \n {}".format(
-            dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']]
-        )
+        "The following {} are not in the dataframe: \n {}".format(
+            len(dataframe.loc[~dataframe.noifam.isin(base.noindiv)]),
+            dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']],
+           )
+    famille_population = dataframe.query('quifam == 0').groupby('famille')['wprm'].sum()
+    log.info("famille :\n{}".format(
+        famille_population / famille_population.sum()
+        ))
 
 
 def subset_base(base, famille):
     """
     Generates a dataframe containing the values of base that are not already in famille
     """
-    return base[~(base.noindiv.isin(famille.noindiv.values))].copy()
+    return base.loc[~(base.noindiv.isin(famille.noindiv.values))].copy()
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
@@ -70,23 +75,28 @@ def famille(temporary_store = None, year = None):
 
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
-    indivi = temporary_store['indivim_{}'.format(year)]
+    indivi = temporary_store['individus_{}'.format(year)]
 
     indivi['year'] = year
     # indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
+    assert indivi.naim.isin(range(1, 13)).all()
+    assert ((year >= indivi.naia) & (indivi.naia > 1890)).all()
+
+    from openfisca_france_data.erfs_fpr.input_data_builder.step_01_preprocessing import check_naia_naim
+    check_naia_naim(indivi, year)
+
     indivi["agepf"] = (
-        (indivi.naim < 7) * (indivi.year - indivi.naia)
-        + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
-        ).astype(object)  # TODO: naia has some NaN but naim do not and then should be an int
+        (indivi.naim < 7) * (indivi.year - indivi.naia) +
+        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
+        )
 
     indivi = indivi[~(
         (indivi.lien == 6) & (indivi.agepf < 16)  # & (indivi.quelfic == "EE")
         )].copy()
 
     assert_dtype(indivi.year, "int64")
-    for series_name in ['agepf']:  #, 'noidec']:  # integer with NaN
+    for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
         assert_dtype(indivi[series_name], "object")
-
 
     if skip_enfants_a_naitre:
         log.info(u"    1.2 : On ne récupère pas d'enfants à naître")
@@ -123,6 +133,7 @@ def famille(temporary_store = None, year = None):
             'titc',
             'year',
             'ztsai',
+            'wprm',
             ]
 
         enfants_a_naitre = temporary_store['enfants_a_naitre_{}'.format(year)][individual_variables].copy()
@@ -131,8 +142,8 @@ def famille(temporary_store = None, year = None):
     Il y a {} enfants à naitre avant de retirer ceux qui ne sont pas enfants
     de la personne de référence
     """.format(len(enfants_a_naitre.index)))
-        enfants_a_naitre = enfants_a_naitre[enfants_a_naitre.lpr == 3].copy()
-        enfants_a_naitre = enfants_a_naitre[~(enfants_a_naitre.noindiv.isin(indivi.noindiv.values))].copy()
+        enfants_a_naitre = enfants_a_naitre.loc[enfants_a_naitre.lpr == 3].copy()
+        enfants_a_naitre = enfants_a_naitre.loc[~(enfants_a_naitre.noindiv.isin(indivi.noindiv.values))].copy()
         log.info(u""""
         Il y a {} enfants à naitre après avoir retiré ceux qui ne sont pas enfants
         de la personne de référence
@@ -153,10 +164,10 @@ def famille(temporary_store = None, year = None):
 
     if kind == 'erfs_fpr':
         base['salaires_i'].fillna(0, inplace = True)
-        base['smic55'] = base['salaires_i'] >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
+        base['smic55'] = base.salaires_i >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     else:
         base['ztsai'].fillna(0, inplace = True)
-        base['smic55'] = base['ztsai'] >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
+        base['smic55'] = base.ztsai >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
 
     base['famille'] = 0
     base['kid'] = False
@@ -166,20 +177,22 @@ def famille(temporary_store = None, year = None):
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
 
     log.info(u"Etape 2 : On cherche les enfants ayant père et/ou mère")
-    personne_de_reference = base[['ident', 'noi']][base.lpr == 1].copy()
+    personne_de_reference = base.loc[base.lpr == 1, ['ident', 'noi']].copy()
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
     log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
-    nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.m15)) |
-                 ((base.lpr == 3) & (base.p16m20) & (~base.smic55))].copy()
+    nof01 = base.loc[
+        base.lpr.isin([1, 2]) |
+        ((base.lpr == 3) & (base.m15)) |
+        ((base.lpr == 3) & base.p16m20 & (~base.smic55))
+        ].copy()
     log.info('longueur de nof01 avant merge: {}'.format(len(nof01.index)))
-    nof01 = nof01.merge(personne_de_reference, on='ident', how='outer')
+    nof01 = nof01.merge(personne_de_reference, on = 'ident', how = 'outer')
     nof01['famille'] = 10
     nof01['kid'] = (
-        (nof01.lpr == 3) & (nof01.m15)
-        ) | (
-            (nof01.lpr == 3) & (nof01.p16m20) & ~(nof01.smic55)
-            )
+        ((nof01.lpr == 3) & (nof01.m15)) |
+        ((nof01.lpr == 3) & (nof01.p16m20) & ~(nof01.smic55))
+        )
     for series_name in ['famille', 'noifam']:
         assert_dtype(nof01[series_name], "int")
     assert_dtype(nof01.kid, "bool")
@@ -259,7 +272,6 @@ def famille(temporary_store = None, year = None):
         seul4 = seul4[(seul4.lpr == 4) & seul4.p16m20 & ~(seul4.smic55) & (seul4.noimer == 0) &
                       (seul4.persfip == 'vous')].copy()
 
-
     if len(seul4.index) > 0:
         seul4['noifam'] = (100 * seul4.ident + seul4.noi).astype(int)
         seul4['famille'] = 34
@@ -322,7 +334,7 @@ def famille(temporary_store = None, year = None):
     avec_pere['famille'] = 44
     avec_pere['kid'] = True
     # TODO: hack to deal with the problem of presence of NaN in avec_pere
-#    avec_pere.dropna(subset = ['noifam'], how = 'all', inplace = True)
+    # avec_pere.dropna(subset = ['noifam'], how = 'all', inplace = True)
     assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
     for series_name in ['famille', 'noifam']:
         assert_dtype(avec_pere[series_name], "int")
@@ -600,6 +612,11 @@ def famille(temporary_store = None, year = None):
         #       famille.duplicated(subset = ['idfam', 'quifam']).sum())
 
     temporary_store["famc_{}".format(year)] = famille
+
+    print len(indivi)
+    individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
+    print len(individus)
+
     if skip_enfants_a_naitre:
         del indivi
     else:
@@ -607,9 +624,9 @@ def famille(temporary_store = None, year = None):
 
 
 if __name__ == '__main__':
-    # import sys
-    # logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    logging.basicConfig(level = logging.INFO,  filename = 'step_04.log', filemode = 'w')
+    import sys
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    # logging.basicConfig(level = logging.INFO, filename = 'step_04.log', filemode = 'w')
     year = 2012
     famille(year = year)
     log.info(u"étape 04 famille terminée")

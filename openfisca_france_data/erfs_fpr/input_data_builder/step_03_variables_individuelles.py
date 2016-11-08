@@ -317,9 +317,12 @@ def create_revenus_variables(individus):
 
     for variable in old_by_new_variables.values():
         if (individus[variable] < 0).any():
-            log.info("La variable {} contient des valeurs négatives\n {}".format(
+
+            negatives_values = individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
+            log.info("La variable {} contient {} valeurs négatives\n {}".format(
                 variable,
-                individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
+                negatives_values.sum(),
+                negatives_values,
                 )
             )
 

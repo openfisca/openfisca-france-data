@@ -26,9 +26,11 @@ def merge_tables(temporary_store = None, year = None):
     eec_individu = survey.get_values(table = 'fpr_irf12e12t4')
     fpr_individu = survey.get_values(table = 'fpr_indiv_2012_retropole')
 
+
     # Fusion enquete emploi et source fiscale
     menages = fpr_menage.merge(eec_menage)
     individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
+    check_naia_naim(individus, year)
 
     var_list = ([
         'acteu',
@@ -93,11 +95,64 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
     gc.collect()
 
 
+def check_naia_naim(individus, year):
+    assert individus.naim.isin(range(1, 13)).all()
+    good = ((year >= individus.naia) & (individus.naia > 1890))
+    assertion = good.all()
+    bad_idents = individus.loc[~good, 'ident'].unique()
+    try:
+        assert ((year >= individus.naia) & (individus.naia > 1890)).all(), "Error: \n {}".format(
+            individus.loc[
+                individus.ident.isin(bad_idents),
+                [
+                    'ag',
+                    'ident',
+                    'lien',
+                    'naia',
+                    'naim',
+                    'noi',
+                    'noicon',
+                    'noimer',
+                    'noiper',
+                    'prosa',
+                    'retrai',
+                    'rstg',
+                    'statut',
+                    'sexe',
+                    'lien',
+                    'lpr',
+                    'chomage_i',
+                    'pens_alim_recue_i',
+                    'rag_i',
+                    'retraites_i',
+                    'ric_i',
+                    'rnc_i',
+                    'salaires_i',
+                    ]
+                ]
+            )
+    except AssertionError:
+        if year == 2012:
+            log.info('Fixing erroneous naia manually')
+            individus.loc[
+                (individus.ident == 12023304) & (individus.noi == 2),
+                'naia'
+                ] = 1954
+            individus.loc[
+                (individus.ident == 12041815) & (individus.noi == 1),
+                'naia'
+                ] = 2012 - 40
+            #
+        else:
+            AssertionError('naia and naim have invalid values')
+
 
 if __name__ == '__main__':
+    import sys
     import time
     start = time.time()
-    logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    # logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
     year = 2012
     merge_tables(year = year)
     # TODO: create_enfants_a_naitre(year = year)
