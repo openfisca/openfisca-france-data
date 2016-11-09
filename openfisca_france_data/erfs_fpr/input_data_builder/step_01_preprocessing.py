@@ -79,6 +79,15 @@ Il y a {} individus dans eec_individu
     menages = menages.merge(
         individus.loc[individus.lpr == 1, ['ident', 'ddipl']].copy()
         )
+    log.info(u"""
+Il y a {} ménages dans la base ménage fusionnée
+Il y a {} ménages dans la base individus fusionnée
+Il y a {} individus dans la base individus fusionnée
+""".format(
+        len(menages.ident.unique()),
+        len(individus.ident.unique()),
+        len(individus.noindiv.unique()),
+        ))
 
     temporary_store['menages_{}'.format(year)] = menages
     del eec_menage, fpr_menage, menages
