@@ -27,7 +27,22 @@ def merge_tables(temporary_store = None, year = None):
     fpr_individu = survey.get_values(table = 'fpr_indiv_2012_retropole')
 
 
-    # Fusion enquete emploi et source fiscale
+    log.info(u"""
+Il y a {} ménages dans fpr_menage
+Il y a {} ménages dans eec_menage
+Il y a {} individus dans fpr_individu
+Il y a {} individus dans eec_individu
+""".format(
+        len(fpr_menage.ident.unique()),
+        len(eec_menage.ident.unique()),
+        len(fpr_individu.noindiv.unique()),
+        len(eec_individu.noindiv.unique()),
+        ))
+
+    # Infos sur les non appariés
+    non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage)
+
+    # Fusion enquête emploi et source fiscale
     menages = fpr_menage.merge(eec_menage)
     individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
     check_naia_naim(individus, year)
@@ -79,7 +94,7 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
     menages_non_apparies = eec_menage[
         ~(eec_menage.ident.isin(fpr_menage.ident.values))
         ].copy()
-    individus_non_apparies = eec_menage[
+    individus_non_apparies = eec_individu[
         ~(eec_individu.ident.isin(fpr_individu.ident.values))
         ].copy()
 
@@ -87,10 +102,11 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
         menages_non_apparies.duplicated().sum())
     assert not individus_non_apparies.duplicated().any(), "{} individus sont dupliqués".format(
         individus_non_apparies.duplicated().sum())
-    # individus_non_apparies = individus_non_apparies.drop_duplicates(subset = 'ident', take_last = True)
+
+    individus_non_apparies = individus_non_apparies.drop_duplicates(subset = 'ident', take_last = True)
     difference = set(individus_non_apparies.ident).symmetric_difference(menages_non_apparies.ident)
     intersection = set(individus_non_apparies.ident) & set(menages_non_apparies.ident)
-    log.info("There are {} differences and {} intersections".format(len(difference), len(intersection)))
+    log.info("Il y a {} differences et {} intersections entre les ménages non appariés et les individus non appariés".format(len(difference), len(intersection)))
     del individus_non_apparies, menages_non_apparies, difference, intersection
     gc.collect()
 
@@ -101,7 +117,7 @@ def check_naia_naim(individus, year):
     assertion = good.all()
     bad_idents = individus.loc[~good, 'ident'].unique()
     try:
-        assert ((year >= individus.naia) & (individus.naia > 1890)).all(), "Error: \n {}".format(
+        assert assertion, "Error: \n {}".format(
             individus.loc[
                 individus.ident.isin(bad_idents),
                 [
@@ -152,7 +168,7 @@ if __name__ == '__main__':
     import time
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    # logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
+    # logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
     year = 2012
     merge_tables(year = year)
     # TODO: create_enfants_a_naitre(year = year)
