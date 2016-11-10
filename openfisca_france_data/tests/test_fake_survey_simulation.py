@@ -227,7 +227,7 @@ def test_reform():
         tax_benefit_system = base.france_data_tax_benefit_system,
         )
 
-    survey_scenario = SurveyScenario().init_from_data_frame(
+    survey_scenario = ErfsSurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         tax_benefit_system = reform,
         reference_tax_benefit_system = base.france_data_tax_benefit_system,
