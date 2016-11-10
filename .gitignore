@@ -80,3 +80,4 @@ setup.cfg
 
 # ctags file
 /tags
+.noseids
