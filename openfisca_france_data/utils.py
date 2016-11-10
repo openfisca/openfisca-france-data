@@ -3,9 +3,13 @@
 
 import logging
 import numpy
+import os
 from pandas import Series
 
 import openfisca_france
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.surveys import Survey
+from openfisca_france_data import default_config_files_directory as config_files_directory
 
 
 log = logging.getLogger(__name__)
@@ -90,17 +94,17 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
 
         else:
             if dataframe.duplicated(verbose_columns).any():
-                print 'nb lignes lignes dupliquées _____', len(dataframe[dataframe.duplicated(verbose_columns)])
-                print dataframe.loc[:, verbose_columns].describe()
+                print('nb lignes lignes dupliquées _____', len(dataframe[dataframe.duplicated(verbose_columns)]))
+                print(dataframe.loc[:, verbose_columns].describe())
             for col in verbose_columns:
-                print 'nombre de NaN dans %s : ' % (col), dataframe[col].isnull().sum()
-            print 'colonnes contrôlées ------>', verbose_columns
-    print 'vérifications terminées'
+                print('nombre de NaN dans %s : ' % (col), dataframe[col].isnull().sum())
+            print('colonnes contrôlées ------>', verbose_columns)
+    print('vérifications terminées')
 
 
 def count_NA(name, table):
     '''Counts the number of Na's in a specified axis'''
-    print "count of NA's for %s is %s" % (name, str(sum(table[name].isnull())))
+    print("count of NA's for %s is %s" % (name, str(sum(table[name].isnull()))))
 
 
 def id_formatter(dataframe, entity_id):
@@ -137,7 +141,7 @@ def print_id(df):
         if df["quimen"].isnull().any():
             log.info("NaN in quimen : {} ".format(df["quimen"].isnull().sum()))
     except:
-        print "No idmen or quimen"
+        print("No idmen or quimen")
 
     try:
         # Ici, il doit y avoir autant de quifam = 0 que d'idfam
@@ -178,7 +182,7 @@ def check_entity_structure(dataframe, entity):
 
     entity_ids_by_role = dict()
     for role_value in range(max_entity_role_value + 1, 1, -1):
-        print entity, role_value
+        print(entity, role_value)
         log.info("Dealing with role {} of entity {}".format(role_value, entity))
         entity_ids_by_role[role_value] = set(dataframe.loc[dataframe[role] == role_value, entity_id].unique())
 
@@ -194,7 +198,6 @@ def check_entity_structure(dataframe, entity):
                 return False, error_messages, erroneous_ids
             else:
                 continue
-    print 'exit ok'
     return True, None, None
 
 
@@ -205,9 +208,9 @@ def check_structure(dataframe):
     if duplicates != 0:
         messages.append("There are {} duplicated individuals".format(duplicates))
     for entity in ['fam', 'foy', 'men']:
-        print entity
+        print(entity)
         checked, error_messages, erroneous_ids = check_entity_structure(dataframe, entity)
-        print checked, error_messages, erroneous_ids
+        print(checked, error_messages, erroneous_ids)
         if not checked:
             messages.append('Structure error for {}'.format(entity))
             messages.append(error_messages)
@@ -243,10 +246,10 @@ def rectify_dtype(dataframe, verbose = True):
         if serie.dtype.char == 'O':  # test for object
             series_to_rectify.append(serie_name)
             if verbose:
-                print """
+                print("""
 Variable name: {}
 NaN are present : {}
-{}""".format(serie_name, serie.isnull().sum(), serie.value_counts())
+{}""".format(serie_name, serie.isnull().sum(), serie.value_counts()))
             # bool
             if serie.dropna().isin([True, False]).all():
                 if serie.isnull().any():
@@ -275,11 +278,11 @@ NaN are present : {}
 
             if serie_name in rectified_series:
                 if verbose:
-                    print """Converted to {}
-{}""".format(dataframe[serie_name].dtype, dataframe[serie_name].value_counts())
+                    print("""Converted to {}
+{}""".format(dataframe[serie_name].dtype, dataframe[serie_name].value_counts()))
 
     if verbose:
-        print set(series_to_rectify).difference(rectified_series)
+        print(set(series_to_rectify).difference(rectified_series))
 
 
 def normalizes_roles_in_entity(dataframe, entity_suffix):

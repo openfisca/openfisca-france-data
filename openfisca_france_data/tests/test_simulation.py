@@ -6,7 +6,7 @@ from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 
 
 def test_erfs_fpr_survey_simulation(year = 2012):
-    survey_scenario = ErfsFprSurveyScenario.create(year = year)
+    survey_scenario = ErfsFprSurveyScenario.create(year = year, rebuild_input_data = True)
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
         variables = [
             'aspa',

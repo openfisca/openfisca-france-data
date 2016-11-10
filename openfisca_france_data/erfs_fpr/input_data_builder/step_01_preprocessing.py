@@ -26,7 +26,6 @@ def merge_tables(temporary_store = None, year = None):
     eec_individu = survey.get_values(table = 'fpr_irf12e12t4')
     fpr_individu = survey.get_values(table = 'fpr_indiv_2012_retropole')
 
-
     log.info(u"""
 Il y a {} ménages dans fpr_menage
 Il y a {} ménages dans eec_menage
@@ -112,10 +111,12 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
     assert not individus_non_apparies.duplicated().any(), "{} individus sont dupliqués".format(
         individus_non_apparies.duplicated().sum())
 
-    individus_non_apparies = individus_non_apparies.drop_duplicates(subset = 'ident', take_last = True)
+    individus_non_apparies = individus_non_apparies.drop_duplicates(subset = 'ident', keep = 'last')
     difference = set(individus_non_apparies.ident).symmetric_difference(menages_non_apparies.ident)
     intersection = set(individus_non_apparies.ident) & set(menages_non_apparies.ident)
-    log.info("Il y a {} differences et {} intersections entre les ménages non appariés et les individus non appariés".format(len(difference), len(intersection)))
+    log.info(
+        "Il y a {} differences et {} intersections entre les ménages non appariés et les individus non appariés".format
+            (len(difference), len(intersection)))
     del individus_non_apparies, menages_non_apparies, difference, intersection
     gc.collect()
 
@@ -182,4 +183,4 @@ if __name__ == '__main__':
     merge_tables(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
-    print time.time() - start
+    print(time.time() - start)

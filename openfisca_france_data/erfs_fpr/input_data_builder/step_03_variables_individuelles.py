@@ -2,14 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
-import gc
 import logging
 import numpy as np
 
 
 from openfisca_france_data.utils import (
     assert_dtype,
-    id_formatter,
     )
 from openfisca_france_data.temporary import temporary_store_decorator
 
@@ -34,34 +32,7 @@ def create_variables_individuelles(temporary_store = None, year = None):
     create_revenus_variables(individus)
     create_categorie_salarie_variable(individus)
     create_effectif_entreprise_variable(individus)
-    variables = [
-        'activite',
-        'age',
-        'age_en_mois',
-        'chomage_imposable',
-        'categorie_salarie',
-        'pensions_alimentaires_percues',
-        'rag',
-        'retraite_imposable',
-        'ric',
-        'rnc',
-        'salaire_imposable',
-        'idmen',
-        'quimen',
-        'idfoy',
-        'quifoy',
-        'idfam',
-        'quifam',
-        'noindiv',
-        ]
-    data_frame = create_ids_and_roles(individus)[variables].copy()
-    del individus
-    gc.collect()
-    for entity_id in ['idmen', 'idfoy', 'idfam']:
-        log.info('Reformat ids: {}'.format(entity_id))
-        data_frame = id_formatter(data_frame, entity_id)
-    data_frame.reset_index(inplace = True)
-    temporary_store['input_{}'.format(year)] = data_frame
+    temporary_store['individus_{}'.format(year)] = individus
     log.info(u"step_03_variables_individuelles terminée")
 
 
@@ -290,7 +261,7 @@ def create_effectif_entreprise_variable(individus):
 def create_revenus_variables(individus):
     """
     Création des variables:
-        chomage_imposable,
+        choomage_imposable,
         pensions_alimentaires_percues,
         rag,
         retraite_imposable,
@@ -325,26 +296,6 @@ def create_revenus_variables(individus):
                 negatives_values,
                 )
             )
-
-
-def create_ids_and_roles(individus):
-    old_by_new_variables = {
-        'ident': 'idmen',
-        }
-    individus.rename(
-        columns = old_by_new_variables,
-        inplace = True,
-        )
-    individus['quimen'] = 9
-    individus.loc[individus.lpr == 1, 'quimen'] = 0
-    individus.loc[individus.lpr == 2, 'quimen'] = 1
-
-    individus['idfoy'] = individus['idmen'].copy()
-    individus['idfam'] = individus['idmen'].copy()
-    individus['quifoy'] = individus['quimen'].copy()
-    individus['quifam'] = individus['quimen'].copy()
-
-    return individus.loc[individus.quimen <= 1].copy()
 
 
 def todo_create(individus):

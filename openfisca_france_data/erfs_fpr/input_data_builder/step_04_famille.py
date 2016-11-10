@@ -13,44 +13,11 @@ from openfisca_france_data.utils import assert_dtype
 log = logging.getLogger(__name__)
 
 
-def control_04(dataframe, base):
-    log.info(u"longueur de la dataframe après opération : {}".format(len(dataframe)))
-
-    if any(dataframe.duplicated(subset = 'noindiv')):
-        log.info(u"contrôle des doublons : il y a {} individus en double".format(
-            dataframe.duplicated(subset = 'noindiv').sum()))
-    # log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
-    log.info(u"Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
-    if dataframe.noifam.isnull().any():
-        log.info(u"contrôle: {} noifam are NaN:".format(dataframe.noifam.isnull().sum()))
-
-    log.info(u"{} lignes dans dataframe vs {} lignes dans base".format(len(dataframe.index), len(base.index)))
-    assert len(dataframe.index) <= len(base.index), u"dataframe has too many rows compared to base"
-    assert set(dataframe.noifam.unique()).issubset(set(base.noindiv)), \
-        "The following {} are not in the dataframe: \n {}".format(
-            len(dataframe.loc[~dataframe.noifam.isin(base.noindiv)]),
-            dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']],
-           )
-
-    if 'quifam' in dataframe:
-        famille_population = dataframe.query('quifam == 0').groupby('famille')['wprm'].sum()
-        log.info("famille :\n{}".format(
-            famille_population / famille_population.sum()
-            ))
-
-
-def subset_base(base, famille):
-    """
-    Generates a dataframe containing the values of base that are not already in famille
-    """
-    return base.loc[~(base.noindiv.isin(famille.noindiv.values))].copy()
-
-
 @temporary_store_decorator(file_name = 'erfs_fpr')
-def famille(temporary_store = None, year = None):
+def create_famille(temporary_store = None, year = None):
     """
     Création des familles
-    Création des variables 'idfam' and 'qulifam'
+    Création des variables 'idfam' and 'quifam'
     """
 
     assert temporary_store is not None
@@ -164,8 +131,8 @@ def famille(temporary_store = None, year = None):
     base['p21'] = base.agepf >= 21
 
     if kind == 'erfs_fpr':
-        base['salaires_i'].fillna(0, inplace = True)
-        base['smic55'] = base.salaires_i >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
+        base['salaire_imposable'].fillna(0, inplace = True)
+        base['smic55'] = base.salaire_imposable >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     else:
         base['ztsai'].fillna(0, inplace = True)
         base['smic55'] = base.ztsai >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
@@ -287,13 +254,12 @@ def famille(temporary_store = None, year = None):
     log.info(u"    3.4 : personnes seules de catégorie 4")
     seul4 = subset_base(base, famille)
 
-
     assert seul4.noimer.notnull().all()
     if kind == 'erfs_fpr':
         seul4 = seul4[
             (seul4.lpr == 4) &
             seul4.p16m20 &
-            ~(seul4.smic55) &
+            (~(seul4.smic55)) &
             # (seul4.noiper == 0) &
             (seul4.noimer == 0)
             ].copy()
@@ -301,7 +267,7 @@ def famille(temporary_store = None, year = None):
         seul4 = seul4[
             (seul4.lpr == 4) &
             seul4.p16m20 &
-            ~(seul4.smic55) &
+            (~(seul4.smic55)) &
             # (seul4.noiper == 0) &
             (seul4.noimer == 0) &
             (seul4.persfip == 'vous')
@@ -421,7 +387,6 @@ def famille(temporary_store = None, year = None):
 
     del avec_pere, pere, conjoint_pere, conjoint_pere_id
 
-
     if kind == 'erfs_fpr':
         log.info(u"    4.3 : enfants avec déclarant (ignorée dans erfs_fpr)")
         pass
@@ -529,7 +494,8 @@ def famille(temporary_store = None, year = None):
         base = pd.concat([base, enfant_fip])
         parent_fip = famille[famille.noindiv.isin(enfant_fip.noifam.values)].copy()
         assert (enfant_fip.noifam.isin(parent_fip.noindiv.values)).any(), \
-            "{} doublons entre enfant_fip et parent fip !".format((enfant_fip.noifam.isin(parent_fip.noindiv.values)).sum())
+            "{} doublons entre enfant_fip et parent fip !".format(
+                (enfant_fip.noifam.isin(parent_fip.noindiv.values)).sum())
         parent_fip['noifam'] = parent_fip['noindiv'].values.copy()
         parent_fip['famille'] = 51
         parent_fip['kid'] = False
@@ -541,12 +507,6 @@ def famille(temporary_store = None, year = None):
 
     assert not famille.duplicated().any()
     assert not famille.noindiv.duplicated().any()
-
-   # duplicated_individuals = famille.noindiv.duplicated()
-    # TODO: How to prevent failing in the next assert and avoiding droppping duplicates ?
-    # assert not duplicated_individuals.any(), "{} duplicated individuals in famille".format(
-    # duplicated_individuals.sum())
-    # famille = famille.drop_duplicates(subset = 'noindiv', keep = 'last')
     control_04(famille, base)
 
     log.info(u"Etape 6 : gestion des non attribués")
@@ -617,71 +577,100 @@ def famille(temporary_store = None, year = None):
     control_04(famille, base)
 
     log.info(u"    7.2 : création de la colonne rang")
-    famille['rang'] = famille.kid.astype('int')
-    while any(famille[(famille.rang != 0)].duplicated(subset = ['rang', 'noifam'])):
+    famille['rang'] = famille.kid.astype(int)
+    while any(famille.loc[famille.rang != 0].duplicated(subset = ['rang', 'noifam'])):
         famille.loc[famille.rang != 0, 'rang'] += (
             famille[
                 famille.rang != 0
                 ]
             .duplicated(subset = ["rang", 'noifam']).values
             )
-        log.info(u"nb de rangs différents : {}".format(len(set(famille.rang.values))))
+        # log.info(u"nb de rangs différents : {}".format(famille.rang.value_counts().sort_index()))
 
     log.info(u"    7.3 : création de la colonne quifam et troncature")
     log.info(u"value_counts chef : \n {}".format(famille['chef'].value_counts()))
     log.info(u"value_counts kid :' \n {}".format(famille['kid'].value_counts()))
 
     famille['quifam'] = -1
-    # famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
+    famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
     famille.quifam = (
         0 +
         ((~famille.chef) & (~famille.kid)).astype(int) +
-        famille.kid * famille.rang
+        famille.kid * (famille.rang + 1)
         ).astype('int')
 
-    return famille
-
-    assert (famille.groupby('noifam')['chef'].sum() <= 1).all()
+    assert (famille.groupby('noifam')['chef'].sum() <= 1).all(), "Il y a plusieurs chefs par famille"
 
     if not (famille.groupby('noifam')['chef'].sum() == 1).all():
-        log.info(u"Il y a {} qui n'ont pas de chef de famille"
+        log.info(u"Il y a {} familles qui n'ont pas de chef de famille".format(
+            (famille.groupby('noifam')['chef'].sum() == 0).sum()
+            ))
+        absence_chef = (famille.groupby('noifam')['chef'].sum() == 0)
+        noifam_absence_chef = absence_chef.loc[absence_chef].index
+        idents = famille.loc[famille.noifam.isin(noifam_absence_chef), 'ident'].unique()
+        log.info(u'Il y a {} ménages contenant des familles sans chefs. on les retire'.format(
+            len(idents)))
+        famille = famille.loc[~famille.ident.isin(idents)].copy()
+        control_04(famille, base)
 
-    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts()))
+    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts().sort_index()))
     famille = famille[['noindiv', 'quifam', 'noifam']].copy()
     famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
     log.info(u"Vérifications sur famille")
 
-    duplicated_famillle_count = famille.duplicated(subset = ['idfam', 'quifam']).sum()
-    if duplicated_famillle_count > 0:
-        log.info(u"There are {} duplicates of quifam inside famille, we drop them".format(
-            duplicated_famillle_count))
-        famille.drop_duplicates(subset = ['idfam', 'quifam'], inplace = True)
-        # assert not(famille.duplicated(subset = ['idfam', 'quifam']).any()), \
-        #   'There are {} duplicates of quifam inside famille'.format(
-        #       famille.duplicated(subset = ['idfam', 'quifam']).sum())
-
-    boum
-    temporary_store["famc_{}".format(year)] = famille
-
-    print len(indivi)
+    duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
+    if duplicated_famillle.sum() > 0:
+        log.info(u"There are {} duplicates of quifam inside famille".format(
+            duplicated_famillle.sum()))
+        raise
     individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
-    print len(individus)
-
     if skip_enfants_a_naitre:
-        del indivi
+        del indivi, base
     else:
-        del indivi, enfants_a_naitre
+        del indivi, enfants_a_naitre, base
+    gc.collect()
+
+    temporary_store['individus_{}'.format(year)] = individus
+
+
+# helpers
+
+def control_04(dataframe, base):
+    log.info(u"longueur de la dataframe après opération : {}".format(len(dataframe)))
+
+    if any(dataframe.duplicated(subset = 'noindiv')):
+        log.info(u"contrôle des doublons : il y a {} individus en double".format(
+            dataframe.duplicated(subset = 'noindiv').sum()))
+    # log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
+    log.info(u"Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
+    assert not dataframe.noifam.isnull().any(), u"{} noifam are NaN".format(dataframe.noifam.isnull().sum())
+
+    log.info(u"{} lignes dans dataframe vs {} lignes dans base".format(len(dataframe.index), len(base.index)))
+    assert len(dataframe.index) <= len(base.index), u"dataframe has too many rows compared to base"
+    assert set(dataframe.noifam.unique()).issubset(set(base.noindiv)), \
+        "The following {} are not in the dataframe: \n {}".format(
+            len(dataframe.loc[~dataframe.noifam.isin(base.noindiv)]),
+            dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']],
+            )
+
+    if 'quifam' in dataframe:
+        famille_population = dataframe.query('quifam == 0').groupby('famille')['wprm'].sum()
+        log.info("famille :\n{}".format(
+            famille_population / famille_population.sum()
+            ))
+
+
+def subset_base(base, famille):
+    """
+    Generates a dataframe containing the values of base that are not already in famille
+    """
+    return base.loc[~(base.noindiv.isin(famille.noindiv.values))].copy()
 
 
 if __name__ == '__main__':
     import sys
-    import dfgui
-
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO, filename = 'step_04.log', filemode = 'w')
     year = 2012
-    famille = famille(year = year)
-
-
-
+    create_famille(year = year)
     log.info(u"étape 04 famille terminée")
