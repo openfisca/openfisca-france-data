@@ -23,26 +23,123 @@ def create_famille(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
+    log.info('step_04_famille: construction de la table famille')
+
     skip_enfants_a_naitre = True
     kind = 'erfs_fpr'
 
-    log.info('step_04_famille: construction de la table famille')
-    # TODO: extraire ces valeurs d'un fichier de paramètres de législation
-    if year == 2006:
-        smic = 1254
-    elif year == 2007:
-        smic = 1280
-    elif year == 2008:
-        smic = 1308
-    elif year == 2009:
-        smic = 1337
-    elif year == 2012:
-        smic = int(1398.37)
+    indivi, base = famille_1(
+        kind = kind,
+        skip_enfants_a_naitre = True,
+        temporary_store = temporary_store,
+        year = year,
+        )
+
+    base, famille, personne_de_reference = famille_2(
+        base = base,
+        # kind = 'erfs_fpr',
+        # skip_enfants_a_naitre = True,
+        # temporary_store = temporary_store,
+        year = year,
+        )
+
+    base, famille = famille_3(
+        base = base,
+        famille = famille,
+        kind = kind,
+        year = year,
+        )
+
+    base, famille = famille_5(
+        base = base,
+        famille = famille,
+        kind = kind,
+        year = year,
+        )
+
+    base, famille = famille_6(
+        base = base,
+        famille = famille,
+        kind = kind,
+        year = year,
+        )
+
+    log.info(u"Etape 7 : Sauvegarde de la table famille")
+
+    log.info(u"    7.1 : Mise en forme finale")
+    famille['chef'] = (famille.noifam == (100 * famille.ident + famille.noi))
+    assert_dtype(famille.chef, "bool")
+
+    famille.reset_index(inplace = True)
+    control_04(famille, base)
+
+    log.info(u"    7.2 : création de la colonne rang")
+    famille['rang'] = famille.kid.astype(int)
+    while any(famille.loc[famille.rang != 0].duplicated(subset = ['rang', 'noifam'])):
+        famille.loc[famille.rang != 0, 'rang'] += (
+            famille[
+                famille.rang != 0
+                ]
+            .duplicated(subset = ["rang", 'noifam']).values
+            )
+        # log.info(u"nb de rangs différents : {}".format(famille.rang.value_counts().sort_index()))
+
+    log.info(u"    7.3 : création de la colonne quifam et troncature")
+    log.info(u"value_counts chef : \n {}".format(famille['chef'].value_counts()))
+    log.info(u"value_counts kid :' \n {}".format(famille['kid'].value_counts()))
+
+    famille['quifam'] = -1
+    famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
+    famille.quifam = (
+        0 +
+        ((~famille.chef) & (~famille.kid)).astype(int) +
+        famille.kid * (famille.rang + 1)
+        ).astype('int')
+
+    assert (famille.groupby('noifam')['chef'].sum() <= 1).all(), "Il y a plusieurs chefs par famille"
+
+    if not (famille.groupby('noifam')['chef'].sum() == 1).all():
+        log.info(u"Il y a {} familles qui n'ont pas de chef de famille".format(
+            (famille.groupby('noifam')['chef'].sum() == 0).sum()
+            ))
+        absence_chef = (famille.groupby('noifam')['chef'].sum() == 0)
+        noifam_absence_chef = absence_chef.loc[absence_chef].index
+        idents = famille.loc[famille.noifam.isin(noifam_absence_chef), 'ident'].unique()
+        log.info(u'Il y a {} ménages contenant des familles sans chefs. on les retire'.format(
+            len(idents)))
+        famille = famille.loc[~famille.ident.isin(idents)].copy()
+        control_04(famille, base)
+
+    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts().sort_index()))
+    famille = famille[['noindiv', 'quifam', 'noifam']].copy()
+    famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
+    log.info(u"Vérifications sur famille")
+
+    duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
+    if duplicated_famillle.sum() > 0:
+        log.info(u"There are {} duplicates of quifam inside famille".format(
+            duplicated_famillle.sum()))
+        raise
+    individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
+    if skip_enfants_a_naitre:
+        del indivi, base
     else:
-        log.info("smic non défini")
+        del indivi, enfants_a_naitre, base
+    gc.collect()
 
+    temporary_store['individus_{}'.format(year)] = individus
+
+
+# steps
+
+def famille_1(kind = 'erfs_fpr', skip_enfants_a_naitre = True, year = None, temporary_store = None):
+    """
+    Préparation de la base de travail
+    """
+    assert year is not None
+    assert temporary_store is not None
     # TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
-
+    smic = get_smic(year)
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
     indivi = temporary_store['individus_{}'.format(year)]
@@ -143,7 +240,11 @@ def create_famille(temporary_store = None, year = None):
         assert_dtype(base[series_name], "bool")
     assert_dtype(base.famille, "int")
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
+    return indivi, base
 
+
+def famille_2(base, year = None):
+    assert year is not None
     log.info(u"Etape 2 : On cherche les enfants ayant père et/ou mère comme personne de référence et conjoint")
     personne_de_reference = base.loc[base.lpr == 1, ['ident', 'noi']].copy()
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
@@ -206,7 +307,13 @@ def create_famille(temporary_store = None, year = None):
         ))
     famille = pd.concat([famille, couple])
     control_04(famille, base)
+    return base, famille, personne_de_reference
 
+
+def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
+    assert base is not None
+    assert famille is not None
+    assert year is not None
     log.info(u"Etape 3: Récupération des personnes seules")
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
@@ -253,7 +360,6 @@ def create_famille(temporary_store = None, year = None):
 
     log.info(u"    3.4 : personnes seules de catégorie 4")
     seul4 = subset_base(base, famille)
-
     assert seul4.noimer.notnull().all()
     if kind == 'erfs_fpr':
         seul4 = seul4[
@@ -307,8 +413,7 @@ def create_famille(temporary_store = None, year = None):
         .drop_duplicates()
         .merge(base)
         )
-    log.info(u"qui sont au nombre de {}".format(
-        len(mere)))
+    log.info(u"qui sont au nombre de {}".format(len(mere)))
 
     mere['noifam'] = (100 * mere.ident + mere.noi).astype(int)
     mere['famille'] = 42
@@ -420,6 +525,14 @@ def create_famille(temporary_store = None, year = None):
         del dec, declarant_id, avec_dec
         control_04(famille, base)
 
+    return base, famille
+
+
+def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
+    assert base is not None
+    assert famille is not None
+    assert year is not None
+    smic = get_smic(year)
     if kind == 'erfs_fpr':
         log.info(u"Etape 5 : Récupération des enfants fip (ignorée dans erfs_fpr)")
         pass
@@ -508,7 +621,14 @@ def create_famille(temporary_store = None, year = None):
     assert not famille.duplicated().any()
     assert not famille.noindiv.duplicated().any()
     control_04(famille, base)
+    return base, famille
 
+
+def famille_6(base = None, famille = None, personne_de_reference = None, kind = 'erfs_fpr', year = None):
+    assert base is not None
+    assert famille is not None
+    assert personne_de_reference is not None
+    assert year is not None
     log.info(u"Etape 6 : gestion des non attribués")
     log.info(u"    6.1 : non attribués type 1")
     non_attribue1 = subset_base(base, famille)
@@ -567,70 +687,7 @@ def create_famille(temporary_store = None, year = None):
         control_04(famille, base)
         del non_attribue2
 
-    log.info(u"Etape 7 : Sauvegarde de la table famille")
-
-    log.info(u"    7.1 : Mise en forme finale")
-    famille['chef'] = (famille.noifam == (100 * famille.ident + famille.noi))
-    assert_dtype(famille.chef, "bool")
-
-    famille.reset_index(inplace = True)
-    control_04(famille, base)
-
-    log.info(u"    7.2 : création de la colonne rang")
-    famille['rang'] = famille.kid.astype(int)
-    while any(famille.loc[famille.rang != 0].duplicated(subset = ['rang', 'noifam'])):
-        famille.loc[famille.rang != 0, 'rang'] += (
-            famille[
-                famille.rang != 0
-                ]
-            .duplicated(subset = ["rang", 'noifam']).values
-            )
-        # log.info(u"nb de rangs différents : {}".format(famille.rang.value_counts().sort_index()))
-
-    log.info(u"    7.3 : création de la colonne quifam et troncature")
-    log.info(u"value_counts chef : \n {}".format(famille['chef'].value_counts()))
-    log.info(u"value_counts kid :' \n {}".format(famille['kid'].value_counts()))
-
-    famille['quifam'] = -1
-    famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
-    famille.quifam = (
-        0 +
-        ((~famille.chef) & (~famille.kid)).astype(int) +
-        famille.kid * (famille.rang + 1)
-        ).astype('int')
-
-    assert (famille.groupby('noifam')['chef'].sum() <= 1).all(), "Il y a plusieurs chefs par famille"
-
-    if not (famille.groupby('noifam')['chef'].sum() == 1).all():
-        log.info(u"Il y a {} familles qui n'ont pas de chef de famille".format(
-            (famille.groupby('noifam')['chef'].sum() == 0).sum()
-            ))
-        absence_chef = (famille.groupby('noifam')['chef'].sum() == 0)
-        noifam_absence_chef = absence_chef.loc[absence_chef].index
-        idents = famille.loc[famille.noifam.isin(noifam_absence_chef), 'ident'].unique()
-        log.info(u'Il y a {} ménages contenant des familles sans chefs. on les retire'.format(
-            len(idents)))
-        famille = famille.loc[~famille.ident.isin(idents)].copy()
-        control_04(famille, base)
-
-    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts().sort_index()))
-    famille = famille[['noindiv', 'quifam', 'noifam']].copy()
-    famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
-    log.info(u"Vérifications sur famille")
-
-    duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
-    if duplicated_famillle.sum() > 0:
-        log.info(u"There are {} duplicates of quifam inside famille".format(
-            duplicated_famillle.sum()))
-        raise
-    individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
-    if skip_enfants_a_naitre:
-        del indivi, base
-    else:
-        del indivi, enfants_a_naitre, base
-    gc.collect()
-
-    temporary_store['individus_{}'.format(year)] = individus
+    return base, famille
 
 
 # helpers
@@ -658,6 +715,24 @@ def control_04(dataframe, base):
         log.info("famille :\n{}".format(
             famille_population / famille_population.sum()
             ))
+
+
+def get_smic(year):
+    # TODO: extraire ces valeurs d'un fichier de paramètres de législation et les stocker
+    if year == 2006:
+        smic = 1254
+    elif year == 2007:
+        smic = 1280
+    elif year == 2008:
+        smic = 1308
+    elif year == 2009:
+        smic = 1337
+    elif year == 2012:
+        smic = int(1398.37)
+    else:
+        log.info("smic non défini")
+        return None
+    return smic
 
 
 def subset_base(base, famille):
