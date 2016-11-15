@@ -18,13 +18,15 @@ log = logging.getLogger(__name__)
 @temporary_store_decorator(file_name = "erfs_fpr")
 def merge_tables(temporary_store = None, year = None):
     assert temporary_store is not None
+    assert year is not None
     log.info("Chargement des tables des enquêtes")
     erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
+    yr = str(year)[-2:]  # 12 for 2012
     survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
-    fpr_menage = survey.get_values(table = 'fpr_menage_2012_retropole')
-    eec_menage = survey.get_values(table = 'fpr_mrf12e12t4')
-    eec_individu = survey.get_values(table = 'fpr_irf12e12t4')
-    fpr_individu = survey.get_values(table = 'fpr_indiv_2012_retropole')
+    fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
+    eec_menage = survey.get_values(table = 'fpr_mrf{}}e{}t4'.format(yr))
+    eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr))
+    fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
 
     log.info(u"""
 Il y a {} ménages dans fpr_menage
