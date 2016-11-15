@@ -60,6 +60,7 @@ def create_famille(temporary_store = None, year = None):
     base, famille = famille_6(
         base = base,
         famille = famille,
+        personne_de_reference = personne_de_reference,
         kind = kind,
         year = year,
         )
