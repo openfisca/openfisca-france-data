@@ -28,7 +28,6 @@ def create_famille(temporary_store = None, year = None):
     skip_enfants_a_naitre = True
     kind = 'erfs_fpr'
 
-
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
     indivi = temporary_store['individus_{}'.format(year)]
