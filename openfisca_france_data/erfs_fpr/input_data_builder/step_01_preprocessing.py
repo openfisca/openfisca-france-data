@@ -36,24 +36,19 @@ def build_merged_dataframes(temporary_store = None, year = None):
     del eec_individu, fpr_individu
 
 
-def merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year):
+def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_individu = None, year = None,
+        skip_menage = False):
+    assert (eec_individu is not None) and (fpr_individu is not None)
     log.info(u"""
-Il y a {} ménages dans fpr_menage
-Il y a {} ménages dans eec_menage
 Il y a {} individus dans fpr_individu
 Il y a {} individus dans eec_individu
 """.format(
-        len(fpr_menage.ident.unique()),
-        len(eec_menage.ident.unique()),
         len(fpr_individu.noindiv.unique()),
         len(eec_individu.noindiv.unique()),
         ))
 
-    # Infos sur les non appariés
-    non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage)
-
     # Fusion enquête emploi et source fiscale
-    menages = fpr_menage.merge(eec_menage)
+
     individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
     check_naia_naim(individus, year)
 
@@ -85,19 +80,39 @@ Il y a {} individus dans eec_individu
                 var, individus[var].dtype
                 )
 
-    create_variable_locataire(menages)
-    menages = menages.merge(
-        individus.loc[individus.lpr == 1, ['ident', 'ddipl']].copy()
-        )
-    log.info(u"""
+    if not skip_menage:
+        log.info(u"""
+Il y a {} ménages dans fpr_menage
+Il y a {} ménages dans eec_menage
+""".format(
+            len(fpr_menage.ident.unique()),
+            len(eec_menage.ident.unique()),
+        ))
+        menages = fpr_menage.merge(eec_menage)
+        create_variable_locataire(menages)
+        menages = menages.merge(
+            individus.loc[individus.lpr == 1, ['ident', 'ddipl']].copy()
+            )
+        log.info(u"""
 Il y a {} ménages dans la base ménage fusionnée
+""".format(len(menages.ident.unique())))
+        #
+    #
+    log.info(u"""
 Il y a {} ménages dans la base individus fusionnée
 Il y a {} individus dans la base individus fusionnée
 """.format(
-        len(menages.ident.unique()),
         len(individus.ident.unique()),
         len(individus.noindiv.unique()),
         ))
+
+    # Infos sur les non appariés
+    if not skip_menage:
+        non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage)
+
+    if skip_menage:
+        menages = None
+
     return individus, menages
 
 

@@ -20,8 +20,8 @@ def build(year = None, check = False):
     assert year is not None
     preprocessing.build_merged_dataframes(year = year)
     # imputation_loyer.imputation_loyer(year = year)
-    variables_individuelles.create_variables_individuelles(year = year)
-    famille.create_famille(year = year)
+    variables_individuelles.build_variables_individuelles(year = year)
+    famille.build_famille(year = year)
     final.create_input_data_frame(year = year)
 
     temporary_store = get_store(file_name = 'erfs_fpr')

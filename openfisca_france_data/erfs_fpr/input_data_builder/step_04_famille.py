@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
-def create_famille(temporary_store = None, year = None):
+def build_famille(temporary_store = None, year = None):
     """
     Création des familles
     Création des variables 'idfam' and 'quifam'
@@ -31,25 +31,6 @@ def create_famille(temporary_store = None, year = None):
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
     indivi = temporary_store['individus_{}'.format(year)]
-
-    indivi['year'] = year
-    # indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
-
-    indivi["agepf"] = (
-        (indivi.naim < 7) * (indivi.year - indivi.naia) +
-        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
-        )
-
-    # Enfant en nourrice exclus
-    selection_enfant_en_nourrice = (indivi.lien == 6) & (indivi.agepf < 16)
-    nb_enfants_en_nourrice = selection_enfant_en_nourrice.sum()
-    if nb_enfants_en_nourrice > 0:
-        indivi = indivi[~(selection_enfant_en_nourrice)].copy()
-        log.info(u"{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
-
-    assert_dtype(indivi.year, "int64")
-    for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
-        assert_dtype(indivi[series_name], "object")
 
     if skip_enfants_a_naitre:
         log.info(u"    1.2 : On ne récupère pas d'enfants à naître")
@@ -103,6 +84,19 @@ def create_famille(temporary_store = None, year = None):
         de la personne de référence
         """.format(len(enfants_a_naitre.index)))
 
+    individus = create_familles(indivi = indivi, year = year, kind = kind, enfants_a_naitre = enfants_a_naitre,
+        skip_enfants_a_naitre = skip_enfants_a_naitre)
+    temporary_store['individus_{}'.format(year)] = individus
+
+
+# steps
+
+def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_naitre = None,
+        skip_enfants_a_naitre = True):
+    assert indivi is not None
+    assert year is not None
+    assert (enfants_a_naitre is not None) or skip_enfants_a_naitre
+    complete_indivi(indivi, year)
     base = famille_1(
         indivi = indivi,
         kind = kind,
@@ -110,29 +104,22 @@ def create_famille(temporary_store = None, year = None):
         skip_enfants_a_naitre = True,
         year = year,
         )
-
     base, famille, personne_de_reference = famille_2(
         base = base,
-        # kind = 'erfs_fpr',
-        # skip_enfants_a_naitre = True,
-        # temporary_store = temporary_store,
         year = year,
         )
-
     base, famille = famille_3(
         base = base,
         famille = famille,
         kind = kind,
         year = year,
         )
-
     base, famille = famille_5(
         base = base,
         famille = famille,
         kind = kind,
         year = year,
         )
-
     base, famille = famille_6(
         base = base,
         famille = famille,
@@ -140,8 +127,7 @@ def create_famille(temporary_store = None, year = None):
         kind = kind,
         year = year,
         )
-
-    individus = famille_7(
+    return famille_7(
         base = base,
         famille = famille,
         indivi = indivi,
@@ -149,10 +135,26 @@ def create_famille(temporary_store = None, year = None):
         year = year,
         )
 
-    temporary_store['individus_{}'.format(year)] = individus
 
+def complete_indivi(indivi, year):
+    indivi['year'] = year
+    # indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
 
-# steps
+    indivi["agepf"] = (
+        (indivi.naim < 7) * (indivi.year - indivi.naia) +
+        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
+        )
+
+    # Enfant en nourrice exclus
+    selection_enfant_en_nourrice = (indivi.lien == 6) & (indivi.agepf < 16)
+    nb_enfants_en_nourrice = selection_enfant_en_nourrice.sum()
+    if nb_enfants_en_nourrice > 0:
+        indivi = indivi[~(selection_enfant_en_nourrice)].copy()
+        log.info(u"{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
+
+    for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
+        assert_dtype(indivi[series_name], "object")
+
 
 def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_enfants_a_naitre = True, year = None):
     """

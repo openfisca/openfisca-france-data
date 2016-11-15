@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
-def create_variables_individuelles(temporary_store = None, year = None):
+def build_variables_individuelles(temporary_store = None, year = None):
     """
     Création des variables individuelles
     """
@@ -26,17 +26,20 @@ def create_variables_individuelles(temporary_store = None, year = None):
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
     individus = temporary_store['individus_{}'.format(year)]
-
-    create_age_variables(individus, year)
-    create_activite_variable(individus)
-    create_revenus_variables(individus)
-    create_categorie_salarie_variable(individus)
-    create_effectif_entreprise_variable(individus)
+    create_variables_individuelles(individus, year)
     temporary_store['individus_{}'.format(year)] = individus
     log.info(u"step_03_variables_individuelles terminée")
 
 
 # helpers
+
+def create_variables_individuelles(individus, year):
+    create_age_variables(individus, year)
+    create_activite_variable(individus)
+    create_revenus_variables(individus)
+    create_categorie_salarie_variable(individus)
+    create_effectif_entreprise_variable(individus)
+
 
 def create_activite_variable(individus):
     """
