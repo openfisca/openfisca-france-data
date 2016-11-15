@@ -28,64 +28,7 @@ def create_famille(temporary_store = None, year = None):
     skip_enfants_a_naitre = True
     kind = 'erfs_fpr'
 
-    indivi, base = famille_1(
-        kind = kind,
-        skip_enfants_a_naitre = True,
-        temporary_store = temporary_store,
-        year = year,
-        )
 
-    base, famille, personne_de_reference = famille_2(
-        base = base,
-        # kind = 'erfs_fpr',
-        # skip_enfants_a_naitre = True,
-        # temporary_store = temporary_store,
-        year = year,
-        )
-
-    base, famille = famille_3(
-        base = base,
-        famille = famille,
-        kind = kind,
-        year = year,
-        )
-
-    base, famille = famille_5(
-        base = base,
-        famille = famille,
-        kind = kind,
-        year = year,
-        )
-
-    base, famille = famille_6(
-        base = base,
-        famille = famille,
-        personne_de_reference = personne_de_reference,
-        kind = kind,
-        year = year,
-        )
-
-    individus = famille_7(
-        base = base,
-        famille = famille,
-        indivi = indivi,
-        kind = kind,
-        year = year,
-        )
-
-    temporary_store['individus_{}'.format(year)] = individus
-
-
-# steps
-
-def famille_1(kind = 'erfs_fpr', skip_enfants_a_naitre = True, year = None, temporary_store = None):
-    """
-    Préparation de la base de travail
-    """
-    assert year is not None
-    assert temporary_store is not None
-    # TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
-    smic = get_smic(year)
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
     indivi = temporary_store['individus_{}'.format(year)]
@@ -111,6 +54,7 @@ def famille_1(kind = 'erfs_fpr', skip_enfants_a_naitre = True, year = None, temp
 
     if skip_enfants_a_naitre:
         log.info(u"    1.2 : On ne récupère pas d'enfants à naître")
+        enfants_a_naitre = None
     else:
         log.info(u"    1.2 : récupération des enfants à naître")
         individual_variables = [
@@ -160,6 +104,67 @@ def famille_1(kind = 'erfs_fpr', skip_enfants_a_naitre = True, year = None, temp
         de la personne de référence
         """.format(len(enfants_a_naitre.index)))
 
+    base = famille_1(
+        indivi = indivi,
+        kind = kind,
+        enfants_a_naitre = enfants_a_naitre,
+        skip_enfants_a_naitre = True,
+        year = year,
+        )
+
+    base, famille, personne_de_reference = famille_2(
+        base = base,
+        # kind = 'erfs_fpr',
+        # skip_enfants_a_naitre = True,
+        # temporary_store = temporary_store,
+        year = year,
+        )
+
+    base, famille = famille_3(
+        base = base,
+        famille = famille,
+        kind = kind,
+        year = year,
+        )
+
+    base, famille = famille_5(
+        base = base,
+        famille = famille,
+        kind = kind,
+        year = year,
+        )
+
+    base, famille = famille_6(
+        base = base,
+        famille = famille,
+        personne_de_reference = personne_de_reference,
+        kind = kind,
+        year = year,
+        )
+
+    individus = famille_7(
+        base = base,
+        famille = famille,
+        indivi = indivi,
+        kind = kind,
+        year = year,
+        )
+
+    temporary_store['individus_{}'.format(year)] = individus
+
+
+# steps
+
+def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_enfants_a_naitre = True, year = None):
+    """
+    Préparation de la base de travail
+    """
+    assert indivi is not None
+    assert (enfants_a_naitre is not None) or (skip_enfants_a_naitre)
+    assert year is not None
+    # TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
+    smic = get_smic(year)
+
     # PB with vars "agepf"  "noidec" "year"  NOTE: quels problèmes ? JS
     log.info(u"    1.3 : création de la base complète")
     if skip_enfants_a_naitre:
@@ -186,7 +191,7 @@ def famille_1(kind = 'erfs_fpr', skip_enfants_a_naitre = True, year = None, temp
         assert_dtype(base[series_name], "bool")
     assert_dtype(base.famille, "int")
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
-    return indivi, base
+    return base
 
 
 def famille_2(base, year = None):

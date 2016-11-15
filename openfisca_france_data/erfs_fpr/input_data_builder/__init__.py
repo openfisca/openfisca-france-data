@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 def build(year = None, check = False):
     assert year is not None
-    preprocessing.merge_tables(year = year)
+    preprocessing.build_merged_dataframes(year = year)
     # imputation_loyer.imputation_loyer(year = year)
     variables_individuelles.create_variables_individuelles(year = year)
     famille.create_famille(year = year)

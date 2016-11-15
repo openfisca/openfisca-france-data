@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = "erfs_fpr")
-def merge_tables(temporary_store = None, year = None):
+def build_merged_dataframes(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
     log.info("Chargement des tables des enquêtes")
@@ -24,10 +24,19 @@ def merge_tables(temporary_store = None, year = None):
     yr = str(year)[-2:]  # 12 for 2012
     survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
     fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
-    eec_menage = survey.get_values(table = 'fpr_mrf{}}e{}t4'.format(yr))
-    eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr))
+    eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
+    eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
     fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
 
+    individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
+    temporary_store['menages_{}'.format(year)] = menages
+    del eec_menage, fpr_menage, menages
+    gc.collect()
+    temporary_store['individus_{}'.format(year)] = individus
+    del eec_individu, fpr_individu
+
+
+def merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year):
     log.info(u"""
 Il y a {} ménages dans fpr_menage
 Il y a {} ménages dans eec_menage
@@ -89,12 +98,7 @@ Il y a {} individus dans la base individus fusionnée
         len(individus.ident.unique()),
         len(individus.noindiv.unique()),
         ))
-
-    temporary_store['menages_{}'.format(year)] = menages
-    del eec_menage, fpr_menage, menages
-    gc.collect()
-    temporary_store['individus_{}'.format(year)] = individus
-    del eec_individu, fpr_individu
+    return individus, menages
 
 
 def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
