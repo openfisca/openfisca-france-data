@@ -264,7 +264,7 @@ def create_effectif_entreprise_variable(individus):
 def create_revenus_variables(individus):
     """
     Création des variables:
-        choomage_imposable,
+        chomage_imposable,
         pensions_alimentaires_percues,
         rag,
         retraite_imposable,
