@@ -86,6 +86,7 @@ def build_famille(temporary_store = None, year = None):
 
     individus = create_familles(indivi = indivi, year = year, kind = kind, enfants_a_naitre = enfants_a_naitre,
         skip_enfants_a_naitre = skip_enfants_a_naitre)
+
     temporary_store['individus_{}'.format(year)] = individus
 
 

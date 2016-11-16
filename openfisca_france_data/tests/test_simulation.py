@@ -4,6 +4,11 @@
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 
+import logging
+
+
+log = logging.getLogger(__name__)
+
 
 variables = [
     'aspa',
@@ -81,7 +86,7 @@ def test_erfs_fpr_survey_simulation(year = 2012):
 
 def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
     try:
-        survey_scenario = ErfsFprSurveyScenario.create(year = year, rebuild_input_data = True)
+    survey_scenario = ErfsFprSurveyScenario.create(year = year, rebuild_input_data = True)
     except AssertionError as e:
         print(e)
         return
@@ -117,12 +122,10 @@ def test_weights_building():
     return survey_scenario.simulation
 
 if __name__ == '__main__':
-    import logging
     import time
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
     start = time.time()
     data_frame_by_entity_key_plural = test_erfs_fpr_survey_simulation(year = 2012)
     data_frame_individus = data_frame_by_entity_key_plural['individus']
