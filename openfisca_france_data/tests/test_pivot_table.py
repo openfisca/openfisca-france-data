@@ -34,12 +34,12 @@ def test_pivot_table_1d_count():
     return pivot_table
 
 
-def test_pivot_table_2d():
+def test_pivot_table_2d_2values():
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr')
     pivot_table = survey_scenario.compute_pivot_table(
         columns = ['decile_rfr'],
         index = ['nbptr'],
-        values = ['irpp']
+        values = ['irpp', 'rfr']
         )
     return pivot_table
 
