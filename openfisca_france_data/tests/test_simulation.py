@@ -86,7 +86,7 @@ def test_erfs_fpr_survey_simulation(year = 2012):
 
 def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
     try:
-    survey_scenario = ErfsFprSurveyScenario.create(year = year, rebuild_input_data = True)
+        survey_scenario = ErfsFprSurveyScenario.create(year = year, rebuild_input_data = True)
     except AssertionError as e:
         print(e)
         return
