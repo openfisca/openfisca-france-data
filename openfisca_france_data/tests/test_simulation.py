@@ -123,6 +123,7 @@ def test_weights_building():
     survey_scenario.new_simulation()
     return survey_scenario.simulation
 
+
 if __name__ == '__main__':
     import time
     log = logging.getLogger(__name__)

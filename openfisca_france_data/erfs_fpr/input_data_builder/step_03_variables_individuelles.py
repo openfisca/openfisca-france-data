@@ -320,3 +320,6 @@ if __name__ == '__main__':
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
     year = 2012
     build_variables_individuelles(year = year)
+
+
+# TODO effectif entreprise à chercher
