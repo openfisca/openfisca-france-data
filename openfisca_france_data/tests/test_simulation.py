@@ -11,52 +11,54 @@ log = logging.getLogger(__name__)
 
 
 variables = [
-    'aspa',
-    'aide_logement_montant_brut',
-    'idmen',
-    'quimen',
-    'idfoy',
-    'quifoy',
-    'idfam',
-    'quifam',
-    'age',
     'activite',
-    'champm_individus',
-    'pensions_alimentaires_percues',
-    'salaire_imposable',
-    'salaire_net',
-    'autonomie_financiere',
     'af_nbenf',
     'af',
+    'age',
+    'aide_logement_montant_brut',
+    'aspa',
+    'autonomie_financiere',
+    'champm_individus',
+    'idfam',
+    'idfoy',
+    'idmen',
+    'nbptr',
+    'pensions_alimentaires_percues',
+    'quifam',
+    'quifoy',
+    'quimen',
+    'revdisp',
     'rsa_base_ressources',
     'rsa',
+    'salaire_imposable',
+    'salaire_net',
     'weight_familles',
-    'revdisp',
     ]
 
 
 def loose_check(data_frame_by_entity_key_plural):
     positive_variables = [
-        'aspa',
-        'aide_logement_montant_brut',
-        'idmen',
-        'quimen',
-        'idfoy',
-        'quifoy',
-        'idfam',
-        'quifam',
         'activite',
-        'champm_individus',
-        'pensions_alimentaires_percues',
-        'salaire_imposable',
-        'salaire_net',
-        'autonomie_financiere',
         'af_nbenf',
         'af',
+        'aide_logement_montant_brut',
+        'aspa',
+        'autonomie_financiere',
+        'champm_individus',
+        'idfam',
+        'idfoy',
+        'idmen',
+        'nbptr',
+        'pensions_alimentaires_percues',
+        'quifam',
+        'quifoy',
+        'quimen',
+        'revdisp',
         'rsa_base_ressources',
         'rsa',
+        'salaire_imposable',
+        'salaire_net',
         'weight_familles',
-        'revdisp',
         ]
     strictly_positive_sum_variables = positive_variables
     strictly_positive_sum_variables.remove('aide_logement_montant_brut')
@@ -81,7 +83,7 @@ def test_erfs_fpr_survey_simulation(year = 2012):
         variables = variables,
         )
     loose_check(data_frame_by_entity_key_plural)
-    return data_frame_by_entity_key_plural
+    return survey_scenario, data_frame_by_entity_key_plural
 
 
 def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
@@ -127,8 +129,9 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     start = time.time()
-    data_frame_by_entity_key_plural = test_erfs_fpr_survey_simulation(year = 2012)
+    survey_scenario, data_frame_by_entity_key_plural = test_erfs_fpr_survey_simulation(year = 2012)
+    data_frame_familles = data_frame_by_entity_key_plural['familles']
+    data_frame_foyers_fiscaux = data_frame_by_entity_key_plural['foyers_fiscaux']
     data_frame_individus = data_frame_by_entity_key_plural['individus']
     data_frame_menages = data_frame_by_entity_key_plural['menages']
-    data_frame_familles = data_frame_by_entity_key_plural['familles']
     print(time.time() - start)

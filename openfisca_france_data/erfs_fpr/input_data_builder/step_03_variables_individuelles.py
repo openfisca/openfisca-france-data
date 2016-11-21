@@ -319,4 +319,4 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
     year = 2012
-    create_variables_individuelles(year = year)
+    build_variables_individuelles(year = year)

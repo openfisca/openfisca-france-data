@@ -88,7 +88,7 @@ Il y a {} ménages dans eec_menage
             len(fpr_menage.ident.unique()),
             len(eec_menage.ident.unique()),
         ))
-        menages = fpr_menage.merge(eec_menage)
+        menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
         create_variable_locataire(menages)
         menages = menages.merge(
             individus.loc[individus.lpr == 1, ['ident', 'ddipl']].copy()
@@ -201,7 +201,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO, filename = 'run_all.log', filemode = 'w')
     year = 2012
-    merge_tables(year = year)
+    build_merged_dataframes(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
