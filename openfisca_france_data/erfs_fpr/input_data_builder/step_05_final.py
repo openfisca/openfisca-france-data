@@ -81,3 +81,12 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2012
     create_input_data_frame(year = year)
+
+# TODO variables revenus collectifs
+# rev_etranger
+# rev_financier_prelev_lib_imputes revenus financiers(prélévement libératoire) et imputés
+# rev_fonciers_bruts Revenus fonciers avant déduction de la CSG
+# rev_valeurs_mobilieres_bruts
+# Mais aussi
+# pens_alim_versee
+# TH
