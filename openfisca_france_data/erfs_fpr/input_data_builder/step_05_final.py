@@ -53,7 +53,7 @@ def create_input_data_frame(temporary_store = None, year = None):
     for entity_id in ['idmen', 'idfoy', 'idfam']:
         log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
-    data_frame.reset_index(inplace = True)
+    data_frame.reset_index(drop = True, inplace = True)
     data_frame = normalizes_roles_in_entity(data_frame, 'foy')
     data_frame = normalizes_roles_in_entity(data_frame, 'men')
     print_id(data_frame)
@@ -82,11 +82,11 @@ if __name__ == '__main__':
     year = 2012
     create_input_data_frame(year = year)
 
-# TODO variables revenus collectifs
+# TODO variables revenus collectifs
 # rev_etranger
 # rev_financier_prelev_lib_imputes revenus financiers(prélévement libératoire) et imputés
 # rev_fonciers_bruts Revenus fonciers avant déduction de la CSG
 # rev_valeurs_mobilieres_bruts
 # Mais aussi
-# pens_alim_versee
-# TH
+# pens_alim_versee
+# TH

@@ -12,3 +12,14 @@ survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
 # eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
 eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
 # fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
+
+
+
+import pandas as pd
+
+store = pd.HDFStore(
+    '/home/benjello/openfisca/openfisca-france-data/openfisca_france_data/plugins/aggregates/amounts.h5'
+    )
+
+
+amounts = store['amounts']

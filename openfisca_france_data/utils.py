@@ -306,7 +306,8 @@ def normalizes_roles_in_entity(dataframe, entity_suffix):
         j += 1
     dataframe.update(test1)
     dataframe.reset_index(inplace = True)
-    dataframe[entity_role_name] = dataframe[entity_role_name].astype(int)
+    dataframe[entity_role_name] = dataframe[entity_role_name].astype('int')
+    assert_dtype(dataframe[entity_role_name], 'int')
     return dataframe.copy()
 
 
