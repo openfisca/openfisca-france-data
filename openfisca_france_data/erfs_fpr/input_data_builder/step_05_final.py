@@ -143,12 +143,16 @@ if __name__ == '__main__':
 # Variables revenus collectifs
 #   rev_etranger  -> etr
 #   rev_financier_prelev_lib_imputes revenus financiers(prélévement libératoire) et imputés
-#   rev_fonciers_bruts Revenus fonciers avant déduction de la CSG -> f4ba  DONE (plus agé déclarant du ménages emporte tout)
+#   rev_fonciers_bruts Revenus fonciers avant déduction de la CSG -> f4ba  DONE (sur plus agé déclarant du ménage)
 #   rev_valeurs_mobilieres_bruts
 # Mais aussi:
 #   pens_alim_versee
-#   Pensions alimentaires versées à des enfants majeurs : décision de justice définitive avant 2006 6GI  6GJ (1er et 2e enfant)
-#   Autres pensions alimentaires versées à des enfants majeurs  6EL 6EM
-#   Autres pensions alimentaires versées (enfants mineurs, ascendants,…): décision de justice définitive avant 2006  6GP
-#   Autres pensions alimentaires versées (enfants mineurs, ascendants,…) 6GU
+#   Pensions alimentaires versées à des enfants majeurs:
+#     décision de justice définitive avant 2006 6GI 6GJ (1er et 2e enfant)
+#   Autres pensions alimentaires versées à des enfants majeurs:
+#     6EL 6EM
+#   Autres pensions alimentaires versées (enfants mineurs, ascendants,…):
+#     décision de justice définitive avant 2006  6GP
+#   Autres pensions alimentaires versées (enfants mineurs, ascendants,…):
+#     6GU
 #  th -> taxe_habitation DONE
