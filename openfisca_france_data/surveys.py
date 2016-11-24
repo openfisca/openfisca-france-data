@@ -20,41 +20,41 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         )
     filtering_variable_by_entity_key_plural['menages'] = 'champm'
 
-    def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
-        person_index = dict()
-        id_variables = [
-            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-            if not entity.is_persons_entity]
+    # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
+    #     person_index = dict()
+    #     id_variables = [
+    #         entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+    #         if not entity.is_persons_entity]
 
-        if filter_entity.is_persons_entity:
-            selection = data_frame.index.isin(filter_index)
-            person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
-        else:
-            selection = data_frame[filter_entity.index_for_person_variable_name].isin(filter_index)
-            id_variables.remove(filter_entity.index_for_person_variable_name)
-            person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+    #     if filter_entity.is_persons_entity:
+    #         selection = data_frame.index.isin(filter_index)
+    #         person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+    #     else:
+    #         selection = data_frame[filter_entity.index_for_person_variable_name].isin(filter_index)
+    #         id_variables.remove(filter_entity.index_for_person_variable_name)
+    #         person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
 
-        final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
+    #     final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
 
-        for entity in simulation.entity_by_key_singular.values():
-            if entity.index_for_person_variable_name in id_variables:
-                other_entity_index = \
-                    data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
-                person_index[entity.key_plural] = \
-                    data_frame.index[data_frame[entity.index_for_person_variable_name].isin(other_entity_index)].copy()
-                final_selection_index += person_index[entity.key_plural]
+    #     for entity in simulation.entity_by_key_singular.values():
+    #         if entity.index_for_person_variable_name in id_variables:
+    #             other_entity_index = \
+    #                 data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
+    #             person_index[entity.key_plural] = \
+    #                 data_frame.index[data_frame[entity.index_for_person_variable_name].isin(other_entity_index)].copy()
+    #             final_selection_index += person_index[entity.key_plural]
 
-        data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
-        for entity in simulation.entity_by_key_singular.values():
-            data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
-        return data_frame
+    #     data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
+    #     for entity in simulation.entity_by_key_singular.values():
+    #         data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
+    #     return data_frame
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:
             if simulation is None:
                 continue
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable',
+                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable', 'retraite_brute',
                         'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
@@ -80,6 +80,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             tax_benefit_system = france_data_tax_benefit_system
             reference_tax_benefit_system = None
 
+        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
+        if variables_mismatch:
+            log.info(
+                'The following variables used as input variables are not present in the input data frame: \n {}'.format(
+                    variables_mismatch))
+            log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
+            log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
         return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
             input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,

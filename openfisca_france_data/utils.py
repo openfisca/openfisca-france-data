@@ -157,7 +157,6 @@ def print_id(df):
 
 
 def compute_masses(dataframe):
-    # variables = ['sali', 'choi', 'rsti', 'alr', 'hsup']
     variables = [
         'chomage_imposable',
         'pensions_alimentaires_percues',
@@ -166,6 +165,7 @@ def compute_masses(dataframe):
         'ric',
         'rnc',
         'salaire_imposable',
+        'f4ba',
         ]
     for variable in variables:
         if set([variable, 'wprm']).issubset(set(dataframe.columns)):

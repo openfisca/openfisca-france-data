@@ -12,7 +12,7 @@ from openfisca_core.variables import Variable
 import openfisca_france
 
 # Load input variables and output variables into entities
-from .model import common, survey_variables # noqa analysis:ignore
+from .model import common, survey_variables  # noqa analysis:ignore
 
 
 def get_variables_from_module(module):

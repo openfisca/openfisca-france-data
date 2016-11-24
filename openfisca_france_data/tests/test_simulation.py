@@ -53,7 +53,7 @@ def loose_check(data_frame_by_entity_key_plural):
         'quifam',
         'quifoy',
         'quimen',
-        'revdisp',
+        # 'revdisp',  can be negative if rag, ric or rnc are negative
         'rsa_base_ressources',
         'rsa',
         'salaire_imposable',
@@ -66,8 +66,13 @@ def loose_check(data_frame_by_entity_key_plural):
     for entity, data_frame in data_frame_by_entity_key_plural.iteritems():
         for variable in data_frame.columns:
             if variable in positive_variables:
-                assert (data_frame[variable] >= 0).all(), "Variable {} of entity {} is not always positive".format(
-                    variable, entity)
+                assert (data_frame[variable] >= 0).all(), \
+                    "Variable {} of entity {} is not always positive. {} values are negative. \n {}".format(
+                        variable,
+                        entity,
+                        (data_frame[variable] < 0).sum(),
+                        data_frame.loc[data_frame[variable] < 0, variable].value_counts(dropna = False)
+                        )
             if variable in strictly_positive_sum_variables:
                 assert (data_frame[variable]).sum(), "Variable {} sum of entity {} is not strictly positive".format(
                     variable, entity)
@@ -96,7 +101,7 @@ def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
         variables = variables,
         )
     loose_check(data_frame_by_entity_key_plural)
-    return data_frame_by_entity_key_plural
+    return survey_scenario, data_frame_by_entity_key_plural
 
 
 def test_erfs_survey_simulation(year = 2009):
@@ -130,7 +135,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     start = time.time()
-    survey_scenario, data_frame_by_entity_key_plural = test_erfs_fpr_survey_simulation(year = 2012)
+    survey_scenario, data_frame_by_entity_key_plural = test_erfs_fpr_survey_simulation_with_rebuild(year = 2012)
     data_frame_familles = data_frame_by_entity_key_plural['familles']
     data_frame_foyers_fiscaux = data_frame_by_entity_key_plural['foyers_fiscaux']
     data_frame_individus = data_frame_by_entity_key_plural['individus']

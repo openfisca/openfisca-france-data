@@ -88,6 +88,22 @@ Il y a {} ménages dans eec_menage
             len(fpr_menage.ident.unique()),
             len(eec_menage.ident.unique()),
         ))
+        common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
+        log.info(u"""
+Les variables suivantes sont communes aux deux tables ménages:
+  {}
+""".format(common_variables))
+        if 'th' in common_variables:
+            fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
+            log.info(u"La variable th de la table fpr_menage est renommée taxe_habitation")
+        if 'tur5' in common_variables:
+            fpr_menage.drop('tur5', axis = 1, inplace = True)
+            log.info(u"La variable tur5 redondante est retirée de la table fpr_menage")
+        common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
+        log.info(u"""
+Après renommage seules les variables suivantes sont communes aux deux tables ménages:
+  {}
+""".format(common_variables))
         menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
         create_variable_locataire(menages)
         menages = menages.merge(

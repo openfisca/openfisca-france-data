@@ -91,7 +91,11 @@ class Aggregates(object):
             if simulation_type == 'actual':
                 data_frame_by_simulation_type['actual'] = self.totals_df.copy()
             else:
-                if no_reform and (not reform) and reference and data_frame_by_simulation_type.get('reference') is not None:
+                if (
+                    no_reform and (not reform) and
+                    reference and
+                    data_frame_by_simulation_type.get('reference') is not None
+                        ):
                     data_frame_by_simulation_type['reform'] = data_frame_by_simulation_type['reference']
                     data_frame_by_simulation_type['reform'].rename(columns = dict(
                         reference_amount = "reform_amount",
@@ -253,7 +257,6 @@ class Aggregates(object):
             self.load_amounts_from_file(year = year - 1)
             # self.totals_df = pandas.DataFrame()
             return
-
 
     def save_table(self, directory = None, filename = None, table_format = None):
         '''

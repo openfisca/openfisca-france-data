@@ -300,6 +300,25 @@ def create_revenus_variables(individus):
                 )
             )
 
+    taux = individus.csgrstd_i / (individus.csgrstd_i + individus.retraite_imposable)
+    # taux.value_counts(dropna = False)
+    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
+    individus['taux_csg_remplacement'] = np.select(
+        [
+            taux.isnull(),
+            taux.notnull() & (taux < 0.021),
+            taux.notnull() & (taux > 0.021) & (taux < 0.0407),
+            taux.notnull() & (taux > 0.0407)
+            ],
+        [0, 1, 2, 3]
+        )
+    # 0: Non renseigné/non pertinent,
+    # 1: Exonéré,
+    # 2: Taux réduit,
+    # 3: Taux plein,
+    assert individus.taux_csg_remplacement.isin(range(4)).all()
+    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_imposable
+
 
 def todo_create(individus):
 
@@ -320,6 +339,3 @@ if __name__ == '__main__':
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
     year = 2012
     build_variables_individuelles(year = year)
-
-
-# TODO effectif entreprise à chercher

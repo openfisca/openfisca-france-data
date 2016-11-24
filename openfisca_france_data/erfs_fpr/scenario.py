@@ -11,10 +11,16 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     default_used_as_input_variables = [
         'age_en_mois',
         'age',
+        'autonomie_financiere',
         'chomage_imposable',
+        'f4ba',
+        'retraite_brute',
         'retraite_imposable',
         'salaire_imposable',
-        'autonomie_financiere',
+        'rag',
+        'ric',
+        'rnc',
+        'taxe_habitation',
         ]
 
     @classmethod
