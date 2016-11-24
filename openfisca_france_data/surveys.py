@@ -20,7 +20,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     filtering_variable_by_entity_key_plural['menages'] = 'champm'
 
     # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
-    #     from openfisca_france_data.utils import id_formatter
+    #     from openfisca_france_data.utils import id_formatter
     #     person_index = dict()
     #     id_variables = [
     #         entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
