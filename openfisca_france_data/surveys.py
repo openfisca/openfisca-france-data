@@ -140,7 +140,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             used_as_input_variables = self.default_used_as_input_variables
 
         if tax_benefit_system is None:
-            tax_benefit_system = france_data_tax_benefit_system
+            tax_benefit_system = base.france_data_tax_benefit_system
             reference_tax_benefit_system = None
 
         variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
