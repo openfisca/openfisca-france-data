@@ -6,7 +6,9 @@ import numpy as np
 
 
 from openfisca_core import periods, simulations, taxbenefitsystems
-from openfisca_france_data import france_data_tax_benefit_system
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.tests import base
+from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
 
@@ -48,6 +50,67 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     #     for entity in simulation.entity_by_key_singular.values():
     #         data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
     #     return data_frame
+
+    @classmethod
+    def create(cls, calibration_kwargs = None, data_year = None, inflation_kwargs = None, rebuild_input_data = False,
+            reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
+            year = None):
+
+        assert year is not None
+        assert not(
+            (reform is not None) and (reform_key is not None)
+            )
+
+        if calibration_kwargs is not None:
+            assert set(calibration_kwargs.keys()).issubset(set(
+                ['target_margins_by_variable', 'parameters', 'total_population']))
+
+        if data_year is None:
+            data_year = year
+
+        if inflation_kwargs is not None:
+            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
+
+        if rebuild_input_data:
+            cls.build_input_data(year = data_year)
+
+        if reform_key is not None:
+            reform = base.get_cached_reform(
+                reform_key = reform_key,
+                tax_benefit_system = reference_tax_benefit_system or base.france_data_tax_benefit_system,
+                )
+
+        if reform is None:
+            assert reference_tax_benefit_system is None, "No need of reference_tax_benefit_system when no reform"
+            reference_tax_benefit_system = base.france_data_tax_benefit_system
+        else:
+            tax_benefit_system = reform
+            reference_tax_benefit_system = base.france_data_tax_benefit_system
+
+        openfisca_survey_collection = SurveyCollection.load(
+            collection = "openfisca", config_files_directory = config_files_directory)
+        openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+            cls.input_data_survey_prefix, data_year))
+        input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+
+        survey_scenario = cls().init_from_data_frame(
+            input_data_frame = input_data_frame,
+            tax_benefit_system = tax_benefit_system,
+            reference_tax_benefit_system = reference_tax_benefit_system,
+            year = year,
+            )
+
+        survey_scenario.new_simulation()
+        if reform or reform_key:
+            survey_scenario.new_simulation(reference = True)
+
+        if calibration_kwargs:
+            survey_scenario.calibrate(**calibration_kwargs)
+
+        if inflation_kwargs:
+            survey_scenario.inflate(**inflation_kwargs)
+        #
+        return survey_scenario
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:
