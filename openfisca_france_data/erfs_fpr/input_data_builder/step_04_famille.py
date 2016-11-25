@@ -772,5 +772,5 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO, filename = 'step_04.log', filemode = 'w')
     year = 2012
-    create_famille(year = year)
+    build_famille(year = year)
     log.info(u"étape 04 famille terminée")

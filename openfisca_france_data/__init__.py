@@ -12,7 +12,7 @@ from openfisca_core.variables import Variable
 import openfisca_france
 
 # Load input variables and output variables into entities
-from .model import common, survey_variables # noqa analysis:ignore
+from .model import common, survey_variables  # noqa analysis:ignore
 
 
 def get_variables_from_module(module):
@@ -24,6 +24,7 @@ def get_variables_from_module(module):
     return [
         variable for variable in variables if issubclass(variable, Variable)
         ]
+
 
 def get_variables_from_modules(modules):
     variables = list()
@@ -45,22 +46,8 @@ class openfisca_france_data(reforms.Reform):
             except AttributeError:
                 self.update_variable(variable)
 
-
-
 openfisca_france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
-
-#TaxBenefitSystem = reforms.make_reform(
-#    key = 'openfisca_france_data',
-#    name = u"OpenFisca for survey data",
-#    reference = openfisca_france_tax_benefit_system,
-#    )
-#
-## Export reform classes to register variables in reform column_by_name dict.
-#DatedVariable = TaxBenefitSystem.DatedVariable
-#EntityToPersonColumn = TaxBenefitSystem.EntityToPersonColumn
-#PersonToEntityColumn = TaxBenefitSystem.PersonToEntityColumn
-#Variable = Variable
 
 
 AGGREGATES_DEFAULT_VARS = [
@@ -72,8 +59,8 @@ AGGREGATES_DEFAULT_VARS = [
     'ppe_brute',
     'af',
     'af_base',
-    'af_majo',
-    'af_forf',
+    'af_majoration',
+    'af_allocation_forfaitaire',
     'cf',
     'paje_base',
     'paje_naissance',
@@ -86,7 +73,7 @@ AGGREGATES_DEFAULT_VARS = [
     'aah',
     'caah',
     'rsa',
-    'rsa_act',
+    'rsa_activite',
     'aefa',
     'api',
     # 'majo_rsa',
@@ -104,7 +91,12 @@ default_config_files_directory = pkg_resources.get_distribution('openfisca-surve
 
 
 COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(
+    pkg_resources.get_distribution('openfisca-france-data').location,
+    'openfisca_france_data',
+    'plugins',
+    'aggregates'
+    )
 FILTERING_VARS = ["champm"]
-PLUGINS_DIR = os.path.join(COUNTRY_DIR, 'plugins')
 WEIGHT = "wprm"
 WEIGHT_INI = "wprm_init"
