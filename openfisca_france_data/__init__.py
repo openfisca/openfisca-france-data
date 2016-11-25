@@ -46,6 +46,7 @@ class openfisca_france_data(reforms.Reform):
             except AttributeError:
                 self.update_variable(variable)
 
+
 openfisca_france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
 
