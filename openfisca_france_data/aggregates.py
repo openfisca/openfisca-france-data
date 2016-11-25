@@ -50,13 +50,11 @@ class Aggregates(object):
             raise('A simulation already exists')
 
         else:
-            print 'loading reform_simulation'
             if not survey_scenario.simulation:
                 survey_scenario.new_simulation()
             self.reform_simulation = survey_scenario.simulation
 
             if survey_scenario.reference_tax_benefit_system is not None:
-                print 'loading reference_simulation'
                 if not survey_scenario.reference_simulation:
                     survey_scenario.new_simulation(reference = True)
                 self.reference_simulation = survey_scenario.reference_simulation
@@ -219,7 +217,6 @@ class Aggregates(object):
         try:
             filename = os.path.join(data_dir, "amounts.h5")
             store = pandas.HDFStore(filename)
-            print store
             df_a = store['amounts']
             df_b = store['benef']
             store.close()
@@ -251,7 +248,6 @@ class Aggregates(object):
                         self.totals_df.set_value(var, col, val)
                 return
         except KeyError as e:
-            print(e)
             log.info("No administrative data available for year {} in file {}".format(year, filename))
             log.info("Try to use administrative data for year {}".format(year - 1))
             self.load_amounts_from_file(year = year - 1)

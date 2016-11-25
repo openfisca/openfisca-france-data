@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
 
-
-from openfisca_core.reforms import Reform, compose_reforms
 from openfisca_core.tools import assert_near
 
 
@@ -17,7 +14,4 @@ __all__ = [
     'FranceDataTaxBenefitSystem',
     'get_cached_composed_reform',
     'get_cached_reform',
-    'skip_on_travis',
     ]
-
-

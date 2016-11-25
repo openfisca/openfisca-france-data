@@ -3,6 +3,7 @@
 
 from __future__ import division
 
+import pandas as pd
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
@@ -19,18 +20,15 @@ fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
 fpr_individu.columns
 
 
-print fpr_menage.th.value_counts()
+fpr_menage.th.value_counts()
 bim
 
 revenus_fonciers_idents = fpr_menage.query('rev_fonciers_bruts > 0')['ident'].tolist()
 
 
 
-import pandas as pd
-
 store = pd.HDFStore(
     '/home/benjello/openfisca/openfisca-france-data/openfisca_france_data/plugins/aggregates/amounts.h5'
     )
-
 
 amounts = store['amounts']
