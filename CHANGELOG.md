@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2
+
+* Add automatic version tagging
+
 ## 0.5.1
 
 * Improving Makefile checks
