@@ -21,7 +21,7 @@ from .base import *  # noqa analysis:ignore
 
 class champm_individus(Variable):
     column = BoolCol
-    entity_class = Individus
+    entity = Individu
     label = u"L'individu est dans un ménage du champ ménage",
 
     def function(self, simulation, period):
@@ -31,7 +31,7 @@ class champm_individus(Variable):
 
 class champm_familles(Variable):
     column = BoolCol
-    entity_class = Familles
+    entity = Famille
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
 
     def function(self, simulation, period):
@@ -41,7 +41,7 @@ class champm_familles(Variable):
 
 class champm_foyers_fiscaux(Variable):
     column = BoolCol
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
     def function(self, simulation, period):
@@ -66,7 +66,7 @@ class decile(Variable):
             ])
         )
 
-    entity_class = Menages
+    entity = Menage
     label = u"Décile de niveau de vie disponible"
 
     def function(self, simulation, period):
@@ -98,7 +98,7 @@ class decile_net(Variable):
             u"10e décile",
             ])
         )
-    entity_class = Menages
+    entity = Menage
     label = u"Décile de niveau de vie net"
 
     def function(self, simulation, period):
@@ -120,7 +120,7 @@ class pauvre40(Variable):
             u"Ménage en dessous du seuil de pauvreté à 40%",
             ])
         )
-    entity_class = Menages
+    entity = Menage
     label = u"Pauvreté monétaire au seuil de 40%"
 
     def function(self, simulation, period):
@@ -143,7 +143,7 @@ class pauvre50(Variable):
             u"Ménage en dessous du seuil de pauvreté à 50%",
             ])
         )
-    entity_class = Menages
+    entity = Menage
     label = u"Pauvreté monétaire au seuil de 50%"
 
     def function(self, simulation, period):
@@ -167,7 +167,7 @@ class pauvre60(Variable):
             u"Ménage en dessous du seuil de pauvreté à 60%",
             ])
         )
-    entity_class = Menages
+    entity = Menage
     label = u"Pauvreté monétaire au seuil de 60%"
 
     def function(self, simulation, period):
@@ -200,7 +200,7 @@ class decile_rfr(Variable):
             u"10e décile"
             ])
         )
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence"
 
     def function(self, simulation, period):
@@ -231,7 +231,7 @@ class decile_rfr_par_part(Variable):
             u"10e décile"
             ])
         )
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence par part fiscale"
 
     def function(self, simulation, period):
@@ -250,7 +250,7 @@ class decile_rfr_par_part(Variable):
 
 class weight_individus(Variable):
     column = FloatCol
-    entity_class = Individus
+    entity = Individu
     label = u"Poids de l'individu"
 
     def function(self, simulation, period):
@@ -260,7 +260,7 @@ class weight_individus(Variable):
 
 class weight_familles(Variable):
     column = FloatCol
-    entity_class = Familles
+    entity = Famille
     label = u"Poids de la famille"
 
     def function(self, simulation, period):
@@ -270,7 +270,7 @@ class weight_familles(Variable):
 
 class weight_foyers(Variable):
     column = FloatCol
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Poids du foyer fiscal",
 
     def function(self, simulation, period):
