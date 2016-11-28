@@ -1,9 +1,14 @@
 all: flake8 test
 
+check-no-prints:
+	@test -z "`git grep -w print openfisca_france_data/model`"
+
 check-syntax-errors:
 	python -m compileall -q .
 
-clean-pyc:
+clean:
+	rm -rf build dist
+	find . -name '*.mo' -exec rm \{\} \;
 	find . -name '*.pyc' -exec rm \{\} \;
 
 ctags:

@@ -76,7 +76,6 @@ def get_fake_input_data_frame(year = None):
 def test_fake_survey_simulation():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-    print input_data_frame
     assert input_data_frame.salaire_imposable.loc[0] == 20000
     assert input_data_frame.salaire_imposable.loc[1] == 10000
 
@@ -243,21 +242,3 @@ def test_reform():
     assert_near(reference_simulation.calculate('irpp'), [-10124, -869], error_margin)
     assert_near(reform_simulation.calculate('irpp'), [-10118, -911.4 + (1135 - 911.4)], error_margin)
     # -911.4 + (1135 - 911.4) = -686.8
-    return survey_scenario, input_data_frame
-
-if __name__ == '__main__':
-    import logging
-    log = logging.getLogger(__name__)
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
-    #    year = 2006
-    #    build_by_extraction(year = year)
-    #    df = get_fake_input_data_frame(year = year)
-
-    # df_by_entity, simulation = test_fake_survey_simulation()
-    #    df_i = df_by_entity['individus']
-    #    df_f = df_by_entity['foyers_fiscaux']
-    #    df_m = df_by_entity['menages']
-    # build_csv_from_hdf(2006)
-    survey_scenario, input_data_frame = test_reform()
