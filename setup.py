@@ -62,8 +62,7 @@ setup(
         ],
     install_requires = [
         'configparser',
-        'OpenFisca-Core >= 3.0.0, < 4.0',
-        'OpenFisca-France >= 4.0.0, < 5.0',
+        'OpenFisca-France >= 6.0.1',
         'OpenFisca-Survey-Manager[calmar] >= 0.4',
         'pandas >= 0.19',
         'tables',  # Needed by pandas.HDFStore
