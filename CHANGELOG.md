@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.5.3
+## 0.5.4
+
+* Add missing before_deploy
+
+## 0.5.4
 
 * Activate deployment
 
