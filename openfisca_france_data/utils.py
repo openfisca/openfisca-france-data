@@ -123,7 +123,7 @@ def print_id(df):
 
     try:
         # Ici, il doit y avoir autant de vous que d'idfoy
-        log.info("Individus in Foyers: {}".format(len(df.idfoy)))
+        log.info("Individus dans les Foyers: {} \n".format(len(df.idfoy)))
         log.info(df["quifoy"].value_counts(dropna=False))
         if df["idfoy"].isnull().any():
             log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
@@ -134,8 +134,8 @@ def print_id(df):
 
     try:
         # Ici, il doit y avoir autant de quimen = 0 que d'idmen
-        log.info(u"Individus in Ménages {}".format(len(df.idmen)))
-        log.info(df["quimen"].value_counts(dropna=False))
+        log.info(u"Individus dans les Ménages {} \n".format(len(df.idmen)))
+        log.info("\n" + str(df["quimen"].value_counts(dropna=False)))
         if df["idmen"].isnull().any():
             log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
         if df["quimen"].isnull().any():
@@ -145,7 +145,7 @@ def print_id(df):
 
     try:
         # Ici, il doit y avoir autant de quifam = 0 que d'idfam
-        log.info("Individuals in Familles {}".format(len(df.idfam)))
+        log.info("Individus dans les Familles {}\n".format(len(df.idfam)))
         log.info(df["quifam"].value_counts(dropna=False))
         if df["idfam"].isnull().any():
             log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
@@ -157,7 +157,16 @@ def print_id(df):
 
 
 def compute_masses(dataframe):
-    variables = ['sali', 'choi', 'rsti', 'alr', 'hsup']
+    variables = [
+        'chomage_imposable',
+        'pensions_alimentaires_percues',
+        'rag',
+        'retraite_imposable',
+        'ric',
+        'rnc',
+        'salaire_imposable',
+        'f4ba',
+        ]
     for variable in variables:
         if set([variable, 'wprm']).issubset(set(dataframe.columns)):
             log.info("Mass of {}: {}".format(variable, (dataframe[variable] * dataframe['wprm']).sum() / 1e9))
@@ -297,6 +306,8 @@ def normalizes_roles_in_entity(dataframe, entity_suffix):
         j += 1
     dataframe.update(test1)
     dataframe.reset_index(inplace = True)
+    dataframe[entity_role_name] = dataframe[entity_role_name].astype('int')
+    assert_dtype(dataframe[entity_role_name], 'int')
     return dataframe.copy()
 
 

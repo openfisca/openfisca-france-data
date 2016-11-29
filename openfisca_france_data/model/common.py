@@ -78,13 +78,6 @@ class decile(Variable):
         if len(wprm) == 1:
             return period, wprm * 0
         decile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-        # print values
-        # print len(values)
-        # print (nivvie*champm).min()
-        # print (nivvie*champm).max()
-        # print decile.min()
-        # print decile.max()
-        # print (nivvie*(decile==1)*champm*wprm).sum()/( ((decile==1)*champm*wprm).sum() )
         del values
         return period, decile * champm
 

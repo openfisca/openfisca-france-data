@@ -6,8 +6,9 @@ import numpy as np
 
 
 from openfisca_core import periods, simulations, taxbenefitsystems
-from openfisca_france_data import france_data_tax_benefit_system
-from openfisca_france_data.utils import id_formatter
+from openfisca_france_data import default_config_files_directory as config_files_directory
+from openfisca_france_data.tests import base
+from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
 
@@ -20,41 +21,103 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         )
     filtering_variable_by_entity_key_plural['menages'] = 'champm'
 
-    def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
-        person_index = dict()
-        id_variables = [
-            entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-            if not entity.is_persons_entity]
+    # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
+    #     from openfisca_france_data.utils import id_formatter
+    #     person_index = dict()
+    #     id_variables = [
+    #         entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
+    #         if not entity.is_persons_entity]
 
-        if filter_entity.is_persons_entity:
-            selection = data_frame.index.isin(filter_index)
-            person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+    #     if filter_entity.is_persons_entity:
+    #         selection = data_frame.index.isin(filter_index)
+    #         person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+    #     else:
+    #         selection = data_frame[filter_entity.index_for_person_variable_name].isin(filter_index)
+    #         id_variables.remove(filter_entity.index_for_person_variable_name)
+    #         person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+
+    #     final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
+
+    #     for entity in simulation.entity_by_key_singular.values():
+    #         if entity.index_for_person_variable_name in id_variables:
+    #             other_entity_index = \
+    #                 data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
+    #             person_index[entity.key_plural] = \
+    #                 data_frame.index[data_frame[entity.index_for_person_variable_name].isin(other_entity_index)].copy()
+    #             final_selection_index += person_index[entity.key_plural]
+
+    #     data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
+    #     for entity in simulation.entity_by_key_singular.values():
+    #         data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
+    #     return data_frame
+
+    @classmethod
+    def create(cls, calibration_kwargs = None, data_year = None, inflation_kwargs = None, rebuild_input_data = False,
+            reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
+            year = None):
+
+        assert year is not None
+        assert not(
+            (reform is not None) and (reform_key is not None)
+            )
+
+        if calibration_kwargs is not None:
+            assert set(calibration_kwargs.keys()).issubset(set(
+                ['target_margins_by_variable', 'parameters', 'total_population']))
+
+        if data_year is None:
+            data_year = year
+
+        if inflation_kwargs is not None:
+            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
+
+        if rebuild_input_data:
+            cls.build_input_data(year = data_year)
+
+        if reform_key is not None:
+            reform = base.get_cached_reform(
+                reform_key = reform_key,
+                tax_benefit_system = reference_tax_benefit_system or base.france_data_tax_benefit_system,
+                )
+
+        if reform is None:
+            assert reference_tax_benefit_system is None, "No need of reference_tax_benefit_system when no reform"
+            reference_tax_benefit_system = base.france_data_tax_benefit_system
         else:
-            selection = data_frame[filter_entity.index_for_person_variable_name].isin(filter_index)
-            id_variables.remove(filter_entity.index_for_person_variable_name)
-            person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
+            tax_benefit_system = reform
+            reference_tax_benefit_system = base.france_data_tax_benefit_system
 
-        final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
+        openfisca_survey_collection = SurveyCollection.load(
+            collection = "openfisca", config_files_directory = config_files_directory)
+        openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+            cls.input_data_survey_prefix, data_year))
+        input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
 
-        for entity in simulation.entity_by_key_singular.values():
-            if entity.index_for_person_variable_name in id_variables:
-                other_entity_index = \
-                    data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
-                person_index[entity.key_plural] = \
-                    data_frame.index[data_frame[entity.index_for_person_variable_name].isin(other_entity_index)].copy()
-                final_selection_index += person_index[entity.key_plural]
+        survey_scenario = cls().init_from_data_frame(
+            input_data_frame = input_data_frame,
+            tax_benefit_system = tax_benefit_system,
+            reference_tax_benefit_system = reference_tax_benefit_system,
+            year = year,
+            )
 
-        data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
-        for entity in simulation.entity_by_key_singular.values():
-            data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
-        return data_frame
+        survey_scenario.new_simulation()
+        if reform or reform_key:
+            survey_scenario.new_simulation(reference = True)
+
+        if calibration_kwargs:
+            survey_scenario.calibrate(**calibration_kwargs)
+
+        if inflation_kwargs:
+            survey_scenario.inflate(**inflation_kwargs)
+        #
+        return survey_scenario
 
     def custom_initialize(self):
         for simulation in [self.simulation, self.reference_simulation]:
             if simulation is None:
                 continue
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable',
+                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable', 'retraite_brute',
                         'pensions_alimentaires_percues', 'hsup']:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
@@ -77,9 +140,16 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             used_as_input_variables = self.default_used_as_input_variables
 
         if tax_benefit_system is None:
-            tax_benefit_system = france_data_tax_benefit_system
+            tax_benefit_system = base.france_data_tax_benefit_system
             reference_tax_benefit_system = None
 
+        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
+        if variables_mismatch:
+            log.info(
+                'The following variables used as input variables are not present in the input data frame: \n {}'.format(
+                    variables_mismatch))
+            log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
+            log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
         return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
             input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,

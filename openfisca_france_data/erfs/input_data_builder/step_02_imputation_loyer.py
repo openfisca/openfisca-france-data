@@ -501,7 +501,7 @@ def imputation_loyer(temporary_store = None, year = None):
     erf = create_comparable_erf_data_frame(temporary_store = temporary_store, year = year)
 
     logement = create_comparable_logement_data_frame(temporary_store = temporary_store, year = year)
-    print "dropping {} observations form logement".format(logement.lmlm.isnull().sum())
+    log.info("dropping {} observations form logement".format(logement.lmlm.isnull().sum()))
     logement = logement.loc[logement.lmlm.notnull()].copy()
 
     allvars = ['statut_occupation', 'hnph2', 'iaat_bis', 'mdiplo', 'mtybd', 'tu99_recoded', 'magtr', 'mcs8', 'deci']
@@ -527,7 +527,6 @@ concerns {} observations
 
     # print "dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0')))
     erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
-
 
     for variable in allvars:
         erf_unique_values = set(erf[variable].unique())
@@ -595,6 +594,7 @@ concerns {} observations
     temporary_store['menagem_{}'.format(year)] = menagem
     return
 
+
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
@@ -602,5 +602,5 @@ if __name__ == '__main__':
 
     imputation_loyer(year = year)
 
-    #menagem, erf, fill_erf_nnd, logement = imputation_loyer(year = year)
+    # menagem, erf, fill_erf_nnd, logement = imputation_loyer(year = year)
 
