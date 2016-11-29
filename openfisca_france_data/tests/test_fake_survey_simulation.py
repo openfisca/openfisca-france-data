@@ -118,12 +118,6 @@ def test_fake_survey_simulation():
 
     data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
         variables = [
-            'idmen',
-            'quimen',
-            'idfoy',
-            'quifoy',
-            'idfam',
-            'quifam',
             'age',
             'activite',
             'rsa_base_ressources_i',
