@@ -63,7 +63,7 @@ def get_fake_input_data_frame(year = None):
     except:
         input_data_frame = pandas.read_csv(csv_file_realpath)
     input_data_frame.rename(
-        columns = dict(sali = 'salaire_imposable', choi = 'cho', rsti = 'rst'),
+        columns = dict(sali = 'salaire_imposable', choi = 'chomage_imposable', rsti = 'retraite_imposable'),
         inplace = True,
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
@@ -76,7 +76,6 @@ def get_fake_input_data_frame(year = None):
 def test_fake_survey_simulation():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-
     assert input_data_frame.salaire_imposable.loc[0] == 20000
     assert input_data_frame.salaire_imposable.loc[1] == 10000
 
@@ -243,19 +242,3 @@ def test_reform():
     assert_near(reference_simulation.calculate('irpp'), [-10124, -869], error_margin)
     assert_near(reform_simulation.calculate('irpp'), [-10118, -911.4 + (1135 - 911.4)], error_margin)
     # -911.4 + (1135 - 911.4) = -686.8
-
-if __name__ == '__main__':
-    import logging
-    log = logging.getLogger(__name__)
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
-    #    year = 2006
-    #    build_by_extraction(year = year)
-    #    df = get_fake_input_data_frame(year = year)
-
-    # df_by_entity, simulation = test_fake_survey_simulation()
-    #    df_i = df_by_entity['individus']
-    #    df_f = df_by_entity['foyers_fiscaux']
-    #    df_m = df_by_entity['menages']
-    build_csv_from_hdf(2006)
