@@ -51,6 +51,7 @@ def control_04(dataframe, base):
             dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']]
         )
 
+
 def subset_base(base, famille):
     """
     Generates a dataframe containing the values of base that are not already in famille
@@ -87,8 +88,8 @@ def famille(temporary_store = None, year = None):
     indivi['year'] = year
     indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
     indivi["agepf"] = (
-        (indivi.naim < 7) * (indivi.year - indivi.naia)
-        + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
+        (indivi.naim < 7) * (indivi.year - indivi.naia) +
+        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
         ).astype(object)  # TODO: naia has some NaN but naim do not and then should be an int
 
     indivi = indivi[~(
@@ -605,10 +606,11 @@ def famille(temporary_store = None, year = None):
     temporary_store["famc_{}".format(year)] = famille
     del indivi, enfants_a_naitre
 
+
 if __name__ == '__main__':
     # import sys
     # logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    logging.basicConfig(level = logging.INFO,  filename = 'step_04.log', filemode = 'w')
+    logging.basicConfig(level = logging.INFO, filename = 'step_04.log', filemode = 'w')
     year = 2009
     famille(year = year)
     log.info(u"étape 04 famille terminée")
