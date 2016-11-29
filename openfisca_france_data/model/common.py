@@ -24,9 +24,8 @@ class champm_individus(Variable):
     entity = Individu
     label = u"L'individu est dans un ménage du champ ménage",
 
-    def function(self, simulation, period):
-        champm_holder = simulation.calculate("champm", period)
-        return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
+    def function(individu, period):
+        return period, individu.menage('champm')
 
 
 class champm_familles(Variable):
@@ -34,9 +33,8 @@ class champm_familles(Variable):
     entity = Famille
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
 
-    def function(self, simulation, period):
-        champm_individus = simulation.calculate('champm_individus', period)
-        return period, self.filter_role(champm_individus, role = CHEF)
+    def function(famille, period):
+        return period, famille.demandeur('champm_individus')
 
 
 class champm_foyers_fiscaux(Variable):
@@ -45,8 +43,7 @@ class champm_foyers_fiscaux(Variable):
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
     def function(self, simulation, period):
-        champm_individus = simulation.calculate('champm_individus', period)
-        return period, self.filter_role(champm_individus, role = VOUS)
+        return period, foyer_fiscal.declarant_principal('champm_individus')
 
 
 class decile(Variable):
@@ -65,7 +62,6 @@ class decile(Variable):
             u"10e décile"
             ])
         )
-
     entity = Menage
     label = u"Décile de niveau de vie disponible"
 
