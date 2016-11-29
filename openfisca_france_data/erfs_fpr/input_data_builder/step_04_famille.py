@@ -179,8 +179,8 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
     log.info(u"base contient {} lignes ".format(len(base.index)))
     base['noindiv'] = (100 * base.ident + base['noi']).astype(int)
     base['moins_de_15_ans_inclus'] = base.agepf < 16
-    base['p16m2'] = (base.agepf >= 16) & (base.agepf < AGE_RSA)
-    base['p21'] = base.agepf >= 21
+    base['jeune_non_eligible_rsa'] = (base.agepf >= 16) & (base.agepf < AGE_RSA)
+    base['jeune_eligible_rsa'] = base.agepf >= AGE_RSA
 
     if kind == 'erfs_fpr':
         base['salaire_imposable'].fillna(0, inplace = True)
@@ -191,7 +191,7 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
 
     base['famille'] = 0
     base['kid'] = False
-    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'p21', 'smic55']:
+    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(base[series_name], "bool")
     assert_dtype(base.famille, "int")
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
@@ -273,7 +273,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
     seul1 = seul1[
-        (seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.p21) & (seul1.cohab == 1) &
+        (seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1) &
         (seul1.sexe == 2)].copy()
     log.info(u"Il y a {} personnes seules de catégorie 1".format(
         len(seul1.index)))
@@ -301,7 +301,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     log.info(u"    3.3 personnes seules de catégorie 3")
     seul3 = subset_base(base, famille)
-    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.p21 & (seul3.cohab != 1)].copy()
+    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.jeune_eligible_rsa & (seul3.cohab != 1)].copy()
     # TODO: CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement
     log.info(u"Il y a {} personnes seules de catégorie 3".format(
         len(seul3.index)))
@@ -531,12 +531,12 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         # WARNING les noindiv des fip sont construits sur les ident des déclarants
         # pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
         fip['moins_de_15_ans_inclus'] = (fip.agepf < 16)
-        fip['jeune_non_eligible_rsa'] = ((fip.agepf >= 16) & (fip.agepf <= 20))
-        fip['p21'] = (fip.agepf >= 21)
+        fip['jeune_non_eligible_rsa'] = ((fip.agepf >= 16) & (fip.agepf < AGE_RSA))
+        fip['jeune_eligible_rsa'] = (fip.agepf >= AGE_RSA)
         fip['smic55'] = (fip.ztsai >= smic * 12 * 0.55)
         fip['famille'] = 0
         fip['kid'] = False
-        for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'p21', 'smic55']:
+        for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
             assert_dtype(fip[series_name], "bool")
         for series_name in ['famille']:
             assert_dtype(fip[series_name], "int")

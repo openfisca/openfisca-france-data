@@ -2,27 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import gc
 import logging
 from pandas import concat, DataFrame
@@ -36,6 +15,7 @@ log = logging.getLogger(__name__)
 # Retreives the families
 # Creates 'idfam' and 'quifam' variables
 
+AGE_RSA = 25
 
 def control_04(dataframe, base):
     log.info(u"longueur de la dataframe après opération :".format(len(dataframe.index)))
@@ -151,13 +131,13 @@ def famille(temporary_store = None, year = None):
     log.info(u"base contient {} lignes ".format(len(base.index)))
     base['noindiv'] = (100 * base.ident + base['noi']).astype(int)
     base['moins_de_15_ans_inclus'] = base.agepf < 16
-    base['jeune_non_eligible_rsa'] = (base.agepf >= 16) & (base.agepf <= 20)
-    base['p21'] = base.agepf >= 21
+    base['jeune_non_eligible_rsa'] = (base.agepf >= 16) & (base.agepf < AGE_RSA)
+    base['jeune_eligible_rsa'] = base.agepf >= AGE_RSA
     base['ztsai'].fillna(0, inplace = True)
     base['smic55'] = base['ztsai'] >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     base['famille'] = 0
     base['kid'] = False
-    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'p21', 'smic55']:
+    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(base[series_name], "bool")
     assert_dtype(base.famille, "int")
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
@@ -215,7 +195,7 @@ def famille(temporary_store = None, year = None):
     log.info(u"Etape 3: Récupération des personnes seules")
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.p21) & (seul1.cohab == 1) &
+    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1) &
                   (seul1.sexe == 2)].copy()
     if len(seul1.index) > 0:
         seul1['noifam'] = (100 * seul1.ident + seul1.noi).astype(int)
@@ -237,7 +217,7 @@ def famille(temporary_store = None, year = None):
 
     log.info(u"    3.3 personnes seules de catégorie 3")
     seul3 = subset_base(base, famille)
-    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.p21 & (seul3.cohab != 1)].copy()
+    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.jeune_eligible_rsa & (seul3.cohab != 1)].copy()
     # TODO: CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement
     seul3['noifam'] = (100 * seul3.ident + seul3.noi).astype(int)
     seul3['famille'] = 33
@@ -418,11 +398,11 @@ def famille(temporary_store = None, year = None):
     # pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
     fip['moins_de_15_ans_inclus'] = (fip.agepf < 16)
     fip['jeune_non_eligible_rsa'] = ((fip.agepf >= 16) & (fip.agepf <= 20))
-    fip['p21'] = (fip.agepf >= 21)
+    fip['jeune_eligible_rsa'] = (fip.agepf >= 21)
     fip['smic55'] = (fip.ztsai >= smic * 12 * 0.55)
     fip['famille'] = 0
     fip['kid'] = False
-    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'p21', 'smic55']:
+    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(fip[series_name], "bool")
     for series_name in ['famille']:
         assert_dtype(fip[series_name], "int")
