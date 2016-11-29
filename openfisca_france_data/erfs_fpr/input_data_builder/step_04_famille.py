@@ -12,6 +12,8 @@ from openfisca_france_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)
 
+AGE_RSA = 25
+
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
 def build_famille(temporary_store = None, year = None):
