@@ -240,9 +240,9 @@ def build_cerfa_fields_by_column_name(year, sections_cerfa):
                 start = column.start or None
                 end = column.end or None
                 if (start is None or start.year <= year) and (end is None or end.year >= year):
-                    if column.entity == 'ind':
+                    if column.entity.key == 'individu':
                         cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
-                    elif column.entity == 'foy':
+                    elif column.entity.key == 'foyer_fiscal':
                         cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
                     cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
     return cerfa_fields_by_column_name
