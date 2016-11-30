@@ -68,6 +68,14 @@ def get_fake_input_data_frame(year = None):
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
     input_data_frame.loc[1, 'salaire_imposable'] = 10000
+    input_data_frame.loc[2] = input_data_frame.loc[1].copy()
+    input_data_frame.loc[3] = input_data_frame.loc[1].copy()
+    for idx in [2, 3]:
+        input_data_frame.loc[idx, 'salaire_imposable'] = 0
+        input_data_frame.loc[idx, 'age'] = 10
+        input_data_frame.loc[idx, 'quifam'] = idx
+        input_data_frame.loc[idx, 'quifoy'] = idx
+        input_data_frame.loc[idx, 'quimen'] = idx
 
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
@@ -197,11 +205,11 @@ def test_fake_calibration_age():
         relative_error_margin = .00001
         )
     age = survey_scenario.simulation.calculate('age'),
-    wprm = survey_scenario.simulation.calculate('wprm')
+    weight_individus = survey_scenario.simulation.calculate('weight_individus')
 
     for category, target in calibration.margins_by_variable['age']['target'].iteritems():
         assert_near(
-            ((age == category) * wprm).sum() / wprm.sum(),
+            ((age == category) * weight_individus).sum() / weight_individus.sum(),
             target / numpy.sum(calibration.margins_by_variable['age']['target'].values()),
             absolute_error_margin = None,
             relative_error_margin = .00001
