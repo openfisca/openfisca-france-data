@@ -220,8 +220,10 @@ def test_fake_calibration_age():
 def test_reform():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-
-    input_data_frame.salaire_imposable = [20000, 18000]
+    # On ne garde que les deux parents
+    input_data_frame.loc[0, 'salaire_imposable'] = 20000
+    input_data_frame.loc[1, 'salaire_imposable'] = 18000
+    input_data_frame = input_data_frame.loc[0:1].copy()
 
     reform = france_base.get_cached_reform(
         reform_key = 'plf2015',
