@@ -261,7 +261,6 @@ class weight_familles(Variable):
     label = u"Poids de la famille"
 
     def function(famille, period):
-        weight_individus_holder = simulation.calculate('weight_individus', period)
         return period, famille.demandeur('weight_individus')
 
 
