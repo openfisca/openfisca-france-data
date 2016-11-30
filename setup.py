@@ -46,7 +46,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.5.2',
+    version = '0.5.6',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
