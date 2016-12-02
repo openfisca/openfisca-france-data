@@ -269,6 +269,5 @@ class weight_foyers(Variable):
     entity = FoyerFiscal
     label = u"Poids du foyer fiscal",
 
-    def function(self, simulation, period):
-        weight_individus_holder = simulation.calculate('weight_individus', period)
-        return period, self.filter_role(weight_individus_holder, entity = "foyer_fiscal", role = VOUS)
+    def function(foyer_fiscal, period):
+        return period, foyer_fiscal.declarant_principal('weight_individus', period)

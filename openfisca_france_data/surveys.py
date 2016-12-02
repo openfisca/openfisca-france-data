@@ -16,10 +16,12 @@ log = logging.getLogger(__name__)
 
 
 class AbstractErfsSurveyScenario(AbstractSurveyScenario):
-    filtering_variable_by_entity_key_plural = dict(
-        (entity, "champm_{}".format(entity)) for entity in ['individus', 'foyers_fiscaux', 'familles']
+    filtering_variable_by_entity = dict(
+        individu = 'champm_individus',
+        foyer_fiscal = 'champm_foyers_fiscaux',
+        famille = 'champm_familles',
         )
-    filtering_variable_by_entity_key_plural['menages'] = 'champm'
+    filtering_variable_by_entity['menage'] = 'champm'
 
     # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
     #     from openfisca_france_data.utils import id_formatter
@@ -160,10 +162,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             )
 
     def initialize_weights(self):
-        self.weight_column_name_by_entity_key_plural['menages'] = 'wprm'
-        self.weight_column_name_by_entity_key_plural['familles'] = 'weight_familles'
-        self.weight_column_name_by_entity_key_plural['foyers_fiscaux'] = 'weight_foyers'
-        self.weight_column_name_by_entity_key_plural['individus'] = 'weight_individus'
+        self.weight_column_name_by_entity['menage'] = 'wprm'
+        self.weight_column_name_by_entity['famille'] = 'weight_familles'
+        self.weight_column_name_by_entity['foyer_fiscal'] = 'weight_foyers'
+        self.weight_column_name_by_entity['individu'] = 'weight_individus'
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,

@@ -61,7 +61,7 @@ class Aggregates(object):
             else:
                 self.reference_simulation = self.reform_simulation
 
-        self.weight_column_name_by_entity_key_plural = survey_scenario.weight_column_name_by_entity_key_plural
+        self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
 
         self.varlist = AGGREGATES_DEFAULT_VARS
         self.filter_by = FILTERING_VARS[0]
@@ -167,7 +167,7 @@ class Aggregates(object):
         simulation = getattr(self, prefixed_simulation)
         column_by_name = simulation.tax_benefit_system.column_by_name
         column = column_by_name[variable]
-        weight = self.weight_column_name_by_entity_key_plural[column.entity_key_plural]
+        weight = self.weight_column_name_by_entity[column.entity.key]
         assert weight in column_by_name, "{} not a variable of the {} tax_benefit_system".format(
             weight, simulation_type)
         # amounts and beneficiaries from current data and default data if exists
@@ -177,8 +177,9 @@ class Aggregates(object):
             weight: simulation.calculate(weight),
             })
         if filter_by:
-            filter_dummy = simulation.calculate("{}_{}".format(filter_by, column.entity_key_plural))
-
+            filter_dummy = simulation.calculate(
+                self.survey_scenario.filtering_variable_by_entity[column.entity.key]
+                )
         try:
             amount = int(
                 (data[variable] * data[weight] * filter_dummy / 10 ** 6).sum().round()
@@ -195,7 +196,7 @@ class Aggregates(object):
         variable_data_frame = pandas.DataFrame(
             data = {
                 'label': column_by_name[variable].label,
-                'entity': column_by_name[variable].entity_key_plural,
+                'entity': column_by_name[variable].entity.key,
                 '{}_amount'.format(simulation_type): amount,
                 '{}_beneficiaries'.format(simulation_type): beneficiaries,
                 },

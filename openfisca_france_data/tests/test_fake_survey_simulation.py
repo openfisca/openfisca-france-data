@@ -68,14 +68,17 @@ def get_fake_input_data_frame(year = None):
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
     input_data_frame.loc[1, 'salaire_imposable'] = 10000
-    input_data_frame.loc[2] = input_data_frame.loc[1].copy()
-    input_data_frame.loc[3] = input_data_frame.loc[1].copy()
-    for idx in [2, 3]:
+    for idx in [2, 6]:
+        input_data_frame.loc[idx] = input_data_frame.loc[1].copy()
         input_data_frame.loc[idx, 'salaire_imposable'] = 0
-        input_data_frame.loc[idx, 'age'] = 10
         input_data_frame.loc[idx, 'quifam'] = idx
         input_data_frame.loc[idx, 'quifoy'] = idx
         input_data_frame.loc[idx, 'quimen'] = idx
+        if idx < 4:
+            input_data_frame.loc[idx, 'age'] = 10
+        else:
+            input_data_frame.loc[idx, 'age'] = 24
+            input_data_frame.loc[idx, 'age'] = 24
 
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
@@ -136,6 +139,8 @@ def test_fake_survey_simulation():
             'txtppb',
             'af_nbenf',
             'af',
+            'af_majoration_enfant',
+            'af_age_aine',
             'rsa_base_ressources',
             'rsa',
             'aspa',
