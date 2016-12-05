@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.7
+
+* Migration vers la nouvelle syntaxe (abandon des entity_key_plural)
+
 ## 0.5.6
 
 * Utilisation de l'age limite du rsa pour former les familles
