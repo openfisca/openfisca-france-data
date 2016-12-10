@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3
+
+* Really add automatic version tagging (bump)
+
 ## 0.5.2
 
 * Add automatic version tagging
