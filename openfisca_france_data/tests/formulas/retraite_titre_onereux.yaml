@@ -21,10 +21,6 @@
     retraite_titre_onereux:
       2009-01:
         40000 / 12
-    retraite_titre_onereux_declarant1:
-      2009-01:
-        - 40000 / 12
-        - 0
     rsa_base_ressources:
       2009-01: 40000 /12
       2009-02: 40000 / 12

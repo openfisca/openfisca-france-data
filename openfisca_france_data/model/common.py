@@ -24,9 +24,8 @@ class champm_individus(Variable):
     entity = Individu
     label = u"L'individu est dans un ménage du champ ménage",
 
-    def function(self, simulation, period):
-        champm_holder = simulation.calculate("champm", period)
-        return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
+    def function(individu, period):
+        return period, individu.menage('champm')
 
 
 class champm_familles(Variable):
@@ -34,9 +33,8 @@ class champm_familles(Variable):
     entity = Famille
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
 
-    def function(self, simulation, period):
-        champm_individus = simulation.calculate('champm_individus', period)
-        return period, self.filter_role(champm_individus, role = CHEF)
+    def function(famille, period):
+        return period, famille.demandeur('champm_individus')
 
 
 class champm_foyers_fiscaux(Variable):
@@ -44,9 +42,8 @@ class champm_foyers_fiscaux(Variable):
     entity = FoyerFiscal
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
-    def function(self, simulation, period):
-        champm_individus = simulation.calculate('champm_individus', period)
-        return period, self.filter_role(champm_individus, role = VOUS)
+    def function(foyer_fiscal, period):
+        return period, foyer_fiscal.declarant_principal('champm_individus')
 
 
 class decile(Variable):
@@ -65,14 +62,13 @@ class decile(Variable):
             u"10e décile"
             ])
         )
-
     entity = Menage
     label = u"Décile de niveau de vie disponible"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        champm = menage('champm', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
@@ -101,10 +97,10 @@ class decile_net(Variable):
     entity = Menage
     label = u"Décile de niveau de vie net"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie_net = simulation.calculate('nivvie_net', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        champm = menage('champm', period)
+        nivvie_net = menage('nivvie_net', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
@@ -123,10 +119,10 @@ class pauvre40(Variable):
     entity = Menage
     label = u"Pauvreté monétaire au seuil de 40%"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        champm = menage('champm', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 3)
         method = 2
         if len(wprm) == 1:
@@ -146,10 +142,10 @@ class pauvre50(Variable):
     entity = Menage
     label = u"Pauvreté monétaire au seuil de 50%"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        champm = menage('champm', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 3)
         method = 2
         if len(wprm) == 1:
@@ -170,10 +166,10 @@ class pauvre60(Variable):
     entity = Menage
     label = u"Pauvreté monétaire au seuil de 60%"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        champm = menage('champm', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 3)
         method = 2
         if len(wprm) == 1:
@@ -203,10 +199,11 @@ class decile_rfr(Variable):
     entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence"
 
-    def function(self, simulation, period):
-        rfr = simulation.calculate('rfr', period)
-        weight_foyers = simulation.calculate('weight_foyers', period)
-        champm_foyers_fiscaux = simulation.calculate('champm_foyers_fiscaux', period)
+    def function(foyer_fiscal, period):
+        period = period.this_year
+        rfr = foyer_fiscal('rfr', period)
+        weight_foyers = foyer_fiscal('weight_foyers', period)
+        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
@@ -234,11 +231,12 @@ class decile_rfr_par_part(Variable):
     entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence par part fiscale"
 
-    def function(self, simulation, period):
-        rfr = simulation.calculate('rfr', period)
-        nbptr = simulation.calculate('nbptr', period)
-        weight_foyers = simulation.calculate('weight_foyers', period)
-        champm_foyers_fiscaux = simulation.calculate('champm_foyers_fiscaux', period)
+    def function(foyer_fiscal, period):
+        period = period.this_year
+        rfr = foyer_fiscal('rfr', period)
+        nbptr = foyer_fiscal('nbptr', period)
+        weight_foyers = foyer_fiscal('weight_foyers', period)
+        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
@@ -253,9 +251,8 @@ class weight_individus(Variable):
     entity = Individu
     label = u"Poids de l'individu"
 
-    def function(self, simulation, period):
-        wprm_holder = simulation.calculate('wprm', period)
-        return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
+    def function(individu, period):
+        return period, individu.menage('wprm', period)
 
 
 class weight_familles(Variable):
@@ -263,9 +260,8 @@ class weight_familles(Variable):
     entity = Famille
     label = u"Poids de la famille"
 
-    def function(self, simulation, period):
-        weight_individus_holder = simulation.calculate('weight_individus', period)
-        return period, self.filter_role(weight_individus_holder, entity = "famille", role = CHEF)
+    def function(famille, period):
+        return period, famille.demandeur('weight_individus')
 
 
 class weight_foyers(Variable):
@@ -273,6 +269,5 @@ class weight_foyers(Variable):
     entity = FoyerFiscal
     label = u"Poids du foyer fiscal",
 
-    def function(self, simulation, period):
-        weight_individus_holder = simulation.calculate('weight_individus', period)
-        return period, self.filter_role(weight_individus_holder, entity = "foyer_fiscal", role = VOUS)
+    def function(foyer_fiscal, period):
+        return period, foyer_fiscal.declarant_principal('weight_individus', period)
