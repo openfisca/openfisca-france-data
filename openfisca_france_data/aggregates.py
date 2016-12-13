@@ -9,7 +9,13 @@ import logging
 import os
 
 from numpy import nan
-import pandas
+import pandas as pd
+
+try:
+    from ipp_macro_series_parser.config import Config
+except ImportError:
+    Config = None
+
 
 from openfisca_france_data import AGGREGATES_DEFAULT_VARS, FILTERING_VARS, DATA_DIR
 
@@ -40,7 +46,7 @@ class Aggregates(object):
     reform_simulation = None
     survey_scenario = None
     totals_df = None
-    varlist = None
+    aggregate_variables = None
 
     def __init__(self, survey_scenario = None, debug = False, debug_all = False, trace = False):
         assert survey_scenario is not None
@@ -63,7 +69,7 @@ class Aggregates(object):
 
         self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
 
-        self.varlist = AGGREGATES_DEFAULT_VARS
+        self.aggregate_variables = AGGREGATES_DEFAULT_VARS
         self.filter_by = FILTERING_VARS[0]
 
     def compute_aggregates(self, reference = True, reform = True, actual = True):
@@ -71,7 +77,7 @@ class Aggregates(object):
         Compute aggregate amounts
         """
         filter_by = self.filter_by
-        self.load_amounts_from_file()
+        self.load_actual_data()
 
         simulation_types = list()
         if reference:
@@ -101,18 +107,18 @@ class Aggregates(object):
                         ))
                     continue
 
-                data_frame = pandas.DataFrame()
-                for variable in self.varlist:
+                data_frame = pd.DataFrame()
+                for variable in self.aggregate_variables:
                     variable_data_frame = self.compute_variable_aggregates(
                         variable, filter_by = filter_by, simulation_type = simulation_type)
-                    data_frame = pandas.concat((data_frame, variable_data_frame))
+                    data_frame = pd.concat((data_frame, variable_data_frame))
                 data_frame_by_simulation_type[simulation_type] = data_frame.copy()
 
         if reference and reform:
             del data_frame_by_simulation_type['reform']['entity']
             del data_frame_by_simulation_type['reform']['label']
 
-        self.base_data_frame = pandas.concat(data_frame_by_simulation_type.values(), axis = 1).loc[self.varlist]
+        self.base_data_frame = pd.concat(data_frame_by_simulation_type.values(), axis = 1).loc[self.aggregate_variables]
         return self.base_data_frame
 
     def compute_difference(self, target = "reference", default = 'actual', amount = True, beneficiaries = True,
@@ -141,7 +147,7 @@ class Aggregates(object):
         Creates a description dataframe
         '''
         now = datetime.now()
-        return pandas.DataFrame([
+        return pd.DataFrame([
             u'OpenFisca',
             u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
             u'Système socio-fiscal au %s' % self.simulation.period.start,
@@ -172,7 +178,7 @@ class Aggregates(object):
             weight, simulation_type)
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
-        data = pandas.DataFrame({
+        data = pd.DataFrame({
             variable: simulation.calculate_add(variable),
             weight: simulation.calculate(weight),
             })
@@ -193,7 +199,7 @@ class Aggregates(object):
         except:
             beneficiaries = nan
 
-        variable_data_frame = pandas.DataFrame(
+        variable_data_frame = pd.DataFrame(
             data = {
                 'label': column_by_name[variable].label,
                 'entity': column_by_name[variable].entity.key,
@@ -204,6 +210,31 @@ class Aggregates(object):
             )
 
         return variable_data_frame
+
+    def load_actual_data(self, year = None):
+        if year is None:
+            year = self.year
+
+        assert Config is not None
+        parser = Config()
+        amounts_csv = os.path.join(
+            parser.get('data', 'prestations_sociales_directory'),
+            'clean',
+            'historique_depenses.csv'
+            )
+        beneficiaries_csv = os.path.join(
+            parser.get('data', 'prestations_sociales_directory'),
+            'clean',
+            'historique_beneficiaires.csv'
+            )
+        amounts = pd.read_csv(amounts_csv, index_col = 0)
+        beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
+        self.totals_df = pd.DataFrame(data = {
+            "actual_amount": amounts[str(year)],
+            "actual_beneficiaries": beneficiaries[str(year)],
+            })
+
+        return
 
     def load_amounts_from_file(self, filename = None, year = None):
         '''
@@ -217,15 +248,15 @@ class Aggregates(object):
 
         try:
             filename = os.path.join(data_dir, "amounts.h5")
-            store = pandas.HDFStore(filename)
+            store = pd.HDFStore(filename)
             df_a = store['amounts']
             df_b = store['benef']
             store.close()
-            self.totals_df = pandas.DataFrame(data = {
+            self.totals_df = pd.DataFrame(data = {
                 "actual_amount": df_a[year] / 10 ** 6,
                 "actual_beneficiaries": df_b[year] / 10 ** 3,
                 })
-            row = pandas.DataFrame({'actual_amount': nan, 'actual_beneficiaries': nan}, index = ['logt'])
+            row = pd.DataFrame({'actual_amount': nan, 'actual_beneficiaries': nan}, index = ['logt'])
             self.totals_df = self.totals_df.append(row)
 
             # Add some aditionnals totals
@@ -252,7 +283,7 @@ class Aggregates(object):
             log.info("No administrative data available for year {} in file {}".format(year, filename))
             log.info("Try to use administrative data for year {}".format(year - 1))
             self.load_amounts_from_file(year = year - 1)
-            # self.totals_df = pandas.DataFrame()
+            # self.totals_df = pd.DataFrame()
             return
 
     def save_table(self, directory = None, filename = None, table_format = None):
@@ -280,7 +311,7 @@ class Aggregates(object):
         try:
             df = self.data_frame
             if table_format == "xls":
-                writer = pandas.ExcelWriter(str(fname))
+                writer = pd.ExcelWriter(str(fname))
                 df.to_excel(writer, "aggregates", index= False, header= True)
                 descr = self.create_description()
                 descr.to_excel(writer, "description", index = False, header=False)
