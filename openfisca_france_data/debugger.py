@@ -157,7 +157,7 @@ class Debugger(object):
         column_names = self.columns_to_fetch
         for column in column_names:
             assert column in survey_scenario.tax_benefit_system.column_by_name.keys()
-        data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+        data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity(
             variables = column_names + ['idmen_original'],
             indices = True,
             roles = True,

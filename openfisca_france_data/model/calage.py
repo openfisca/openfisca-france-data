@@ -22,7 +22,7 @@ class nbinde(Variable):
             ],
         start = 1,
         ))
-    entity_class = Menages
+    entity = Menage
     label = u"Nombre d'individus dans le ménage"
 
     def function(self, simulation, period):
@@ -83,7 +83,7 @@ def _nb_ageq0(self, age_en_mois_holder):
 
 class cohab(Variable):
     column = BoolCol(default = False)
-    entity_class = Menages
+    entity = Menage
     label = u"Vie en couple"
 
     def function(self, simulation, period):
@@ -101,7 +101,7 @@ class cohab(Variable):
 
 class act_cpl(Variable):
     column = PeriodSizeIndependentIntCol(default = 0)
-    entity_class = Menages
+    entity = Menage
     label = u"Nombre d'actifs parmi la personne de référence du méange et son conjoint"
 
     def function(self, simulation, period):
@@ -120,7 +120,7 @@ class act_cpl(Variable):
 
 class act_enf(Variable):
     column = PeriodSizeIndependentIntCol(default = 0)
-    entity_class = Menages
+    entity = Menage
     label = u"Nombre d'enfants actifs"
 
     def function(self, simulation, period):
@@ -150,7 +150,7 @@ def _nb_act(act_cpl, act_enf):
 # def _cplx(typmen15):
 class cplx(Variable):
     column = BoolCol(default = False)
-    entity_class = Menages
+    entity = Menage
     label = u"Indicatrice de ménage complexe"
 
     def function(self, simulation, period):
@@ -203,7 +203,7 @@ class typmen15(Variable):
             ],
         start = 1,
         ))
-    entity_class = Menages
+    entity = Menage
     label = u"Type de ménage"
 
     def function(self, simulation, period):

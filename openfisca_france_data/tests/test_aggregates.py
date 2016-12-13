@@ -51,5 +51,5 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    # df = test_erfs_fpr_survey_simulation_aggregates()
-    df = test_erfs_aggregates_reform()
+    df = test_erfs_fpr_survey_simulation_aggregates()
+    # df = test_erfs_aggregates_reform()

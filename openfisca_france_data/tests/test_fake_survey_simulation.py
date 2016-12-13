@@ -68,6 +68,17 @@ def get_fake_input_data_frame(year = None):
         )
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
     input_data_frame.loc[1, 'salaire_imposable'] = 10000
+    for idx in [2, 6]:
+        input_data_frame.loc[idx] = input_data_frame.loc[1].copy()
+        input_data_frame.loc[idx, 'salaire_imposable'] = 0
+        input_data_frame.loc[idx, 'quifam'] = idx
+        input_data_frame.loc[idx, 'quifoy'] = idx
+        input_data_frame.loc[idx, 'quimen'] = idx
+        if idx < 4:
+            input_data_frame.loc[idx, 'age'] = 10
+        else:
+            input_data_frame.loc[idx, 'age'] = 24
+            input_data_frame.loc[idx, 'age'] = 24
 
     input_data_frame.reset_index(inplace = True)
     return input_data_frame
@@ -116,14 +127,8 @@ def test_fake_survey_simulation():
         # print sal_2006 / 12
         assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
-    data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+    create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = [
-            'idmen',
-            'quimen',
-            'idfoy',
-            'quifoy',
-            'idfam',
-            'quifam',
             'age',
             'activite',
             'rsa_base_ressources_i',
@@ -134,6 +139,8 @@ def test_fake_survey_simulation():
             'txtppb',
             'af_nbenf',
             'af',
+            'af_majoration_enfant',
+            'af_age_aine',
             'rsa_base_ressources',
             'rsa',
             'aspa',
@@ -203,11 +210,11 @@ def test_fake_calibration_age():
         relative_error_margin = .00001
         )
     age = survey_scenario.simulation.calculate('age'),
-    wprm = survey_scenario.simulation.calculate('wprm')
+    weight_individus = survey_scenario.simulation.calculate('weight_individus')
 
     for category, target in calibration.margins_by_variable['age']['target'].iteritems():
         assert_near(
-            ((age == category) * wprm).sum() / wprm.sum(),
+            ((age == category) * weight_individus).sum() / weight_individus.sum(),
             target / numpy.sum(calibration.margins_by_variable['age']['target'].values()),
             absolute_error_margin = None,
             relative_error_margin = .00001
@@ -218,8 +225,10 @@ def test_fake_calibration_age():
 def test_reform():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-
-    input_data_frame.salaire_imposable = [20000, 18000]
+    # On ne garde que les deux parents
+    input_data_frame.loc[0, 'salaire_imposable'] = 20000
+    input_data_frame.loc[1, 'salaire_imposable'] = 18000
+    input_data_frame = input_data_frame.loc[0:1].copy()
 
     reform = france_base.get_cached_reform(
         reform_key = 'plf2015',

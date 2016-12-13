@@ -6,19 +6,19 @@ from .base import * # noqa  analysis:ignore
 
 class idmen_original(Variable):
     column = IntCol
-    entity_class = Menages
+    entity = Menage
     label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF"
 
 
 class idfoy_original(Variable):
     column = IntCol
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF"
 
 
 class idfam_original(Variable):
     column = IntCol
-    entity_class = Familles
+    entity = Famille
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF"
 
 
@@ -35,7 +35,7 @@ class idfam_original(Variable):
 #                 ],
 #             ),
 #         )
-#     entity_class = Individus
+#     entity = Individu
 #     label = u"Taux du temps partiel"
 
 # #   zones apl and calibration
@@ -57,7 +57,7 @@ class idfam_original(Variable):
 #                 ],
 #             ),
 #         )
-#     entity_class = Menages
+#     entity = Menage
 #     label = u"Tranche d'unité urbaine"
 
 
@@ -80,7 +80,7 @@ class idfam_original(Variable):
 #             ),
 #         )
 #     label = u"tranche d'aire urbaine"
-#     entity_class = Menages
+#     entity = Menage
 
 
 # class reg(Variable):
@@ -113,7 +113,7 @@ class idfam_original(Variable):
 #             ),
 #         )
 #     label = u"Région"
-#     entity_class = Menages
+#     entity = Menage
 
 
 # class pol99(Variable):
@@ -128,7 +128,7 @@ class idfam_original(Variable):
 #             ),
 #         )
 #     label = u"Catégorie de la commune au sein du découpage en aires et espaces urbains"
-#     entity_class = Menages
+#     entity = Menage
 
 
 # class cstotpragr(Variable):
@@ -148,7 +148,7 @@ class idfam_original(Variable):
 #             ),
 #         )
 #     label = u"catégorie socio_professionelle agrégée de la personne de référence"
-#     entity_class = Menages
+#     entity = Menage
 
 
 # class naf16pr(Variable):
@@ -177,7 +177,7 @@ class idfam_original(Variable):
 #             start = -1,  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
 #             ),
 #         )
-#     entity_class = Menages
+#     entity = Menage
 #     label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence"
 
 
@@ -209,7 +209,7 @@ class idfam_original(Variable):
 #             ),  # 17 postes + 1 (-1: sans objet, 0: nonrenseigné)
 #         )
 #     label = u"activité économique de l'établissement de l'emploi principal actuel de la personne de référence"
-#     entity_class = Menages
+#     entity = Menage
 
 
 
@@ -228,23 +228,23 @@ class idfam_original(Variable):
 #             start = 1,
 #             ),
 #         )
-#     entity_class = Individus
+#     entity = Individu
 
 
 class champm(Variable):
     column = BoolCol(default = True)
-    entity_class = Menages
+    entity = Menage
 
 
 class wprm(Variable):
     column = FloatCol(default = 1)
-    entity_class = Menages
+    entity = Menage
     label = u"Effectifs"
 
 
 class wprm_init(Variable):
     column = FloatCol
-    entity_class = Menages
+    entity = Menage
     label = u"Effectifs"
 
 

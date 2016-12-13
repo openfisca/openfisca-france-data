@@ -2,27 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 import gc
 import logging
 from pandas import concat, DataFrame
@@ -36,6 +15,7 @@ log = logging.getLogger(__name__)
 # Retreives the families
 # Creates 'idfam' and 'quifam' variables
 
+AGE_RSA = 25
 
 def control_04(dataframe, base):
     log.info(u"longueur de la dataframe après opération :".format(len(dataframe.index)))
@@ -50,6 +30,7 @@ def control_04(dataframe, base):
         "The following noindiv are not in the dataframe: \n {}".format(
             dataframe.loc[~dataframe.noifam.isin(base.noindiv), ['noifam', 'famille']]
         )
+
 
 def subset_base(base, famille):
     """
@@ -87,8 +68,8 @@ def famille(temporary_store = None, year = None):
     indivi['year'] = year
     indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
     indivi["agepf"] = (
-        (indivi.naim < 7) * (indivi.year - indivi.naia)
-        + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
+        (indivi.naim < 7) * (indivi.year - indivi.naia) +
+        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
         ).astype(object)  # TODO: naia has some NaN but naim do not and then should be an int
 
     indivi = indivi[~(
@@ -149,14 +130,14 @@ def famille(temporary_store = None, year = None):
     base = concat([indivi, enfants_a_naitre])
     log.info(u"base contient {} lignes ".format(len(base.index)))
     base['noindiv'] = (100 * base.ident + base['noi']).astype(int)
-    base['m15'] = base.agepf < 16
-    base['p16m20'] = (base.agepf >= 16) & (base.agepf <= 20)
-    base['p21'] = base.agepf >= 21
+    base['moins_de_15_ans_inclus'] = base.agepf < 16
+    base['jeune_non_eligible_rsa'] = (base.agepf >= 16) & (base.agepf < AGE_RSA)
+    base['jeune_eligible_rsa'] = base.agepf >= AGE_RSA
     base['ztsai'].fillna(0, inplace = True)
     base['smic55'] = base['ztsai'] >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     base['famille'] = 0
     base['kid'] = False
-    for series_name in ['kid', 'm15', 'p16m20', 'p21', 'smic55']:
+    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(base[series_name], "bool")
     assert_dtype(base.famille, "int")
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
@@ -166,15 +147,15 @@ def famille(temporary_store = None, year = None):
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
     log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
-    nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.m15)) |
-                 ((base.lpr == 3) & (base.p16m20) & (~base.smic55))].copy()
+    nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.moins_de_15_ans_inclus)) |
+                 ((base.lpr == 3) & (base.jeune_non_eligible_rsa) & (~base.smic55))].copy()
     log.info('longueur de nof01 avant merge : {}'.format(len(nof01.index)))
     nof01 = nof01.merge(personne_de_reference, on='ident', how='outer')
     nof01['famille'] = 10
     nof01['kid'] = (
-        (nof01.lpr == 3) & (nof01.m15)
+        (nof01.lpr == 3) & (nof01.moins_de_15_ans_inclus)
         ) | (
-            (nof01.lpr == 3) & (nof01.p16m20) & ~(nof01.smic55)
+            (nof01.lpr == 3) & (nof01.jeune_non_eligible_rsa) & ~(nof01.smic55)
             )
     for series_name in ['famille', 'noifam']:
         assert_dtype(nof01[series_name], "int")
@@ -214,7 +195,7 @@ def famille(temporary_store = None, year = None):
     log.info(u"Etape 3: Récupération des personnes seules")
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.p16m20 & seul1.smic55) | seul1.p21) & (seul1.cohab == 1) &
+    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1) &
                   (seul1.sexe == 2)].copy()
     if len(seul1.index) > 0:
         seul1['noifam'] = (100 * seul1.ident + seul1.noi).astype(int)
@@ -226,7 +207,7 @@ def famille(temporary_store = None, year = None):
 
     log.info(u"    3.1 personnes seules de catégorie 2")
     seul2 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    seul2 = seul2[(seul2.lpr.isin([3, 4])) & seul2.p16m20 & seul2.smic55 & (seul2.cohab != 1)].copy()
+    seul2 = seul2[(seul2.lpr.isin([3, 4])) & seul2.jeune_non_eligible_rsa & seul2.smic55 & (seul2.cohab != 1)].copy()
     seul2['noifam'] = (100 * seul2.ident + seul2.noi).astype(int)
     seul2['famille'] = 32
     for series_name in ['famille', 'noifam']:
@@ -236,7 +217,7 @@ def famille(temporary_store = None, year = None):
 
     log.info(u"    3.3 personnes seules de catégorie 3")
     seul3 = subset_base(base, famille)
-    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.p21 & (seul3.cohab != 1)].copy()
+    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.jeune_eligible_rsa & (seul3.cohab != 1)].copy()
     # TODO: CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement
     seul3['noifam'] = (100 * seul3.ident + seul3.noi).astype(int)
     seul3['famille'] = 33
@@ -248,7 +229,7 @@ def famille(temporary_store = None, year = None):
     log.info(u"    3.4 : personnes seules de catégorie 4")
     seul4 = subset_base(base, famille)
     assert seul4.noimer.notnull().all()
-    seul4 = seul4[(seul4.lpr == 4) & seul4.p16m20 & ~(seul4.smic55) & (seul4.noimer == 0) &
+    seul4 = seul4[(seul4.lpr == 4) & seul4.jeune_non_eligible_rsa & ~(seul4.smic55) & (seul4.noimer == 0) &
                   (seul4.persfip == 'vous')].copy()
     if len(seul4.index) > 0:
         seul4['noifam'] = (100 * seul4.ident + seul4.noi).astype(int)
@@ -261,7 +242,7 @@ def famille(temporary_store = None, year = None):
     log.info(u"Etape 4 : traitement des enfants")
     log.info(u"    4.1 : enfant avec mère")
     avec_mere = subset_base(base, famille)
-    avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.p16m20 == 1) | (avec_mere.m15 == 1)) &
+    avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.jeune_non_eligible_rsa == 1) | (avec_mere.moins_de_15_ans_inclus == 1)) &
                            (avec_mere.noimer > 0))].copy()
     avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
     avec_mere['famille'] = 41
@@ -308,7 +289,7 @@ def famille(temporary_store = None, year = None):
     avec_pere = subset_base(base, famille)
     assert avec_pere.noiper.notnull().all()
     avec_pere = avec_pere[(avec_pere.lpr == 4) &
-                          ((avec_pere.p16m20 == 1) | (avec_pere.m15 == 1)) &
+                          ((avec_pere.jeune_non_eligible_rsa == 1) | (avec_pere.moins_de_15_ans_inclus == 1)) &
                           (avec_pere.noiper > 0)]
     avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
     avec_pere['famille'] = 44
@@ -354,7 +335,7 @@ def famille(temporary_store = None, year = None):
         (avec_dec.persfip == "pac") &
         (avec_dec.lpr == 4) &
         (
-            (avec_dec.p16m20 & ~(avec_dec.smic55)) | (avec_dec.m15 == 1)
+            (avec_dec.jeune_non_eligible_rsa & ~(avec_dec.smic55)) | (avec_dec.moins_de_15_ans_inclus == 1)
             )
         ]
     avec_dec['noifam'] = (100 * avec_dec.ident + avec_dec.noidec.astype('int')).astype('int')
@@ -415,13 +396,13 @@ def famille(temporary_store = None, year = None):
     # Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
     # WARNING les noindiv des fip sont construits sur les ident des déclarants
     # pas d'orvelap possible avec les autres noindiv car on a des noi =99, 98, 97 ,...'
-    fip['m15'] = (fip.agepf < 16)
-    fip['p16m20'] = ((fip.agepf >= 16) & (fip.agepf <= 20))
-    fip['p21'] = (fip.agepf >= 21)
+    fip['moins_de_15_ans_inclus'] = (fip.agepf < 16)
+    fip['jeune_non_eligible_rsa'] = ((fip.agepf >= 16) & (fip.agepf <= 20))
+    fip['jeune_eligible_rsa'] = (fip.agepf >= 21)
     fip['smic55'] = (fip.ztsai >= smic * 12 * 0.55)
     fip['famille'] = 0
     fip['kid'] = False
-    for series_name in ['kid', 'm15', 'p16m20', 'p21', 'smic55']:
+    for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(fip[series_name], "bool")
     for series_name in ['famille']:
         assert_dtype(fip[series_name], "int")
@@ -489,12 +470,12 @@ def famille(temporary_store = None, year = None):
 # # message('Etape 6 : non attribué')
 # # non_attribue1 <- base[(!base$noindiv %in% famille$noindiv),]
 # # non_attribue1 <- subset(non_attribue1,
-# #                         (quelfic!="FIP") & (m15 | (p16m20&(lien %in% c(1,2,3,4) & agepr>=35)))
+# #                         (quelfic!="FIP") & (moins_de_15_ans_inclus | (jeune_non_eligible_rsa&(lien %in% c(1,2,3,4) & agepr>=35)))
 # #                         )
 # # # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
 # # non_attribue1 <- merge(pr,non_attribue1)
 # # non_attribue1 <- within(non_attribue1,{
-# #   famille <- ifelse(m15,61,62)
+# #   famille <- ifelse(moins_de_15_ans_inclus,61,62)
 # #     kid <- TRUE })
 # #
 # # rm(pr)
@@ -517,15 +498,15 @@ def famille(temporary_store = None, year = None):
     non_attribue1 = subset_base(base, famille)
     non_attribue1 = non_attribue1[
         ~(non_attribue1.quelfic != 'FIP') & (
-            non_attribue1.m15 | (
-                non_attribue1.p16m20 & (non_attribue1.lien.isin(range(1, 5))) & (non_attribue1.agepr >= 35)
+            non_attribue1.moins_de_15_ans_inclus | (
+                non_attribue1.jeune_non_eligible_rsa & (non_attribue1.lien.isin(range(1, 5))) & (non_attribue1.agepr >= 35)
                 )
             )
         ].copy()
     # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
     non_attribue1 = non_attribue1.merge(personne_de_reference)
     control_04(non_attribue1, base)
-    non_attribue1['famille'] = 61 * non_attribue1.m15 + 62 * ~(non_attribue1.m15)
+    non_attribue1['famille'] = 61 * non_attribue1.moins_de_15_ans_inclus + 62 * ~(non_attribue1.moins_de_15_ans_inclus)
     non_attribue1['kid'] = True
     assert_dtype(non_attribue1.kid, "bool")
     assert_dtype(non_attribue1.famille, "int")
@@ -605,10 +586,11 @@ def famille(temporary_store = None, year = None):
     temporary_store["famc_{}".format(year)] = famille
     del indivi, enfants_a_naitre
 
+
 if __name__ == '__main__':
     # import sys
     # logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    logging.basicConfig(level = logging.INFO,  filename = 'step_04.log', filemode = 'w')
+    logging.basicConfig(level = logging.INFO, filename = 'step_04.log', filemode = 'w')
     year = 2009
     famille(year = year)
     log.info(u"étape 04 famille terminée")
