@@ -82,13 +82,13 @@ def build_erf_aggregates():
 
         agg = Aggregates()
         agg.set_simulation(simu)
-        # print agg.varlist
+        # print agg.aggregate_variables
         rpy.r.load(filename)
 
         menage = com.load_data(menageXX)
         cols = []
         print year
-        for col in agg.varlist:
+        for col in agg.aggregate_variables:
             #print col
             erf_var = "m_" + col + "m"
             if erf_var in menage.columns:
