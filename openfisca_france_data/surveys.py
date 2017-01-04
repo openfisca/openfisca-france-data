@@ -83,18 +83,18 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 )
 
         if reform is None:
-            assert reference_tax_benefit_system is None, "No need of reference_tax_benefit_system when no reform"
-            reference_tax_benefit_system = base.france_data_tax_benefit_system
+            if reference_tax_benefit_system is None:
+                reference_tax_benefit_system = base.france_data_tax_benefit_system
         else:
             tax_benefit_system = reform
-            reference_tax_benefit_system = base.france_data_tax_benefit_system
 
         openfisca_survey_collection = SurveyCollection.load(
             collection = "openfisca", config_files_directory = config_files_directory)
         openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
             cls.input_data_survey_prefix, data_year))
         input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-
+        input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
+        del input_data_frame['salaire_imposable']
         survey_scenario = cls().init_from_data_frame(
             input_data_frame = input_data_frame,
             tax_benefit_system = tax_benefit_system,

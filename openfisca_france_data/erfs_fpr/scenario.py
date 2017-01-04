@@ -13,7 +13,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'f4ba',
         'retraite_brute',
         'retraite_imposable',
-        'salaire_imposable',
+        'salaire_imposable_pour_inversion',  # 'salaire_imposable',
         'rag',
         'ric',
         'rnc',
@@ -26,4 +26,3 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         assert year is not None
         from openfisca_france_data.erfs_fpr.input_data_builder import build
         build(year = year)
-
