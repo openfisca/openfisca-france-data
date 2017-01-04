@@ -66,7 +66,7 @@ AGGREGATES_DEFAULT_VARS = [
     'paje_base',
     'paje_naissance',
     'paje_clca',
-    'paje_clmg',
+    'paje_cmg',
     'ars',
     'aeeh',
     'asf',
