@@ -131,7 +131,9 @@ class Aggregates(object):
         base_data_frame = self.base_data_frame if self.base_data_frame is not None else self.compute_aggregates()
 
         difference_data_frame = base_data_frame[['label', 'entity']].copy()
-        quantities = ['amount'] if amount else None + ['beneficiaries'] if beneficiaries else None
+        quantities = list()
+        quantities += ['amount'] if amount else None
+        quantities += ['beneficiaries'] if beneficiaries else None
 
         for quantity in quantities:
             difference_data_frame['{}_absolute_difference'.format(quantity)] = (

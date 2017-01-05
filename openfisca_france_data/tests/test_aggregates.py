@@ -20,14 +20,16 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
     try:
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
-            year = year
+            reference_tax_benefit_system = tax_benefit_system,
+            year = year,
             )
     except AssertionError as e:
         print(e)
         return
     aggregates = Aggregates(survey_scenario = survey_scenario)
     aggregates.compute_aggregates()
-    return aggregates.base_data_frame
+    difference_data_frame = aggregates.compute_difference()
+    return aggregates.base_data_frame, difference_data_frame
 
 
 def test_erfs_survey_simulation(year = 2009):
@@ -59,5 +61,5 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    df = test_erfs_fpr_survey_simulation_aggregates()
+    aggregates_data_frame, difference_data_frame = test_erfs_fpr_survey_simulation_aggregates()
     # df = test_erfs_aggregates_reform()
