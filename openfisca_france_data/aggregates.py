@@ -225,7 +225,8 @@ class Aggregates(object):
             )
         amounts_csv = os.path.join(directory, 'historique_depenses.csv')
         beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires.csv')
-        minimum_vieillesse_beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires_minimum_vieillesse.csv')
+        minimum_vieillesse_beneficiaries_csv = os.path.join(
+            directory, 'historique_beneficiaires_minimum_vieillesse.csv')
         amounts = pd.read_csv(amounts_csv, index_col = 0)
         beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
         minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
@@ -319,5 +320,5 @@ class Aggregates(object):
                 writer.save()
             elif table_format == "csv":
                 df.to_csv(fname, "aggregates", index= False, header = True)
-        except Exception, e:
+        except Exception as e:
                 raise Exception("Aggregates: Error saving file", str(e))
