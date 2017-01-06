@@ -272,14 +272,15 @@ def create_revenus_variables(individus):
         rnc,
         salaire_imposable,
     """
+
     old_by_new_variables = {
-        'chomage_i': 'chomage_imposable',
+        'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
-        'rag_i': 'rag',
-        'retraites_i': 'retraite_imposable',
-        'ric_i': 'ric',
-        'rnc_i': 'rnc',
-        'salaires_i': 'salaire_imposable',
+        'rag_i': 'rag_net',
+        'retraites_i': 'retraite_net',
+        'ric_i': 'ric_net',
+        'rnc_i': 'rnc_net',
+        'salaires_i': 'salaire_net',
         }
     for variable in old_by_new_variables.keys():
         assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
@@ -300,6 +301,17 @@ def create_revenus_variables(individus):
                 )
             )
 
+    imposable_by_components = {
+        'chomage_imposable': ['chomage_net', 'csg_nd_crds_cho_i'],
+        'rag': ['rag_net', 'csg_nd_crds_rag_i'],
+        'retraite_imposable': ['retraite_net', 'csg_nd_crds_ret_i'],
+        'ric': ['ric_net', 'csg_nd_crds_ric_i'],
+        'rnc': ['rnc_net', 'csg_nd_crds_rnc_i'],
+        'salaire_imposable': ['salaire_net', 'csg_nd_crds_sal_i'],
+        }
+    for imposable, components in imposable_by_components.iteritems():
+        individus[imposable] = sum(individus[component] for component in components)
+    #
     taux = individus.csgrstd_i / (individus.csgrstd_i + individus.retraite_imposable)
     # taux.value_counts(dropna = False)
     # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)

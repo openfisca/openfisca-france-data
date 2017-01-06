@@ -3,6 +3,8 @@
 
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
+from openfisca_france_data.tests import base as base_survey
+
 
 import logging
 
@@ -81,11 +83,19 @@ def loose_check(create_data_frame_by_entity):
 
 
 def test_erfs_fpr_survey_simulation(year = 2012):
-    try:
-        survey_scenario = ErfsFprSurveyScenario.create(year = year)
-    except AssertionError as e:
-        print(e)
-        return
+    tax_benefit_system = base_survey.get_cached_reform(
+        reform_key = 'inversion_directe_salaires',
+        tax_benefit_system = base_survey.france_data_tax_benefit_system,
+        )
+#    try:
+    survey_scenario = ErfsFprSurveyScenario.create(
+        tax_benefit_system = tax_benefit_system,
+        reference_tax_benefit_system = tax_benefit_system,
+        year = year,
+        )
+#    except AssertionError as e:
+#        print(e)
+#        return
     create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
         )
@@ -94,11 +104,20 @@ def test_erfs_fpr_survey_simulation(year = 2012):
 
 
 def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
-    try:
-        survey_scenario = ErfsFprSurveyScenario.create(year = year, rebuild_input_data = True)
-    except AssertionError as e:
-        print(e)
-        return
+    tax_benefit_system = base_survey.get_cached_reform(
+        reform_key = 'inversion_directe_salaires',
+        tax_benefit_system = base_survey.france_data_tax_benefit_system,
+        )
+#    try:
+    survey_scenario = ErfsFprSurveyScenario.create(
+        tax_benefit_system = tax_benefit_system,
+        reference_tax_benefit_system = tax_benefit_system,
+        year = year,
+        rebuild_input_data = True,
+        )
+#    except AssertionError as e:
+#        print(e)
+#        return
     create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
         )
@@ -107,11 +126,19 @@ def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
 
 
 def test_erfs_survey_simulation(year = 2009):
-    try:
-        survey_scenario = ErfsSurveyScenario.create(year = year)
-    except AssertionError as e:
-        print(e)
-        return
+    tax_benefit_system = base_survey.get_cached_reform(
+        reform_key = 'inversion_directe_salaires',
+        tax_benefit_system = base_survey.france_data_tax_benefit_system,
+        )
+#    try:
+    survey_scenario = ErfsFprSurveyScenario.create(
+        tax_benefit_system = tax_benefit_system,
+        reference_tax_benefit_system = tax_benefit_system,
+        year = year,
+        )
+#    except AssertionError as e:
+#        print(e)
+#        return
 
     create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
@@ -121,7 +148,7 @@ def test_erfs_survey_simulation(year = 2009):
         create_data_frame_by_entity['familles'].weight_familles * create_data_frame_by_entity['familles'].af
         ).sum() / 1e9 > 10
 
-    return create_data_frame_by_entity
+    return survey_scenario, create_data_frame_by_entity
 
 
 def test_weights_building():
