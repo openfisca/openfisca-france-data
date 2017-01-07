@@ -13,8 +13,8 @@ from pandas import read_csv
 import os
 
 
-from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import temporary_store_decorator
+
+from openfisca_survey_manager.temporary import temporary_store_decorator
 from openfisca_france_data.utils import (
     check_structure,
     control,
@@ -28,7 +28,7 @@ from openfisca_france_data.utils import (
 log = logging.getLogger(__name__)
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = 'erfs')
+@temporary_store_decorator(file_name = 'erfs')
 def final(temporary_store = None, year = None, check = True):
 
     assert temporary_store is not None

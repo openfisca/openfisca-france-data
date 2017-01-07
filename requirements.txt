@@ -1,2 +1,0 @@
--e git+https://github.com/openfisca/openfisca-survey-manager.git@migration-corev4#egg=OpenFisca-Survey-Manager[calmar]
--e .

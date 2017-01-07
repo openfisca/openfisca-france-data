@@ -7,8 +7,7 @@ import numpy as np
 import logging
 
 
-from openfisca_france_data import default_config_files_directory as config_files_directory
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 from openfisca_france_data.utils import assert_dtype
 from openfisca_france_data.erfs.input_data_builder.base import (
     year_specific_by_generic_data_frame_name
@@ -81,7 +80,7 @@ def manually_remove_noindiv_errors(indivim):
         log.info("{}".format(indivim[indivim.noindiv == 603018905].to_string()))
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = "erfs")
+@temporary_store_decorator(file_name = "erfs")
 def merge_tables(temporary_store = None, year = None):
     """
     Création des tables ménages et individus concaténée (merged)
@@ -154,7 +153,7 @@ def merge_tables(temporary_store = None, year = None):
     del erfind, eecind
 
 
-@temporary_store_decorator(config_files_directory = config_files_directory, file_name = "erfs")
+@temporary_store_decorator(file_name = "erfs")
 def create_enfants_a_naitre(temporary_store = None, year = None):
     '''
     '''

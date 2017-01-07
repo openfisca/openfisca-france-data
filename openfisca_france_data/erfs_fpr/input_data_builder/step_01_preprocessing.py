@@ -5,7 +5,7 @@ import gc
 import logging
 import numpy as np
 
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 from openfisca_france_data.erfs.input_data_builder.step_01_pre_processing import (
     create_variable_locataire,
     )

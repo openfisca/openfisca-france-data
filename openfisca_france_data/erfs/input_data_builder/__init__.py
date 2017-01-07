@@ -6,7 +6,7 @@ import logging
 import os
 
 
-from openfisca_france_data import default_config_files_directory as config_files_directory
+
 from openfisca_france_data.erfs.input_data_builder import (  # analysis:ignore
     step_01_pre_processing as pre_processing,
     step_02_imputation_loyer as imputation_loyer,
@@ -17,7 +17,7 @@ from openfisca_france_data.erfs.input_data_builder import (  # analysis:ignore
     step_07_invalides as invalides,
     step_08_final as final,
     )
-from openfisca_france_data.temporary import get_store
+from openfisca_survey_manager.temporary import get_store
 
 from openfisca_survey_manager.surveys import Survey
 from openfisca_survey_manager.survey_collections import SurveyCollection

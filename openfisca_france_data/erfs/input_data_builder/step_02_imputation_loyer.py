@@ -24,7 +24,7 @@ except ImportError:
     rpy2 = None
 
 from openfisca_france_data.utils import assert_variable_in_range, count_NA
-from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
+from openfisca_survey_manager.temporary import temporary_store_decorator, save_hdf_r_readable
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
 

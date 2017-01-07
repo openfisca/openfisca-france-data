@@ -9,7 +9,7 @@ import numpy as np
 from openfisca_france_data.utils import (
     assert_dtype,
     )
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 
 log = logging.getLogger(__name__)
 
@@ -337,10 +337,6 @@ def todo_create(individus):
     log.info(u"    6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
     assert individus.txtppb.notnull().all()
-    individus.loc[individus.nbsala.isnull(), 'nbsala'] = 0
-    individus.nbsala = individus.nbsala.astype('int')
-    individus.loc[individus.nbsala == 99, 'nbsala'] = 10
-    assert individus.nbsala.isin(range(11)).all()
     log.info("Valeurs prises par la variable txtppb \n {}".format(
         individus['txtppb'].value_counts(dropna = False)))
 

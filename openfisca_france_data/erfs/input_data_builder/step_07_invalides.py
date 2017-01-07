@@ -28,7 +28,7 @@ import logging
 
 
 from openfisca_france_data.utils import control, print_id
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 
 
 log = logging.getLogger(__name__)

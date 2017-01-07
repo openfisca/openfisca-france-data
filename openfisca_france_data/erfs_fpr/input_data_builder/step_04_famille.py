@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 from openfisca_france_data.utils import assert_dtype
 
 log = logging.getLogger(__name__)

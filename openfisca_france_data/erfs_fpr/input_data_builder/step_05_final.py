@@ -9,7 +9,7 @@ import pandas as pd
 from openfisca_france_data.utils import (
     id_formatter, print_id, normalizes_roles_in_entity,
     )
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 
 log = logging.getLogger(__name__)
 
