@@ -170,7 +170,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     start = time.time()
-    survey_scenario, create_data_frame_by_entity = test_erfs_fpr_survey_simulation(year = 2012)
+    survey_scenario, data_frame_by_entity = test_erfs_fpr_survey_simulation(year = 2012)
     data_frame_familles = data_frame_by_entity['famille']
     data_frame_foyers_fiscaux = data_frame_by_entity['foyer_fiscal']
     data_frame_individus = data_frame_by_entity['individu']
