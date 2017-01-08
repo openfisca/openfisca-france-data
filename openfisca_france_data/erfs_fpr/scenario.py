@@ -9,6 +9,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'age_en_mois',
         'age',
         'autonomie_financiere',
+        'chomage_brut',
         'chomage_imposable',
         'f4ba',
         'retraite_brute',

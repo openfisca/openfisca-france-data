@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import division
 
 import logging
 import numpy as np
+import pandas as pd
 
 
 from openfisca_france_data.utils import (
@@ -39,6 +41,7 @@ def create_variables_individuelles(individus, year):
     create_revenus_variables(individus)
     create_categorie_salarie_variable(individus)
     create_effectif_entreprise_variable(individus)
+    create_contrat_de_travail(individus)
 
 
 def create_activite_variable(individus):
@@ -221,6 +224,47 @@ def create_categorie_salarie_variable(individus):
             individus.categorie_salarie.value_counts())
 
 
+def create_contrat_de_travail(individus):
+    """
+    Création de la variable contrat_de_travail
+        0 - temps_plein
+        1 - temps_partiel
+        2 - forfait_heures_semaines
+        3 - forfait_heures_mois
+        4 - forfait_heures_annee
+        5 - forfait_jours_annee
+        6 - sans_objet
+    à partir de la variables tppred (Temps de travail dans l'emploi principal)
+        0 - Sans objet (ACTOP='2') ou non renseigné principal
+        1 - Temps complet
+        2 - Temps partiel
+    qui doit être construite à partir de tpp
+        0 - Sans objet (ACTOP='2') ou non renseigné
+        1 - A temps complet
+        2 - A temps partiel
+        3 - Sans objet (pour les personnes non salariées qui estiment que cette question ne
+            s'applique pas à elles)
+    et de duhab
+        1 - Temps partiel de moins de 15 heures
+        2 - Temps partiel de 15 à 29 heures
+        3 - Temps partiel de 30 heures ou plus
+        4 - Temps complet de moins de 30 heures
+        5 - Temps complet de 30 à 34 heures
+        6 - Temps complet de 35 à 39 heures
+        7 - Temps complet de 40 heures ou plus
+        9 - Pas d'horaire habituel ou horaire habituel non déclaré
+    TODO: utiliser la variable forfait
+    """
+    assert individus.tppred.isin(range(3)).all(), \
+        'tppred values {} should be in [0, 1, 2]'
+    individus['contrat_de_travail'] = 6  # sans objet
+    individus.loc[individus.activite == 0, 'contrat_de_travail'] = (individus.tppred - 1)
+    assert individus.contrat_de_travail.isin([0, 1, 6]).all()
+    assert (individus.query('activite == 0').contrat_de_travail.isin([0, 1])).all()
+    print individus.groupby('activite')['contrat_de_travail'].value_counts(dropna = False)
+    assert (individus.query('activite != 0').contrat_de_travail == 6).all()
+
+
 def create_effectif_entreprise_variable(individus):
     """
     Création de la variable effectif_entreprise
@@ -311,10 +355,23 @@ def create_revenus_variables(individus):
         }
     for imposable, components in imposable_by_components.iteritems():
         individus[imposable] = sum(individus[component] for component in components)
+
+    individus['chomage_brut'] = individus.csgchod_i + individus.chomage_imposable
+    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_imposable
     #
-    taux = individus.csgrstd_i / (individus.csgrstd_i + individus.retraite_imposable)
-    # taux.value_counts(dropna = False)
-    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
+    # csg des revenus de replacement
+    # 0 - Non renseigné/non pertinent
+    # 1 - Exonéré
+    # 2 - Taux réduit
+    # 3 - Taux plein
+    taux = pd.concat(
+        [
+            individus.csgrstd_i / individus.retraite_brute,
+            individus.csgchod_i / individus.chomage_brut,
+        ],
+        axis=1
+        ).max(axis = 1)
+    taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
     individus['taux_csg_remplacement'] = np.select(
         [
             taux.isnull(),
@@ -324,16 +381,10 @@ def create_revenus_variables(individus):
             ],
         [0, 1, 2, 3]
         )
-    # 0: Non renseigné/non pertinent,
-    # 1: Exonéré,
-    # 2: Taux réduit,
-    # 3: Taux plein,
     assert individus.taux_csg_remplacement.isin(range(4)).all()
-    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_imposable
 
 
 def todo_create(individus):
-
     log.info(u"    6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
     assert individus.txtppb.notnull().all()

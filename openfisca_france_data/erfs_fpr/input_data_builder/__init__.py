@@ -2,6 +2,7 @@
 
 import logging
 
+
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
     # step_02_imputation_loyer as imputation_loyer,
@@ -21,7 +22,6 @@ def build(year = None):
     preprocessing.build_merged_dataframes(year = year)
     # imputation_loyer.imputation_loyer(year = year)
     variables_individuelles.build_variables_individuelles(year = year)
-    return
     famille.build_famille(year = year)
     final.create_input_data_frame(year = year)
 
@@ -34,6 +34,7 @@ def build(year = None):
         survey = "openfisca_erfs_fpr_data_{}".format(year),
         )
 
+
 if __name__ == '__main__':
     import sys
     import time
@@ -44,4 +45,3 @@ if __name__ == '__main__':
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
-

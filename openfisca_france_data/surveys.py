@@ -88,8 +88,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         else:
             tax_benefit_system = reform
 
-        openfisca_survey_collection = SurveyCollection.load(
-            collection = "openfisca", config_files_directory = config_files_directory)
+        openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
         openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
             cls.input_data_survey_prefix, data_year))
         input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)

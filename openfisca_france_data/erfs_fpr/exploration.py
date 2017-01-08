@@ -17,13 +17,18 @@ fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
 eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
 fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
 
-fpr_individu.columns
+heures = eec_individu.hhc
+heures.value_counts()
+heures.max()
+heures.min()
+heures.isnull().sum()
 
 
-fpr_menage.th.value_counts()
-bim
-
-revenus_fonciers_idents = fpr_menage.query('rev_fonciers_bruts > 0')['ident'].tolist()
+contrat_de_travail = eec_individu[['tpp', 'duhab', 'tppred']]
+contrat_de_travail.tpp.value_counts(dropna = False)
+contrat_de_travail.duhab.unique()
+contrat_de_travail.groupby('tpp')['duhab'].value_counts(dropna = False)
+contrat_de_travail.groupby('tppred')['duhab'].value_counts(dropna = False)
 
 
 

@@ -47,6 +47,9 @@ def loose_check(create_data_frame_by_entity):
         'aide_logement_montant_brut',
         'aspa',
         'autonomie_financiere',
+        'chomage_brut',
+        'chomage_imposable',
+        'chomage_nette',
         'champm_individus',
         'idfam',
         'idfoy',
@@ -58,6 +61,9 @@ def loose_check(create_data_frame_by_entity):
         'quifoy',
         'quimen',
         # 'revdisp',  can be negative if rag, ric or rnc are negative
+        'retraite_brute',
+        'retraite_imposable',
+        'retraite_nette',
         'rsa_base_ressources',
         'rsa',
         'salaire_imposable',
@@ -131,7 +137,7 @@ def test_erfs_survey_simulation(year = 2009):
         tax_benefit_system = base_survey.france_data_tax_benefit_system,
         )
 #    try:
-    survey_scenario = ErfsFprSurveyScenario.create(
+    survey_scenario = ErfsSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
