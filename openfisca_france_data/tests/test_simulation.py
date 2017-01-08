@@ -151,7 +151,7 @@ def test_erfs_survey_simulation(year = 2009):
         )
     loose_check(create_data_frame_by_entity)
     assert (
-        create_data_frame_by_entity['familles'].weight_familles * create_data_frame_by_entity['familles'].af
+        data_frame_by_entity['familles'].weight_familles * data_frame_by_entity['familles'].af
         ).sum() / 1e9 > 10
 
     return survey_scenario, create_data_frame_by_entity
@@ -171,8 +171,8 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     start = time.time()
     survey_scenario, create_data_frame_by_entity = test_erfs_fpr_survey_simulation(year = 2012)
-    data_frame_familles = create_data_frame_by_entity['famille']
-    data_frame_foyers_fiscaux = create_data_frame_by_entity['foyer_fiscal']
-    data_frame_individus = create_data_frame_by_entity['individu']
-    data_frame_menages = create_data_frame_by_entity['menage']
+    data_frame_familles = data_frame_by_entity['famille']
+    data_frame_foyers_fiscaux = data_frame_by_entity['foyer_fiscal']
+    data_frame_individus = data_frame_by_entity['individu']
+    data_frame_menages = data_frame_by_entity['menage']
     print(time.time() - start)
