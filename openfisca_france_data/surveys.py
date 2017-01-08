@@ -117,19 +117,19 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         for simulation in [self.simulation, self.reference_simulation]:
             if simulation is None:
                 continue
+
+            three_year_span_variables = [
+                'chomage_imposable',
+                'hsup',
+                'pensions_alimentaires_percues',
+                'retraite_brute',
+                'retraite_imposable',
+                'salaire_imposable_pour_inversion',
+                ]
             for offset in [0, -1, -2]:
-                for variable_name in ['salaire_imposable', 'chomage_imposable', 'retraite_imposable', 'retraite_brute',
-                        'pensions_alimentaires_percues', 'hsup']:
+                for variable_name in three_year_span_variables:
                     holder = simulation.get_or_new_holder(variable_name)
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
-                    if variable_name == 'salaire_imposable':
-                        try:
-                            holder = simulation.get_or_new_holder('salaire_imposable_pour_inversion')
-                            holder.set_input(simulation.period.offset(offset), simulation.calculate(variable_name))
-                            log.info('salaire_imposable_pour_inversion initialized')
-                        except taxbenefitsystems.VariableNotFound:
-                            log.info('WARNING salaire_imposable_pour_inversion not present and thus not initialized')
-                            pass
 
             simulation.get_or_new_holder('taux_incapacite').set_input(simulation.period, .50)
 

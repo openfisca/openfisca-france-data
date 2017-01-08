@@ -325,7 +325,7 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None):
     assert data_frame is not None
     assert collection is not None
     assert survey is not None
-    openfisca_survey_collection = SurveyCollection(name = collection, config_files_directory = config_files_directory)
+    openfisca_survey_collection = SurveyCollection(name = collection)
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = survey
     table = "input"
