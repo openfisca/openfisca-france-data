@@ -39,7 +39,7 @@ variables = [
     ]
 
 
-def loose_check(create_data_frame_by_entity):
+def loose_check(data_frame_by_entity):
     positive_variables = [
         'activite',
         'af_nbenf',
@@ -73,7 +73,7 @@ def loose_check(create_data_frame_by_entity):
     strictly_positive_sum_variables = positive_variables
     strictly_positive_sum_variables.remove('aide_logement_montant_brut')
 
-    for entity, data_frame in create_data_frame_by_entity.iteritems():
+    for entity, data_frame in data_frame_by_entity.iteritems():
         for variable in data_frame.columns:
             if variable in positive_variables:
                 assert (data_frame[variable] >= 0).all(), \
@@ -102,11 +102,11 @@ def test_erfs_fpr_survey_simulation(year = 2012):
 #    except AssertionError as e:
 #        print(e)
 #        return
-    create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
+    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
         )
-    loose_check(create_data_frame_by_entity)
-    return survey_scenario, create_data_frame_by_entity
+    loose_check(data_frame_by_entity)
+    return survey_scenario, data_frame_by_entity
 
 
 def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
@@ -124,11 +124,11 @@ def test_erfs_fpr_survey_simulation_with_rebuild(year = 2012):
 #    except AssertionError as e:
 #        print(e)
 #        return
-    create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
+    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
         )
-    loose_check(create_data_frame_by_entity)
-    return survey_scenario, create_data_frame_by_entity
+    loose_check(data_frame_by_entity)
+    return survey_scenario, data_frame_by_entity
 
 
 def test_erfs_survey_simulation(year = 2009):
@@ -146,15 +146,15 @@ def test_erfs_survey_simulation(year = 2009):
 #        print(e)
 #        return
 
-    create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
+    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
         )
-    loose_check(create_data_frame_by_entity)
+    loose_check(frame_by_entity)
     assert (
         data_frame_by_entity['familles'].weight_familles * data_frame_by_entity['familles'].af
         ).sum() / 1e9 > 10
 
-    return survey_scenario, create_data_frame_by_entity
+    return survey_scenario, frame_by_entity
 
 
 def test_weights_building():
