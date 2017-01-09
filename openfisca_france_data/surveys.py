@@ -119,7 +119,11 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 continue
 
             three_year_span_variables = [
+                'categorie_salarie',
+                'chomage_brut',
                 'chomage_imposable',
+                'contrat_de_travail',
+                'effectif_entreprise',
                 'hsup',
                 'pensions_alimentaires_percues',
                 'retraite_brute',

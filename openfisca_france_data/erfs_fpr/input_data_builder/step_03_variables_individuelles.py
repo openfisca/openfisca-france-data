@@ -165,9 +165,6 @@ def create_categorie_salarie_variable(individus):
     assert individus.chpub.isin(range(0, 7)).all(), \
         "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts())
 
-    assert individus.chpub.isin(range(0, 7)).all(), \
-        "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts())
-
     individus.loc[individus.encadr == 0, 'encadr'] = 2
     assert individus.encadr.isin(range(1, 3)).all(), \
         "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts())
@@ -214,11 +211,21 @@ def create_categorie_salarie_variable(individus):
 
     contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
-    individus['categorie_salarie'] = np.select(
-        [0, 1, 2, 3, 4, 5, 6],
-        [0, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel]
+    # individus['categorie_salarie'] = np.select(
+    #     [0, 1, 2, 3, 4, 5, 6],
+    #     [0, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel]
+    #     )
+    individus['categorie_salarie'] = (
+        0 +
+        1 * cadre +
+        2 * etat_titulaire +
+        3 * militaire +
+        4 * collectivites_locales_titulaire +
+        5 * hopital_titulaire +
+        6 * contractuel
         )
-
+    log.info('Les valeurs de categorie_salarie sont: \n {}'.format(
+        individus['categorie_salarie'].value_counts(dropna = False)))
     assert individus['categorie_salarie'].isin(range(10)).all(), \
         "categorie_salarie n'est pas toujours dans l'intervalle [0, 9]\n{}".format(
             individus.categorie_salarie.value_counts())
@@ -381,6 +388,9 @@ def create_revenus_variables(individus):
             ],
         [0, 1, 2, 3]
         )
+    for value in [0, 1, 2, 3]:
+        assert (individus.taux_csg_remplacement == value).any(), \
+            "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
     assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 

@@ -26,7 +26,10 @@ def create_input_data_frame(temporary_store = None, year = None):
         'age_en_mois',
         'age',
         'categorie_salarie',
+        'contrat_de_travail',
+        'chomage_brut',
         'chomage_imposable',
+        'effectif_entreprise',
         'idfam',
         'idfoy',
         'idmen',
@@ -117,7 +120,7 @@ def create_ids_and_roles(individus):
     individus.loc[individus.lpr == 2, 'quimen'] = 1
     individus['idfoy'] = individus['idfam'].copy()
     individus['quifoy'] = individus['quifam'].copy()
-    return individus.copy()
+    return individus
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
