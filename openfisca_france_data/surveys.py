@@ -3,6 +3,7 @@
 
 import logging
 import numpy as np
+import pandas as pd
 
 
 from openfisca_core import periods, simulations, taxbenefitsystems
@@ -24,7 +25,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     filtering_variable_by_entity['menage'] = 'champm'
 
     # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
-    #     from openfisca_france_data.utils import id_formatter
+    #     from openfisca_france_data.utils import id_formatter
     #     person_index = dict()
     #     id_variables = [
     #         entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
@@ -54,9 +55,30 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     #     return data_frame
 
     @classmethod
+    def build_input_data_from_test_case(cls, tax_benefit_system, test_case_scenario, year):
+        for axe in test_case_scenario['axes'][0]:
+            axe['name'] = 'salaire_imposable_pour_inversion'
+        simulation = tax_benefit_system.new_scenario().init_single_entity(**test_case_scenario).new_simulation()
+        array_by_variable = dict()
+        period = periods.period("{}".format(year))
+
+        for variable in cls.default_used_as_input_variables:
+            array_by_variable[variable] = simulation.calculate_add(variable, period = period)
+
+        for ident in ['idmen', 'idfoy', 'idfam']:
+            array_by_variable[ident] = range(axe['count'])
+
+        input_data_frame = pd.DataFrame(array_by_variable)
+
+        for qui in ['quimen', 'quifoy', 'quifam']:
+            input_data_frame[qui] = 0
+
+        return input_data_frame
+
+    @classmethod
     def create(cls, calibration_kwargs = None, data_year = None, inflation_kwargs = None, rebuild_input_data = False,
             reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
-            year = None):
+            test_case_scenario = None, year = None):
 
         assert year is not None
         assert not(
@@ -73,9 +95,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if inflation_kwargs is not None:
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
-        if rebuild_input_data:
-            cls.build_input_data(year = data_year)
-
         if reform_key is not None:
             reform = base.get_cached_reform(
                 reform_key = reform_key,
@@ -88,12 +107,25 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         else:
             tax_benefit_system = reform
 
-        openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
-        openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-            cls.input_data_survey_prefix, data_year))
-        input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-        input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
-        del input_data_frame['salaire_imposable']
+        if rebuild_input_data:
+            cls.build_input_data(year = data_year)
+
+        if test_case_scenario is not None:
+            assert rebuild_input_data is False
+            input_data_frame = cls.build_input_data_from_test_case(
+                tax_benefit_system = tax_benefit_system,
+                test_case_scenario = test_case_scenario,
+                year = year,
+                )
+        else:
+            openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
+            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+                cls.input_data_survey_prefix, data_year))
+            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+            input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
+            input_data_frame['cotisation_sociale_mode_recouvrement'] = 1
+            del input_data_frame['salaire_imposable']
+
         survey_scenario = cls().init_from_data_frame(
             input_data_frame = input_data_frame,
             tax_benefit_system = tax_benefit_system,
@@ -120,6 +152,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
             three_year_span_variables = [
                 'categorie_salarie',
+                'cotisation_sociale_mode_recouvrement',
                 'chomage_brut',
                 'chomage_imposable',
                 'contrat_de_travail',

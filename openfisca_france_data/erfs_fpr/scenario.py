@@ -11,6 +11,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'autonomie_financiere',
         'chomage_brut',
         'chomage_imposable',
+        'cotisation_sociale_mode_recouvrement',
         'f4ba',
         'retraite_brute',
         'retraite_imposable',
