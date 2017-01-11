@@ -108,8 +108,6 @@ def create_actrec_variable(individus):
 
 def create_age_variables(individus, year = None):
     """
-    Création de la variables actrec
-    pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
     """
     assert year is not None
     individus['age'] = year - individus.naia - 1
