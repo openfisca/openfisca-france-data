@@ -22,6 +22,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'taxe_habitation',
         ]
     input_data_survey_prefix = 'openfisca_erfs_fpr_data'
+    collection = 'openfisca_erfs_fpr'
 
     @classmethod
     def build_input_data(cls, year = None):

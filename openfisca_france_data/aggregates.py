@@ -276,7 +276,7 @@ class Aggregates(object):
                 self.totals_df.set_value('rsa', col, rsa)
 
                 # Deals with irpp, csg, crds
-                for var in ['irpp', 'csg', 'crds', 'cotsoc_noncontrib']:
+                for var in ['irpp', 'csg', 'crds', 'cotisations_non_contributives']:
                     if col in ['actual_amount']:
                         val = - self.totals_df.get_value(var, col)
                         self.totals_df.set_value(var, col, val)

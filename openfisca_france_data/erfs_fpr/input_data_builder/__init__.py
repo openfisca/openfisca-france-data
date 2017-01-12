@@ -30,7 +30,7 @@ def build(year = None):
     # Save the data_frame in a collection
     store_input_data_frame(
         data_frame = data_frame,
-        collection = "openfisca",
+        collection = "openfisca_erfs_fpr",
         survey = "openfisca_erfs_fpr_data_{}".format(year),
         )
 

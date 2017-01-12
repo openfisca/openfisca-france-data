@@ -118,7 +118,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 year = year,
                 )
         else:
-            openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
+            openfisca_survey_collection = SurveyCollection.load(collection = cls.collection)
             openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
                 cls.input_data_survey_prefix, data_year))
             input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
@@ -170,7 +170,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
             simulation.get_or_new_holder('taux_incapacite').set_input(simulation.period, .50)
 
-    def init_from_data_frame(self, input_data_frame = None, input_data_frames_by_entity_key_plural = None,
+    def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
             year = None):
 
@@ -190,11 +190,11 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
         return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
-            input_data_frames_by_entity_key_plural = input_data_frames_by_entity_key_plural,
+            input_data_frame_by_entity = input_data_frame_by_entity,
             reference_tax_benefit_system = reference_tax_benefit_system,
             tax_benefit_system = tax_benefit_system,
             used_as_input_variables = used_as_input_variables,
-            year = year
+            year = year,
             )
 
     def initialize_weights(self):

@@ -321,14 +321,15 @@ def set_variables_default_value(dataframe, year):
             dataframe[column_name] = dataframe[column_name].astype(column.dtype)
 
 
-def store_input_data_frame(data_frame = None, collection = None, survey = None):
+def store_input_data_frame(data_frame = None, collection = None, survey = None, table = None):
     assert data_frame is not None
     assert collection is not None
     assert survey is not None
     openfisca_survey_collection = SurveyCollection(name = collection)
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = survey
-    table = "input"
+    if table is None:
+        table = "input"
     hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
     survey = Survey(
         name = survey_name,
@@ -337,5 +338,5 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None):
     survey.insert_table(name = table, data_frame = data_frame)
     openfisca_survey_collection.surveys.append(survey)
     collections_directory = openfisca_survey_collection.config.get('collections', 'collections_directory')
-    json_file_path = os.path.join(collections_directory, 'openfisca_erfs_fpr.json')
+    json_file_path = os.path.join(collections_directory, '{}.json'.format(collection))
     openfisca_survey_collection.dump(json_file_path = json_file_path)

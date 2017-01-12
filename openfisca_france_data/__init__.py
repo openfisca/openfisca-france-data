@@ -52,7 +52,7 @@ france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_bene
 
 
 AGGREGATES_DEFAULT_VARS = [
-    'cotsoc_noncontrib',
+    'cotisations_non_contributives',
     'csg',
     'crds',
     'irpp',
