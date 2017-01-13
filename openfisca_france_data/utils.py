@@ -327,14 +327,16 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     assert survey is not None
     openfisca_survey_collection = SurveyCollection(name = collection)
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
-    survey_name = survey
     if table is None:
         table = "input"
+    #
+    survey_name = survey
     hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
-    survey = Survey(
-        name = survey_name,
-        hdf5_file_path = hdf5_file_path,
-        )
+    available_survey_names = [survey_.name for survey_ in openfisca_survey_collection.surveys]
+    if survey_name in available_survey_names:
+        survey = openfisca_survey_collection.get_survey(survey_name)
+    else:
+        survey = Survey(name = survey_name, hdf5_file_path = hdf5_file_path)
     survey.insert_table(name = table, data_frame = data_frame)
     openfisca_survey_collection.surveys.append(survey)
     collections_directory = openfisca_survey_collection.config.get('collections', 'collections_directory')

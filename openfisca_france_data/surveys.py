@@ -170,6 +170,31 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
             simulation.get_or_new_holder('taux_incapacite').set_input(simulation.period, .50)
 
+    def init_from_collection(self, collection = None, reference_tax_benefit_system = None, tax_benefit_system = None,
+            used_as_input_variables = None, year = None):
+
+        if used_as_input_variables is None:
+            used_as_input_variables = self.default_used_as_input_variables
+
+        if tax_benefit_system is None:
+            tax_benefit_system = base.france_data_tax_benefit_system
+            reference_tax_benefit_system = None
+
+        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
+        if variables_mismatch:
+            log.info(
+                'The following variables used as input variables are not present in the input data frame: \n {}'.format(
+                    variables_mismatch))
+            log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
+            log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
+        return super(AbstractErfsSurveyScenario, self).init_from_collection(
+            collection = collection,
+            reference_tax_benefit_system = reference_tax_benefit_system,
+            tax_benefit_system = tax_benefit_system,
+            used_as_input_variables = used_as_input_variables,
+            year = year,
+            )
+
     def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
             year = None):
