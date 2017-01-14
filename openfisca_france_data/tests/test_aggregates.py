@@ -17,15 +17,11 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
         reform_key = 'inversion_directe_salaires',
         tax_benefit_system = base_survey.france_data_tax_benefit_system,
         )
-#    try:
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
         )
-#    except AssertionError as e:
-#        print(e)
-#        return
     aggregates = Aggregates(survey_scenario = survey_scenario)
     aggregates.compute_aggregates()
     difference_data_frame = aggregates.compute_difference()
@@ -33,11 +29,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
 
 
 def test_erfs_survey_simulation(year = 2009):
-    try:
-        survey_scenario = ErfsSurveyScenario.create(year = year)
-    except AssertionError as e:
-        print(e)
-        return
+    survey_scenario = ErfsSurveyScenario.create(year = year)
     aggregates = Aggregates(survey_scenario = survey_scenario)
     aggregates.compute_aggregates()
     return aggregates.base_data_frame
