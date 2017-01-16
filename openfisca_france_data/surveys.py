@@ -124,7 +124,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
             input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
             input_data_frame['cotisation_sociale_mode_recouvrement'] = 1
-            del input_data_frame['salaire_imposable']
+            input_data_frame['salaire_imposable']
 
         survey_scenario = cls().init_from_data_frame(
             input_data_frame = input_data_frame,
@@ -161,6 +161,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 'pensions_alimentaires_percues',
                 'retraite_brute',
                 'retraite_imposable',
+                'salaire_imposable',
                 'salaire_imposable_pour_inversion',
                 ]
             for offset in [0, -1, -2]:

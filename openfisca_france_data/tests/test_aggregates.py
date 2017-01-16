@@ -2,6 +2,8 @@
 
 
 import logging
+import numpy as np
+
 
 from openfisca_france_data.aggregates import Aggregates
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
@@ -13,6 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
+    np.seterr(all='raise')
     tax_benefit_system = base_survey.get_cached_reform(
         reform_key = 'inversion_directe_salaires',
         tax_benefit_system = base_survey.france_data_tax_benefit_system,
@@ -22,10 +25,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
         )
-    aggregates = Aggregates(survey_scenario = survey_scenario)
-    aggregates.compute_aggregates()
-    difference_data_frame = aggregates.compute_difference()
-    return aggregates.base_data_frame, difference_data_frame, survey_scenario
+    return survey_scenario
 
 
 def test_erfs_survey_simulation(year = 2009):
@@ -53,5 +53,14 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    aggregates_data_frame, difference_data_frame, survey_scenario = test_erfs_fpr_survey_simulation_aggregates()
+    #aggregates_data_frame, difference_data_frame,
+    survey_scenario = test_erfs_fpr_survey_simulation_aggregates()
+
+
+    aggregates = Aggregates(survey_scenario = survey_scenario)
+    aggregates.compute_aggregates()
+    print aggregates.base_data_frame
+    # difference_data_frame = aggregates.compute_difference()
+#    return aggregates.base_data_frame, difference_data_frame, survey_scenario
+
     # df = test_erfs_aggregates_reform()

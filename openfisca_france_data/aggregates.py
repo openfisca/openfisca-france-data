@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 import os
 
-from numpy import nan
+import numpy as np
 import pandas as pd
 
 try:
@@ -178,38 +178,55 @@ class Aggregates(object):
         weight = self.weight_column_name_by_entity[column.entity.key]
         assert weight in column_by_name, "{} not a variable of the {} tax_benefit_system".format(
             weight, simulation_type)
+        weight_array = simulation.calculate(weight)
+        assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
+            weight, column.entity.key)
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
+        variable_array = simulation.calculate_add(variable)
+        print '----'
+        print variable
+        print max(variable_array)
+        print '----'
+        assert np.isfinite(variable_array).all(), "The are non finite values in variable {} for entity {}".format(
+            variable, column.entity.key)
         data = pd.DataFrame({
-            variable: simulation.calculate_add(variable),
+            variable: variable_array,
             weight: simulation.calculate(weight),
             })
         if filter_by:
-            filter_dummy = simulation.calculate(
-                self.survey_scenario.filtering_variable_by_entity[column.entity.key]
-                )
+            filter_dummy_variable = self.survey_scenario.filtering_variable_by_entity[column.entity.key]
+            filter_dummy_array = simulation.calculate(filter_dummy_variable)
+        assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
+            filter_dummy_variable, column.entity.key)
         try:
             amount = int(
-                (data[variable] * data[weight] * filter_dummy / 10 ** 6).sum().round()
+                (data[variable] * data[weight] * filter_dummy_array / 10 ** 6).sum().round()
                 )
-        except:
-            amount = nan
+        except ValueError as e:
+            log.error("When computing amount for {} : {}".format(variable, e))
+            amount = np.nan
         try:
             beneficiaries = int(
-                ((data[variable] != 0) * data[weight] * filter_dummy / 10 ** 3).sum().round()
+                ((data[variable] != 0) * data[weight] * filter_dummy_array / 10 ** 3).sum().round()
                 )
-        except:
-            beneficiaries = nan
+        except OverflowError as e:
+            beneficiaries = np.nan
+            log.error("When computing beenficiaries for {} : {}".format(variable, e))
 
-        variable_data_frame = pd.DataFrame(
-            data = {
-                'label': column_by_name[variable].label,
-                'entity': column_by_name[variable].entity.key,
-                '{}_amount'.format(simulation_type): amount,
-                '{}_beneficiaries'.format(simulation_type): beneficiaries,
-                },
-            index = [variable],
-            )
+        try:
+            variable_data_frame = pd.DataFrame(
+                data = {
+                    'label': column_by_name[variable].label,
+                    'entity': column_by_name[variable].entity.key,
+                    '{}_amount'.format(simulation_type): amount,
+                    '{}_beneficiaries'.format(simulation_type): beneficiaries,
+                    },
+                index = [variable],
+                )
+        except OverflowError as e:
+            log.error("When computing dataframes for {} : {}".format(variable, e))
+            log.error("amount: {}, beneficiaries: {}".format(amount, beneficiaries))
 
         return variable_data_frame
 
@@ -223,14 +240,17 @@ class Aggregates(object):
             parser.get('data', 'prestations_sociales_directory'),
             'clean',
             )
+        #
         amounts_csv = os.path.join(directory, 'historique_depenses.csv')
         beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires.csv')
-        minimum_vieillesse_beneficiaries_csv = os.path.join(
-            directory, 'historique_beneficiaires_minimum_vieillesse.csv')
         amounts = pd.read_csv(amounts_csv, index_col = 0)
         beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
-        minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
-        beneficiaries = beneficiaries.append(minimum_vieillesse_beneficiaries)
+        #
+        minimum_vieillesse_beneficiaries_csv = os.path.join(
+            directory, 'historique_beneficiaires_minimum_vieillesse.csv')
+        if os.path.exists(minimum_vieillesse_beneficiaries_csv):
+            minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
+            beneficiaries = beneficiaries.append(minimum_vieillesse_beneficiaries)
         self.totals_df = pd.DataFrame(data = {
             "actual_amount": amounts[str(year)],
             "actual_beneficiaries": beneficiaries[str(year)],
@@ -258,7 +278,7 @@ class Aggregates(object):
                 "actual_amount": df_a[year] / 10 ** 6,
                 "actual_beneficiaries": df_b[year] / 10 ** 3,
                 })
-            row = pd.DataFrame({'actual_amount': nan, 'actual_beneficiaries': nan}, index = ['logt'])
+            row = pd.DataFrame({'actual_amount': np.nan, 'actual_beneficiaries': np.nan}, index = ['logt'])
             self.totals_df = self.totals_df.append(row)
 
             # Add some aditionnals totals
