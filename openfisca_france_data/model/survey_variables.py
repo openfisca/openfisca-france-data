@@ -212,7 +212,6 @@ class idfam_original(Variable):
 #     entity = Menage
 
 
-
 # class ddipl(Variable):
 #     column = EnumCol(
 #         enum = Enum(
@@ -246,5 +245,3 @@ class wprm_init(Variable):
     column = FloatCol
     entity = Menage
     label = u"Effectifs"
-
-

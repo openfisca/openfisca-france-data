@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 
 
-from openfisca_core import periods, simulations, taxbenefitsystems
-
+from openfisca_core import periods, simulations
 from openfisca_france_data.tests import base
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
@@ -118,13 +117,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 year = year,
                 )
         else:
-            openfisca_survey_collection = SurveyCollection.load(collection = cls.collection)
-            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-                cls.input_data_survey_prefix, data_year))
-            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-            input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
-            input_data_frame['cotisation_sociale_mode_recouvrement'] = 1
-            input_data_frame['salaire_imposable']
+            if cls.input_data_table_by_period is not None:
+                input_data_frame = None
+            else:
+                openfisca_survey_collection = SurveyCollection.load(collection = cls.collection)
+                openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+                    cls.input_data_survey_prefix, data_year))
+                input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
 
         survey_scenario = cls().init_from_data_frame(
             input_data_frame = input_data_frame,
@@ -149,7 +148,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         for simulation in [self.simulation, self.reference_simulation]:
             if simulation is None:
                 continue
-
             three_year_span_variables = [
                 'categorie_salarie',
                 'cotisation_sociale_mode_recouvrement',
@@ -157,44 +155,55 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 'chomage_imposable',
                 'contrat_de_travail',
                 'effectif_entreprise',
-                'hsup',
+                # 'hsup',
                 'pensions_alimentaires_percues',
                 'retraite_brute',
                 'retraite_imposable',
-                'salaire_imposable',
+                # 'salaire_imposable',
                 'salaire_imposable_pour_inversion',
                 ]
             for offset in [0, -1, -2]:
-                for variable_name in three_year_span_variables:
-                    holder = simulation.get_or_new_holder(variable_name)
-                    holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable_name))
+                for variable in three_year_span_variables:
+                    assert variable in self.used_as_input_variables, \
+                        '{} is not a in the input_varaibles to be used {}'.format(
+                            variable, self.used_as_input_variables)
+                    holder = simulation.get_or_new_holder(variable)
+                    holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable))
+                #
+                for variable, value in self.default_value_by_variable.iteritems():
+                    holder = simulation.get_or_new_holder(variable)
+                    array = np.empty(holder.entity.count, dtype = holder.column.dtype)
+                    array.fill(value)
+                    holder.set_input(simulation.period.offset(offset), array)
 
-            simulation.get_or_new_holder('taux_incapacite').set_input(simulation.period, .50)
+    def custom_input_data_frame(self, input_data_frame):
+        log.info('Customizing input_data_frame')
+        input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
 
-    def init_from_collection(self, collection = None, reference_tax_benefit_system = None, tax_benefit_system = None,
-            used_as_input_variables = None, year = None):
+    # def init_from_collection(self, collection = None, reference_tax_benefit_system = None, tax_benefit_system = None,
+    #         used_as_input_variables = None, year = None):
 
-        if used_as_input_variables is None:
-            used_as_input_variables = self.default_used_as_input_variables
+    #     if used_as_input_variables is None:
+    #         used_as_input_variables = self.default_used_as_input_variables
 
-        if tax_benefit_system is None:
-            tax_benefit_system = base.france_data_tax_benefit_system
-            reference_tax_benefit_system = None
+    #     if tax_benefit_system is None:
+    #         tax_benefit_system = base.france_data_tax_benefit_system
+    #         reference_tax_benefit_system = None
 
-        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
-        if variables_mismatch:
-            log.info(
-                'The following variables used as input variables are not present in the input data frame: \n {}'.format(
-                    variables_mismatch))
-            log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
-            log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
-        return super(AbstractErfsSurveyScenario, self).init_from_collection(
-            collection = collection,
-            reference_tax_benefit_system = reference_tax_benefit_system,
-            tax_benefit_system = tax_benefit_system,
-            used_as_input_variables = used_as_input_variables,
-            year = year,
-            )
+    #     variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
+    #     if variables_mismatch:
+    #         log.info(
+    #             'The following variables used as input variables are not present in the input data frame: \n {}'.format(
+    #                 variables_mismatch))
+    #         log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
+    #         log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
+    #     return super(AbstractErfsSurveyScenario, self).init_from_collection(
+    #         collection = collection,
+    #         reference_tax_benefit_system = reference_tax_benefit_system,
+    #         tax_benefit_system = tax_benefit_system,
+    #         used_as_input_variables = used_as_input_variables,
+    #         year = year,
+    #         )
 
     def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
             reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
@@ -207,13 +216,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             tax_benefit_system = base.france_data_tax_benefit_system
             reference_tax_benefit_system = None
 
-        variables_mismatch = set(used_as_input_variables).difference(set(input_data_frame.columns))
-        if variables_mismatch:
-            log.info(
-                'The following variables used as input variables are not present in the input data frame: \n {}'.format(
-                    variables_mismatch))
-            log.info('The following variables are used as input variables: \n {}'.format(used_as_input_variables))
-            log.info('The input_data_frame contains the following variables: \n {}'.format(input_data_frame.columns))
         return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
             input_data_frame = input_data_frame,
             input_data_frame_by_entity = input_data_frame_by_entity,

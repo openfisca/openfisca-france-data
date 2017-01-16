@@ -53,14 +53,13 @@ if __name__ == '__main__':
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    #aggregates_data_frame, difference_data_frame,
+    # aggregates_data_frame, difference_data_frame,
     survey_scenario = test_erfs_fpr_survey_simulation_aggregates()
-
 
     aggregates = Aggregates(survey_scenario = survey_scenario)
     aggregates.compute_aggregates()
-    print aggregates.base_data_frame
+    print(aggregates.base_data_frame)
     # difference_data_frame = aggregates.compute_difference()
-#    return aggregates.base_data_frame, difference_data_frame, survey_scenario
+    # return aggregates.base_data_frame, difference_data_frame, survey_scenario
 
     # df = test_erfs_aggregates_reform()
