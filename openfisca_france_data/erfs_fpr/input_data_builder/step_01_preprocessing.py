@@ -32,7 +32,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
     temporary_store['menages_{}'.format(year)] = menages
     del eec_menage, fpr_menage, menages
     gc.collect()
-    temporary_store['individus_{}'.format(year)] = individus
+    temporary_store['individus_{}_post_01'.format(year)] = individus
     del eec_individu, fpr_individu
 
 

@@ -16,6 +16,10 @@ from openfisca_survey_manager.temporary import temporary_store_decorator
 log = logging.getLogger(__name__)
 
 
+smic_annuel_net = 1118.36 * 12  # 2012
+
+
+
 @temporary_store_decorator(file_name = 'erfs_fpr')
 def build_variables_individuelles(temporary_store = None, year = None):
     """
@@ -27,11 +31,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
-    individus = temporary_store['individus_{}'.format(year)]
+    individus = temporary_store['individus_{}_post_01'.format(year)]
     create_variables_individuelles(individus, year)
     temporary_store['individus_{}'.format(year)] = individus
     log.info(u"step_03_variables_individuelles terminée")
-
+    return individus
 
 # helpers
 
@@ -39,9 +43,13 @@ def create_variables_individuelles(individus, year):
     create_age_variables(individus, year)
     create_activite_variable(individus)
     create_revenus_variables(individus)
+    create_contrat_de_travail(individus)
+    return
     create_categorie_salarie_variable(individus)
     create_effectif_entreprise_variable(individus)
     create_contrat_de_travail(individus)
+    create_heures_remunerees_volume(individus)
+
 
 
 def create_activite_variable(individus):
@@ -210,12 +218,12 @@ def create_categorie_salarie_variable(individus):
 
     contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
-    non_cadre = TODO
-    individus['categorie_salarie'] = np.select(
-         [0, 1, 2, 3, 4, 5, 6, 7],
-         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel]
-    #    )
-    actif_occupe = individus['activite'] == 0
+#   TODO: may use something like this but to be improved and tested
+#    individus['categorie_salarie'] = np.select(
+#         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel, non_pertinent]  # Coice list
+#         [0, 1, 2, 3, 4, 5, 6, 7],  # Condlist
+#         )
+    actif_occupe = individus['salaire_imposable'] > 0
     individus['categorie_salarie'] = actif_occupe * (
         0 +
         1 * cadre +
@@ -266,12 +274,123 @@ def create_contrat_de_travail(individus):
     """
     assert individus.tppred.isin(range(3)).all(), \
         'tppred values {} should be in [0, 1, 2]'
+    assert (
+        individus.duhab.isin(range(10)) & individus.duhab != 8
+        ).all(), 'duhab values {} should be in [0, 1, 2, 3, 4, 5, 6, 7, 9]'
+
     individus['contrat_de_travail'] = 6  # sans objet
-    individus.loc[individus.activite == 0, 'contrat_de_travail'] = (individus.tppred - 1)
+    # 1. utilisation de tppred et durhab
+    # 1.1  temps_plein
+    individus.query('tppred == 1').duhab.value_counts(dropna = False)
+    assert (individus.query('tppred == 1').duhab >= 4).all()
+    individus.loc[
+        (individus.salaire_imposable > 0) &
+        (individus.tppred == 1) | (individus.duhab.isin(range(4, 8))),
+        'contrat_de_travail'
+        ] = 0
+    # 1.2 temps partiel
+    individus.query('tppred == 2').duhab.value_counts(dropna = False)
+    assert (individus.query('tppred == 2').duhab.isin([1, 2, 3, 9])).all()
+    individus.loc[
+        (individus.salaire_imposable > 0) &
+        (individus.tppred == 2) | (individus.duhab.isin(range(1, 4))),
+        'contrat_de_travail'
+        ] = 1
+    print individus.query('salaire_imposable > 0').contrat_de_travail.value_counts(dropna = False)
+    individus.query('salaire_imposable > 0')
+    # 2. On traite les salaires horaires inféreurs au SMIC
+    # 2.1 temps plein
+    temps_plein = individus.query('(contrat_de_travail == 0) & (salaire_imposable > 0)')
+    (temps_plein.salaire_imposable > smic_annuel_net).value_counts()
+    # temps_plein.query('salaire_imposable < 15000').salaire_imposable.hist()
+    individus['heures_remunerees_volume'] = 0
+    # On bascule à temps partiel et on réajuste les heures des temps plein qui ne touche pas le smic
+    temps_plein_sous_smic = (
+        (individus.contrat_de_travail == 0) &
+        (individus.salaire_imposable > 0) &
+        (individus.salaire_imposable < smic_annuel_net)
+        )
+    individus.loc[
+        temps_plein_sous_smic,
+        'contrat_de_travail'] = 1
+    individus.loc[
+        temps_plein_sous_smic,
+        'heures_remunerees_volume'] = individus.loc[
+            temps_plein_sous_smic,
+            'salaire_imposable'
+            ] / smic_annuel_net * 35
+    assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] < 35).all()
+    # 2.2 Pour les temps partiel on prends les heures hcc
+    # On vérfie que celles qu'on a créées jusqu'ici sont correctes
+    assert (individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').heures_remunerees_volume < 35).all()
+    #
+    axes = (individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').hhc).hist(bins=100)
+    axes.set_title("Heures (hcc)")
+    # On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
+    temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire_imposable > 0)
+    moins_que_smic_horaire = (
+        (individus.salaire_imposable / (individus.hhc)) < (smic_annuel_net / 35)
+        ) #
+    individus.loc[
+        temps_partiel & moins_que_smic_horaire & individus.hhc.notnull(),
+        'heures_remunerees_volume'
+        ] = individus.loc[
+            temps_partiel & moins_que_smic_horaire & individus.hhc.notnull(),
+            'salaire_imposable'
+            ] / smic_annuel_net * 35
+    individus.loc[
+        temps_partiel & (~moins_que_smic_horaire) & individus.hhc.notnull(),
+        'heures_remunerees_volume'
+        ] = individus.loc[
+            temps_partiel & (~moins_que_smic_horaire) & individus.hhc.notnull(),
+            'hhc'
+            ]
+    axes = (individus
+        .loc[temps_partiel]
+        .query('(contrat_de_travail == 1) & (salaire_imposable > 0)')
+        .heures_remunerees_volume
+        .hist(bins=100)
+        )
+    axes.set_title("Heures (heures_remunerees_volume)")
+    # On repasse en temps plein ceux qui ont plus de 35 heures par semaine
+    temps_partiel_bascule_temps_plein = (
+        temps_partiel &
+        (individus.heures_remunerees_volume >= 35)
+        )
+    individus.loc[
+        temps_partiel_bascule_temps_plein,
+        'contrat_de_travail',
+        ] = 0
+    individus.loc[
+        temps_partiel_bascule_temps_plein,
+        'heures_remunerees_volume',
+        ] = 0
+    assert (individus.query('contrat_de_travail == 0').heures_remunerees_volume == 0).all()
+    assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
+    assert (individus.query('contrat_de_travail == 6').heures_remunerees_volume == 0).all()
+    return
+
+    x = individus.query('(contrat_de_travail == 1) & (heures_remunerees_volume >= 35)')[[
+        'contrat_de_travail',
+        'hhc',
+        'salaire_imposable',
+        'heures_remunerees_volume'
+        ]]
+
+
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
-    assert (individus.query('activite == 0').contrat_de_travail.isin([0, 1])).all()
-    print individus.groupby('activite')['contrat_de_travail'].value_counts(dropna = False)
-    assert (individus.query('activite != 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire_imposable > 0').contrat_de_travail.isin([0, 1])).all()
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+
+    assert (individus.query('salaire_imposable > 0').contrat_de_travail.isin([0, 1])).all()
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+
+
+
+def create_heures_remunerees_volume(individus):
+
+
+    pass
 
 
 def create_effectif_entreprise_variable(individus):
@@ -365,6 +484,9 @@ def create_revenus_variables(individus):
     for imposable, components in imposable_by_components.iteritems():
         individus[imposable] = sum(individus[component] for component in components)
 
+    for variable in ['chomage_imposable', 'retraite_imposable', 'salaire_imposable']:
+        assert (individus[variable] >= 0).all()
+
     individus['chomage_brut'] = individus.csgchod_i + individus.chomage_imposable
     individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_imposable
     #
@@ -380,7 +502,7 @@ def create_revenus_variables(individus):
         ],
         axis=1
         ).max(axis = 1)
-    taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
+    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
     individus['taux_csg_remplacement'] = np.select(
         [
             taux.isnull(),
@@ -409,4 +531,18 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
     year = 2012
-    build_variables_individuelles(year = year)
+
+#    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
+#    step_01_preprocessing.build_merged_dataframes(year = year)
+    individus = build_variables_individuelles(year = year)
+    BIM
+    individus.hhc.value_counts(dropna = False)
+    individus.categorie_salarie.value_counts(dropna = False)
+
+    # Check SMIC pour individus ayant salaire_imposable != 0
+    actifs_occupes = individus.query('categorie_salarie < 7')
+    actifs_occupes.hhc.value_counts(dropna = False)
+    actifs_occupes.contrat_de_travail.value_counts(dropna = False)
+    # actis occupes sans information sur  contrat_de_travail
+    actifs_occupes.query('contrat_de_travail >= 6')
+    # actifs_occupes.salaire_imposable /
