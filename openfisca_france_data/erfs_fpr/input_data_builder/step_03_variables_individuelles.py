@@ -128,6 +128,7 @@ def create_categorie_salarie_variable(individus):
         u"public_titulaire_territoriale
         u"public_titulaire_hospitaliere
         u"public_non_titulaire
+        u"non_pertinent"
 
     A partir des variables de l'ecc' :
     chpub :
@@ -209,11 +210,13 @@ def create_categorie_salarie_variable(individus):
 
     contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
-    # individus['categorie_salarie'] = np.select(
-    #     [0, 1, 2, 3, 4, 5, 6],
-    #     [0, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel]
-    #     )
-    individus['categorie_salarie'] = (
+    non_cadre = TODO
+    individus['categorie_salarie'] = np.select(
+         [0, 1, 2, 3, 4, 5, 6, 7],
+         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel]
+    #    )
+    actif_occupe = individus['activite'] == 0
+    individus['categorie_salarie'] = actif_occupe * (
         0 +
         1 * cadre +
         2 * etat_titulaire +
@@ -221,11 +224,12 @@ def create_categorie_salarie_variable(individus):
         4 * collectivites_locales_titulaire +
         5 * hopital_titulaire +
         6 * contractuel
-        )
+        ) + np.logical_not(actif_occupe) * 7
+
     log.info('Les valeurs de categorie_salarie sont: \n {}'.format(
         individus['categorie_salarie'].value_counts(dropna = False)))
-    assert individus['categorie_salarie'].isin(range(10)).all(), \
-        "categorie_salarie n'est pas toujours dans l'intervalle [0, 9]\n{}".format(
+    assert individus['categorie_salarie'].isin(range(8)).all(), \
+        "categorie_salarie n'est pas toujours dans l'intervalle [0, 7]\n{}".format(
             individus.categorie_salarie.value_counts())
 
 

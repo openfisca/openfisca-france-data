@@ -85,6 +85,7 @@ def test_erfs_fpr_survey_simulation(year = 2012, rebuild = False):
         tax_benefit_system = tax_benefit_system,
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
+        # rebuild_input_data = True,
         )
     data_frame_by_entity = None
     #    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
@@ -99,15 +100,11 @@ def test_erfs_survey_simulation(year = 2009):
         reform_key = 'inversion_directe_salaires',
         tax_benefit_system = base_survey.france_data_tax_benefit_system,
         )
-#    try:
     survey_scenario = ErfsSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
         )
-#    except AssertionError as e:
-#        print(e)
-#        return
 
     data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
@@ -134,9 +131,20 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     start = time.time()
     survey_scenario, data_frame_by_entity = test_erfs_fpr_survey_simulation(year = 2012)
+    print survey_scenario.simulation.calculate('salaire_imposable_pour_inversion')
 
-#    data_frame_familles = data_frame_by_entity['famille']
+    # print survey_scenario.simulation.calculate('salaire_de_base')
+
+    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
+        variables = [
+            'categorie_salarie',
+            'salaire_imposable_pour_inversion',
+            # 'salaire_de_base'
+            ],
+        )
+
+ #    data_frame_familles = data_frame_by_entity['famille']
 #    data_frame_foyers_fiscaux = data_frame_by_entity['foyer_fiscal']
-#    data_frame_individus = data_frame_by_entity['individu']
+    data_frame_individus = data_frame_by_entity['individu']
 #    data_frame_menages = data_frame_by_entity['menage']
     print(time.time() - start)
