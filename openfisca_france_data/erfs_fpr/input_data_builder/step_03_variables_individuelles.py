@@ -44,12 +44,8 @@ def create_variables_individuelles(individus, year):
     create_activite_variable(individus)
     create_revenus_variables(individus)
     create_contrat_de_travail(individus)
-    return
     create_categorie_salarie_variable(individus)
     create_effectif_entreprise_variable(individus)
-    create_contrat_de_travail(individus)
-    create_heures_remunerees_volume(individus)
-
 
 
 def create_activite_variable(individus):
@@ -218,11 +214,11 @@ def create_categorie_salarie_variable(individus):
 
     contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
-#   TODO: may use something like this but to be improved and tested
-#    individus['categorie_salarie'] = np.select(
-#         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel, non_pertinent]  # Coice list
-#         [0, 1, 2, 3, 4, 5, 6, 7],  # Condlist
-#         )
+    #   TODO: may use something like this but to be improved and tested
+    #    individus['categorie_salarie'] = np.select(
+    #         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel, non_pertinent]  # Coice list
+    #         [0, 1, 2, 3, 4, 5, 6, 7],  # Condlist
+    #         )
     actif_occupe = individus['salaire_imposable'] > 0
     individus['categorie_salarie'] = actif_occupe * (
         0 +
@@ -239,6 +235,9 @@ def create_categorie_salarie_variable(individus):
     assert individus['categorie_salarie'].isin(range(8)).all(), \
         "categorie_salarie n'est pas toujours dans l'intervalle [0, 7]\n{}".format(
             individus.categorie_salarie.value_counts())
+    log.info(u"Répartition des catégories de salariés: \n{}".format(
+        individus.groupby(['contrat_de_travail'])['categorie_salarie'].value_counts().sort_index()
+        ))
 
 
 def create_contrat_de_travail(individus):
@@ -279,25 +278,29 @@ def create_contrat_de_travail(individus):
         ).all(), 'duhab values {} should be in [0, 1, 2, 3, 4, 5, 6, 7, 9]'
 
     individus['contrat_de_travail'] = 6  # sans objet
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+    # 0 On élimine les individus avec un salaire_imposable nul des salariés
     # 1. utilisation de tppred et durhab
     # 1.1  temps_plein
     individus.query('tppred == 1').duhab.value_counts(dropna = False)
     assert (individus.query('tppred == 1').duhab >= 4).all()
     individus.loc[
-        (individus.salaire_imposable > 0) &
-        (individus.tppred == 1) | (individus.duhab.isin(range(4, 8))),
+        (individus.salaire_imposable > 0) & (
+            (individus.tppred == 1) | (individus.duhab.isin(range(4, 8)))
+            ),
         'contrat_de_travail'
         ] = 0
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
     # 1.2 temps partiel
     individus.query('tppred == 2').duhab.value_counts(dropna = False)
     assert (individus.query('tppred == 2').duhab.isin([1, 2, 3, 9])).all()
     individus.loc[
-        (individus.salaire_imposable > 0) &
-        (individus.tppred == 2) | (individus.duhab.isin(range(1, 4))),
+        (individus.salaire_imposable > 0) & (
+            (individus.tppred == 2) | (individus.duhab.isin(range(1, 4)))
+            ),
         'contrat_de_travail'
         ] = 1
-    print individus.query('salaire_imposable > 0').contrat_de_travail.value_counts(dropna = False)
-    individus.query('salaire_imposable > 0')
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
     # 2. On traite les salaires horaires inféreurs au SMIC
     # 2.1 temps plein
     temps_plein = individus.query('(contrat_de_travail == 0) & (salaire_imposable > 0)')
@@ -320,29 +323,36 @@ def create_contrat_de_travail(individus):
             'salaire_imposable'
             ] / smic_annuel_net * 35
     assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] < 35).all()
+    assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] > 0).all()
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+    del temps_plein, temps_plein_sous_smic
     # 2.2 Pour les temps partiel on prends les heures hcc
     # On vérfie que celles qu'on a créées jusqu'ici sont correctes
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
     assert (individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').heures_remunerees_volume < 35).all()
     #
     axes = (individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').hhc).hist(bins=100)
     axes.set_title("Heures (hcc)")
-    # On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
+    # individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').hhc.isnull().sum() = 489
+    # 2.2.1 On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
     temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire_imposable > 0)
-    moins_que_smic_horaire = (
-        (individus.salaire_imposable / (individus.hhc)) < (smic_annuel_net / 35)
-        ) #
+    moins_que_smic_horaire_hhc = (
+        ((individus.salaire_imposable / individus.hhc) < (smic_annuel_net / 35)) &
+        individus.hhc.notnull()
+        )
+    # Si on dispose de la variable hhc on l'utilise
     individus.loc[
-        temps_partiel & moins_que_smic_horaire & individus.hhc.notnull(),
+        temps_partiel & moins_que_smic_horaire_hhc,
         'heures_remunerees_volume'
         ] = individus.loc[
-            temps_partiel & moins_que_smic_horaire & individus.hhc.notnull(),
+            temps_partiel & moins_que_smic_horaire_hhc,
             'salaire_imposable'
             ] / smic_annuel_net * 35
     individus.loc[
-        temps_partiel & (~moins_que_smic_horaire) & individus.hhc.notnull(),
+        temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
         'heures_remunerees_volume'
         ] = individus.loc[
-            temps_partiel & (~moins_que_smic_horaire) & individus.hhc.notnull(),
+            temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
             'hhc'
             ]
     axes = (individus
@@ -352,7 +362,32 @@ def create_contrat_de_travail(individus):
         .hist(bins=100)
         )
     axes.set_title("Heures (heures_remunerees_volume)")
-    # On repasse en temps plein ceux qui ont plus de 35 heures par semaine
+    # 2.2.2 Il reste à ajuster le nombre d'heures pour les salariés à temps partiel qui n'ont pas de hhc
+    # et qui disposent de moins que le smic_horaire ou de les basculer en temps plein sinon
+    moins_que_smic_horaire_sans_hhc = (
+        (individus.salaire_imposable < smic_annuel_net) &
+        individus.hhc.isnull()
+        )
+    individus.loc[
+        temps_partiel & moins_que_smic_horaire_sans_hhc,
+        'heures_remunerees_volume'
+        ] = individus.loc[
+            temps_partiel & moins_que_smic_horaire_sans_hhc,
+            'salaire_imposable'
+            ] / smic_annuel_net * 35
+    plus_que_smic_horaire_sans_hhc = (
+        (individus.salaire_imposable >= smic_annuel_net) &
+        individus.hhc.isnull()
+        )
+    individus.loc[
+        temps_partiel & plus_que_smic_horaire_sans_hhc,
+        'contrat_de_travail'
+        ] = 0
+    individus.loc[
+        temps_partiel & plus_que_smic_horaire_sans_hhc,
+        'heures_remunerees_volume'
+        ] = 0
+    # 2.2.3 On repasse en temps plein ceux qui ont plus de 35 heures par semaine
     temps_partiel_bascule_temps_plein = (
         temps_partiel &
         (individus.heures_remunerees_volume >= 35)
@@ -365,32 +400,60 @@ def create_contrat_de_travail(individus):
         temps_partiel_bascule_temps_plein,
         'heures_remunerees_volume',
         ] = 0
+    del temps_partiel, temps_partiel_bascule_temps_plein, moins_que_smic_horaire_hhc, moins_que_smic_horaire_sans_hhc
     assert (individus.query('contrat_de_travail == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
+    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
     assert (individus.query('contrat_de_travail == 6').heures_remunerees_volume == 0).all()
-    return
-
-    x = individus.query('(contrat_de_travail == 1) & (heures_remunerees_volume >= 35)')[[
-        'contrat_de_travail',
-        'hhc',
-        'salaire_imposable',
+    # 2.3 On traite ceux qui ont un salaire_imposable mais pas de contrat de travail renseigné
+    # (temps plein ou temps complet)
+    salarie_sans_contrat_de_travail = (
+        (individus.salaire_imposable > 0) &
+        ~individus.contrat_de_travail.isin([0, 1])
+        )
+    # 2.3.1 On passe à temps plein ceux qui ont un salaire supérieur au SMIC annuel
+    individus.loc[
+        salarie_sans_contrat_de_travail &
+        (individus.salaire_imposable >= smic_annuel_net),
+        'contrat_de_travail'
+        ] = 0
+    assert (individus.loc[
+        salarie_sans_contrat_de_travail &
+        (individus.salaire_imposable >= smic_annuel_net),
         'heures_remunerees_volume'
-        ]]
+        ] == 0).all()
+    # 2.3.2 On passe à temps partiel ceux qui ont un salaire inférieur au SMIC annuel
+    individus.loc[
+        salarie_sans_contrat_de_travail &
+        (individus.salaire_imposable < smic_annuel_net),
+        'contrat_de_travail'
+        ] = 1
+    individus.loc[
+        salarie_sans_contrat_de_travail &
+        (individus.salaire_imposable < smic_annuel_net),
+        'heures_remunerees_volume'
+        ] = individus.loc[
+            salarie_sans_contrat_de_travail &
+            (individus.salaire_imposable < smic_annuel_net),
+            'salaire_imposable'
+            ] / smic_annuel_net * 35
+    #
+    individus.query('salaire_imposable > 0').contrat_de_travail.value_counts(dropna = False)
+    individus.query('salaire_imposable == 0').contrat_de_travail.value_counts(dropna = False)
 
-
+    individus.loc[salarie_sans_contrat_de_travail, 'salaire_imposable'].min()
+    individus.loc[salarie_sans_contrat_de_travail, 'salaire_imposable'].hist(bins = 1000)
+    del salarie_sans_contrat_de_travail
+    # On vérifie que l'on n'a pas fait d'erreurs
+    assert (individus.salaire_imposable >= 0).all()
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
     assert (individus.query('salaire_imposable > 0').contrat_de_travail.isin([0, 1])).all()
     assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
-
-    assert (individus.query('salaire_imposable > 0').contrat_de_travail.isin([0, 1])).all()
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
-
-
-
-def create_heures_remunerees_volume(individus):
-
-
-    pass
+    assert (individus.query('salaire_imposable == 0').heures_remunerees_volume == 0).all()
+    assert (individus.query('contrat_de_travail in [0, 6]').heures_remunerees_volume == 0).all()
+    assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
+    assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all()
+    return
 
 
 def create_effectif_entreprise_variable(individus):
@@ -527,22 +590,13 @@ def todo_create(individus):
 
 
 if __name__ == '__main__':
+
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
     year = 2012
 
-#    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
-#    step_01_preprocessing.build_merged_dataframes(year = year)
+    #    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
+    #    step_01_preprocessing.build_merged_dataframes(year = year)
     individus = build_variables_individuelles(year = year)
-    BIM
-    individus.hhc.value_counts(dropna = False)
-    individus.categorie_salarie.value_counts(dropna = False)
 
-    # Check SMIC pour individus ayant salaire_imposable != 0
-    actifs_occupes = individus.query('categorie_salarie < 7')
-    actifs_occupes.hhc.value_counts(dropna = False)
-    actifs_occupes.contrat_de_travail.value_counts(dropna = False)
-    # actis occupes sans information sur  contrat_de_travail
-    actifs_occupes.query('contrat_de_travail >= 6')
-    # actifs_occupes.salaire_imposable /

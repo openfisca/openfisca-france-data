@@ -139,12 +139,27 @@ if __name__ == '__main__':
         variables = [
             'categorie_salarie',
             'salaire_imposable_pour_inversion',
-            # 'salaire_de_base'
+            'contrat_de_travail',
+            'heures_remunerees_volume',
+            'salaire_de_base',
+            'salaire_imposable',
             ],
         )
 
- #    data_frame_familles = data_frame_by_entity['famille']
+#    data_frame_familles = data_frame_by_entity['famille']
 #    data_frame_foyers_fiscaux = data_frame_by_entity['foyer_fiscal']
     data_frame_individus = data_frame_by_entity['individu']
-#    data_frame_menages = data_frame_by_entity['menage']
+    assert (data_frame_individus.salaire_imposable_pour_inversion >= 0).all()
+    data_frame_individus.query('salaire_imposable_pour_inversion > 0').categorie_salarie.isin(range(7)).all()
+    data_frame_individus.query('salaire_imposable_pour_inversion > 0').contrat_de_travail.isin(range(2)).all()
+
+    #    data_frame_menages = data_frame_by_entity['menage']
     print(time.time() - start)
+
+    variable = 'heures_remunerees_volume'
+    simulation = survey_scenario.simulation
+    holder = simulation.get_holder(variable)
+    print holder.__dict__
+    for period, array in sorted(holder._array_by_period.iteritems()):
+        print period, array[:10]
+

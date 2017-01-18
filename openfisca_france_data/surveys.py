@@ -155,6 +155,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 'chomage_imposable',
                 'contrat_de_travail',
                 'effectif_entreprise',
+                'heures_remunerees_volume',
                 # 'hsup',
                 'pensions_alimentaires_percues',
                 'retraite_brute',
