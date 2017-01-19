@@ -184,10 +184,6 @@ class Aggregates(object):
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
         variable_array = simulation.calculate_add(variable)
-        print '----'
-        print variable
-        print max(variable_array)
-        print '----'
         assert np.isfinite(variable_array).all(), "The are non finite values in variable {} for entity {}".format(
             variable, column.entity.key)
         data = pd.DataFrame({
