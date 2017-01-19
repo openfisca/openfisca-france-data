@@ -124,6 +124,20 @@ def test_weights_building():
     return survey_scenario.simulation
 
 
+def show_variable(variable, index = None):
+    simulation = survey_scenario.simulation
+    holder = simulation.get_holder(variable)
+    print 'formula: ', holder.__dict__['formula']
+    print 'scalar: ', holder.column.scalar
+    if holder.column.scalar:
+        print holder.array[0]
+        return
+    for period, array in sorted(holder._array_by_period.iteritems()):
+        if index is not None:
+            print str(period), array[index]
+        else:
+            print str(period), array.mean(), array.min(), array.max()
+
 if __name__ == '__main__':
     import time
     log = logging.getLogger(__name__)
@@ -143,23 +157,57 @@ if __name__ == '__main__':
             'heures_remunerees_volume',
             'salaire_de_base',
             'salaire_imposable',
+            'plafond_securite_sociale',
             ],
         )
 
 #    data_frame_familles = data_frame_by_entity['famille']
 #    data_frame_foyers_fiscaux = data_frame_by_entity['foyer_fiscal']
     data_frame_individus = data_frame_by_entity['individu']
-    assert (data_frame_individus.salaire_imposable_pour_inversion >= 0).all()
     data_frame_individus.query('salaire_imposable_pour_inversion > 0').categorie_salarie.isin(range(7)).all()
     data_frame_individus.query('salaire_imposable_pour_inversion > 0').contrat_de_travail.isin(range(2)).all()
+    simulation = survey_scenario.simulation
+
+    (data_frame_individus.query(
+        '(heures_remunerees_volume == 0) & (salaire_imposable_pour_inversion > 0)'
+        ).contrat_de_travail == 0).all()
 
     #    data_frame_menages = data_frame_by_entity['menage']
     print(time.time() - start)
 
-    variable = 'heures_remunerees_volume'
-    simulation = survey_scenario.simulation
-    holder = simulation.get_holder(variable)
-    print holder.__dict__
-    for period, array in sorted(holder._array_by_period.iteritems()):
-        print period, array[:10]
+    mask = data_frame_individus.query(
+        '(categorie_salarie in [0, 1]) & (salaire_imposable_pour_inversion > 0)')
+    x = mask[[
+        'salaire_imposable',
+        'salaire_imposable_pour_inversion',
+        'salaire_de_base',
+        'categorie_salarie',
+        'contrat_de_travail',
+        'heures_remunerees_volume',
+        'plafond_securite_sociale'
+        ]].copy()
 
+    x['plafond_recalcule'] = (x.heures_remunerees_volume / (35 * 52)) * 36372
+    (
+        (mask.salaire_imposable_pour_inversion - mask.salaire_imposable).abs() > .1
+        ).sum()
+
+    show_variable('salaire_imposable_pour_inversion', index = 7)
+    show_variable('salaire_de_base', index = 7)
+
+    bim
+    simulation.calculate('plafond_securite_sociale')
+    simulation.calculate('assiette_cotisations_sociales')
+    simulation.calculate('assiette_cotisations_sociales_prive')
+
+    simulation.calculate('agff_salarie')
+    simulation.calculate('salaire_imposable')
+    show_variable('agff_salarie', index = 7)
+
+    show_variable('salaire_imposable', index = 7)
+    for variable in [
+       'age',
+       'age_en_mois',
+       'af_nbenf',
+       ]:
+       show_variable(variable)
