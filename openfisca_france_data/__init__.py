@@ -89,9 +89,6 @@ AGGREGATES_DEFAULT_VARS = [
 #  ajouter rmi pour le calcul des agrégats erfs
 
 
-# default_config_files_directory = pkg_resources.get_distribution('openfisca-survey-manager').location
-
-
 COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(
     pkg_resources.get_distribution('openfisca-france-data').location,

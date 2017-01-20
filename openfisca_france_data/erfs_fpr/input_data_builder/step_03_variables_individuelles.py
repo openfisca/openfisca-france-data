@@ -19,7 +19,6 @@ log = logging.getLogger(__name__)
 smic_annuel_net = 1118.36 * 12  # 2012
 
 
-
 @temporary_store_decorator(file_name = 'erfs_fpr')
 def build_variables_individuelles(temporary_store = None, year = None):
     """
@@ -36,6 +35,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
     temporary_store['individus_{}'.format(year)] = individus
     log.info(u"step_03_variables_individuelles terminée")
     return individus
+
 
 # helpers
 
