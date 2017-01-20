@@ -16,13 +16,22 @@ log = logging.getLogger(__name__)
 
 
 class AbstractErfsSurveyScenario(AbstractSurveyScenario):
+    id_variable_by_entity_key = dict(
+        famille = 'idfam',
+        foyer_fiscal = 'idfoy',
+        menage = 'idmen',
+        )
     filtering_variable_by_entity = dict(
         famille = 'champm_familles',
         foyer_fiscal = 'champm_foyers_fiscaux',
         individu = 'champm_individus',
         menage = 'champm',
         )
-
+    role_variable_by_entity_key = dict(
+        famille = 'quifam',
+        foyer_fiscal = 'quifoy',
+        menage = 'quimen',
+        )
 
     # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
     #     from openfisca_france_data.utils import id_formatter
@@ -182,6 +191,8 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         log.info('Customizing input_data_frame')
         input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
         input_data_frame['heures_remunerees_volume'] = input_data_frame.heures_remunerees_volume * 52
+        for variable in ['quifam', 'quifoy', 'quimen']:
+            print(input_data_frame[variable].value_counts(dropna = False))
 
     # def init_from_collection(self, collection = None, reference_tax_benefit_system = None, tax_benefit_system = None,
     #         used_as_input_variables = None, year = None):
