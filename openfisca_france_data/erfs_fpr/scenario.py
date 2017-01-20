@@ -33,6 +33,14 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         # taux_incapacite = .50,
         )
     input_data_survey_prefix = 'openfisca_erfs_fpr_data'
+    non_neutralizable_variables = [
+        'champm',
+        'idfam_original',
+        'idfoy_original',
+        'idmen_original',
+        'statut_marital',
+        'wprm_init',
+        ]
 
     @classmethod
     def build_input_data(cls, year = None):
