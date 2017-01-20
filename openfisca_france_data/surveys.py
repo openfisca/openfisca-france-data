@@ -229,10 +229,12 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             )
 
     def initialize_weights(self):
-        self.weight_column_name_by_entity['menage'] = 'wprm'
-        self.weight_column_name_by_entity['famille'] = 'weight_familles'
-        self.weight_column_name_by_entity['foyer_fiscal'] = 'weight_foyers'
-        self.weight_column_name_by_entity['individu'] = 'weight_individus'
+        self.weight_column_name_by_entity = dict(
+            menage = 'wprm',
+            famille = 'weight_familles',
+            foyer_fiscal = 'weight_foyers',
+            individu = 'weight_individus',
+            )
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
