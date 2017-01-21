@@ -26,7 +26,6 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
     return survey_scenario
 
 
-#%%
 survey_scenario = get_survey_scenario()
 
 #%%
@@ -37,15 +36,20 @@ data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         'age_en_mois',
         'age',
         'autonomie_financiere',
-        'autonomie_financiere',
+        'af_eligibilite_base',
         'champm_familles',
         'est_enfant_dans_famille',
+        'prestations_familiales_enfant_a_charge',
+        'rempli_obligation_scolaire',
+        'residence_dom',
         'weight_familles',
         'weight_individus',
+        'wprm',
         ],
     )
 famille = data_frame_by_entity['famille']
 individu = data_frame_by_entity['individu']
+menage = data_frame_by_entity['menage']
 
 #%%
 population_by_age = individu.groupby('age')[['weight_individus']].sum().reset_index()
@@ -58,10 +62,37 @@ assert (population_by_age.query('age <= 16 & age >= 0')['weight_individus'] < 85
 
 #%%
 
-print famille.weight_familles.sum()
-# 17 à 18 millions de familles
+assert famille.weight_familles.sum() < 30e6
+assert famille.weight_familles.sum() > 29e6
+
+(famille
+    .groupby(['af_nbenf'])['weight_familles']
+    .sum()
+    .reset_index()
+    .query('af_nbenf > 0')
+    .weight_familles
+    .sum()
+    ) > 8e6
 
 #%%
-print individu.groupby(['age'])['est_enfant_dans_famille'].agg(min, max, 'mean')
+print (famille.af_base * famille.weight_familles).sum()
 
 
+#%%
+famille.groupby(['af_eligibilite_base'])['weight_familles'].sum()
+menage.groupby(['residence_dom'])['wprm'].sum()
+individu.groupby(['prestations_familiales_enfant_a_charge'])['weight_individus'].sum()  # PROBLEM
+individu.groupby(['est_enfant_dans_famille'])['weight_individus'].sum()
+individu.groupby(['autonomie_financiere'])['weight_individus'].sum()
+individu.groupby(['autonomie_financiere', 'est_enfant_dans_famille', 'rempli_obligation_scolaire'])['weight_individus'].sum()
+
+#%%
+survey_scenario.get_memory_usage('rempli_obligation_scolaire')
+
+#%%
+# survey_scenario.summarize_variable('age')
+famille.groupby(['af_nbenf'])['weight_familles'].sum()
+
+#%%
+individu.groupby(['age', 'autonomie_financiere'])['weight_individus'].sum()
+individu.groupby(['age', 'est_enfant_dans_famille'])['weight_individus'].sum()

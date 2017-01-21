@@ -30,6 +30,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     # Might be used: hsup
     default_value_by_variable = dict(
         cotisation_sociale_mode_recouvrement = 1,
+        rempli_obligation_scolaire = True,
         # taux_incapacite = .50,
         )
     input_data_survey_prefix = 'openfisca_erfs_fpr_data'
@@ -38,6 +39,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'idfam_original',
         'idfoy_original',
         'idmen_original',
+        'rempli_obligation_scolaire',
         'statut_marital',
         'wprm_init',
         ]

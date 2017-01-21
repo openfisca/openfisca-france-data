@@ -33,36 +33,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         menage = 'quimen',
         )
 
-    # def cleanup_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
-    #     from openfisca_france_data.utils import id_formatter
-    #     person_index = dict()
-    #     id_variables = [
-    #         entity.index_for_person_variable_name for entity in simulation.entity_by_key_singular.values()
-    #         if not entity.is_persons_entity]
-
-    #     if filter_entity.is_persons_entity:
-    #         selection = data_frame.index.isin(filter_index)
-    #         person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
-    #     else:
-    #         selection = data_frame[filter_entity.index_for_person_variable_name].isin(filter_index)
-    #         id_variables.remove(filter_entity.index_for_person_variable_name)
-    #         person_index[filter_entity.key_plural] = data_frame.index[selection].copy()
-
-    #     final_selection_index = person_index[filter_entity.index_for_person_variable_name]  # initialisation
-
-    #     for entity in simulation.entity_by_key_singular.values():
-    #         if entity.index_for_person_variable_name in id_variables:
-    #             other_entity_index = \
-    #                 data_frame[entity.index_for_person_variable_name][person_index[filter_entity.key_plural]].unique()
-    #             person_index[entity.key_plural] = \
-    #                 data_frame.index[data_frame[entity.index_for_person_variable_name].isin(other_entity_index)].copy()
-    #             final_selection_index += person_index[entity.key_plural]
-
-    #     data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
-    #     for entity in simulation.entity_by_key_singular.values():
-    #         data_frame = id_formatter(data_frame, entity.index_for_person_variable_name)
-    #     return data_frame
-
     @classmethod
     def build_input_data_from_test_case(cls, tax_benefit_system, test_case_scenario, year):
         for axe in test_case_scenario['axes'][0]:
@@ -160,7 +130,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 continue
             three_year_span_variables = [
                 'categorie_salarie',
-                'cotisation_sociale_mode_recouvrement',
                 'chomage_brut',
                 'chomage_imposable',
                 'contrat_de_travail',
@@ -182,6 +151,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable))
                 #
                 for variable, value in self.default_value_by_variable.iteritems():
+                    print('Setting {} to new default value {}'.format(variable, value))
                     holder = simulation.get_or_new_holder(variable)
                     array = np.empty(holder.entity.count, dtype = holder.column.dtype)
                     array.fill(value)
