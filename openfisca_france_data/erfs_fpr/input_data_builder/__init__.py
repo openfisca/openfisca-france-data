@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
+
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
-    # step_02_imputation_loyer as imputation_loyer,
+    step_02_imputation_loyer as imputation_loyer,
     step_03_variables_individuelles as variables_individuelles,
     step_04_famille as famille,
     step_05_final as final,
@@ -17,14 +20,23 @@ from openfisca_france_data.utils import store_input_data_frame
 log = logging.getLogger(__name__)
 
 
+
 def build(year = None):
     assert year is not None
+    #
     preprocessing.build_merged_dataframes(year = year)
+    #
     # imputation_loyer.imputation_loyer(year = year)
+    #
+    openfisca_survey_collection = SurveyCollection(name = 'openfisca')
+    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    stata_file = os.path.join(output_data_directory, 'log_men_ERFS.dta')
+    imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
+    #
     variables_individuelles.build_variables_individuelles(year = year)
     famille.build_famille(year = year)
     final.create_input_data_frame(year = year)
-
+    #
     temporary_store = get_store(file_name = 'erfs_fpr')
     data_frame = temporary_store['input_{}'.format(year)]
     # Save the data_frame in a collection
@@ -41,7 +53,11 @@ if __name__ == '__main__':
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2012
-    build(year = year)
+    # build(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
+
+
+    temporary_store = get_store(file_name = 'erfs_fpr')
+    data_frame = temporary_store['menages_{}'.format(year)]

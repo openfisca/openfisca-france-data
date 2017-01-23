@@ -151,7 +151,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                     holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable))
                 #
                 for variable, value in self.default_value_by_variable.iteritems():
-                    print('Setting {} to new default value {}'.format(variable, value))
+                    log.info('Setting {} to new default value {}'.format(variable, value))
                     holder = simulation.get_or_new_holder(variable)
                     array = np.empty(holder.entity.count, dtype = holder.column.dtype)
                     array.fill(value)
@@ -161,10 +161,14 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         log.info('Customizing input_data_frame')
         input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
         input_data_frame['heures_remunerees_volume'] = input_data_frame.heures_remunerees_volume * 52
-        for variable in ['quifam', 'quifoy', 'quimen']:
-            print(input_data_frame[variable].value_counts(dropna = False))
+        input_data_frame['loyer'] = 12 * input_data_frame.loyer
 
-    # def init_from_collection(self, collection = None, reference_tax_benefit_system = None, tax_benefit_system = None,
+        for variable in ['quifam', 'quifoy', 'quimen']:
+            log.info(input_data_frame[variable].value_counts(dropna = False))
+
+
+
+            # def init_from_collection(self, collection = None, reference_tax_benefit_system = None, tax_benefit_system = None,
     #         used_as_input_variables = None, year = None):
 
     #     if used_as_input_variables is None:

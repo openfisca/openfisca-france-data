@@ -57,9 +57,8 @@ if __name__ == '__main__':
     survey_scenario = test_erfs_fpr_survey_simulation_aggregates()
 
     aggregates = Aggregates(survey_scenario = survey_scenario)
-    aggregates.compute_aggregates()
-    print(aggregates.base_data_frame)
-    # difference_data_frame = aggregates.compute_difference()
+    df = aggregates.compute_aggregates()
+    difference_data_frame = aggregates.compute_difference()
     # return aggregates.base_data_frame, difference_data_frame, survey_scenario
 
     # df = test_erfs_aggregates_reform()

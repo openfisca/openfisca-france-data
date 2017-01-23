@@ -81,7 +81,7 @@ print (famille.af_base * famille.weight_familles).sum()
 #%%
 famille.groupby(['af_eligibilite_base'])['weight_familles'].sum()
 menage.groupby(['residence_dom'])['wprm'].sum()
-individu.groupby(['prestations_familiales_enfant_a_charge'])['weight_individus'].sum()  # PROBLEM
+individu.groupby(['prestations_familiales_enfant_a_charge'])['weight_individus'].sum()  # PROBLEM
 individu.groupby(['est_enfant_dans_famille'])['weight_individus'].sum()
 individu.groupby(['autonomie_financiere'])['weight_individus'].sum()
 individu.groupby(['autonomie_financiere', 'est_enfant_dans_famille', 'rempli_obligation_scolaire'])['weight_individus'].sum()
@@ -90,7 +90,7 @@ individu.groupby(['autonomie_financiere', 'est_enfant_dans_famille', 'rempli_obl
 survey_scenario.get_memory_usage('rempli_obligation_scolaire')
 
 #%%
-# survey_scenario.summarize_variable('age')
+# survey_scenario.summarize_variable('age')
 famille.groupby(['af_nbenf'])['weight_familles'].sum()
 
 #%%

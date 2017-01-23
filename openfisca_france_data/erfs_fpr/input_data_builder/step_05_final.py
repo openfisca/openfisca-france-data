@@ -21,6 +21,7 @@ def create_input_data_frame(temporary_store = None, year = None):
 
     log.info('step_05_create_input_data_frame: Etape finale ')
     individus = temporary_store['individus_{}'.format(year)]
+    menages = temporary_store['menages_{}'.format(year)]
     variables = [
         'activite',
         'age_en_mois',
@@ -51,10 +52,15 @@ def create_input_data_frame(temporary_store = None, year = None):
     individus = create_ids_and_roles(individus)[variables].copy()
     gc.collect()
     #
-    menages = extract_menages_variables(year = year)
+    menages = extract_menages_variables(menages)
     individus = create_collectives_foyer_variables(individus, menages)
     #
-    data_frame = individus.merge(menages[['idmen', 'wprm', 'taxe_habitation']], on = 'idmen')
+    data_frame = individus.merge(
+        menages[
+            ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
+            ],
+        on = 'idmen'
+        )
     del individus, menages
     #
     for entity_id in ['idmen', 'idfoy', 'idfam']:
@@ -125,15 +131,23 @@ def create_ids_and_roles(individus):
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
-def extract_menages_variables(temporary_store = None, year = None):
+def extract_menages_variables_from_store(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
-    menages = temporary_store['menages_{}'.format(year)][
-        ['ident', 'wprm', 'taxe_habitation', 'rev_fonciers_bruts']
-        ].copy()
+    menages = temporary_store['menages_{}'.format(year)]
+    return extract_menages_variables(menages)
+
+
+def extract_menages_variables(menages):
+    variables = ['ident', 'wprm', 'taxe_habitation', 'rev_fonciers_bruts']
+    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement']
+    for external_variable in external_variables:
+        if external_variable in menages.columns:
+            log.info("Found {} in menages table: we keep it".format(external_variable))
+            variables.append(external_variable)
+    menages = menages[variables].copy()
     menages.taxe_habitation = - menages.taxe_habitation  # taxes should be negative
     menages.rename(columns = dict(ident = 'idmen'), inplace = True)
-
     return menages
 
 

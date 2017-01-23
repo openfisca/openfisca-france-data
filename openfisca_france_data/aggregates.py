@@ -195,34 +195,22 @@ class Aggregates(object):
             filter_dummy_array = simulation.calculate(filter_dummy_variable)
         assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
             filter_dummy_variable, column.entity.key)
-        try:
-            amount = int(
-                (data[variable] * data[weight] * filter_dummy_array / 10 ** 6).sum().round()
-                )
-        except ValueError as e:
-            log.error("When computing amount for {} : {}".format(variable, e))
-            amount = np.nan
-        try:
-            beneficiaries = int(
-                ((data[variable] != 0) * data[weight] * filter_dummy_array / 10 ** 3).sum().round()
-                )
-        except OverflowError as e:
-            beneficiaries = np.nan
-            log.error("When computing beenficiaries for {} : {}".format(variable, e))
 
-        try:
-            variable_data_frame = pd.DataFrame(
-                data = {
-                    'label': column_by_name[variable].label,
-                    'entity': column_by_name[variable].entity.key,
-                    '{}_amount'.format(simulation_type): amount,
-                    '{}_beneficiaries'.format(simulation_type): beneficiaries,
-                    },
-                index = [variable],
-                )
-        except OverflowError as e:
-            log.error("When computing dataframes for {} : {}".format(variable, e))
-            log.error("amount: {}, beneficiaries: {}".format(amount, beneficiaries))
+        amount = int(
+            (data[variable] * data[weight] * filter_dummy_array / 10 ** 6).sum().round()
+            )
+        beneficiaries = int(
+            ((data[variable] != 0) * data[weight] * filter_dummy_array / 10 ** 3).sum().round()
+            )
+        variable_data_frame = pd.DataFrame(
+            data = {
+                'label': column_by_name[variable].label,
+                'entity': column_by_name[variable].entity.key,
+                '{}_amount'.format(simulation_type): amount,
+                '{}_beneficiaries'.format(simulation_type): beneficiaries,
+                },
+            index = [variable],
+            )
 
         return variable_data_frame
 
