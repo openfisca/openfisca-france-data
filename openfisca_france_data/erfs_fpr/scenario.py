@@ -24,6 +24,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'retraite_imposable',
         'ric',
         'rnc',
+        'statut_marital',
         'salaire_imposable_pour_inversion',  # 'salaire_imposable',
         'taxe_habitation',
         ]

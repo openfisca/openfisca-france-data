@@ -28,14 +28,16 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
     return survey_scenario
 
 
-survey_scenario = get_survey_scenario()
+survey_scenario = get_survey_scenario(rebuild_input_data = True)
 
 #%%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
     variables = [
-        'nbptr',
-        'weight_foyers',
         'irpp',
+        'maries_ou_pacses',
+        'nbptr',
+        'statut_marital',
+        'weight_foyers',
         ],
     )
 famille = data_frame_by_entity['famille']
@@ -46,6 +48,7 @@ menage = data_frame_by_entity['menage']
 
 #%%
 # statut_occupation
-
-foyer_fiscal.groupby('nbptr')['weight_foyers'].sum()
+print individu.statut_marital.value_counts()
+print foyer_fiscal.groupby('maries_ou_pacses')['weight_foyers'].sum()
+print foyer_fiscal.groupby('nbptr')['weight_foyers'].sum()
 

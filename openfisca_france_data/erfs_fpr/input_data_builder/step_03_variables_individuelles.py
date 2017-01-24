@@ -46,6 +46,7 @@ def create_variables_individuelles(individus, year):
     create_contrat_de_travail(individus)
     create_categorie_salarie_variable(individus)
     create_effectif_entreprise_variable(individus)
+    create_statut_matrimonial_variable(individus)
 
 
 def create_activite_variable(individus):
@@ -580,6 +581,31 @@ def create_revenus_variables(individus):
             "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
     assert individus.taux_csg_remplacement.isin(range(4)).all()
 
+
+def create_statut_matrimonial_variable(individus):
+    u"""
+    Création de la variable statut_marital qui prend les valeurs:
+      1 - "Marié",
+      2 - "Célibataire",
+      3 - "Divorcé",
+      4 - "Veuf",
+      5 - "Pacsé",
+      6 - "Jeune veuf"
+    à partir de la variable matri qui prend les valeurs
+      0 - sans objet (moins de 15 ans)
+      1 - Célibataire
+      2 - Marié(e) ou remarié(e)
+      3 - Veuf(ve)
+      4 - Divorcé(e)
+    """
+    assert individus.matri.isin(range(5)).all()
+
+    individus['statut_marital'] = 2  # célibataire par défaut
+    individus.loc[individus.matri == 2, 'statut_marital'] = 1  # marié(e)
+    individus.loc[individus.matri == 3, 'statut_marital'] = 4  # veuf(ve)
+    individus.loc[individus.matri == 4, 'statut_marital'] = 3  # divorcé(e)
+
+    assert individus.statut_marital.isin(range(1, 7)).all()
 
 def todo_create(individus):
     log.info(u"    6.3 : variable txtppb")
