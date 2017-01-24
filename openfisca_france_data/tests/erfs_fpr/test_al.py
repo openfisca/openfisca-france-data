@@ -7,9 +7,6 @@
 from __future__ import division
 
 
-import numpy as np
-
-
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.tests import base as base_survey
 
@@ -28,27 +25,40 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
     return survey_scenario
 
 
-survey_scenario = get_survey_scenario(rebuild_input_data = True)
+survey_scenario = get_survey_scenario()
 
 #%%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
     variables = [
-        'irpp',
-        'maries_ou_pacses',
-        'nbptr',
-        'statut_marital',
-        'weight_foyers',
+        'age',
+        'aides_logement',
+        'aide_logement_montant_brut',
+        'apl',
+        'alf',
+        'als',
+        'statut_occupation_logement',
+        'weight_familles',
+        'weight_individus',
+        'wprm',
         ],
     )
 famille = data_frame_by_entity['famille']
-foyer_fiscal = data_frame_by_entity['foyer_fiscal']
 individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
-
 #%%
 # statut_occupation
-print individu.statut_marital.value_counts()
-print foyer_fiscal.groupby('maries_ou_pacses')['weight_foyers'].sum()
-print foyer_fiscal.groupby('nbptr')['weight_foyers'].sum()
+statut_occupation_logement_pct = menage.groupby('statut_occupation_logement')['wprm'].sum() / menage.wprm.sum()
+# 2 proprietaire
+assert .39 < statut_occupation_logement_pct[2] < .41
+# accedant
+assert .17 < statut_occupation_logement_pct[1] < .18
+# locataire (indiferrencie)
+assert .39 < statut_occupation_logement_pct[3:7].sum() < .43
 
+#%%
+
+11e10 < (famille.aide_logement_montant_brut * famille.weight_familles).sum()
+11e10 < (famille.apl * famille.weight_familles).sum() + (famille.als * famille.weight_familles).sum() + (famille.alf * famille.weight_familles).sum()
+
+## Reste un peu faiblard

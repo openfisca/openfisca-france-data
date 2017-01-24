@@ -58,6 +58,3 @@ if __name__ == '__main__':
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
 
-
-    temporary_store = get_store(file_name = 'erfs_fpr')
-    data_frame = temporary_store['menages_{}'.format(year)]

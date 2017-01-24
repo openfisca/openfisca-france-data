@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 
 import logging
 import numpy as np
 
 
-from openfisca_france_data.aggregates import Aggregates
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
+from openfisca_france_data.aggregates import Aggregates
 from openfisca_france_data.tests import base as base_survey
 
 

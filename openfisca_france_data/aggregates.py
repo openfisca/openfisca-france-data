@@ -17,7 +17,7 @@ except ImportError:
     Config = None
 
 
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS, FILTERING_VARS, DATA_DIR
+from openfisca_france_data import AGGREGATES_DEFAULT_VARS, DATA_DIR
 
 
 log = logging.getLogger(__name__)
@@ -68,9 +68,7 @@ class Aggregates(object):
                 self.reference_simulation = self.reform_simulation
 
         self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
-
         self.aggregate_variables = AGGREGATES_DEFAULT_VARS
-        self.filter_by = FILTERING_VARS[0]
 
     def compute_aggregates(self, reference = True, reform = True, actual = True):
         """
@@ -165,10 +163,11 @@ class Aggregates(object):
         ----------
         variable : string
                    name of the variable aggregated according to its entity
-        filter_by : string
-                    name of the variable to filter by
+        filter_by : string or boolean
+                    If string use it as the name of the variable to filter by
+                    If not None or False and the string is not present in the tax-benefit-system use the default filtering variable if any
         simulation_type : string
-                          reference or reform or actual
+                          'reference' or 'reform' or 'actual'
         """
         assert simulation_type in ['reference', 'reform']
         prefixed_simulation = '{}_simulation'.format(simulation_type)
@@ -178,29 +177,38 @@ class Aggregates(object):
         weight = self.weight_column_name_by_entity[column.entity.key]
         assert weight in column_by_name, "{} not a variable of the {} tax_benefit_system".format(
             weight, simulation_type)
-        weight_array = simulation.calculate(weight)
+        weight_array = simulation.calculate(weight).astype('float')
         assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
             weight, column.entity.key)
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
-        variable_array = simulation.calculate_add(variable)
+        variable_array = simulation.calculate_add(variable).astype('float')
         assert np.isfinite(variable_array).all(), "The are non finite values in variable {} for entity {}".format(
             variable, column.entity.key)
         data = pd.DataFrame({
             variable: variable_array,
-            weight: simulation.calculate(weight),
+            weight: weight_array,
             })
         if filter_by:
-            filter_dummy_variable = self.survey_scenario.filtering_variable_by_entity[column.entity.key]
+            filter_dummy_variable = (
+                filter_by
+                if filter_by in column_by_name
+                else self.survey_scenario.filtering_variable_by_entity[column.entity.key]
+                )
             filter_dummy_array = simulation.calculate(filter_dummy_variable)
+
+        else:
+            filter_dummy_array = 1
+
         assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
             filter_dummy_variable, column.entity.key)
 
+        print variable, weight
         amount = int(
-            (data[variable] * data[weight] * filter_dummy_array / 10 ** 6).sum().round()
+            (data[variable] * data[weight] * filter_dummy_array / 10 ** 6).sum()
             )
         beneficiaries = int(
-            ((data[variable] != 0) * data[weight] * filter_dummy_array / 10 ** 3).sum().round()
+            ((data[variable] != 0) * data[weight] * filter_dummy_array / 10 ** 3).sum()
             )
         variable_data_frame = pd.DataFrame(
             data = {

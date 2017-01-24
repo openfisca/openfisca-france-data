@@ -96,6 +96,5 @@ DATA_DIR = os.path.join(
     'plugins',
     'aggregates'
     )
-FILTERING_VARS = ["champm"]
 WEIGHT = "wprm"
 WEIGHT_INI = "wprm_init"
