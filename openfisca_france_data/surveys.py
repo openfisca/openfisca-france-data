@@ -161,7 +161,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         log.info('Customizing input_data_frame')
         input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
         input_data_frame['heures_remunerees_volume'] = input_data_frame.heures_remunerees_volume * 52
-        input_data_frame['loyer'] = 12 * input_data_frame.loyer
+        if 'loyer' in input_data_frame:
+            input_data_frame['loyer'] = 12 * input_data_frame.loyer
+
+        input_data_frame.loc[
+            input_data_frame.categorie_salarie.isin(range(2, 7)),
+            'categorie_salarie'
+            ] = 1
 
         for variable in ['quifam', 'quifoy', 'quimen']:
             log.info(input_data_frame[variable].value_counts(dropna = False))
