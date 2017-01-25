@@ -64,13 +64,7 @@ def create_input_data_frame(temporary_store = None, year = None):
         )
     del individus, menages
     #
-    for entity_id in ['idmen', 'idfoy', 'idfam']:
-        log.info('Reformat ids: {}'.format(entity_id))
-        data_frame = id_formatter(data_frame, entity_id)
-    data_frame.reset_index(drop = True, inplace = True)
-    data_frame = normalizes_roles_in_entity(data_frame, 'foy')
-    data_frame = normalizes_roles_in_entity(data_frame, 'men')
-    print_id(data_frame)
+    data_frame = format_ids_and_roles(data_frame)
     assert 'f4ba' in data_frame.columns
     temporary_store['input_{}'.format(year)] = data_frame
     return data_frame
@@ -129,6 +123,17 @@ def create_ids_and_roles(individus):
     individus['idfoy'] = individus['idfam'].copy()
     individus['quifoy'] = individus['quifam'].copy()
     return individus
+
+
+def format_ids_and_roles(data_frame):
+    for entity_id in ['idmen', 'idfoy', 'idfam']:
+        log.info('Reformat ids: {}'.format(entity_id))
+        data_frame = id_formatter(data_frame, entity_id)
+    data_frame.reset_index(drop = True, inplace = True)
+    data_frame = normalizes_roles_in_entity(data_frame, 'foy')
+    data_frame = normalizes_roles_in_entity(data_frame, 'men')
+    print_id(data_frame)
+    return data_frame
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
