@@ -157,6 +157,15 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                     array.fill(value)
                     holder.set_input(simulation.period.offset(offset), array)
 
+            salaire_de_base = simulation.calculate_add('salaire_de_base')
+            months = ["0{}".format(i) for i in range(1, 10)] + ["10", "11", "12"]
+            for month in months:
+                holder = simulation.get_or_new_holder('salaire_de_base')
+                year = str(self.simulation.period.this_year)
+                period = periods.period('{}-{}'.format(year, month))
+                print period
+                holder.set_input(period, salaire_de_base / 12)
+
     def custom_input_data_frame(self, input_data_frame):
         log.info('Customizing input_data_frame')
         input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable

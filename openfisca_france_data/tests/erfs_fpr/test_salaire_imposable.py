@@ -6,9 +6,6 @@
 from __future__ import division
 
 
-import numpy as np
-
-
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.tests import base as base_survey
 
@@ -26,13 +23,13 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         )
     return survey_scenario
 
-
 survey_scenario = get_survey_scenario()
-
 
 
 #%%
 survey_scenario.summarize_variable('salaire_de_base', force_compute = True)
+
+#%%
 survey_scenario.summarize_variable('salaire_imposable', force_compute = True)
 survey_scenario.summarize_variable('salaire_de_base', force_compute = True)
 
