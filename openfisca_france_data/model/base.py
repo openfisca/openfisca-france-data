@@ -6,7 +6,7 @@ from openfisca_core.variables import Variable
 
 
 from openfisca_france.model.base import (BoolCol, CHEF, ENFS, Enum, EnumCol, Famille, FloatCol, FoyerFiscal,
-    Individu, IntCol, Menage, QUIFAM, QUIFOY, PART, VOUS)
+    Individu, IntCol, Menage, PART, PeriodSizeIndependentFloatCol, PeriodSizeIndependentIntCol, QUIFAM, QUIFOY, VOUS)
 
 
 __all__ = [
@@ -22,6 +22,8 @@ __all__ = [
     'IntCol',
     'Menage',
     'PART',
+    'PeriodSizeIndependentFloatCol',
+    'PeriodSizeIndependentIntCol',
     'QUIFAM',
     'QUIFOY',
     'Variable',

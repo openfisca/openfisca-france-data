@@ -66,7 +66,7 @@ def create_activite_variable(individus):
     individus.loc[individus.actrec == 5, 'activite'] = 2
     individus.loc[individus.actrec == 7, 'activite'] = 3
     individus.loc[individus.actrec == 8, 'activite'] = 4
-    individus.loc[individus.age <= 13, 'activite'] = 2  # ce sont en fait les actrec=9
+    individus.loc[(individus.age <= 13) | (individus.actrec == 9), 'activite'] = 2
     message = "Valeurs prises par la variable activité \n {}".format(individus['activite'].value_counts(dropna = False))
     assert individus.activite.notnull().all(), message
     assert individus.activite.isin(range(5)).all(), message
@@ -113,6 +113,7 @@ def create_actrec_variable(individus):
 
 def create_age_variables(individus, year = None):
     """
+    Création des variables age et age_en_moi
     """
     assert year is not None
     individus['age'] = year - individus.naia - 1

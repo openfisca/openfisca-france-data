@@ -20,7 +20,7 @@ from .base import *  # noqa analysis:ignore
 
 
 class champm_individus(Variable):
-    column = BoolCol
+    column = PeriodSizeIndependentIntCol
     entity = Individu
     label = u"L'individu est dans un ménage du champ ménage",
 
@@ -29,7 +29,7 @@ class champm_individus(Variable):
 
 
 class champm_familles(Variable):
-    column = BoolCol
+    column = PeriodSizeIndependentIntCol
     entity = Famille
     label = u"Le premier parent de la famille est dans un ménage du champ ménage",
 
@@ -38,7 +38,7 @@ class champm_familles(Variable):
 
 
 class champm_foyers_fiscaux(Variable):
-    column = BoolCol
+    column = PeriodSizeIndependentIntCol
     entity = FoyerFiscal
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
@@ -247,7 +247,7 @@ class decile_rfr_par_part(Variable):
 
 
 class weight_individus(Variable):
-    column = FloatCol
+    column = PeriodSizeIndependentFloatCol
     entity = Individu
     label = u"Poids de l'individu"
 
@@ -256,7 +256,7 @@ class weight_individus(Variable):
 
 
 class weight_familles(Variable):
-    column = FloatCol
+    column = PeriodSizeIndependentFloatCol
     entity = Famille
     label = u"Poids de la famille"
 
@@ -265,7 +265,7 @@ class weight_familles(Variable):
 
 
 class weight_foyers(Variable):
-    column = FloatCol
+    column = PeriodSizeIndependentFloatCol
     entity = FoyerFiscal
     label = u"Poids du foyer fiscal",
 

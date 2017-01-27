@@ -5,19 +5,19 @@ from .base import * # noqa  analysis:ignore
 
 
 class idmen_original(Variable):
-    column = IntCol
+    column = PeriodSizeIndependentIntCol
     entity = Menage
     label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF"
 
 
 class idfoy_original(Variable):
-    column = IntCol
+    column = PeriodSizeIndependentIntCol
     entity = FoyerFiscal
     label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF"
 
 
 class idfam_original(Variable):
-    column = IntCol
+    column = PeriodSizeIndependentIntCol
     entity = Famille
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF"
 
@@ -231,17 +231,17 @@ class idfam_original(Variable):
 
 
 class champm(Variable):
-    column = BoolCol(default = True)
+    column = PeriodSizeIndependentIntCol(default = True)
     entity = Menage
 
 
 class wprm(Variable):
-    column = FloatCol(default = 1)
+    column = PeriodSizeIndependentFloatCol(default = 1)
     entity = Menage
     label = u"Effectifs"
 
 
 class wprm_init(Variable):
-    column = FloatCol
+    column = PeriodSizeIndependentFloatCol
     entity = Menage
     label = u"Effectifs"
