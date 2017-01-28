@@ -43,7 +43,7 @@ class Aggregates(object):
         ('benef_diff_rel', u"Diff. relative\nBénéficiaires"),
         ))  # TODO: localize
     reference_simulation = None
-    reform_simulation = None
+    simulation = None
     survey_scenario = None
     totals_df = None
     aggregate_variables = None
@@ -52,20 +52,16 @@ class Aggregates(object):
         assert survey_scenario is not None
         self.year = survey_scenario.year
         self.survey_scenario = survey_scenario
-        if self.reform_simulation is not None:
-            raise('A simulation already exists')
+        assert self.simulation is None
 
+        assert survey_scenario.simulation is not None
+        self.simulation = survey_scenario.simulation
+
+        if survey_scenario.reference_tax_benefit_system is not None:
+            assert survey_scenario.reference_simulation is not None
+            self.reference_simulation = survey_scenario.reference_simulation
         else:
-            if not survey_scenario.simulation:
-                survey_scenario.new_simulation()
-            self.reform_simulation = survey_scenario.simulation
-
-            if survey_scenario.reference_tax_benefit_system is not None:
-                if not survey_scenario.reference_simulation:
-                    survey_scenario.new_simulation(reference = True)
-                self.reference_simulation = survey_scenario.reference_simulation
-            else:
-                self.reference_simulation = self.reform_simulation
+            self.reference_simulation = None
 
         self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
         self.aggregate_variables = AGGREGATES_DEFAULT_VARS
@@ -79,13 +75,12 @@ class Aggregates(object):
 
         simulation_types = list()
         if reference:
+            assert self.reference_simulation is not None
             simulation_types.append('reference')
         if reform:
             simulation_types.append('reform')
         if actual:
             simulation_types.append('actual')
-
-        no_reform = self.survey_scenario.reference_tax_benefit_system is None
 
         data_frame_by_simulation_type = dict()
 
@@ -93,24 +88,20 @@ class Aggregates(object):
             if simulation_type == 'actual':
                 data_frame_by_simulation_type['actual'] = self.totals_df.copy()
             else:
-                if (
-                    no_reform and (not reform) and
-                    reference and
-                    data_frame_by_simulation_type.get('reference') is not None
-                        ):
-                    data_frame_by_simulation_type['reform'] = data_frame_by_simulation_type['reference']
-                    data_frame_by_simulation_type['reform'].rename(columns = dict(
-                        reference_amount = "reform_amount",
-                        reference_beneficiaries = "reform_beneficiaries",
-                        ))
-                    continue
-
+                simulation = self.simulation if simulation_type == 'reform' else self.reference_simulation
                 data_frame = pd.DataFrame()
                 for variable in self.aggregate_variables:
                     variable_data_frame = self.compute_variable_aggregates(
-                        variable, filter_by = filter_by, simulation_type = simulation_type)
+                        variable, simulation, filter_by = filter_by)
                     data_frame = pd.concat((data_frame, variable_data_frame))
-                data_frame_by_simulation_type[simulation_type] = data_frame.copy()
+
+                data_frame.rename(columns = {
+                    'amount': '{}_amount'.format(simulation_type),
+                    'beneficiaries': '{}_beneficiaries'.format(simulation_type),
+                    },
+                    inplace = True
+                    )
+                data_frame_by_simulation_type[simulation_type] = data_frame
 
         if reference and reform:
             del data_frame_by_simulation_type['reform']['entity']
@@ -154,7 +145,7 @@ class Aggregates(object):
             u"Données d'enquêtes de l'année %s" % str(self.simulation.input_table.survey_year),
             ])
 
-    def compute_variable_aggregates(self, variable, filter_by = None, simulation_type = 'reference'):
+    def compute_variable_aggregates(self, variable, simulation, filter_by = None):
         """
         Returns aggregate spending, and number of beneficiaries
         for the relevant entity level
@@ -163,20 +154,16 @@ class Aggregates(object):
         ----------
         variable : string
                    name of the variable aggregated according to its entity
+        simulation : TODO
         filter_by : string or boolean
                     If string use it as the name of the variable to filter by
                     If not None or False and the string is not present in the tax-benefit-system use the default filtering variable if any
-        simulation_type : string
-                          'reference' or 'reform' or 'actual'
         """
-        assert simulation_type in ['reference', 'reform']
-        prefixed_simulation = '{}_simulation'.format(simulation_type)
-        simulation = getattr(self, prefixed_simulation)
+
         column_by_name = simulation.tax_benefit_system.column_by_name
         column = column_by_name[variable]
         weight = self.weight_column_name_by_entity[column.entity.key]
-        assert weight in column_by_name, "{} not a variable of the {} tax_benefit_system".format(
-            weight, simulation_type)
+        assert weight in column_by_name, "{} not a variable of the tax_benefit_system".format(weight)
         weight_array = simulation.calculate(weight).astype('float')
         assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
             weight, column.entity.key)
@@ -203,7 +190,6 @@ class Aggregates(object):
         assert np.isfinite(filter_dummy_array).all(), "The are non finite values in variable {} for entity {}".format(
             filter_dummy_variable, column.entity.key)
 
-        print variable, weight
         amount = int(
             (data[variable] * data[weight] * filter_dummy_array / 10 ** 6).sum()
             )
@@ -214,8 +200,8 @@ class Aggregates(object):
             data = {
                 'label': column_by_name[variable].label,
                 'entity': column_by_name[variable].entity.key,
-                '{}_amount'.format(simulation_type): amount,
-                '{}_beneficiaries'.format(simulation_type): beneficiaries,
+                'amount': amount,
+                'beneficiaries': beneficiaries,
                 },
             index = [variable],
             )
