@@ -18,6 +18,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'effectif_entreprise',
         'f4ba',
         'heures_remunerees_volume',
+        'loyer',
         'pensions_alimentaires_percues',
         'rag',
         'retraite_brute',
@@ -26,13 +27,13 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'rnc',
         'statut_marital',
         'salaire_imposable_pour_inversion',  # 'salaire_imposable',
+        'statut_occupation_logement',
         'taxe_habitation',
+        'zone_apl',
         ]
     # Might be used: hsup
     default_value_by_variable = dict(
         cotisation_sociale_mode_recouvrement = 1,
-        rempli_obligation_scolaire = True,
-        ressortissant_eee = True,
         # taux_incapacite = .50,
         )
     input_data_survey_prefix = 'openfisca_erfs_fpr_data'
@@ -41,9 +42,8 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'idfam_original',
         'idfoy_original',
         'idmen_original',
-        'rempli_obligation_scolaire',
-        'ressortissant_eee',
-        'statut_marital',
+        # 'rempli_obligation_scolaire',
+        # 'ressortissant_eee',
         'wprm_init',
         ]
 
