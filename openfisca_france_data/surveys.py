@@ -113,7 +113,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             )
 
         survey_scenario.new_simulation()
-        if reform or reform_key:
+        if reference_tax_benefit_system is not None:
             survey_scenario.new_simulation(reference = True)
 
         if calibration_kwargs:
@@ -124,47 +124,43 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         #
         return survey_scenario
 
-    def custom_initialize(self):
-        for simulation in [self.simulation, self.reference_simulation]:
-            if simulation is None:
-                continue
-            three_year_span_variables = [
-                'categorie_salarie',
-                'chomage_brut',
-                'chomage_imposable',
-                'contrat_de_travail',
-                'effectif_entreprise',
-                'heures_remunerees_volume',
-                # 'hsup',
-                'pensions_alimentaires_percues',
-                'retraite_brute',
-                'retraite_imposable',
-                # 'salaire_imposable',
-                'salaire_imposable_pour_inversion',
-                ]
-            for offset in [0, -1, -2]:
-                for variable in three_year_span_variables:
-                    assert variable in self.used_as_input_variables, \
-                        '{} is not a in the input_varaibles to be used {}'.format(
-                            variable, self.used_as_input_variables)
-                    holder = simulation.get_or_new_holder(variable)
-                    holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable))
-                #
-                for variable, value in self.default_value_by_variable.iteritems():
-                    log.info('Setting {} to new default value {}'.format(variable, value))
-                    holder = simulation.get_or_new_holder(variable)
-                    array = np.empty(holder.entity.count, dtype = holder.column.dtype)
-                    array.fill(value)
-                    holder.set_input(simulation.period.offset(offset), array)
+    def custom_initialize(self, simulation):
+        three_year_span_variables = [
+            'categorie_salarie',
+            'chomage_brut',
+            'chomage_imposable',
+            'contrat_de_travail',
+            'effectif_entreprise',
+            'heures_remunerees_volume',
+            # 'hsup',
+            'pensions_alimentaires_percues',
+            'retraite_brute',
+            'retraite_imposable',
+            # 'salaire_imposable',
+            'salaire_imposable_pour_inversion',
+            ]
+        for offset in [0, -1, -2]:
+            for variable in three_year_span_variables:
+                assert variable in self.used_as_input_variables, \
+                    '{} is not a in the input_varaibles to be used {}'.format(
+                        variable, self.used_as_input_variables)
+                holder = simulation.get_or_new_holder(variable)
+                holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable))
+            #
+            for variable, value in self.default_value_by_variable.iteritems():
+                log.info('Setting {} to new default value {}'.format(variable, value))
+                holder = simulation.get_or_new_holder(variable)
+                array = np.empty(holder.entity.count, dtype = holder.column.dtype)
+                array.fill(value)
+                holder.set_input(simulation.period.offset(offset), array)
 
-            salaire_de_base = simulation.calculate_add('salaire_de_base')
-            months = ["0{}".format(i) for i in range(1, 10)] + ["10", "11", "12"]
-            for month in months:
-                holder = simulation.get_or_new_holder('salaire_de_base')
-                year = str(self.simulation.period.this_year)
-                period = periods.period('{}-{}'.format(year, month))
-                print period
-                holder.set_input(period, salaire_de_base / 12)
+        salaire_de_base = simulation.calculate_add('salaire_de_base')
+        months = ["0{}".format(i) for i in range(1, 10)] + ["10", "11", "12"]
+        for month in months:
+            holder = simulation.get_or_new_holder('salaire_de_base')
+            year = str(self.simulation.period.this_year)
+            period = periods.period('{}-{}'.format(year, month))
+            holder.set_input(period, salaire_de_base / 12)
 
     def custom_input_data_frame(self, input_data_frame):
         log.info('Customizing input_data_frame')
