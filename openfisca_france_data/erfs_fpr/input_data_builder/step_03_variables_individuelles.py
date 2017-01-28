@@ -458,6 +458,35 @@ def create_contrat_de_travail(individus):
     return
 
 
+def create_date_naissance(individus, age_variable = 'age', annee_naissance_variable = None, mois_naissance = None,
+         year = None):
+    """
+    Création de la variable date_naissance à partir des variables age ou de l'année et du mois de naissance
+    """
+    assert year is not None
+    assert bool(age_variable) != bool(annee_naissance_variable)  # xor
+
+    month_birth = 1 + np.random.randint(12, size = len(individus))
+    day_birth = 1 + np.random.randint(28, size = len(individus))
+
+    if age_variable is not None:
+        assert age_variable in individus
+        year_birth = (year - individus[age_variable] - 1).astype(int)
+
+    elif annee_naissance_variable is not None:
+        year_birth = individus[annee_naissance_variable].astype(int)
+        if mois_naissance is not None:
+            month_birth = individus[mois_naissance].astype(int)
+
+    individus['date_naissance'] = pd.to_datetime(
+        pd.DataFrame({
+            'year': year_birth,
+            'month': month_birth,
+            'day': day_birth,
+            })
+        )
+
+
 def create_effectif_entreprise_variable(individus):
     """
     Création de la variable effectif_entreprise
