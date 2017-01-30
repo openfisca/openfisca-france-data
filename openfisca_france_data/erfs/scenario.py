@@ -8,7 +8,7 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 class ErfsSurveyScenario(AbstractErfsSurveyScenario):
-    default_used_as_input_variables = [
+    used_as_input_variables = [
         'age_en_mois',
         'age',
         'chomage_imposable',

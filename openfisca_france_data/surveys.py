@@ -11,7 +11,6 @@ from openfisca_france_data.tests import base
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario
 
-
 log = logging.getLogger(__name__)
 
 
@@ -33,15 +32,15 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         menage = 'quimen',
         )
 
-    @classmethod
-    def build_input_data_from_test_case(cls, tax_benefit_system, test_case_scenario, year):
+    def build_input_data_from_test_case(self, test_case_scenario):
         for axe in test_case_scenario['axes'][0]:
             axe['name'] = 'salaire_imposable_pour_inversion'
+        tax_benefit_system = self.tax_benefit_system
         simulation = tax_benefit_system.new_scenario().init_single_entity(**test_case_scenario).new_simulation()
         array_by_variable = dict()
-        period = periods.period("{}".format(year))
+        period = periods.period("{}".format(self.year))
 
-        for variable in cls.default_used_as_input_variables:
+        for variable in self.used_as_input_variables:
             array_by_variable[variable] = simulation.calculate_add(variable, period = period)
 
         for ident in ['idmen', 'idfoy', 'idfam']:
@@ -55,24 +54,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         return input_data_frame
 
     @classmethod
-    def create(cls, calibration_kwargs = None, data_year = None, inflation_kwargs = None, rebuild_input_data = False,
-            reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
-            test_case_scenario = None, year = None):
+    def create(cls, reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
+            year = None):
 
         assert year is not None
         assert not(
             (reform is not None) and (reform_key is not None)
             )
-
-        if calibration_kwargs is not None:
-            assert set(calibration_kwargs.keys()).issubset(set(
-                ['target_margins_by_variable', 'parameters', 'total_population']))
-
-        if data_year is None:
-            data_year = year
-
-        if inflation_kwargs is not None:
-            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
         if reform_key is not None:
             reform = base.get_cached_reform(
@@ -86,43 +74,58 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         else:
             tax_benefit_system = reform
 
-        if rebuild_input_data:
-            cls.build_input_data(year = data_year)
-
-        if test_case_scenario is not None:
-            assert rebuild_input_data is False
-            input_data_frame = cls.build_input_data_from_test_case(
-                tax_benefit_system = tax_benefit_system,
-                test_case_scenario = test_case_scenario,
-                year = year,
-                )
-        else:
-            if cls.input_data_table_by_period is not None:
-                input_data_frame = None
-            else:
-                openfisca_survey_collection = SurveyCollection.load(collection = cls.collection)
-                openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-                    cls.input_data_survey_prefix, data_year))
-                input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-
-        survey_scenario = cls().init_from_data_frame(
-            input_data_frame = input_data_frame,
+        survey_scenario = cls()
+        survey_scenario.set_tax_benefit_systems(
             tax_benefit_system = tax_benefit_system,
-            reference_tax_benefit_system = reference_tax_benefit_system,
-            year = year,
+            reference_tax_benefit_system = reference_tax_benefit_system
             )
 
-        survey_scenario.new_simulation()
-        if reference_tax_benefit_system is not None:
-            survey_scenario.new_simulation(reference = True)
+        survey_scenario.year = year
 
+        return survey_scenario
+
+    def init_from_test_case(self, test_case_scenario = None):
+        assert test_case_scenario is not None
+        input_data_frame = self.build_input_data_from_test_case(test_case_scenario)
+        self.init_from_data_frame(input_data_frame = input_data_frame)
+        self.new_simulation()
+        if self.reference_tax_benefit_system is not None:
+            self.new_simulation(reference = True)
+
+    def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
+            rebuild_input_data = False):
+        assert self.input_data_table_by_period is not None
+
+        if data_year is None:
+            data_year = self.year
+
+        if calibration_kwargs is not None:
+            assert set(calibration_kwargs.keys()).issubset(set(
+                ['target_margins_by_variable', 'parameters', 'total_population']))
+
+        if inflation_kwargs is not None:
+            assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
+
+        if rebuild_input_data:
+            self.build_input_data(year = data_year)
+
+        openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
+        openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+            self.input_data_survey_prefix, data_year))
+        input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+
+        self.init_from_data_frame(
+            input_data_frame = input_data_frame,
+            )
+        #
+        if self.reference_tax_benefit_system is not None:
+            self.new_simulation(reference = True)
+        #
         if calibration_kwargs:
-            survey_scenario.calibrate(**calibration_kwargs)
+            self.calibrate(**calibration_kwargs)
 
         if inflation_kwargs:
-            survey_scenario.inflate(**inflation_kwargs)
-        #
-        return survey_scenario
+            self.inflate(**inflation_kwargs)
 
     def custom_initialize(self, simulation):
         three_year_span_variables = [
@@ -136,7 +139,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             'pensions_alimentaires_percues',
             'retraite_brute',
             'retraite_imposable',
-            # 'salaire_imposable',
             'salaire_imposable_pour_inversion',
             ]
         for offset in [0, -1, -2]:
@@ -162,7 +164,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             period = periods.period('{}-{}'.format(year, month))
             holder.set_input(period, salaire_de_base / 12)
 
-    def custom_input_data_frame(self, input_data_frame):
+    def custom_input_data_frame(self, input_data_frame, **kwargs):
         log.info('Customizing input_data_frame')
         input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
         input_data_frame['heures_remunerees_volume'] = input_data_frame.heures_remunerees_volume * 52
@@ -176,26 +178,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
         for variable in ['quifam', 'quifoy', 'quimen']:
             log.info(input_data_frame[variable].value_counts(dropna = False))
-
-    def init_from_data_frame(self, input_data_frame = None, input_data_frame_by_entity = None,
-            reference_tax_benefit_system = None, tax_benefit_system = None, used_as_input_variables = None,
-            year = None):
-
-        if used_as_input_variables is None:
-            used_as_input_variables = self.default_used_as_input_variables
-
-        if tax_benefit_system is None:
-            tax_benefit_system = base.france_data_tax_benefit_system
-            reference_tax_benefit_system = None
-
-        return super(AbstractErfsSurveyScenario, self).init_from_data_frame(
-            input_data_frame = input_data_frame,
-            input_data_frame_by_entity = input_data_frame_by_entity,
-            reference_tax_benefit_system = reference_tax_benefit_system,
-            tax_benefit_system = tax_benefit_system,
-            used_as_input_variables = used_as_input_variables,
-            year = year,
-            )
 
     def initialize_weights(self):
         self.weight_column_name_by_entity = dict(

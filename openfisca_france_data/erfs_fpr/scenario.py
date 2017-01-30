@@ -6,7 +6,7 @@ from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 
 class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     collection = 'openfisca_erfs_fpr'
-    default_used_as_input_variables = [
+    used_as_input_variables = [
         'age_en_mois',
         'age',
         'autonomie_financiere',
@@ -15,6 +15,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'chomage_imposable',
         'contrat_de_travail',
         'cotisation_sociale_mode_recouvrement',
+        'date_naissance',
         'effectif_entreprise',
         'f4ba',
         'heures_remunerees_volume',
