@@ -31,6 +31,12 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         foyer_fiscal = 'quifoy',
         menage = 'quimen',
         )
+    weight_column_name_by_entity = dict(
+        menage = 'wprm',
+        famille = 'weight_familles',
+        foyer_fiscal = 'weight_foyers',
+        individu = 'weight_individus',
+        )
 
     def build_input_data_from_test_case(self, test_case_scenario):
         for axe in test_case_scenario['axes'][0]:
@@ -94,7 +100,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
     def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
             rebuild_input_data = False):
-        assert self.input_data_table_by_period is not None
 
         if data_year is None:
             data_year = self.year
@@ -109,15 +114,19 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if rebuild_input_data:
             self.build_input_data(year = data_year)
 
-        openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
-        openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-            self.input_data_survey_prefix, data_year))
-        input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
+        if self.input_data_table_by_period is None:
+            openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
+            openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
+                self.input_data_survey_prefix, data_year))
+            input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
 
-        self.init_from_data_frame(
-            input_data_frame = input_data_frame,
-            )
+            self.init_from_data_frame(
+                input_data_frame = input_data_frame,
+                )
+        else:
+            pass
         #
+        self.new_simulation()
         if self.reference_tax_benefit_system is not None:
             self.new_simulation(reference = True)
         #
@@ -160,7 +169,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         months = ["0{}".format(i) for i in range(1, 10)] + ["10", "11", "12"]
         for month in months:
             holder = simulation.get_or_new_holder('salaire_de_base')
-            year = str(self.simulation.period.this_year)
+            year = str(simulation.period.this_year)
             period = periods.period('{}-{}'.format(year, month))
             holder.set_input(period, salaire_de_base / 12)
 
@@ -178,14 +187,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
         for variable in ['quifam', 'quifoy', 'quimen']:
             log.info(input_data_frame[variable].value_counts(dropna = False))
-
-    def initialize_weights(self):
-        self.weight_column_name_by_entity = dict(
-            menage = 'wprm',
-            famille = 'weight_familles',
-            foyer_fiscal = 'weight_foyers',
-            individu = 'weight_individus',
-            )
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,

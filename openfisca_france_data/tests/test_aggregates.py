@@ -27,6 +27,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
         )
+    survey_scenario.init_from_survey_tables()
     return survey_scenario
 
 
