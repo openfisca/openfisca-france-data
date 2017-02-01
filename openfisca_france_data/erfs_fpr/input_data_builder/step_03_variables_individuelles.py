@@ -7,7 +7,11 @@ import logging
 import numpy as np
 import pandas as pd
 
-
+from openfisca_core import periods
+from openfisca_core.formula_helpers import switch
+from openfisca_core.taxscales import MarginalRateTaxScale
+from openfisca_france.model.base import CATEGORIE_SALARIE
+from openfisca_france_data.tests import base
 from openfisca_france_data.utils import (
     assert_dtype,
     )
@@ -43,8 +47,9 @@ def create_variables_individuelles(individus, year):
     create_age_variables(individus, year)
     create_activite_variable(individus)
     create_revenus_variables(individus)
-    create_contrat_de_travail(individus)
+    create_contrat_de_travail(individus, period = periods.period(year))
     create_categorie_salarie_variable(individus)
+    create_salaire_de_base(individus, period = periods.period(year))
     create_effectif_entreprise_variable(individus)
     create_statut_matrimonial_variable(individus)
 
@@ -221,7 +226,7 @@ def create_categorie_salarie_variable(individus):
     #         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel, non_pertinent]  # Coice list
     #         [0, 1, 2, 3, 4, 5, 6, 7],  # Condlist
     #         )
-    actif_occupe = individus['salaire_imposable'] > 0
+    actif_occupe = individus['salaire_net'] > 0
     individus['categorie_salarie'] = actif_occupe * (
         0 +
         1 * cadre +
@@ -242,9 +247,9 @@ def create_categorie_salarie_variable(individus):
         ))
 
 
-def create_contrat_de_travail(individus):
+def create_contrat_de_travail(individus, period):
     """
-    Création de la variable contrat_de_travail
+    Création de la variable contrat_de_travail et heure_remunerees_volume
         0 - temps_plein
         1 - temps_partiel
         2 - forfait_heures_semaines
@@ -280,40 +285,40 @@ def create_contrat_de_travail(individus):
         ).all(), 'duhab values {} should be in [0, 1, 2, 3, 4, 5, 6, 7, 9]'
 
     individus['contrat_de_travail'] = 6  # sans objet
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
-    # 0 On élimine les individus avec un salaire_imposable nul des salariés
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
+    # 0 On élimine les individus avec un salaire_net nul des salariés
     # 1. utilisation de tppred et durhab
     # 1.1  temps_plein
     individus.query('tppred == 1').duhab.value_counts(dropna = False)
     assert (individus.query('tppred == 1').duhab >= 4).all()
     individus.loc[
-        (individus.salaire_imposable > 0) & (
+        (individus.salaire_net > 0) & (
             (individus.tppred == 1) | (individus.duhab.isin(range(4, 8)))
             ),
         'contrat_de_travail'
         ] = 0
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     # 1.2 temps partiel
     individus.query('tppred == 2').duhab.value_counts(dropna = False)
     assert (individus.query('tppred == 2').duhab.isin([1, 2, 3, 9])).all()
     individus.loc[
-        (individus.salaire_imposable > 0) & (
+        (individus.salaire_net > 0) & (
             (individus.tppred == 2) | (individus.duhab.isin(range(1, 4)))
             ),
         'contrat_de_travail'
         ] = 1
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     # 2. On traite les salaires horaires inféreurs au SMIC
     # 2.1 temps plein
-    temps_plein = individus.query('(contrat_de_travail == 0) & (salaire_imposable > 0)')
-    (temps_plein.salaire_imposable > smic_annuel_net).value_counts()
-    # temps_plein.query('salaire_imposable < 15000').salaire_imposable.hist()
+    temps_plein = individus.query('(contrat_de_travail == 0) & (salaire_net > 0)')
+    (temps_plein.salaire_net > smic_annuel_net).value_counts()
+    # temps_plein.query('salaire_net < 15000').salaire_net.hist()
     individus['heures_remunerees_volume'] = 0
     # On bascule à temps partiel et on réajuste les heures des temps plein qui ne touche pas le smic
     temps_plein_sous_smic = (
         (individus.contrat_de_travail == 0) &
-        (individus.salaire_imposable > 0) &
-        (individus.salaire_imposable < smic_annuel_net)
+        (individus.salaire_net > 0) &
+        (individus.salaire_net < smic_annuel_net)
         )
     individus.loc[
         temps_plein_sous_smic,
@@ -322,24 +327,24 @@ def create_contrat_de_travail(individus):
         temps_plein_sous_smic,
         'heures_remunerees_volume'] = individus.loc[
             temps_plein_sous_smic,
-            'salaire_imposable'
+            'salaire_net'
             ] / smic_annuel_net * 35
     assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] < 35).all()
     assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] > 0).all()
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     del temps_plein, temps_plein_sous_smic
     # 2.2 Pour les temps partiel on prends les heures hcc
     # On vérfie que celles qu'on a créées jusqu'ici sont correctes
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
-    assert (individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').heures_remunerees_volume < 35).all()
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
+    assert (individus.query('(contrat_de_travail == 1) & (salaire_net > 0)').heures_remunerees_volume < 35).all()
     #
-    axes = (individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').hhc).hist(bins=100)
+    axes = (individus.query('(contrat_de_travail == 1) & (salaire_net > 0)').hhc).hist(bins=100)
     axes.set_title("Heures (hcc)")
-    # individus.query('(contrat_de_travail == 1) & (salaire_imposable > 0)').hhc.isnull().sum() = 489
+    # individus.query('(contrat_de_travail == 1) & (salaire_net > 0)').hhc.isnull().sum() = 489
     # 2.2.1 On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
-    temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire_imposable > 0)
+    temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire_net > 0)
     moins_que_smic_horaire_hhc = (
-        ((individus.salaire_imposable / individus.hhc) < (smic_annuel_net / 35)) &
+        ((individus.salaire_net / individus.hhc) < (smic_annuel_net / 35)) &
         individus.hhc.notnull()
         )
     # Si on dispose de la variable hhc on l'utilise
@@ -348,7 +353,7 @@ def create_contrat_de_travail(individus):
         'heures_remunerees_volume'
         ] = individus.loc[
             temps_partiel & moins_que_smic_horaire_hhc,
-            'salaire_imposable'
+            'salaire_net'
             ] / smic_annuel_net * 35
     individus.loc[
         temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
@@ -359,7 +364,7 @@ def create_contrat_de_travail(individus):
             ]
     axes = (individus
         .loc[temps_partiel]
-        .query('(contrat_de_travail == 1) & (salaire_imposable > 0)')
+        .query('(contrat_de_travail == 1) & (salaire_net > 0)')
         .heures_remunerees_volume
         .hist(bins=100)
         )
@@ -367,7 +372,7 @@ def create_contrat_de_travail(individus):
     # 2.2.2 Il reste à ajuster le nombre d'heures pour les salariés à temps partiel qui n'ont pas de hhc
     # et qui disposent de moins que le smic_horaire ou de les basculer en temps plein sinon
     moins_que_smic_horaire_sans_hhc = (
-        (individus.salaire_imposable < smic_annuel_net) &
+        (individus.salaire_net < smic_annuel_net) &
         individus.hhc.isnull()
         )
     individus.loc[
@@ -375,10 +380,10 @@ def create_contrat_de_travail(individus):
         'heures_remunerees_volume'
         ] = individus.loc[
             temps_partiel & moins_que_smic_horaire_sans_hhc,
-            'salaire_imposable'
+            'salaire_net'
             ] / smic_annuel_net * 35
     plus_que_smic_horaire_sans_hhc = (
-        (individus.salaire_imposable >= smic_annuel_net) &
+        (individus.salaire_net >= smic_annuel_net) &
         individus.hhc.isnull()
         )
     individus.loc[
@@ -405,56 +410,73 @@ def create_contrat_de_travail(individus):
     del temps_partiel, temps_partiel_bascule_temps_plein, moins_que_smic_horaire_hhc, moins_que_smic_horaire_sans_hhc
     assert (individus.query('contrat_de_travail == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     assert (individus.query('contrat_de_travail == 6').heures_remunerees_volume == 0).all()
-    # 2.3 On traite ceux qui ont un salaire_imposable mais pas de contrat de travail renseigné
+    # 2.3 On traite ceux qui ont un salaire_net mais pas de contrat de travail renseigné
     # (temps plein ou temps complet)
     salarie_sans_contrat_de_travail = (
-        (individus.salaire_imposable > 0) &
+        (individus.salaire_net > 0) &
         ~individus.contrat_de_travail.isin([0, 1])
         )
     # 2.3.1 On passe à temps plein ceux qui ont un salaire supérieur au SMIC annuel
     individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire_imposable >= smic_annuel_net),
+        (individus.salaire_net >= smic_annuel_net),
         'contrat_de_travail'
         ] = 0
     assert (individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire_imposable >= smic_annuel_net),
+        (individus.salaire_net >= smic_annuel_net),
         'heures_remunerees_volume'
         ] == 0).all()
     # 2.3.2 On passe à temps partiel ceux qui ont un salaire inférieur au SMIC annuel
     individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire_imposable < smic_annuel_net),
+        (individus.salaire_net < smic_annuel_net),
         'contrat_de_travail'
         ] = 1
     individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire_imposable < smic_annuel_net),
+        (individus.salaire_net < smic_annuel_net),
         'heures_remunerees_volume'
         ] = individus.loc[
             salarie_sans_contrat_de_travail &
-            (individus.salaire_imposable < smic_annuel_net),
-            'salaire_imposable'
+            (individus.salaire_net < smic_annuel_net),
+            'salaire_net'
             ] / smic_annuel_net * 35
     #
-    individus.query('salaire_imposable > 0').contrat_de_travail.value_counts(dropna = False)
-    individus.query('salaire_imposable == 0').contrat_de_travail.value_counts(dropna = False)
+    individus.query('salaire_net > 0').contrat_de_travail.value_counts(dropna = False)
+    individus.query('salaire_net == 0').contrat_de_travail.value_counts(dropna = False)
 
-    individus.loc[salarie_sans_contrat_de_travail, 'salaire_imposable'].min()
-    individus.loc[salarie_sans_contrat_de_travail, 'salaire_imposable'].hist(bins = 1000)
+    individus.loc[salarie_sans_contrat_de_travail, 'salaire_net'].min()
+    individus.loc[salarie_sans_contrat_de_travail, 'salaire_net'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
     # On vérifie que l'on n'a pas fait d'erreurs
-    assert (individus.salaire_imposable >= 0).all()
+    assert (individus.salaire_net >= 0).all()
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
-    assert (individus.query('salaire_imposable > 0').contrat_de_travail.isin([0, 1])).all()
-    assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
-    assert (individus.query('salaire_imposable == 0').heures_remunerees_volume == 0).all()
+    assert (individus.query('salaire_net > 0').contrat_de_travail.isin([0, 1])).all()
+    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire_net == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail in [0, 6]').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all()
+
+    # la variable heures_remunerees_volume est nombre d'heures par semaine. On ajuste selon la période
+    period = periods.period(period)
+    if period.unit == 'year':
+        individus['heures_remunerees_volume'] = individus.heures_remunerees_volume * 52
+    elif period.unit == 'month':
+        if period.size == 1:
+            individus['heures_remunerees_volume'] = individus.heures_remunerees_volume * 52 / 12
+        elif period.size == 3:
+            individus['heures_remunerees_volume'] = individus.heures_remunerees_volume * 52 / 4
+        else:
+            log.error('Wrong period {}. Should be month or year'.format(period))
+            raise
+    else:
+        log.error('Wrong period {}. Should be month or year'.format(period))
+        raise
+
     return
 
 
@@ -527,11 +549,17 @@ def create_effectif_entreprise_variable(individus):
             individus.effectif_entreprise.value_counts())
 
 
-def create_revenus_variables(individus):
+def create_revenus_variables(individus, net_only = False):
     """
     Création des variables:
-        chomage_imposable,
+        chomage_net,
         pensions_alimentaires_percues,
+        rag_net,
+        retraite_nette,
+        ric_net,
+        rnc_net,
+    et éventuellement, si net_only, est à False des variables:
+        chomage_imposable,
         rag,
         retraite_imposable,
         ric,
@@ -543,7 +571,7 @@ def create_revenus_variables(individus):
         'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
         'rag_i': 'rag_net',
-        'retraites_i': 'retraite_net',
+        'retraites_i': 'retraite_nette',
         'ric_i': 'ric_net',
         'rnc_i': 'rnc_net',
         'salaires_i': 'salaire_net',
@@ -567,49 +595,187 @@ def create_revenus_variables(individus):
                 )
             )
 
-    imposable_by_components = {
-        'chomage_imposable': ['chomage_net', 'csg_nd_crds_cho_i'],
-        'rag': ['rag_net', 'csg_nd_crds_rag_i'],
-        'retraite_imposable': ['retraite_net', 'csg_nd_crds_ret_i'],
-        'ric': ['ric_net', 'csg_nd_crds_ric_i'],
-        'rnc': ['rnc_net', 'csg_nd_crds_rnc_i'],
-        'salaire_imposable': ['salaire_net', 'csg_nd_crds_sal_i'],
-        }
-    for imposable, components in imposable_by_components.iteritems():
-        individus[imposable] = sum(individus[component] for component in components)
+    if net_only is False:
+        imposable_by_components = {
+            'chomage_imposable': ['chomage_net', 'csg_nd_crds_cho_i'],
+            'rag': ['rag_net', 'csg_nd_crds_rag_i'],
+            'retraite_imposable': ['retraite_nette', 'csg_nd_crds_ret_i'],
+            'ric': ['ric_net', 'csg_nd_crds_ric_i'],
+            'rnc': ['rnc_net', 'csg_nd_crds_rnc_i'],
+            'salaire_imposable': ['salaire_net', 'csg_nd_crds_sal_i'],
+            }
+        for imposable, components in imposable_by_components.iteritems():
+            individus[imposable] = sum(individus[component] for component in components)
 
-    for variable in ['chomage_imposable', 'retraite_imposable', 'salaire_imposable']:
-        assert (individus[variable] >= 0).all()
+        for variable in ['chomage_imposable', 'retraite_imposable', 'salaire_imposable']:
+            assert (individus[variable] >= 0).all()
 
-    individus['chomage_brut'] = individus.csgchod_i + individus.chomage_imposable
-    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_imposable
-    #
-    # csg des revenus de replacement
-    # 0 - Non renseigné/non pertinent
-    # 1 - Exonéré
-    # 2 - Taux réduit
-    # 3 - Taux plein
-    taux = pd.concat(
-        [
-            individus.csgrstd_i / individus.retraite_brute,
-            individus.csgchod_i / individus.chomage_brut,
-        ],
-        axis=1
-        ).max(axis = 1)
-    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
-    individus['taux_csg_remplacement'] = np.select(
-        [
-            taux.isnull(),
-            taux.notnull() & (taux < 0.021),
-            taux.notnull() & (taux > 0.021) & (taux < 0.0407),
-            taux.notnull() & (taux > 0.0407)
+        individus['chomage_brut'] = individus.csgchod_i + individus.chomage_imposable
+        individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_imposable
+        #
+        # csg des revenus de replacement
+        # 0 - Non renseigné/non pertinent
+        # 1 - Exonéré
+        # 2 - Taux réduit
+        # 3 - Taux plein
+        taux = pd.concat(
+            [
+                individus.csgrstd_i / individus.retraite_brute,
+                individus.csgchod_i / individus.chomage_brut,
             ],
-        [0, 1, 2, 3]
-        )
-    for value in [0, 1, 2, 3]:
-        assert (individus.taux_csg_remplacement == value).any(), \
-            "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
-    assert individus.taux_csg_remplacement.isin(range(4)).all()
+            axis=1
+            ).max(axis = 1)
+        # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
+        individus['taux_csg_remplacement'] = np.select(
+            [
+                taux.isnull(),
+                taux.notnull() & (taux < 0.021),
+                taux.notnull() & (taux > 0.021) & (taux < 0.0407),
+                taux.notnull() & (taux > 0.0407)
+                ],
+            [0, 1, 2, 3]
+            )
+        for value in [0, 1, 2, 3]:
+            assert (individus.taux_csg_remplacement == value).any(), \
+                "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
+        assert individus.taux_csg_remplacement.isin(range(4)).all()
+
+
+def create_salaire_de_base(individus, period, revenu_type = 'imposable'):
+        """Calcule le salaire brut à partir du salaire imposable par inversion du barème
+        de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
+        """
+        assert revenu_type in ['net', 'imposable']
+        for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
+            assert variable in individus.columns
+
+        if revenu_type == 'imposable':
+            salaire_pour_inversion = individus.salaire_imposable
+        else:
+            salaire_pour_inversion = individus.salaire_net
+
+        categorie_salarie = individus.categorie_salarie
+        contrat_de_travail = individus.contrat_de_travail
+        heures_remunerees_volume = individus.heures_remunerees_volume
+        # hsup = simulation.calculate('hsup', period = this_year)
+
+        simulation = base.france_data_tax_benefit_system.new_scenario().init_single_entity(
+            period = period, parent1 = dict()).new_simulation()
+        legislation = simulation.legislation_at(period.start)
+
+        salarie = legislation.cotsoc.cotisations_salarie
+        plafond_securite_sociale_annuel = legislation.cotsoc.gen.plafond_securite_sociale * 12
+        legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
+        taux_csg = legislation_csg_deductible.taux
+        taux_abattement = legislation_csg_deductible.abattement.rates[0]
+        try:
+            seuil_abattement = legislation_csg_deductible.abattement.thresholds[1]
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+            seuil_abattement = None
+        csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
+        csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
+        if seuil_abattement is not None:
+            csg_deductible.add_bracket(seuil_abattement, taux_csg)
+
+        if revenu_type == 'net':  # On ajoute CSG imposable et crds
+            # csg imposable
+            legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
+            taux_csg = legislation_csg_imposable.taux
+            taux_abattement = legislation_csg_imposable.abattement.rates[0]
+            try:
+                seuil_abattement = legislation_csg_imposable.abattement.thresholds[1]
+            except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+                seuil_abattement = None
+            csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
+            csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
+            if seuil_abattement is not None:
+                csg_imposable.add_bracket(seuil_abattement, taux_csg)
+            # crds
+            # csg imposable
+            legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
+            taux_csg = legislation_crds.taux
+            taux_abattement = legislation_crds.abattement.rates[0]
+            try:
+                seuil_abattement = legislation_crds.abattement.thresholds[1]
+            except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+                seuil_abattement = None
+            crds = MarginalRateTaxScale(name = 'crds')
+            crds.add_bracket(0, taux_csg * (1 - taux_abattement))
+            if seuil_abattement is not None:
+                crds.add_bracket(seuil_abattement, taux_csg)
+
+        # Check baremes
+        target = dict()
+        target['prive_non_cadre'] = set(['maladie', 'arrco', 'vieillesse_deplafonnee', 'vieillesse', 'agff', 'assedic'])
+        target['prive_cadre'] = set(
+            ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
+            )
+
+        for categorie in ['prive_non_cadre', 'prive_cadre']:
+            baremes_collection = salarie[categorie]
+            baremes_to_remove = list()
+            for name, bareme in baremes_collection.iteritems():
+                if name.endswith('alsace_moselle'):
+                    baremes_to_remove.append(name)
+            for name in baremes_to_remove:
+                del baremes_collection[name]
+
+        for categorie in ['prive_non_cadre', 'prive_cadre']:
+            test = set(
+                name for name, bareme in salarie[categorie].iteritems()
+                if isinstance(bareme, MarginalRateTaxScale)
+                )
+            assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
+        del bareme
+        # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
+        # Pour éviter les divisions 0 /0 dans le switch
+        heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
+        salaire_pour_inversion_proratise = switch(
+            contrat_de_travail,
+            {
+                # temps plein
+                0: salaire_pour_inversion / plafond_securite_sociale_annuel,
+                # temps partiel
+                1: salaire_pour_inversion / (
+                    (heures_remunerees_volume_avoid_warning / (52 * 35)) * plafond_securite_sociale_annuel
+                    ),
+                }
+            )
+        salaire_de_base = 0.0
+        for categorie in ['prive_non_cadre', 'prive_cadre']:
+            bareme = salarie[categorie].combine_tax_scales()
+            bareme.add_tax_scale(csg_deductible)
+            if revenu_type == 'net':
+                bareme.add_tax_scale(csg_imposable)
+                bareme.add_tax_scale(crds)
+
+            brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
+            assert np.isfinite(brut_proratise).all()
+            brut = plafond_securite_sociale_annuel * switch(
+                contrat_de_travail,
+                {
+                    # temps plein
+                    0: brut_proratise,
+                    # temps partiel
+                    1: brut_proratise * (heures_remunerees_volume / (52 * 35)),
+                    }
+                )
+            salaire_de_base += (
+                (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
+                )
+            assert (salaire_de_base > -1e9).all()
+            assert (salaire_de_base < 1e9).all()
+
+        # agirc_gmp
+        # gmp = P.prelevements_sociaux.gmp
+        # salaire_charniere = gmp.salaire_charniere_annuel
+        # cotisation_forfaitaire = gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
+        # salaire_de_base += (
+        #     (categorie_salarie == CATEGORIE_SALARIE['prive_cadre']) *
+        #     (salaire_de_base <= salaire_charniere) *
+        #     cotisation_forfaitaire
+        #     )
+        individus['salaire_de_base'] = salaire_de_base
 
 
 def create_statut_matrimonial_variable(individus):
@@ -636,6 +802,7 @@ def create_statut_matrimonial_variable(individus):
     individus.loc[individus.matri == 4, 'statut_marital'] = 3  # divorcé(e)
 
     assert individus.statut_marital.isin(range(1, 7)).all()
+
 
 def todo_create(individus):
     log.info(u"    6.3 : variable txtppb")

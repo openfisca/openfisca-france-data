@@ -2,6 +2,7 @@
 
 
 import inspect
+import logging
 import os
 import pkg_resources
 
@@ -13,6 +14,9 @@ import openfisca_france
 
 # Load input variables and output variables into entities
 from .model import common, survey_variables  # noqa analysis:ignore
+
+
+log = logging.getLogger(__name__)
 
 
 def get_variables_from_module(module):
@@ -45,6 +49,103 @@ class openfisca_france_data(reforms.Reform):
                 self.add_variable(variable)
             except AttributeError:
                 self.update_variable(variable)
+
+        neutralized_reductions = [
+            'accult',
+            'adhcga',
+            'assvie',
+            'cappme',
+            'cotsyn',
+            'creaen',
+            'daepad',
+            'deffor',
+            'dfppce',
+            'doment',
+            'domlog',
+            'domsoc',
+            'donapd',
+            'duflot',
+            'ecodev',
+            'ecpess',
+            'garext',
+            'intagr',
+            'intcon',
+            'intemp',
+            'invfor',
+            'invlst',
+            'invrev',
+            'locmeu',
+            'mecena',
+            'mohist',
+            'patnat',
+            'prcomp',
+            'repsoc',
+            'resimm',
+            'rsceha',
+            'saldom',
+            'scelli',
+            'sofica',
+            'sofipe',
+            'spfcpi',
+            ]
+        neutralized_credits = [
+            'accult',
+            'acqgpl',
+            'aidmob',
+            'aidper',
+            'assloy',
+            'autent',
+            'ci_garext',
+            'cotsyn',
+            'creimp',
+            'creimp_exc_2008',
+            'direpa',
+            'divide',
+            'drbail',
+            'inthab',
+            'jeunes',
+            'mecena',
+            'percvm',
+            'preetu',
+            'quaenv',
+            'saldom2',
+            ]
+
+        neutralized_variables = [
+            'avantage_en_nature',
+            'complementaire_sante_employeur',
+            'complementaire_sante_salarie',
+            'exoneration_cotisations_employeur_apprenti',
+            'exoneration_cotisations_employeur_stagiaire',
+            'exoneration_cotisations_salariales_apprenti',
+            'exoneration_cotisations_salarie_stagiaire',
+            'indemnite_fin_contrat',
+            'indemnites_compensatrices_conges_payes',
+            'nouvelle_bonification_indiciaire',
+            'primes_salaires',
+            'prevoyance_obligatoire_cadre',
+            'reintegration_titre_restaurant_employeur',
+            'remuneration_apprenti',
+            'rsa_non_calculable',
+            'stage_gratification_reintegration',
+            'residence_dom',
+            'residence_guadeloupe',
+            'residence_guyane',
+            'residence_martinique',
+            'residence_mayotte',
+            'residence_reunion',
+            # To reintegrate
+            # Revenus
+            'aah_base_ressources',
+            'caah',
+            'agirc_gmp_salarie',
+            'supp_familial_traitement',  # Problème de l'autonomie financière
+            'traitement_indiciaire_brut',
+            ]
+        neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
+        for neutralized_variable in neutralized_variables:
+            log.info("Neutralizing {}".format(neutralized_variable))
+            self.neutralize_column(neutralized_variable)
 
 
 openfisca_france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()

@@ -15,18 +15,15 @@ from openfisca_france_data.aggregates import Aggregates
 log = logging.getLogger(__name__)
 
 
-def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
+def test_erfs_fpr_survey_simulation_aggregates(year = 2012, rebuild_input_data = False):
     np.seterr(all='raise')
-    tax_benefit_system = base_survey.get_cached_reform(
-        reform_key = 'inversion_directe_salaires',
-        tax_benefit_system = base_survey.france_data_tax_benefit_system,
-        )
+    tax_benefit_system = base_survey.france_data_tax_benefit_system
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
-        # rebuild_input_data = True,
         )
+    survey_scenario.init_from_survey_tables(rebuild_input_data = rebuild_input_data)
     return survey_scenario
 
 
@@ -49,11 +46,11 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # aggregates_data_frame, difference_data_frame,
-    survey_scenario = test_erfs_fpr_survey_simulation_aggregates()
+    survey_scenario = test_erfs_fpr_survey_simulation_aggregates(rebuild_input_data = False)
 
     aggregates = Aggregates(survey_scenario = survey_scenario)
     df = aggregates.compute_aggregates()
-    difference_data_frame = aggregates.compute_difference()
+    # difference_data_frame = aggregates.compute_difference()
     # return aggregates.base_data_frame, difference_data_frame, survey_scenario
 
     # df = test_erfs_aggregates_reform()

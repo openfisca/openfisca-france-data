@@ -47,6 +47,7 @@ def create_input_data_frame(temporary_store = None, year = None):
         'rnc',
         'statut_marital',
         'salaire_imposable',
+        'salaire_de_base',
         'taux_csg_remplacement',
         ]
 

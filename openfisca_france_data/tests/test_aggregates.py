@@ -18,14 +18,12 @@ log = logging.getLogger(__name__)
 
 def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
     np.seterr(all='raise')
-    tax_benefit_system = base_survey.get_cached_reform(
-        reform_key = 'inversion_directe_salaires',
-        tax_benefit_system = base_survey.france_data_tax_benefit_system,
-        )
+    tax_benefit_system = base_survey.france_data_tax_benefit_system
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
         reference_tax_benefit_system = tax_benefit_system,
         year = year,
+        rebuild_input_data = True,
         )
     survey_scenario.init_from_survey_tables()
     return survey_scenario
