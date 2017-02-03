@@ -141,7 +141,15 @@ class openfisca_france_data(reforms.Reform):
             'agirc_gmp_salarie',
             'supp_familial_traitement',  # Problème de l'autonomie financière
             'traitement_indiciaire_brut',
+            'primes_fonction_publique',
+            'remuneration_principale',
+            'assiette_cotisations_sociales_public',
+            'pension_civile_salarie',
+            'indemnite_residence',
+            'ircantec_salarie',
+            'rafp_salarie',
             ]
+
         neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
         for neutralized_variable in neutralized_variables:
             log.info("Neutralizing {}".format(neutralized_variable))

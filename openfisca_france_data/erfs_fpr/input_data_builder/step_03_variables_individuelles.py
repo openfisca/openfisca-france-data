@@ -19,12 +19,12 @@ from openfisca_survey_manager.temporary import temporary_store_decorator
 
 log = logging.getLogger(__name__)
 
-# Sources BDM
-smic_annuel_net_by_year = dict(
-    2012 = 2 * 1116.87 + 4 * 1118.29 + 6 * 1096.88,
-    2011 = 11 * 1072.07 + 1094.71,
-    2010 = 12 * 1056.24,
-    )
+# Sources BDM
+smic_annuel_net_by_year = {
+    2012: 2 * 1116.87 + 4 * 1118.29 + 6 * 1096.88,
+    2011: 11 * 1072.07 + 1094.71,
+    2010: 12 * 1056.24,
+    }
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
@@ -48,17 +48,17 @@ def build_variables_individuelles(temporary_store = None, year = None):
 # helpers
 
 def create_variables_individuelles(individus, year):
-    create_age_variables(individus, year)
-    create_activite_variable(individus)
-    create_revenus_variables(individus)
+    create_ages(individus, year)
+    create_activite(individus)
+    create_revenus(individus)
     create_contrat_de_travail(individus, period = periods.period(year))
-    create_categorie_salarie_variable(individus)
+    create_categorie_salarie(individus)
     create_salaire_de_base(individus, period = periods.period(year))
-    create_effectif_entreprise_variable(individus)
-    create_statut_matrimonial_variable(individus)
+    create_effectif_entreprise(individus)
+    create_statut_matrimonial(individus)
 
 
-def create_activite_variable(individus):
+def create_activite(individus):
     """
     Création de la variable activite
     0 = Actif occupé
@@ -67,7 +67,7 @@ def create_activite_variable(individus):
     3 = Retraité
     4 = Autre inactif
     """
-    create_actrec_variable(individus)
+    create_actrec(individus)
 
     individus['activite'] = np.nan
     individus.loc[individus.actrec <= 3, 'activite'] = 0
@@ -81,7 +81,7 @@ def create_activite_variable(individus):
     assert individus.activite.isin(range(5)).all(), message
 
 
-def create_actrec_variable(individus):
+def create_actrec(individus):
     """
     Création de la variables actrec
     pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
@@ -120,7 +120,7 @@ def create_actrec_variable(individus):
     assert individus.actrec.isin(range(1, 10)).all(), 'actrec values are outside the interval [1, 9]'
 
 
-def create_age_variables(individus, year = None):
+def create_ages(individus, year = None):
     """
     Création des variables age et age_en_moi
     """
@@ -133,7 +133,7 @@ def create_age_variables(individus, year = None):
             individus[variable].notnull().sum(), variable)
 
 
-def create_categorie_salarie_variable(individus):
+def create_categorie_salarie(individus):
     """
     Création de la variable categorie_salarie:
         u"prive_non_cadre
@@ -227,7 +227,8 @@ def create_categorie_salarie_variable(individus):
 
     #   TODO: may use something like this but to be improved and tested
     #    individus['categorie_salarie'] = np.select(
-    #         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire, contractuel, non_pertinent]  # Coice list
+    #         [non_cadre, cadre, etat_titulaire, militaire, collectivites_locales_titulaire, hopital_titulaire,
+    #               contractuel, non_pertinent]  # Choice list
     #         [0, 1, 2, 3, 4, 5, 6, 7],  # Condlist
     #         )
     actif_occupe = individus['salaire_net'] > 0
@@ -282,7 +283,7 @@ def create_contrat_de_travail(individus, period):
         9 - Pas d'horaire habituel ou horaire habituel non déclaré
     TODO: utiliser la variable forfait
     """
-    smic_net = smic_annuel_net_by_year[period.year]
+    smic_net = smic_annuel_net_by_year[period.start.year]
 
     if period.unit == 'month':
         smic_net = period.size * smic_net / 12
@@ -380,10 +381,7 @@ def create_contrat_de_travail(individus, period):
     axes.set_title("Heures (heures_remunerees_volume)")
     # 2.2.2 Il reste à ajuster le nombre d'heures pour les salariés à temps partiel qui n'ont pas de hhc
     # et qui disposent de moins que le smic_horaire ou de les basculer en temps plein sinon
-    moins_que_smic_horaire_sans_hhc = (
-        (individus.salaire_net < smic_net) &
-        individus.hhc.isnull()
-        )
+    moins_que_smic_horaire_sans_hhc = (individus.salaire_net < smic_net) & individus.hhc.isnull()
     individus.loc[
         temps_partiel & moins_que_smic_horaire_sans_hhc,
         'heures_remunerees_volume'
@@ -518,7 +516,7 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
         )
 
 
-def create_effectif_entreprise_variable(individus):
+def create_effectif_entreprise(individus):
     """
     Création de la variable effectif_entreprise
     à partir de la variable nbsala qui prend les valeurs suivantes:
@@ -558,7 +556,7 @@ def create_effectif_entreprise_variable(individus):
             individus.effectif_entreprise.value_counts())
 
 
-def create_revenus_variables(individus, net_only = False):
+def create_revenus(individus, net_only = False):
     """
     Création des variables:
         chomage_net,
@@ -673,7 +671,7 @@ def create_salaire_de_base(individus, period, revenu_type = 'imposable'):
         legislation = simulation.legislation_at(period.start)
 
         salarie = legislation.cotsoc.cotisations_salarie
-        plafond_securite_sociale_annuel = legislation.cotsoc.gen.plafond_securite_sociale * 12
+        plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
         legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
         taux_csg = legislation_csg_deductible.taux
         taux_abattement = legislation_csg_deductible.abattement.rates[0]
@@ -738,15 +736,24 @@ def create_salaire_de_base(individus, period, revenu_type = 'imposable'):
         del bareme
         # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
         # Pour éviter les divisions 0 /0 dans le switch
+        if period.unit == 'year':
+            plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
+            heures_temps_plein = 52 * 35
+        elif period.unit == 'month':
+            plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
+            heures_temps_plein = (52 * 35 / 12) * period.size
+
+        else:
+            raise
         heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
         salaire_pour_inversion_proratise = switch(
             contrat_de_travail,
             {
                 # temps plein
-                0: salaire_pour_inversion / plafond_securite_sociale_annuel,
+                0: salaire_pour_inversion / plafond_securite_sociale,
                 # temps partiel
                 1: salaire_pour_inversion / (
-                    (heures_remunerees_volume_avoid_warning / (52 * 35)) * plafond_securite_sociale_annuel
+                    (heures_remunerees_volume_avoid_warning / heures_temps_plein) * plafond_securite_sociale
                     ),
                 }
             )
@@ -760,19 +767,19 @@ def create_salaire_de_base(individus, period, revenu_type = 'imposable'):
 
             brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
             assert np.isfinite(brut_proratise).all()
-            brut = plafond_securite_sociale_annuel * switch(
+            brut = plafond_securite_sociale * switch(
                 contrat_de_travail,
                 {
                     # temps plein
                     0: brut_proratise,
                     # temps partiel
-                    1: brut_proratise * (heures_remunerees_volume / (52 * 35)),
+                    1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
                     }
                 )
             salaire_de_base += (
                 (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
                 )
-            assert (salaire_de_base > -1e9).all()
+            assert (salaire_de_base >= 0).all()
             assert (salaire_de_base < 1e9).all()
 
         # agirc_gmp
@@ -787,7 +794,7 @@ def create_salaire_de_base(individus, period, revenu_type = 'imposable'):
         individus['salaire_de_base'] = salaire_de_base
 
 
-def create_statut_matrimonial_variable(individus):
+def create_statut_matrimonial(individus):
     u"""
     Création de la variable statut_marital qui prend les valeurs:
       1 - "Marié",
@@ -831,4 +838,3 @@ if __name__ == '__main__':
     #    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
     #    step_01_preprocessing.build_merged_dataframes(year = year)
     individus = build_variables_individuelles(year = year)
-
