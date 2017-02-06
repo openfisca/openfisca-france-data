@@ -134,6 +134,12 @@ class openfisca_france_data(reforms.Reform):
             'residence_martinique',
             'residence_mayotte',
             'residence_reunion',
+            'cf_dom_enfant_trop_jeune',
+            'cf_dom_enfant_eligible',
+            'asi_aspa_condition_nationalite',
+            # 'rsa_condition_nationalite',
+            'ape_avant_cumul',
+            'apje_avant_cumul',
             # To reintegrate
             # Revenus
             'aah_base_ressources',
@@ -148,6 +154,11 @@ class openfisca_france_data(reforms.Reform):
             'indemnite_residence',
             'ircantec_salarie',
             'rafp_salarie',
+            'contribution_exceptionnelle_solidarite',
+            'fonds_emploi_hospitalier',
+            'cotisations_employeur_non_contributives',
+            'tns_auto_entrepreneur_benefice',
+            'assiette_csg_non_abattue',
             ]
 
         neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
