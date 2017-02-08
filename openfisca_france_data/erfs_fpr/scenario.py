@@ -7,8 +7,6 @@ from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     collection = 'openfisca_erfs_fpr'
     used_as_input_variables = [
-        'age_en_mois',
-        'age',
         'autonomie_financiere',
         'categorie_salarie',
         'chomage_brut',
@@ -34,7 +32,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         ]
     # Might be used: hsup
     default_value_by_variable = dict(
-        cotisation_sociale_mode_recouvrement = 1,
+        cotisation_sociale_mode_recouvrement = 2,
         # taux_incapacite = .50,
         )
     input_data_survey_prefix = 'openfisca_erfs_fpr_data'

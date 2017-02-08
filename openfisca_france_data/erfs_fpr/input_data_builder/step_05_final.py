@@ -30,6 +30,7 @@ def create_input_data_frame(temporary_store = None, year = None):
         'chomage_brut',
         'chomage_imposable',
         'contrat_de_travail',
+        'date_naissance',
         'effectif_entreprise',
         'heures_remunerees_volume',
         'idfam',
