@@ -49,6 +49,8 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
 def create_variables_individuelles(individus, year):
     create_ages(individus, year)
+    create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
+         year = year)
     create_activite(individus)
     create_revenus(individus)
     create_contrat_de_travail(individus, period = periods.period(year))
@@ -648,10 +650,11 @@ def create_revenus(individus, net_only = False):
         assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 
-def create_salaire_de_base(individus, period, revenu_type = 'imposable'):
+def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
         """Calcule le salaire brut à partir du salaire imposable par inversion du barème
         de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
         """
+        assert period is not None
         assert revenu_type in ['net', 'imposable']
         for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
             assert variable in individus.columns

@@ -24,7 +24,6 @@ def create_input_data_frame(temporary_store = None, year = None):
     menages = temporary_store['menages_{}'.format(year)]
     variables = [
         'activite',
-        'age_en_mois',
         'age',
         'categorie_salarie',
         'chomage_brut',
