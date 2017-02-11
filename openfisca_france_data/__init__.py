@@ -137,7 +137,6 @@ class openfisca_france_data(reforms.Reform):
             'cf_dom_enfant_trop_jeune',
             'cf_dom_enfant_eligible',
             'asi_aspa_condition_nationalite',
-            # 'rsa_condition_nationalite',
             'ape_avant_cumul',
             'apje_avant_cumul',
             # To reintegrate
@@ -159,6 +158,8 @@ class openfisca_france_data(reforms.Reform):
             'cotisations_employeur_non_contributives',
             'tns_auto_entrepreneur_benefice',
             'assiette_csg_non_abattue',
+            # Volontary neutralization
+            'rsa_has_ressources_substitution',
             ]
 
         neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
@@ -168,7 +169,8 @@ class openfisca_france_data(reforms.Reform):
 
 
 openfisca_france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
-france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
+# The existence of either CountryTaxBenefitSystem or country_tax_benefit_system is mandatory
+france_data_tax_benefit_system = country_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
 
 
 AGGREGATES_DEFAULT_VARS = [

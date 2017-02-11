@@ -22,7 +22,7 @@ from .base import *  # noqa analysis:ignore
 class champm_individus(Variable):
     column = PeriodSizeIndependentIntCol
     entity = Individu
-    label = u"L'individu est dans un ménage du champ ménage",
+    label = u"L'individu est dans un ménage du champ ménage"
 
     def function(individu, period):
         return period, individu.menage('champm')
@@ -31,7 +31,7 @@ class champm_individus(Variable):
 class champm_familles(Variable):
     column = PeriodSizeIndependentIntCol
     entity = Famille
-    label = u"Le premier parent de la famille est dans un ménage du champ ménage",
+    label = u"Le premier parent de la famille est dans un ménage du champ ménage"
 
     def function(famille, period):
         return period, famille.demandeur('champm_individus')
@@ -267,7 +267,7 @@ class weight_familles(Variable):
 class weight_foyers(Variable):
     column = PeriodSizeIndependentFloatCol
     entity = FoyerFiscal
-    label = u"Poids du foyer fiscal",
+    label = u"Poids du foyer fiscal"
 
     def function(foyer_fiscal, period):
         return period, foyer_fiscal.declarant_principal('weight_individus', period)
