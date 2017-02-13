@@ -7,6 +7,7 @@ from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     collection = 'openfisca_erfs_fpr'
     used_as_input_variables = [
+        'activite',
         'autonomie_financiere',
         'categorie_salarie',
         'chomage_brut',
