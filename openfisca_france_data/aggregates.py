@@ -212,29 +212,46 @@ class Aggregates(object):
         if year is None:
             year = self.year
 
-        assert Config is not None
         parser = Config()
+        # CSG -CRDS
+        directory = os.path.join(
+            parser.get('data', 'prelevements_sociaux_directory'),
+            'clean',
+            )
+        csg_crds_amounts_csv = os.path.join(directory, 'recette_csg_crds.csv')
+        csg_crds_amounts = pd.read_csv(csg_crds_amounts_csv, index_col = 0).rename(
+            dict(
+                recette_csg = 'csg',
+                recette_crds = 'crds',
+                )
+            ) / 1e6
+        csg_by_type_amounts_csv = os.path.join(directory, 'recette_csg_by_type.csv')
+        csg_by_type_amounts = pd.read_csv(csg_by_type_amounts_csv, index_col = 0).drop(['source']).astype(float) / 1e6
+        # Prestations sociales
         directory = os.path.join(
             parser.get('data', 'prestations_sociales_directory'),
             'clean',
             )
-        #
         amounts_csv = os.path.join(directory, 'historique_depenses.csv')
         beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires.csv')
-        amounts = pd.read_csv(amounts_csv, index_col = 0)
-        beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
-        #
+        prestations_sociales_amounts = pd.read_csv(amounts_csv, index_col = 0)
+        prestations_sociales_beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
+        # Minimum vieillesses
         minimum_vieillesse_beneficiaries_csv = os.path.join(
             directory, 'historique_beneficiaires_minimum_vieillesse.csv')
         if os.path.exists(minimum_vieillesse_beneficiaries_csv):
             minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
-            beneficiaries = beneficiaries.append(minimum_vieillesse_beneficiaries)
+
+        amounts = pd.concat([csg_crds_amounts, csg_by_type_amounts, prestations_sociales_amounts])
+        beneficiaries = pd.concat([minimum_vieillesse_beneficiaries, prestations_sociales_beneficiaries])
+
         self.totals_df = pd.DataFrame(data = {
             "actual_amount": amounts[str(year)],
             "actual_beneficiaries": beneficiaries[str(year)],
             })
 
-        return
+        return csg_crds_amounts, prestations_sociales_amounts
+
 
     def load_amounts_from_file(self, filename = None, year = None):
         '''
@@ -320,3 +337,10 @@ class Aggregates(object):
                 df.to_csv(fname, "aggregates", index= False, header = True)
         except Exception as e:
                 raise Exception("Aggregates: Error saving file", str(e))
+
+
+
+
+if __name__ == '__main__':
+
+        year = 2012
