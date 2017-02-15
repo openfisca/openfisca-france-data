@@ -171,8 +171,9 @@ class openfisca_france_data(reforms.Reform):
 
 openfisca_france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 # The existence of either CountryTaxBenefitSystem or country_tax_benefit_system is mandatory
-france_data_tax_benefit_system = country_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
+france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
 
+CountryTaxBenefitSystem = lambda: france_data_tax_benefit_system  # noqa analysis:ignore
 
 AGGREGATES_DEFAULT_VARS = [
     'cotisations_non_contributives',
