@@ -502,7 +502,7 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
 
     if age_variable is not None:
         assert age_variable in individus
-        year_birth = (year - individus[age_variable] - 1).astype(int)
+        year_birth = (year - individus[age_variable]).astype(int)
 
     elif annee_naissance_variable is not None:
         year_birth = individus[annee_naissance_variable].astype(int)

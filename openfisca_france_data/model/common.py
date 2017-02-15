@@ -19,33 +19,6 @@ except ImportError:
 from .base import *  # noqa analysis:ignore
 
 
-class champm_individus(Variable):
-    column = PeriodSizeIndependentIntCol
-    entity = Individu
-    label = u"L'individu est dans un ménage du champ ménage"
-
-    def function(individu, period):
-        return period, individu.menage('champm')
-
-
-class champm_familles(Variable):
-    column = PeriodSizeIndependentIntCol
-    entity = Famille
-    label = u"Le premier parent de la famille est dans un ménage du champ ménage"
-
-    def function(famille, period):
-        return period, famille.demandeur('champm_individus')
-
-
-class champm_foyers_fiscaux(Variable):
-    column = PeriodSizeIndependentIntCol
-    entity = FoyerFiscal
-    label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
-
-    def function(foyer_fiscal, period):
-        return period, foyer_fiscal.declarant_principal('champm_individus')
-
-
 class decile(Variable):
     column = EnumCol(
         enum = Enum([
@@ -67,7 +40,7 @@ class decile(Variable):
 
     def function(menage, period):
         champm = menage('champm', period)
-        nivvie = menage('nivvie', period)
+        nivvie = menage('niveau_de_vie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
@@ -99,7 +72,7 @@ class decile_net(Variable):
 
     def function(menage, period):
         champm = menage('champm', period)
-        nivvie_net = menage('nivvie_net', period)
+        nivvie_net = menage('niveau_de_vie_net', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
@@ -107,6 +80,72 @@ class decile_net(Variable):
             return period, wprm * 0
         decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * champm, method, return_quantiles = True)
         return period, decile * champm
+
+
+class decile_rfr(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u"Hors champ",
+            u"1er décile",
+            u"2nd décile",
+            u"3e décile",
+            u"4e décile",
+            u"5e décile",
+            u"6e décile",
+            u"7e décile",
+            u"8e décile",
+            u"9e décile",
+            u"10e décile"
+            ])
+        )
+    entity = FoyerFiscal
+    label = u"Décile de revenu fiscal de référence"
+
+    def function(foyer_fiscal, period):
+        period = period.this_year
+        rfr = foyer_fiscal('rfr', period)
+        weight_foyers = foyer_fiscal('weight_foyers', period)
+        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
+        labels = arange(1, 11)
+        # Alternative method
+        # method = 2
+        # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+        return period, decile
+
+
+class decile_rfr_par_part(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u"Hors champ",
+            u"1er décile",
+            u"2nd décile",
+            u"3e décile",
+            u"4e décile",
+            u"5e décile",
+            u"6e décile",
+            u"7e décile",
+            u"8e décile",
+            u"9e décile",
+            u"10e décile"
+            ])
+        )
+    entity = FoyerFiscal
+    label = u"Décile de revenu fiscal de référence par part fiscale"
+
+    def function(foyer_fiscal, period):
+        period = period.this_year
+        rfr = foyer_fiscal('rfr', period)
+        nbptr = foyer_fiscal('nbptr', period)
+        weight_foyers = foyer_fiscal('weight_foyers', period)
+        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
+        labels = arange(1, 11)
+        # Alternative method
+        # method = 2
+        # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
+        decile, values = weighted_quantiles(
+            rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+        return period, decile
 
 
 class pauvre40(Variable):
@@ -179,95 +218,3 @@ class pauvre60(Variable):
         threshold = .6 * values[1]
         return period, (nivvie <= threshold) * champm
 
-
-class decile_rfr(Variable):
-    column = EnumCol(
-        enum = Enum([
-            u"Hors champ",
-            u"1er décile",
-            u"2nd décile",
-            u"3e décile",
-            u"4e décile",
-            u"5e décile",
-            u"6e décile",
-            u"7e décile",
-            u"8e décile",
-            u"9e décile",
-            u"10e décile"
-            ])
-        )
-    entity = FoyerFiscal
-    label = u"Décile de revenu fiscal de référence"
-
-    def function(foyer_fiscal, period):
-        period = period.this_year
-        rfr = foyer_fiscal('rfr', period)
-        weight_foyers = foyer_fiscal('weight_foyers', period)
-        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
-        labels = arange(1, 11)
-        # Alternative method
-        # method = 2
-        # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(rfr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
-        return period, decile
-
-
-class decile_rfr_par_part(Variable):
-    column = EnumCol(
-        enum = Enum([
-            u"Hors champ",
-            u"1er décile",
-            u"2nd décile",
-            u"3e décile",
-            u"4e décile",
-            u"5e décile",
-            u"6e décile",
-            u"7e décile",
-            u"8e décile",
-            u"9e décile",
-            u"10e décile"
-            ])
-        )
-    entity = FoyerFiscal
-    label = u"Décile de revenu fiscal de référence par part fiscale"
-
-    def function(foyer_fiscal, period):
-        period = period.this_year
-        rfr = foyer_fiscal('rfr', period)
-        nbptr = foyer_fiscal('nbptr', period)
-        weight_foyers = foyer_fiscal('weight_foyers', period)
-        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
-        labels = arange(1, 11)
-        # Alternative method
-        # method = 2
-        # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(
-            rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
-        return period, decile
-
-
-class weight_individus(Variable):
-    column = PeriodSizeIndependentFloatCol
-    entity = Individu
-    label = u"Poids de l'individu"
-
-    def function(individu, period):
-        return period, individu.menage('wprm', period)
-
-
-class weight_familles(Variable):
-    column = PeriodSizeIndependentFloatCol
-    entity = Famille
-    label = u"Poids de la famille"
-
-    def function(famille, period):
-        return period, famille.demandeur('weight_individus')
-
-
-class weight_foyers(Variable):
-    column = PeriodSizeIndependentFloatCol
-    entity = FoyerFiscal
-    label = u"Poids du foyer fiscal"
-
-    def function(foyer_fiscal, period):
-        return period, foyer_fiscal.declarant_principal('weight_individus', period)
