@@ -132,7 +132,7 @@ def test_fake_survey_simulation():
             'age',
             'activite',
             'rsa_base_ressources_i',
-            'champm_individus',
+            'menage_ordinaire_individus',
             'salaire_imposable',
             'salaire_net',
             'autonomie_financiere',

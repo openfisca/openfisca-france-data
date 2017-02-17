@@ -38,7 +38,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         )
     input_data_survey_prefix = 'openfisca_erfs_fpr_data'
     non_neutralizable_variables = [
-        'champm',
+        'menage_ordinaire',
         'idfam_original',
         'idfoy_original',
         'idmen_original',

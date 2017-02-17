@@ -37,7 +37,7 @@ data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         'age',
         'autonomie_financiere',
         'af_eligibilite_base',
-        'champm_familles',
+        'menage_ordinaire_familles',
         'est_enfant_dans_famille',
         'prestations_familiales_enfant_a_charge',
         'rempli_obligation_scolaire',
