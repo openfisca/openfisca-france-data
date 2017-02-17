@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import date
 
 from openfisca_core import reforms
 from openfisca_core.variables import Variable
@@ -12,6 +13,7 @@ from openfisca_france.model.base import (BoolCol, CHEF, ENFS, Enum, EnumCol, Fam
 __all__ = [
     'BoolCol',
     'CHEF',
+    'date',
     'ENFS',
     'Enum',
     'EnumCol',
