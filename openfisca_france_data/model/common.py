@@ -83,13 +83,14 @@ class decile(Variable):
 
     def function(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
-        nivvie = menage('niveau_de_vie', period)
+        niveau_de_vie = menage('niveau_de_vie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(
+            niveau_de_vie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         del values
         return period, decile * menage_ordinaire
 
@@ -115,13 +116,13 @@ class decile_net(Variable):
 
     def function(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
-        nivvie_net = menage('niveau_de_vie_net', period)
+        niveau_de_vie_net = menage('niveau_de_vie_net', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(niveau_de_vie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         return period, decile * menage_ordinaire
 
 
