@@ -21,10 +21,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         menage = 'idmen',
         )
     filtering_variable_by_entity = dict(
-        famille = 'champm_familles',
-        foyer_fiscal = 'champm_foyers_fiscaux',
-        individu = 'champm_individus',
-        menage = 'champm',
+        famille = 'menage_ordinaire_familles',
+        foyer_fiscal = 'menage_ordinaire_foyers_fiscaux',
+        individu = 'menage_ordinaire_individus',
+        menage = 'menage_ordinaire',
         )
     role_variable_by_entity_key = dict(
         famille = 'quifam',

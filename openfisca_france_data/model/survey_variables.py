@@ -22,36 +22,36 @@ class idfam_original(Variable):
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF"
 
 
-class champm(Variable):
+class menage_ordinaire(Variable):
     column = PeriodSizeIndependentIntCol(default = True)
     entity = Menage
 
 
-class champm_individus(Variable):
+class menage_ordinaire_individus(Variable):
     column = PeriodSizeIndependentIntCol
     entity = Individu
     label = u"L'individu est dans un ménage du champ ménage"
 
     def function(individu, period):
-        return period, individu.menage('champm')
+        return period, individu.menage('menage_ordinaire')
 
 
-class champm_familles(Variable):
+class menage_ordinaire_familles(Variable):
     column = PeriodSizeIndependentIntCol
     entity = Famille
     label = u"Le premier parent de la famille est dans un ménage du champ ménage"
 
     def function(famille, period):
-        return period, famille.demandeur('champm_individus')
+        return period, famille.demandeur('menage_ordinaire_individus')
 
 
-class champm_foyers_fiscaux(Variable):
+class menage_ordinaire_foyers_fiscaux(Variable):
     column = PeriodSizeIndependentIntCol
     entity = FoyerFiscal
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
 
     def function(foyer_fiscal, period):
-        return period, foyer_fiscal.declarant_principal('champm_individus')
+        return period, foyer_fiscal.declarant_principal('menage_ordinaire_individus')
 
 
 class weight_familles(Variable):

@@ -23,25 +23,27 @@ from openfisca_france_data import AGGREGATES_DEFAULT_VARS, DATA_DIR
 log = logging.getLogger(__name__)
 
 
-# TODO: units for amount and beneficiaries
+# TODO:
+#  * units for amount and beneficiaries
+#  * Localisation
 
 class Aggregates(object):
     base_data_frame = None
     filter_by = None
     labels = collections.OrderedDict((
-        ('var', u"Mesure"),
+        ('label', u"Mesure"),
         ('entity', u"Entité"),
-        ('dep', u"Dépenses\n(millions d'€)"),
-        ('benef', u"Bénéficiaires\n(milliers)"),
-        ('dep_default', u"Dépenses initiales\n(millions d'€)"),
-        ('benef_default', u"Bénéficiaires\ninitiaux\n(milliers)"),
-        ('dep_real', u"Dépenses\nréelles\n(millions d'€)"),
-        ('benef_real', u"Bénéficiaires\nréels\n(milliers)"),
-        ('dep_diff_abs', u"Diff. absolue\nDépenses\n(millions d'€)"),
-        ('benef_diff_abs', u"Diff absolue\nBénéficiaires\n(milliers)"),
-        ('dep_diff_rel', u"Diff. relative\nDépenses"),
-        ('benef_diff_rel', u"Diff. relative\nBénéficiaires"),
-        ))  # TODO: localize
+        ('reform_amount', u"Dépenses\n(millions d'€)"),
+        ('reform_beneficiaries', u"Bénéficiaires\n(milliers)"),
+        ('reference_amount', u"Dépenses initiales\n(millions d'€)"),
+        ('reference_beneficiaries', u"Bénéficiaires\ninitiaux\n(milliers)"),
+        ('actual_amount', u"Dépenses\nréelles\n(millions d'€)"),
+        ('actual_beneficiaries', u"Bénéficiaires\nréels\n(milliers)"),
+        ('amount_absolute_difference', u"Diff. absolue\nDépenses\n(millions d'€)"),
+        ('beneficiaries_absolute_difference', u"Diff absolue\nBénéficiaires\n(milliers)"),
+        ('amount_relative_difference', u"Diff. relative\nDépenses"),
+        ('beneficiaries_relative_difference', u"Diff. relative\nBénéficiaires"),
+        ))
     reference_simulation = None
     simulation = None
     survey_scenario = None
@@ -113,7 +115,7 @@ class Aggregates(object):
     def compute_difference(self, target = "reference", default = 'actual', amount = True, beneficiaries = True,
             absolute = True, relative = True):
         '''
-        Computes and adds relative differences to the data_frame
+        Compute and add relative and/or absolute differences to the data_frame
         '''
         assert relative or absolute
         assert amount or beneficiaries
@@ -132,18 +134,6 @@ class Aggregates(object):
                 base_data_frame['{}_{}'.format(target, quantity)] - base_data_frame['{}_{}'.format(default, quantity)]
                 ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
         return difference_data_frame
-
-    def create_description(self):
-        '''
-        Creates a description dataframe
-        '''
-        now = datetime.now()
-        return pd.DataFrame([
-            u'OpenFisca',
-            u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
-            u'Système socio-fiscal au %s' % self.simulation.period.start,
-            u"Données d'enquêtes de l'année %s" % str(self.simulation.input_table.survey_year),
-            ])
 
     def compute_variable_aggregates(self, variable, simulation, filter_by = None):
         """
@@ -208,133 +198,212 @@ class Aggregates(object):
 
         return variable_data_frame
 
-    def load_actual_data(self, year = None):
-        if year is None:
-            year = self.year
+    # def load_amounts_from_file(self, filename = None, year = None):
+    #     """
+    #     Load totals from files
+    #     """
+    #     if year is None:
+    #         year = self.year
+    #     if filename is None:
+    #         data_dir = DATA_DIR
+    #         assert os.path.exists(DATA_DIR)
 
-        parser = Config()
-        # CSG -CRDS
-        directory = os.path.join(
-            parser.get('data', 'prelevements_sociaux_directory'),
-            'clean',
-            )
-        csg_crds_amounts_csv = os.path.join(directory, 'recette_csg_crds.csv')
-        csg_crds_amounts = pd.read_csv(csg_crds_amounts_csv, index_col = 0).rename(
-            dict(
-                recette_csg = 'csg',
-                recette_crds = 'crds',
-                )
-            ) / 1e6
-        csg_by_type_amounts_csv = os.path.join(directory, 'recette_csg_by_type.csv')
-        csg_by_type_amounts = pd.read_csv(csg_by_type_amounts_csv, index_col = 0).drop(['source']).astype(float) / 1e6
-        # Prestations sociales
-        directory = os.path.join(
-            parser.get('data', 'prestations_sociales_directory'),
-            'clean',
-            )
-        amounts_csv = os.path.join(directory, 'historique_depenses.csv')
-        beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires.csv')
-        prestations_sociales_amounts = pd.read_csv(amounts_csv, index_col = 0)
-        prestations_sociales_beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
-        # Minimum vieillesses
-        minimum_vieillesse_beneficiaries_csv = os.path.join(
-            directory, 'historique_beneficiaires_minimum_vieillesse.csv')
-        if os.path.exists(minimum_vieillesse_beneficiaries_csv):
-            minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
+    #     try:
+    #         filename = os.path.join(data_dir, "amounts.h5")
+    #         store = pd.HDFStore(filename)
+    #         df_a = store['amounts']
+    #         df_b = store['benef']
+    #         store.close()
+    #         self.totals_df = pd.DataFrame(data = {
+    #             "actual_amount": df_a[year] / 10 ** 6,
+    #             "actual_beneficiaries": df_b[year] / 10 ** 3,
+    #             })
+    #         row = pd.DataFrame({'actual_amount': np.nan, 'actual_beneficiaries': np.nan}, index = ['logt'])
+    #         self.totals_df = self.totals_df.append(row)
 
-        amounts = pd.concat([csg_crds_amounts, csg_by_type_amounts, prestations_sociales_amounts])
-        beneficiaries = pd.concat([minimum_vieillesse_beneficiaries, prestations_sociales_beneficiaries])
+    #         # Add some aditionnals totals
+    #         for col in ['actual_amount', 'actual_beneficiaries']:
+    #             # Deals with logt
+    #             logt = 0
+    #             for var in ['apl', 'alf', 'als']:
+    #                 logt += self.totals_df.get_value(var, col)
+    #             self.totals_df.set_value('logt', col, logt)
 
-        self.totals_df = pd.DataFrame(data = {
-            "actual_amount": amounts[str(year)],
-            "actual_beneficiaries": beneficiaries[str(year)],
-            })
-        return self.totals_df
+    #             # Deals with rsa rmi
+    #             rsa = 0
+    #             for var in ['rmi', 'rsa']:
+    #                 rsa += self.totals_df.get_value(var, col)
+    #             self.totals_df.set_value('rsa', col, rsa)
 
-    def load_amounts_from_file(self, filename = None, year = None):
-        '''
-        Loads totals from files
-        '''
-        if year is None:
-            year = self.year
-        if filename is None:
-            data_dir = DATA_DIR
-            assert os.path.exists(DATA_DIR)
+    #             # Deals with irpp, csg, crds
+    #             for var in ['irpp', 'csg', 'crds', 'cotisations_non_contributives']:
+    #                 if col in ['actual_amount']:
+    #                     val = - self.totals_df.get_value(var, col)
+    #                     self.totals_df.set_value(var, col, val)
+    #             return
+    #     except KeyError as e:
+    #         log.info("No administrative data available for year {} in file {}".format(year, filename))
+    #         log.info("Try to use administrative data for year {}".format(year - 1))
+    #         self.load_amounts_from_file(year = year - 1)
+    #         # self.totals_df = pd.DataFrame()
+    #         return
 
-        try:
-            filename = os.path.join(data_dir, "amounts.h5")
-            store = pd.HDFStore(filename)
-            df_a = store['amounts']
-            df_b = store['benef']
-            store.close()
-            self.totals_df = pd.DataFrame(data = {
-                "actual_amount": df_a[year] / 10 ** 6,
-                "actual_beneficiaries": df_b[year] / 10 ** 3,
-                })
-            row = pd.DataFrame({'actual_amount': np.nan, 'actual_beneficiaries': np.nan}, index = ['logt'])
-            self.totals_df = self.totals_df.append(row)
-
-            # Add some aditionnals totals
-            for col in ['actual_amount', 'actual_beneficiaries']:
-                # Deals with logt
-                logt = 0
-                for var in ['apl', 'alf', 'als']:
-                    logt += self.totals_df.get_value(var, col)
-                self.totals_df.set_value('logt', col, logt)
-
-                # Deals with rsa rmi
-                rsa = 0
-                for var in ['rmi', 'rsa']:
-                    rsa += self.totals_df.get_value(var, col)
-                self.totals_df.set_value('rsa', col, rsa)
-
-                # Deals with irpp, csg, crds
-                for var in ['irpp', 'csg', 'crds', 'cotisations_non_contributives']:
-                    if col in ['actual_amount']:
-                        val = - self.totals_df.get_value(var, col)
-                        self.totals_df.set_value(var, col, val)
-                return
-        except KeyError as e:
-            log.info("No administrative data available for year {} in file {}".format(year, filename))
-            log.info("Try to use administrative data for year {}".format(year - 1))
-            self.load_amounts_from_file(year = year - 1)
-            # self.totals_df = pd.DataFrame()
-            return
-
-    def save_table(self, directory = None, filename = None, table_format = None):
-        '''
-        Saves the table to csv or xls (default) format
-        '''
+    def create_description(self):
+        """
+        Create a description dataframe
+        """
         now = datetime.now()
+        return pd.DataFrame([
+            u'OpenFisca',
+            u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
+            u'Système socio-fiscal au %s' % self.simulation.period.start.year,
+            u"Données d'enquêtes de l'année %s" % str(self.data_year),
+            ])
+
+    def export_table(self,
+            path = None,
+            absolute = True,
+            amount = True,
+            beneficiaries = True,
+            default = 'actual',
+            relative = True,
+            table_format = None,
+            target = "reform"):
+        """
+        Save the table to csv or excel (default) format
+        """
+        assert path is not None
+        now = datetime.now()
+
+        df = self.get_data_frame(
+            absolute = absolute,
+            amount = amount,
+            beneficiaries = beneficiaries,
+            default = default,
+            relative = relative,
+            target = target,
+            )
+
+        if os.path.isdir(path):
+            file_path = os.path.join(path, 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), table_format))
+        else:
+            file_path = path
+
         if table_format is None:
-            if filename is not None:
-                extension = filename[-4:]
+            if path is not None:
+                extension = file_path[-4:]
                 if extension == '.xls':
                     table_format = 'xls'
                 elif extension == '.csv':
                     table_format = 'csv'
             else:
                 table_format = 'xls'
-
-        if directory is None:
-            directory = "."
-        if filename is None:
-            filename = 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), table_format)
-
-        fname = os.path.join(directory, filename)
-
         try:
-            df = self.data_frame
             if table_format == "xls":
-                writer = pd.ExcelWriter(str(fname))
-                df.to_excel(writer, "aggregates", index= False, header= True)
+                writer = pd.ExcelWriter(file_path)
+                df.to_excel(writer, "aggregates", index = False, header = True)
                 descr = self.create_description()
-                descr.to_excel(writer, "description", index = False, header=False)
+                descr.to_excel(writer, "description", index = False, header = False)
                 writer.save()
             elif table_format == "csv":
-                df.to_csv(fname, "aggregates", index= False, header = True)
+                df.to_csv(file_path, index = False, header = True)
         except Exception as e:
                 raise Exception("Aggregates: Error saving file", str(e))
+
+    def get_calibration_coeffcient(self, target = "reform"):
+        df = self.compute_aggregates(
+            actual = True,
+            reference = 'reference' == target,
+            reform = 'reform' == target,
+            )
+        return df['{}_amount'.format(target)] / df['actual_amount']
+
+    def get_data_frame(self,
+            absolute = True,
+            amount = True,
+            beneficiaries = True,
+            default = 'actual',
+            formatting = True,
+            relative = True,
+            target = "reform",
+            ):
+        assert target is None or target in ['reform', 'reference']
+
+        columns = self.labels.keys()
+        if (absolute or relative) and (target != default):
+            difference_data_frame = self.compute_difference(
+                absolute = absolute,
+                amount = amount,
+                beneficiaries = beneficiaries,
+                default = default,
+                relative = relative,
+                target = target,
+                )
+        else:
+            difference_data_frame = None
+        # Removing unwanted columns
+        if amount is False:
+            columns = [column for column in columns if 'amount' not in columns]
+
+        if beneficiaries is False:
+            columns = [column for column in columns if 'beneficiaries' not in column]
+
+        if absolute is False:
+            columns = [column for column in columns if 'absolute' not in column]
+
+        if relative is False:
+            columns = [column for column in columns if 'relative' not in column]
+
+        for simulation_type in ['reform', 'reference', 'actual']:
+            if simulation_type not in [target, default]:
+                columns = [column for column in columns if simulation_type not in column]
+
+        aggregates_data_frame = self.compute_aggregates(
+            actual = 'actual' in [target, default],
+            reference = 'reference' in [target, default],
+            reform = 'reform' in [target, default],
+            )
+        ordered_columns = [
+            'label',
+            'entity',
+            'reform_amount',
+            'reference_amount',
+            'actual_amount',
+            'amount_absolute_difference',
+            'amount_relative_difference',
+            'reform_beneficiaries',
+            'reference_beneficiaries',
+            'actual_beneficiaries',
+            'beneficiaries_absolute_difference',
+            'beneficiaries_relative_difference'
+            ]
+        if difference_data_frame is not None:
+            df = (aggregates_data_frame
+                .merge(difference_data_frame, how = 'left')[columns]
+                .reindex_axis(ordered_columns, axis = 1)
+                .dropna(axis = 1, how = 'all')
+                .rename(columns = self.labels)
+                )
+        else:
+            df = (aggregates_data_frame[columns]
+                .reindex_axis(ordered_columns, axis = 1)
+                .dropna(axis = 1, how = 'all')
+                .rename(columns = self.labels)
+                )
+
+        if formatting:
+            relative_columns = [column for column in df.columns if 'relative' in column]
+            df[relative_columns] = df[relative_columns].applymap(
+                lambda x: "{:.2%}".format(x) if str(x) != 'nan' else 'nan')
+            import numpy as np
+            for column in df.columns:
+                if issubclass(np.dtype(df[column]).type, np.number):
+                    df[column] = (df[column]
+                        .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
+                        )
+        return df
+
+
 
 
 # Helpers

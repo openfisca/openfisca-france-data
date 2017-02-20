@@ -39,16 +39,16 @@ class decile(Variable):
     label = u"Décile de niveau de vie disponible"
 
     def function(menage, period):
-        champm = menage('champm', period)
+        menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('niveau_de_vie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         del values
-        return period, decile * champm
+        return period, decile * menage_ordinaire
 
 
 class decile_net(Variable):
@@ -71,15 +71,15 @@ class decile_net(Variable):
     label = u"Décile de niveau de vie net"
 
     def function(menage, period):
-        champm = menage('champm', period)
+        menage_ordinaire = menage('menage_ordinaire', period)
         nivvie_net = menage('niveau_de_vie_net', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * champm, method, return_quantiles = True)
-        return period, decile * champm
+        decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        return period, decile * menage_ordinaire
 
 
 class decile_rfr(Variable):
@@ -105,12 +105,12 @@ class decile_rfr(Variable):
         period = period.this_year
         rfr = foyer_fiscal('rfr', period)
         weight_foyers = foyer_fiscal('weight_foyers', period)
-        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
+        menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(rfr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, return_quantiles = True)
         return period, decile
 
 
@@ -138,13 +138,13 @@ class decile_rfr_par_part(Variable):
         rfr = foyer_fiscal('rfr', period)
         nbptr = foyer_fiscal('nbptr', period)
         weight_foyers = foyer_fiscal('weight_foyers', period)
-        champm_foyers_fiscaux = foyer_fiscal('champm_foyers_fiscaux', period)
+        menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
         decile, values = weighted_quantiles(
-            rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+            rfr / nbptr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, return_quantiles = True)
         return period, decile
 
 
@@ -159,16 +159,16 @@ class pauvre40(Variable):
     label = u"Pauvreté monétaire au seuil de 40%"
 
     def function(menage, period):
-        champm = menage('champm', period)
+        menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 3)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         threshold = .4 * values[1]
-        return period, (nivvie <= threshold) * champm
+        return period, (nivvie <= threshold) * menage_ordinaire
 
 
 class pauvre50(Variable):
@@ -182,7 +182,7 @@ class pauvre50(Variable):
     label = u"Pauvreté monétaire au seuil de 50%"
 
     def function(menage, period):
-        champm = menage('champm', period)
+        menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 3)
@@ -190,9 +190,9 @@ class pauvre50(Variable):
         if len(wprm) == 1:
             return period, wprm * 0
 
-        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         threshold = .5 * values[1]
-        return period, (nivvie <= threshold) * champm
+        return period, (nivvie <= threshold) * menage_ordinaire
 
 
 class pauvre60(Variable):
@@ -206,7 +206,7 @@ class pauvre60(Variable):
     label = u"Pauvreté monétaire au seuil de 60%"
 
     def function(menage, period):
-        champm = menage('champm', period)
+        menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 3)
@@ -214,7 +214,7 @@ class pauvre60(Variable):
         if len(wprm) == 1:
             return period, wprm * 0
 
-        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         threshold = .6 * values[1]
-        return period, (nivvie <= threshold) * champm
+        return period, (nivvie <= threshold) * menage_ordinaire
 

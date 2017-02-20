@@ -163,7 +163,6 @@ class openfisca_france_data(reforms.Reform):
             # To reintegrate
             # Revenus
             'aah_base_ressources',
-            'caah',
             'agirc_gmp_salarie',
             'supp_familial_traitement',  # Problème de l'autonomie financière
             'traitement_indiciaire_brut',
