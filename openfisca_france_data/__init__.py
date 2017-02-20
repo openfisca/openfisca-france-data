@@ -191,13 +191,12 @@ class openfisca_france_data(reforms.Reform):
 
         # Non recours RSA
 
-        class rsa_montant(DatedVariable):
+        class rsa_montant(Variable):
             column = FloatCol
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
             entity = Famille
             start_date = date(2009, 06, 1)
 
-            @dated_function(stop = date(2016, 12, 31))
             def function(famille, period, legislation):
                 period = period.this_month
                 rsa_socle_non_majore = famille('rsa_socle', period)
@@ -215,12 +214,10 @@ class openfisca_france_data(reforms.Reform):
                 P = legislation(period).prestations.minima_sociaux.rsa
                 seuil_non_versement = P.rsa_nv
                 montant = (
-                    rsa_socle_seul_recourant * (rsa_socle - rsa_forfait_logement - rsa_base_ressources) +
-                    rsa_socle_act_recourant * (
-                        rsa_socle - rsa_forfait_logement - rsa_base_ressources + P.pente * rsa_revenu_activite) +
-                    rsa_act_seul_recourant * P.pente * rsa_revenu_activite
-                    )
-                montant = max_(montant, 0)
+                    rsa_socle_seul_recourant + rsa_socle_act_recourant + rsa_act_seul_recourant
+                    ) * (
+                        rsa_socle - rsa_forfait_logement - rsa_base_ressources + P.pente * rsa_revenu_activite
+                        )
                 montant = montant * (montant >= seuil_non_versement)
 
                 return period, montant
