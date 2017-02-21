@@ -128,10 +128,10 @@ class Aggregates(object):
 
         for quantity in quantities:
             difference_data_frame['{}_absolute_difference'.format(quantity)] = (
-                base_data_frame['{}_{}'.format(target, quantity)] - base_data_frame['{}_{}'.format(default, quantity)]
+                abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
                 )
             difference_data_frame['{}_relative_difference'.format(quantity)] = (
-                base_data_frame['{}_{}'.format(target, quantity)] - base_data_frame['{}_{}'.format(default, quantity)]
+                abs(base_data_frame['{}_{}'.format(target, quantity)]) - base_data_frame['{}_{}'.format(default, quantity)]
                 ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
         return difference_data_frame
 

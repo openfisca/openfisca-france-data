@@ -19,6 +19,49 @@ except ImportError:
 from .base import *  # noqa analysis:ignore
 
 
+class assiette_csg_salaire(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Assiette CSG salaires"
+
+    def function(individu, period, legislation):
+        period = period.this_month
+        assiette_csg_abattue = individu('assiette_csg_abattue', period)
+        assiette_csg_non_abattue = individu('assiette_csg_non_abattue', period)
+        plafond_securite_sociale = individu('plafond_securite_sociale', period)
+        abattement = legislation(period.start).prelevements_sociaux.contributions.csg.activite.deductible.abattement
+        assiette = assiette_csg_abattue - abattement.calc(
+            assiette_csg_abattue,
+            factor = plafond_securite_sociale,
+            round_base_decimals = 2,
+            ) + assiette_csg_non_abattue
+        return period, assiette
+
+
+class assiette_csg_retraite(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Assiette CSG retraite"
+
+    def function(individu, period, legislation):
+        period = period.this_month
+        retraite_brute = individu('retraite_brute', period)
+        taux_csg_remplacement = individu('taux_csg_remplacement', period)
+        return period, retraite_brute * (taux_csg_remplacement >= 2)
+
+
+class assiette_csg_chomage(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Assiette CSG chomage"
+
+    def function(individu, period, legislation):
+        period = period.this_month
+        chomage_brut = individu('chomage_brut', period)
+        taux_csg_remplacement = individu('taux_csg_remplacement', period)
+        return period, chomage_brut * (taux_csg_remplacement >= 2)
+
+
 class decile(Variable):
     column = EnumCol(
         enum = Enum([
@@ -40,13 +83,14 @@ class decile(Variable):
 
     def function(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
-        nivvie = menage('niveau_de_vie', period)
+        niveau_de_vie = menage('niveau_de_vie', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(
+            niveau_de_vie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         del values
         return period, decile * menage_ordinaire
 
@@ -72,13 +116,13 @@ class decile_net(Variable):
 
     def function(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
-        nivvie_net = menage('niveau_de_vie_net', period)
+        niveau_de_vie_net = menage('niveau_de_vie_net', period)
         wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(niveau_de_vie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         return period, decile * menage_ordinaire
 
 
