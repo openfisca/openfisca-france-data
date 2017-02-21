@@ -260,8 +260,13 @@ class openfisca_france_data(reforms.Reform):
                 rsa_forfait_logement = famille('rsa_forfait_logement', period)
                 rsa_base_ressources = famille('rsa_base_ressources', period)
                 weight_familles = famille('weight_familles', period)
+                P = legislation(period).prestations.minima_sociaux.rsa
+
                 eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
-                eligible_rsa_act_seul = not_(eligible_rsa_socle) & (rsa_revenu_activite > 0)
+                eligible_rsa = (
+                    rsa_socle - rsa_forfait_logement - rsa_base_ressources + P.pente * rsa_revenu_activite
+                    ) > 0
+                eligible_rsa_act_seul = not_(eligible_rsa_socle) & (rsa_revenu_activite > 0) & eligible_rsa
                 probabilite_de_non_recours = .68
                 recourant_rsa_activite = impute_take_up(
                     target_probability = 1 - probabilite_de_non_recours,
