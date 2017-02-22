@@ -223,7 +223,7 @@ class openfisca_france_data(reforms.Reform):
                 return period, montant
 
         class rsa_socle_act_recourant(Variable):
-            column = BoolCol
+            column = BoolCol(default = True)
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
 
@@ -247,7 +247,7 @@ class openfisca_france_data(reforms.Reform):
                 return period, recourant_rsa_activite
 
         class rsa_act_seul_recourant(Variable):
-            column = BoolCol
+            column = BoolCol(default = True)
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
 
@@ -276,7 +276,7 @@ class openfisca_france_data(reforms.Reform):
                 return period, recourant_rsa_activite
 
         class rsa_socle_seul_recourant(Variable):
-            column = BoolCol
+            column = BoolCol(default = True)
             label = u"Recourant au RSA socle si éligible."
             entity = Famille
 

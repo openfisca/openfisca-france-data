@@ -29,8 +29,8 @@ def build(year = None):
     # imputation_loyer.imputation_loyer(year = year)
     #
     openfisca_survey_collection = SurveyCollection(name = 'openfisca')
-    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
-    stata_file = os.path.join(output_data_directory, 'log_men_ERFS.dta')
+    stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
+    stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
     imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
     #
     variables_individuelles.build_variables_individuelles(year = year)
