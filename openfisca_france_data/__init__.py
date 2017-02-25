@@ -189,8 +189,17 @@ class openfisca_france_data(reforms.Reform):
             log.info("Neutralizing {}".format(neutralized_variable))
             self.neutralize_column(neutralized_variable)
 
-        # Non recours RSA
+        # class tns_autres_revenus(Variable):
+        #     column = FloatCol
+        #     entity = Individu
+        #     label = u"Autres revenus non salariés"
 
+        #     def function(individu, period, legislation):
+        #         period = period.this_month
+        #         revenus = individu('rnc') + individu('ric') + individu('rag')
+        #         return period, revenus
+
+        # Non recours RSA
         class rsa_montant(Variable):
             column = FloatCol
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
