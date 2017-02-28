@@ -43,22 +43,41 @@ def get_variables_from_modules(modules):
     return variables
 
 
-def impute_take_up(target_probability, eligible, weights):
+def impute_take_up(target_probability, eligible, weights, recourant_last_period):
     """
     Compute a vector of boolean for take_up according a target probability accross eligble population
     """
+
     data = pd.DataFrame({
         'eligible': eligible,
         'weights': weights,
+        'deja_recourant': recourant_last_period,
         })
 
-    r_data = data.loc[data.eligible == 1]
-    s_data = r_data.sample(frac = target_probability, replace = False, axis=0)
-    s_data['recourant'] = True
+    eligibles = data.loc[data.eligible == 1].copy()
+    eligibles['recourant'] = eligibles.deja_recourant
+    taux_recours_provisoire = eligibles.loc[eligibles.recourant].weights.sum() / eligibles.weights.sum()
 
-    merged = data.merge(s_data, left_index = True, right_index = True, how = 'left')
-    merged['recourant'] = merged.recourant.fillna(False)
-    return merged.recourant.values
+    if target_probability > taux_recours_provisoire:
+        print 'cas pas assez'
+        adjusted_target_probability = (target_probability - taux_recours_provisoire) / (1 - taux_recours_provisoire)
+        s_data = eligibles.loc[~eligibles.recourant].copy()
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0)
+        eligibles.loc[eligibles.index.isin(s_data.index), 'recourant'] = True
+        eligibles_recourants_indices = eligibles.query('eligible & recourant').index
+        data['recourant'] = False
+        data.loc[data.index.isin(eligibles_recourants_indices), 'recourant'] = True
+
+    elif target_probability <= taux_recours_provisoire:
+        print 'cas trop'
+        adjusted_target_probability = 1 - target_probability / taux_recours_provisoire
+        s_data = eligibles.loc[eligibles.recourant].copy()
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0)
+        eligibles_non_recourant_indices = s_data.index
+        data['recourant'] = data.deja_recourant * data.eligible
+        data.loc[data.index.isin(eligibles_non_recourant_indices), 'recourant'] = False
+
+    return data.recourant.values
 
 
 variables = get_variables_from_modules([common, survey_variables])
@@ -202,6 +221,11 @@ class openfisca_france_data(reforms.Reform):
         #         return period, revenus
 
         # Non recours RSA
+
+        # Multiplicateur rsa_socle / rssa_socle + rsa_activite
+        multiplicateur_non_recours_socle = 0.35
+        multiplicateur_non_recours_activite = 1.25
+
         class rsa_montant(Variable):
             column = FloatCol
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
@@ -233,6 +257,39 @@ class openfisca_france_data(reforms.Reform):
 
                 return period, montant
 
+        class rsa_socle_seul_recourant(Variable):
+            column = BoolCol(default = False)
+            label = u"Recourant au RSA socle si éligible."
+            entity = Famille
+
+            def function(famille, period, legislation):
+                period = period.this_month
+                last_period = period.last_month
+                if period.start.year < 2012:
+                    weight_familles = famille('weight_familles', period)
+                    return period, weight_familles < -10
+
+                if period.start.year >= 2012:
+                    rsa_socle_non_majore = famille('rsa_socle', period)
+                    rsa_socle_majore = famille('rsa_socle_majore', period)
+                    rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
+                    rsa_forfait_logement = famille('rsa_forfait_logement', period)
+                    rsa_base_ressources = famille('rsa_base_ressources', period)
+                    rsa_revenu_activite = famille('rsa_revenu_activite', period)
+                    weight_familles = famille('weight_familles', period)
+
+                    eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
+                    eligible_rsa_socle_seul = eligible_rsa_socle & not_(rsa_revenu_activite > 0)
+                    recourant_last_period = famille('rsa_socle_seul_recourant', last_period, max_nb_cycles = 1)
+                    probabilite_de_non_recours = .36 * multiplicateur_non_recours_socle
+                    recourant_rsa = impute_take_up(
+                        target_probability = 1 - probabilite_de_non_recours,
+                        eligible = eligible_rsa_socle_seul,
+                        weights = weight_familles,
+                        recourant_last_period = recourant_last_period
+                        )
+                    return period, recourant_rsa
+
         class rsa_socle_act_recourant(Variable):
             column = BoolCol(default = False)
             label = u"Recourant au RSA activité si éligible."
@@ -240,22 +297,32 @@ class openfisca_france_data(reforms.Reform):
 
             def function(famille, period, legislation):
                 period = period.this_month
-                rsa_socle_non_majore = famille('rsa_socle', period)
-                rsa_socle_majore = famille('rsa_socle_majore', period)
-                rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
-                rsa_revenu_activite = famille('rsa_revenu_activite', period)
-                rsa_forfait_logement = famille('rsa_forfait_logement', period)
-                rsa_base_ressources = famille('rsa_base_ressources', period)
-                weight_familles = famille('weight_familles', period)
-                eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
-                eligible_rsa_socle_act = eligible_rsa_socle & (rsa_revenu_activite > 0)
-                probabilite_de_non_recours = .33
-                recourant_rsa_activite = impute_take_up(
-                    target_probability = 1 - probabilite_de_non_recours,
-                    eligible = eligible_rsa_socle_act,
-                    weights = weight_familles,
-                    )
-                return period, recourant_rsa_activite
+                last_period = period.last_month
+
+                if period.start.year < 2012:
+                    weight_familles = famille('weight_familles', period)
+                    return period, weight_familles < -10
+
+                if period.start.year >= 2012:
+                    rsa_socle_non_majore = famille('rsa_socle', period)
+                    rsa_socle_majore = famille('rsa_socle_majore', period)
+                    rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
+                    rsa_revenu_activite = famille('rsa_revenu_activite', period)
+                    rsa_forfait_logement = famille('rsa_forfait_logement', period)
+                    rsa_base_ressources = famille('rsa_base_ressources', period)
+                    weight_familles = famille('weight_familles', period)
+
+                    eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
+                    eligible_rsa_socle_act = eligible_rsa_socle & (rsa_revenu_activite > 0)
+                    recourant_last_period = famille('rsa_socle_act_recourant', last_period, max_nb_cycles = 1)
+                    probabilite_de_non_recours = .33 * multiplicateur_non_recours_socle
+                    recourant_rsa_socle_activite = impute_take_up(
+                        target_probability = 1 - probabilite_de_non_recours,
+                        eligible = eligible_rsa_socle_act,
+                        weights = weight_familles,
+                        recourant_last_period = recourant_last_period
+                        )
+                    return period, recourant_rsa_socle_activite
 
         class rsa_act_seul_recourant(Variable):
             column = BoolCol(default = False)
@@ -264,51 +331,36 @@ class openfisca_france_data(reforms.Reform):
 
             def function(famille, period, legislation):
                 period = period.this_month
-                rsa_socle_non_majore = famille('rsa_socle', period)
-                rsa_socle_majore = famille('rsa_socle_majore', period)
-                rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
-                rsa_revenu_activite = famille('rsa_revenu_activite', period)
-                rsa_forfait_logement = famille('rsa_forfait_logement', period)
-                rsa_base_ressources = famille('rsa_base_ressources', period)
-                weight_familles = famille('weight_familles', period)
-                P = legislation(period).prestations.minima_sociaux.rsa
+                last_period = period.last_month
 
-                eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
-                eligible_rsa = (
-                    rsa_socle - rsa_forfait_logement - rsa_base_ressources + P.pente * rsa_revenu_activite
-                    ) > 0
-                eligible_rsa_act_seul = not_(eligible_rsa_socle) & (rsa_revenu_activite > 0) & eligible_rsa
-                probabilite_de_non_recours = .68
-                recourant_rsa_activite = impute_take_up(
-                    target_probability = 1 - probabilite_de_non_recours,
-                    eligible = eligible_rsa_act_seul,
-                    weights = weight_familles,
-                    )
-                return period, recourant_rsa_activite
+                if period.start.year < 2012:
+                    weight_familles = famille('weight_familles', period)
+                    return period, weight_familles < -10
 
-        class rsa_socle_seul_recourant(Variable):
-            column = BoolCol(default = False)
-            label = u"Recourant au RSA socle si éligible."
-            entity = Famille
+                if period.start.year >= 2012:
+                    rsa_socle_non_majore = famille('rsa_socle', period)
+                    rsa_socle_majore = famille('rsa_socle_majore', period)
+                    rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
+                    rsa_revenu_activite = famille('rsa_revenu_activite', period)
+                    rsa_forfait_logement = famille('rsa_forfait_logement', period)
+                    rsa_base_ressources = famille('rsa_base_ressources', period)
+                    weight_familles = famille('weight_familles', period)
+                    P = legislation(period).prestations.minima_sociaux.rsa
 
-            def function(famille, period, legislation):
-                period = period.this_month
-                rsa_socle_non_majore = famille('rsa_socle', period)
-                rsa_socle_majore = famille('rsa_socle_majore', period)
-                rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
-                rsa_forfait_logement = famille('rsa_forfait_logement', period)
-                rsa_base_ressources = famille('rsa_base_ressources', period)
-                rsa_revenu_activite = famille('rsa_revenu_activite', period)
-                weight_familles = famille('weight_familles', period)
-                eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
-                eligible_rsa_socle_seul = eligible_rsa_socle & not_(rsa_revenu_activite > 0)
-                probabilite_de_non_recours = .36
-                recourant_rsa = impute_take_up(
-                    target_probability = 1 - probabilite_de_non_recours,
-                    eligible = eligible_rsa_socle_seul,
-                    weights = weight_familles,
-                    )
-                return period, recourant_rsa
+                    eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
+                    eligible_rsa = (
+                        rsa_socle - rsa_forfait_logement - rsa_base_ressources + P.pente * rsa_revenu_activite
+                        ) > 0
+                    eligible_rsa_act_seul = not_(eligible_rsa_socle) & (rsa_revenu_activite > 0) & eligible_rsa
+                    recourant_last_period = famille('rsa_act_seul_recourant', last_period, max_nb_cycles = 1)
+                    probabilite_de_non_recours = .68 * multiplicateur_non_recours_activite
+                    recourant_rsa_activite = impute_take_up(
+                        target_probability = 1 - probabilite_de_non_recours,
+                        eligible = eligible_rsa_act_seul,
+                        weights = weight_familles,
+                        recourant_last_period = recourant_last_period
+                        )
+                    return period, recourant_rsa_activite
 
         # class aah(Variable):
         #     column = FloatCol
