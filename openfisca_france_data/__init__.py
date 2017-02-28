@@ -12,6 +12,7 @@ from numpy import (logical_not as not_, maximum as max_)
 import pandas as pd
 
 from openfisca_core import reforms
+# from openfisca_core.formulas import set_input_divide_by_period
 from openfisca_core.variables import Variable
 
 import openfisca_france
@@ -182,6 +183,7 @@ class openfisca_france_data(reforms.Reform):
             'assiette_csg_non_abattue',
             # Volontary neutralization
             'rsa_has_ressources_substitution',
+            'ass',
             ]
 
         neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
@@ -307,6 +309,14 @@ class openfisca_france_data(reforms.Reform):
                     weights = weight_familles,
                     )
                 return period, recourant_rsa
+
+        # class aah(Variable):
+        #     column = FloatCol
+        #     label = u"Allocation adulte handicapé (Individu) mensualisée"
+        #     entity = Individu
+        #     set_input = set_input_divide_by_period
+
+        # self.update_variable(aah)
 
         self.add_variable(rsa_socle_seul_recourant)
         self.add_variable(rsa_act_seul_recourant)
