@@ -43,7 +43,7 @@ def get_variables_from_modules(modules):
     return variables
 
 
-def impute_take_up(target_probability, eligible, weights, recourant_last_period):
+def impute_take_up(target_probability, eligible, weights, recourant_last_period, seed):
     """
     Compute a vector of boolean for take_up according a target probability accross eligble population
     """
@@ -62,7 +62,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period)
         print 'cas pas assez'
         adjusted_target_probability = (target_probability - taux_recours_provisoire) / (1 - taux_recours_provisoire)
         s_data = eligibles.loc[~eligibles.recourant].copy()
-        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0)
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
         eligibles.loc[eligibles.index.isin(s_data.index), 'recourant'] = True
         eligibles_recourants_indices = eligibles.query('eligible & recourant').index
         data['recourant'] = False
@@ -72,7 +72,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period)
         print 'cas trop'
         adjusted_target_probability = 1 - target_probability / taux_recours_provisoire
         s_data = eligibles.loc[eligibles.recourant].copy()
-        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0)
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
         eligibles_non_recourant_indices = s_data.index
         data['recourant'] = data.deja_recourant * data.eligible
         data.loc[data.index.isin(eligibles_non_recourant_indices), 'recourant'] = False
@@ -286,7 +286,8 @@ class openfisca_france_data(reforms.Reform):
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_seul,
                         weights = weight_familles,
-                        recourant_last_period = recourant_last_period
+                        recourant_last_period = recourant_last_period,
+                        seed = 240118
                         )
                     return period, recourant_rsa
 
@@ -320,7 +321,8 @@ class openfisca_france_data(reforms.Reform):
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_act,
                         weights = weight_familles,
-                        recourant_last_period = recourant_last_period
+                        recourant_last_period = recourant_last_period,
+                        seed = 2169065
                         )
                     return period, recourant_rsa_socle_activite
 
@@ -358,7 +360,8 @@ class openfisca_france_data(reforms.Reform):
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_act_seul,
                         weights = weight_familles,
-                        recourant_last_period = recourant_last_period
+                        recourant_last_period = recourant_last_period,
+                        seed = 9779972
                         )
                     return period, recourant_rsa_activite
 
