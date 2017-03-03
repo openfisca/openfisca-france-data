@@ -1,0 +1,22 @@
+- name: "RSA - revenus fonciers"
+  description: RSA
+  period: 2012
+  absolute_error_margin: 0.005
+  familles:
+    parents: ["parent1"]
+  individus:
+    - id: "parent1"
+      age: 40
+      revenus_locatifs:
+        2011-10: 200
+        2011-11: 200
+        2011-12: 200
+        2012-01: 400
+  output_variables:
+    rsa_base_ressources:
+      2012-01: 200
+    f4ba:
+      2012: 0
+      2011: 600
+
+
