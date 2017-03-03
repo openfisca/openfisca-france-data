@@ -90,11 +90,11 @@ class Aggregates(object):
             if simulation_type == 'actual':
                 data_frame_by_simulation_type['actual'] = self.totals_df.copy()
             else:
-                simulation = self.simulation if simulation_type == 'reform' else self.reference_simulation
+                reference = False if simulation_type == 'reform' else True
                 data_frame = pd.DataFrame()
                 for variable in self.aggregate_variables:
                     variable_data_frame = self.compute_variable_aggregates(
-                        variable, simulation, filter_by = filter_by)
+                        variable, reference = reference, filter_by = filter_by)
                     data_frame = pd.concat((data_frame, variable_data_frame))
 
                 data_frame.rename(columns = {
@@ -135,7 +135,7 @@ class Aggregates(object):
                 ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
         return difference_data_frame
 
-    def compute_variable_aggregates(self, variable, simulation, filter_by = None):
+    def compute_variable_aggregates(self, variable, reference = False, filter_by = None):
         """
         Returns aggregate spending, and number of beneficiaries
         for the relevant entity level
@@ -144,16 +144,35 @@ class Aggregates(object):
         ----------
         variable : string
                    name of the variable aggregated according to its entity
-        simulation : TODO
+        reference : bool
+                    Use the reference or the reform or the only avalilable simulation when no reform (default)
         filter_by : string or boolean
                     If string use it as the name of the variable to filter by
                     If not None or False and the string is not present in the tax-benefit-system use the default filtering variable if any
         """
+        if reference:
+            simulation = self.reference_simulation
+        else:
+            simulation = self.simulation
 
         column_by_name = simulation.tax_benefit_system.column_by_name
-        column = column_by_name[variable]
+        column = column_by_name.get(variable)
+
+        if column is None:
+            print reference
+            print variable
+            return pd.DataFrame(
+                data = {
+                    'label': variable,
+                    'entity': 'Unknown entity',
+                    'amount': 0,
+                    'beneficiaries': 0,
+                    },
+                index = [variable],
+                )
         weight = self.weight_column_name_by_entity[column.entity.key]
         assert weight in column_by_name, "{} not a variable of the tax_benefit_system".format(weight)
+
         weight_array = simulation.calculate(weight).astype('float')
         assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
             weight, column.entity.key)
