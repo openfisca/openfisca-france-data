@@ -59,7 +59,6 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
     taux_recours_provisoire = eligibles.loc[eligibles.recourant].weights.sum() / eligibles.weights.sum()
 
     if target_probability > taux_recours_provisoire:
-        print 'cas pas assez'
         adjusted_target_probability = (target_probability - taux_recours_provisoire) / (1 - taux_recours_provisoire)
         s_data = eligibles.loc[~eligibles.recourant].copy()
         s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
@@ -69,7 +68,6 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
         data.loc[data.index.isin(eligibles_recourants_indices), 'recourant'] = True
 
     elif target_probability <= taux_recours_provisoire:
-        print 'cas trop'
         adjusted_target_probability = 1 - target_probability / taux_recours_provisoire
         s_data = eligibles.loc[eligibles.recourant].copy()
         s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
