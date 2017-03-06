@@ -82,6 +82,7 @@ variables = get_variables_from_modules([common, survey_variables])
 
 
 class openfisca_france_data(reforms.Reform):
+
     def apply(self):
         for variable in variables:
             if variable == Variable:
@@ -208,27 +209,11 @@ class openfisca_france_data(reforms.Reform):
             log.info("Neutralizing {}".format(neutralized_variable))
             self.neutralize_column(neutralized_variable)
 
-        # class tns_autres_revenus(Variable):
-        #     column = FloatCol
-        #     entity = Individu
-        #     label = u"Autres revenus non salariés"
-
-        #     def function(individu, period, legislation):
-        #         period = period.this_month
-        #         revenus = individu('rnc') + individu('ric') + individu('rag')
-        #         return period, revenus
-
-        # Non recours RSA
-
-        # Multiplicateur rsa_socle / rssa_socle + rsa_activite
-        multiplicateur_non_recours_socle = 0.35
-        multiplicateur_non_recours_activite = 1.25
-
         class rsa_montant(Variable):
             column = FloatCol
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
             entity = Famille
-            start_date = date(2009, 06, 1)
+            start_date = date(2009, 6, 1)
 
             def function(famille, period, legislation):
                 period = period.this_month
@@ -279,7 +264,8 @@ class openfisca_france_data(reforms.Reform):
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_rsa_socle_seul = eligible_rsa_socle & not_(rsa_revenu_activite > 0)
                     recourant_last_period = famille('rsa_socle_seul_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = .36 * multiplicateur_non_recours_socle
+                    legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_seul
                     recourant_rsa = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_seul,
@@ -314,7 +300,9 @@ class openfisca_france_data(reforms.Reform):
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_rsa_socle_act = eligible_rsa_socle & (rsa_revenu_activite > 0)
                     recourant_last_period = famille('rsa_socle_act_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = .33 * multiplicateur_non_recours_socle
+                    legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_activite
+                    print 'probabilite_de_non_recours_socle_activite', probabilite_de_non_recours
                     recourant_rsa_socle_activite = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_act,
@@ -353,7 +341,7 @@ class openfisca_france_data(reforms.Reform):
                         ) > 0
                     eligible_rsa_act_seul = not_(eligible_rsa_socle) & (rsa_revenu_activite > 0) & eligible_rsa
                     recourant_last_period = famille('rsa_act_seul_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = .68 * multiplicateur_non_recours_activite
+                    probabilite_de_non_recours = P.non_recours.probabilite_de_non_recours_activite_seul
                     recourant_rsa_activite = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_act_seul,
@@ -363,14 +351,51 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return period, recourant_rsa_activite
 
-        # class aah(Variable):
-        #     column = FloatCol
-        #     label = u"Allocation adulte handicapé (Individu) mensualisée"
-        #     entity = Individu
-        #     set_input = set_input_divide_by_period
+        def reform_modify_legislation_json(reference_legislation_json_copy):
+            reform_legislation_subtree = {
+                "@type": "Node",
+                "description": u"Non recours au RSA",
+                "children": {
+                    "probabilite_de_non_recours_activite_seul": {
+                        "@type": "Parameter",
+                        "description": u"Probabilité de non recours au RSA activité",
+                        "format": "float",
+                        "values": [{
+                            'start': u'2009-06-01',
+                            'stop': u'2020-12-31',
+                            'value': .68,
+                            }],
+                        },
+                    "probabilite_de_non_recours_socle_activite": {
+                        "@type": "Parameter",
+                        "description": u"Probabilité de non recours au RSA socle seul",
+                        "format": "float",
+                        "unit": "currency",
+                        "values": [{
+                            'start': u'2009-06-01',
+                            'stop': u'2020-12-31',
+                            'value': .33,
+                            }],
+                        },
+                    "probabilite_de_non_recours_socle_seul": {
+                        "@type": "Parameter",
+                        "description": u"Probabilité de non recours au RSA socle seul",
+                        "format": "float",
+                        "unit": "currency",
+                        "values": [{
+                            'start': u'2009-06-01',
+                            'stop': u'2020-12-31',
+                            'value': .36,
+                            }],
+                        },
+                    },
+                }
+            reference_legislation_json_copy[
+                'children']['prestations']['children']['minima_sociaux']['children']['rsa']['children'][
+                    'non_recours'] = reform_legislation_subtree
+            return reference_legislation_json_copy
 
-        # self.update_variable(aah)
-
+        self.modify_legislation_json(modifier_function = reform_modify_legislation_json)
         self.add_variable(rsa_socle_seul_recourant)
         self.add_variable(rsa_act_seul_recourant)
         self.add_variable(rsa_socle_act_recourant)
