@@ -302,7 +302,7 @@ class openfisca_france_data(reforms.Reform):
                     recourant_last_period = famille('rsa_socle_act_recourant', last_period, max_nb_cycles = 1)
                     legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
                     probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_activite
-                    print 'probabilite_de_non_recours_socle_activite', probabilite_de_non_recours
+                    print('probabilite_de_non_recours_socle_activite', probabilite_de_non_recours)
                     recourant_rsa_socle_activite = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_act,
