@@ -47,7 +47,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
     """
     Compute a vector of boolean for take_up according a target probability accross eligble population
     """
-
+    assert (target_probability >= 0) and (target_probability <= 1)
     data = pd.DataFrame({
         'eligible': eligible,
         'weights': weights,
@@ -72,7 +72,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
         s_data = eligibles.loc[eligibles.recourant].copy()
         s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
         eligibles_non_recourant_indices = s_data.index
-        data['recourant'] = data.deja_recourant * data.eligible
+        data['recourant'] = data.deja_recourant & data.eligible
         data.loc[data.index.isin(eligibles_non_recourant_indices), 'recourant'] = False
 
     return data.recourant.values
