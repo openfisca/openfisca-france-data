@@ -48,6 +48,11 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
     Compute a vector of boolean for take_up according a target probability accross eligble population
     """
     assert (target_probability >= 0) and (target_probability <= 1)
+    if target_probability == 0:
+        return eligible * False
+    elif target_probability == 1:
+        return eligible * True
+
     data = pd.DataFrame({
         'eligible': eligible,
         'weights': weights,
@@ -302,7 +307,6 @@ class openfisca_france_data(reforms.Reform):
                     recourant_last_period = famille('rsa_socle_act_recourant', last_period, max_nb_cycles = 1)
                     legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
                     probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_activite
-                    print('probabilite_de_non_recours_socle_activite', probabilite_de_non_recours)
                     recourant_rsa_socle_activite = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_act,

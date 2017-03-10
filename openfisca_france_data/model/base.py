@@ -32,5 +32,3 @@ __all__ = [
     'Variable',
     'VOUS',
     ]
-
-
