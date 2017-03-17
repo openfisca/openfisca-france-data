@@ -99,7 +99,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             self.new_simulation(reference = True)
 
     def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
-            rebuild_input_data = False):
+            rebuild_input_data = False, rebuild_kwargs = None):
 
         if data_year is None:
             data_year = self.year
@@ -112,7 +112,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
 
         if rebuild_input_data:
-            self.build_input_data(year = data_year)
+            if rebuild_kwargs is not None:
+                self.build_input_data(year = data_year, **rebuild_kwargs)
+            else:
+                self.build_input_data(year = data_year)
 
         if self.input_data_table_by_period is None:
             openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
