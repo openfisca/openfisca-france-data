@@ -41,7 +41,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
     individus = temporary_store['individus_{}_post_01'.format(year)]
     create_variables_individuelles(individus, year)
     temporary_store['individus_{}'.format(year)] = individus
-    log.info(u"step_03_variables_individuelles terminée")
+    log.debug(u"step_03_variables_individuelles terminée")
     return individus
 
 
@@ -244,12 +244,12 @@ def create_categorie_salarie(individus):
         6 * contractuel
         ) + np.logical_not(actif_occupe) * 7
 
-    log.info('Les valeurs de categorie_salarie sont: \n {}'.format(
+    log.debug('Les valeurs de categorie_salarie sont: \n {}'.format(
         individus['categorie_salarie'].value_counts(dropna = False)))
     assert individus['categorie_salarie'].isin(range(8)).all(), \
         "categorie_salarie n'est pas toujours dans l'intervalle [0, 7]\n{}".format(
             individus.categorie_salarie.value_counts())
-    log.info(u"Répartition des catégories de salariés: \n{}".format(
+    log.debug(u"Répartition des catégories de salariés: \n{}".format(
         individus.groupby(['contrat_de_travail'])['categorie_salarie'].value_counts().sort_index()
         ))
 
@@ -597,7 +597,7 @@ def create_revenus(individus, net_only = False):
         if (individus[variable] < 0).any():
 
             negatives_values = individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
-            log.info("La variable {} contient {} valeurs négatives\n {}".format(
+            log.debug("La variable {} contient {} valeurs négatives\n {}".format(
                 variable,
                 negatives_values.sum(),
                 negatives_values,
@@ -824,10 +824,10 @@ def create_statut_matrimonial(individus):
 
 
 def todo_create(individus):
-    log.info(u"    6.3 : variable txtppb")
+    log.debug(u"    6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
     assert individus.txtppb.notnull().all()
-    log.info("Valeurs prises par la variable txtppb \n {}".format(
+    log.debug("Valeurs prises par la variable txtppb \n {}".format(
         individus['txtppb'].value_counts(dropna = False)))
 
 

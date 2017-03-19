@@ -177,7 +177,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         #     holder.set_input(period, salaire_de_base / 12)
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
-        log.info('Customizing input_data_frame')
         # input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
         if 'loyer' in input_data_frame:
             input_data_frame['loyer'] = 12 * input_data_frame.loyer
@@ -188,7 +187,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             ] = 1
 
         for variable in ['quifam', 'quifoy', 'quimen']:
-            log.info(input_data_frame[variable].value_counts(dropna = False))
+            log.debug(input_data_frame[variable].value_counts(dropna = False))
 
 
 def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
