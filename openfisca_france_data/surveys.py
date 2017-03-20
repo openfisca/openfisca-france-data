@@ -60,7 +60,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         return input_data_frame
 
     @classmethod
-    def create(cls, reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
+    def create(cls, input_data_type = None, reference_tax_benefit_system = None, reform = None, reform_key = None, tax_benefit_system = None,
             year = None):
 
         assert year is not None
@@ -87,6 +87,9 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             )
 
         survey_scenario.year = year
+        if input_data_type is not None:
+            survey_scenario.input_data_survey_prefix = '{}_{}'.format(
+                input_data_type, survey_scenario.input_data_survey_prefix)
 
         return survey_scenario
 
