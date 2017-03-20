@@ -80,16 +80,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         else:
             tax_benefit_system = reform
 
-        survey_scenario = cls()
+        survey_scenario = cls(input_data_type = input_data_type) if input_data_type is not None else cls()
         survey_scenario.set_tax_benefit_systems(
             tax_benefit_system = tax_benefit_system,
             reference_tax_benefit_system = reference_tax_benefit_system
             )
 
         survey_scenario.year = year
-        if input_data_type is not None:
-            survey_scenario.input_data_survey_prefix = '{}_{}'.format(
-                input_data_type, survey_scenario.input_data_survey_prefix)
 
         return survey_scenario
 
