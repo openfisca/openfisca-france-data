@@ -47,7 +47,6 @@ doc_lines = __doc__.split('\n')
 setup(
     name = 'OpenFisca-France-Data',
     version = '0.5.8',
-
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -56,7 +55,6 @@ setup(
     license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
     long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-france-data',
-
     data_files = [
         ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
