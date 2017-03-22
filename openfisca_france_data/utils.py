@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+import configparser
 import logging
 import numpy
 import os
@@ -324,7 +324,11 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     assert data_frame is not None
     assert collection is not None
     assert survey is not None
-    openfisca_survey_collection = SurveyCollection(name = collection)
+    try:
+        openfisca_survey_collection = SurveyCollection.load(collection = collection)
+    except configparser.NoOptionError:
+        openfisca_survey_collection = SurveyCollection(name = collection)
+    log.debug("In collection {} the following survey are present: {}".format(collection, openfisca_survey_collection.surveys))
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     if table is None:
         table = "input"
@@ -340,4 +344,5 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     openfisca_survey_collection.surveys.append(survey)
     collections_directory = openfisca_survey_collection.config.get('collections', 'collections_directory')
     json_file_path = os.path.join(collections_directory, '{}.json'.format(collection))
+    log.debug("In collection {} the following surveyx are present: {}".format(collection, openfisca_survey_collection.surveys))
     openfisca_survey_collection.dump(json_file_path = json_file_path)

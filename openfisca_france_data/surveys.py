@@ -99,7 +99,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             self.new_simulation(reference = True)
 
     def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None):
+            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None):
 
         if data_year is None:
             data_year = self.year
@@ -129,9 +129,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         else:
             pass
         #
-        self.new_simulation()
+        input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
+        self.new_simulation(survey = input_survey_kwargs.get('input_survey'))
         if self.reference_tax_benefit_system is not None:
-            self.new_simulation(reference = True)
+            self.new_simulation(reference = True, survey = input_survey_kwargs.get('reference_input_survey'))
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)
