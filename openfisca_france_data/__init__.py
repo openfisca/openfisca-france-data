@@ -13,7 +13,6 @@ import pandas as pd
 
 from openfisca_core import reforms
 # from openfisca_core.formulas import set_input_divide_by_period
-from openfisca_core.variables import Variable
 
 import openfisca_france
 
@@ -214,12 +213,29 @@ class openfisca_france_data(reforms.Reform):
             log.info("Neutralizing {}".format(neutralized_variable))
             self.neutralize_column(neutralized_variable)
 
-        class rsa_montant(Variable):
+        class rsa_montant(DatedVariable):
             column = FloatCol
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
             entity = Famille
             start_date = date(2009, 6, 1)
 
+            @dated_function(start = date(2017, 1, 1))
+            def function_2017(famille, period, legislation):
+                period = period.this_month
+                seuil_non_versement = legislation(period).prestations.minima_sociaux.rsa.rsa_nv
+
+                rsa = famille('rsa_fictif', period.last_3_months, extra_params = [period], options = [ADD]) / 3
+
+                rsa_socle_seul_recourant = famille('rsa_socle_seul_recourant', period)
+                rsa_socle_act_recourant = famille('rsa_socle_act_recourant', period)
+
+                rsa = (
+                    rsa_socle_seul_recourant + rsa_socle_act_recourant
+                    ) * rsa * (rsa >= seuil_non_versement)
+
+                return period, rsa
+
+            @dated_function(start = date(2009, 6, 1))
             def function(famille, period, legislation):
                 period = period.this_month
                 rsa_socle_non_majore = famille('rsa_socle', period)

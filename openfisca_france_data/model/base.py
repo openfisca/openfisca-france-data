@@ -2,11 +2,9 @@
 
 from datetime import date
 
-from openfisca_core.variables import Variable
-
-from openfisca_france.model.base import (ADD, BoolCol, CHEF, ENFS, Enum, EnumCol, Famille, FloatCol, FoyerFiscal,
-    Individu, IntCol, Menage, PART, PeriodSizeIndependentFloatCol, PeriodSizeIndependentIntCol, QUIFAM, QUIFOY,
-    switch, VOUS)
+from openfisca_france.model.base import (ADD, BoolCol, CHEF, DatedVariable, dated_function, ENFS, Enum, EnumCol,
+    Famille, FloatCol, FoyerFiscal, Individu, IntCol, Menage, PART, PeriodSizeIndependentFloatCol,
+    PeriodSizeIndependentIntCol, QUIFAM, QUIFOY, switch, Variable, VOUS)
 
 
 __all__ = [
@@ -14,6 +12,8 @@ __all__ = [
     'BoolCol',
     'CHEF',
     'date',
+    'DatedVariable',
+    'dated_function',
     'ENFS',
     'Enum',
     'EnumCol',
