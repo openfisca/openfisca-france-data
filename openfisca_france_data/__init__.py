@@ -346,7 +346,7 @@ class openfisca_france_data(reforms.Reform):
             entity = Famille
 
             @dated_function(start = date(2016, 1, 1))
-            def function_2016(famille, period, legislation):
+            def function_2016_(famille, period, legislation):
                 period = period.this_month
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
@@ -420,7 +420,7 @@ class openfisca_france_data(reforms.Reform):
             entity = Famille
 
             @dated_function(start = date(2016, 1, 1))
-            def function_2016(famille, period, legislation):
+            def function_2016_(famille, period, legislation):
                 period = period.this_month
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
