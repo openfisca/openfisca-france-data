@@ -502,8 +502,9 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
     assert year is not None
     assert bool(age_variable) != bool(annee_naissance_variable)  # xor
 
-    month_birth = 1 + np.random.randint(12, size = len(individus))
-    day_birth = 1 + np.random.randint(28, size = len(individus))
+    random_state = np.random.RandomState(42)
+    month_birth = 1 + random_state.randint(12, size = len(individus))
+    day_birth = 1 + random_state.randint(28, size = len(individus))
 
     if age_variable is not None:
         assert age_variable in individus
