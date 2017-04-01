@@ -432,30 +432,35 @@ def load_actual_data(year = None):
     assert year is not None
     parser = Config()
     # Cotisations CSG -CRDS
-    directory = os.path.join(
-        parser.get('data', 'prelevements_sociaux_directory'),
-        'clean',
-        )
-    csg_crds_amounts = pd.read_csv(
-        os.path.join(directory, 'recette_csg_crds.csv'),
-        index_col = 0
-        ).rename(
-            dict(
-                recette_csg = 'csg',
-                recette_crds = 'crds',
-                )
+    try:
+        directory = os.path.join(
+            parser.get('data', 'prelevements_sociaux_directory'),
+            'clean',
+            )
+        csg_crds_amounts = pd.read_csv(
+            os.path.join(directory, 'recette_csg_crds.csv'),
+            index_col = 0
+            ).rename(
+                dict(
+                    recette_csg = 'csg',
+                    recette_crds = 'crds',
+                    )
+                ) / 1e6
+        csg_by_type_amounts = pd.read_csv(
+            os.path.join(directory, 'recette_csg_by_type.csv'),
+            index_col = 0,
+            ).drop(
+                ['source']
+                ).astype(float) / 1e6
+        assiette_csg_by_type_amounts = pd.read_csv(
+            os.path.join(directory, 'assiette_csg_by_type.csv'),
+            index_col = 0,
             ) / 1e6
-    csg_by_type_amounts = pd.read_csv(
-        os.path.join(directory, 'recette_csg_by_type.csv'),
-        index_col = 0,
-        ).drop(
-            ['source']
-            ).astype(float) / 1e6
-    assiette_csg_by_type_amounts = pd.read_csv(
-        os.path.join(directory, 'assiette_csg_by_type.csv'),
-        index_col = 0,
-        ) / 1e6
-
+    except:
+        assiette_csg_by_type_amounts = None
+        csg_by_type_amounts = None
+        csg_crds_amounts = None
+        pass
     # Prestations sociales
     directory = os.path.join(
         parser.get('data', 'prestations_sociales_directory'),
