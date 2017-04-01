@@ -362,10 +362,9 @@ class openfisca_france_data(reforms.Reform):
                     rsa_forfait_logement = famille('rsa_forfait_logement', period)
                     rsa_base_ressources = famille('rsa_base_ressources', period)
                     ppa_eligibilite_etudiants = famille('ppa_eligibilite_etudiants', period)
-                    seuil_non_versement = legislation(period).prestations.minima_sociaux.ppa.seuil_non_versement
                     ppa_fictive = famille(
                         'ppa_fictive', period.last_3_months, extra_params = [period], options = [ADD]) / 3
-                    ppa = ppa_fictive * ppa_eligibilite_etudiants * (ppa_fictive >= seuil_non_versement)
+                    ppa = ppa_fictive * ppa_eligibilite_etudiants
 
                     weight_familles = famille('weight_familles', period)
                     legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
@@ -436,10 +435,9 @@ class openfisca_france_data(reforms.Reform):
                     rsa_forfait_logement = famille('rsa_forfait_logement', period)
                     rsa_base_ressources = famille('rsa_base_ressources', period)
                     ppa_eligibilite_etudiants = famille('ppa_eligibilite_etudiants', period)
-                    seuil_non_versement = legislation(period).prestations.minima_sociaux.ppa.seuil_non_versement
                     ppa_fictive = famille(
                         'ppa_fictive', period.last_3_months, extra_params = [period], options = [ADD]) / 3
-                    ppa = ppa_fictive * ppa_eligibilite_etudiants * (ppa_fictive >= seuil_non_versement)
+                    ppa = ppa_fictive * ppa_eligibilite_etudiants
 
                     weight_familles = famille('weight_familles', period)
 
