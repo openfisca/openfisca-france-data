@@ -20,7 +20,6 @@ from openfisca_france_data.utils import store_input_data_frame
 log = logging.getLogger(__name__)
 
 
-
 def build(year = None):
     assert year is not None
     #
