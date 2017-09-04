@@ -812,8 +812,8 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
                 (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
                 )
             if (categorie_salarie == CATEGORIE_SALARIE[categorie]).any():
-                print("Pour {} : brut = {}".format(CATEGORIE_SALARIE[categorie], brut))
-                print('bareme direct: {}'.format(bareme))
+                log.debug("Pour {} : brut = {}".format(CATEGORIE_SALARIE[categorie], brut))
+                log.debug('bareme direct: {}'.format(bareme))
 
             assert (salaire_de_base >= 0).all()
             assert (salaire_de_base < 1e9).all()
