@@ -477,7 +477,7 @@ def create_contrat_de_travail(individus, period):
     del salarie_sans_contrat_de_travail
     # On vérifie que l'on n'a pas fait d'erreurs
     assert (individus.salaire_net >= 0).all(), \
-        "Salaire net n'es pas toujours positif ou nul : {} {}".format(
+        "Le salaire net n'es pas toujours positif (ou nul) : \n {} {}".format(
                 individus.query('~(salaire_net>=0)').salaire_net.value_counts(dropna = False),
                 individus.query('~(salaire_net>=0)').contrat_de_travail.value_counts(dropna = False),
                 )
