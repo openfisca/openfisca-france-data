@@ -104,51 +104,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if self.baseline_tax_benefit_system is not None:
             self.new_simulation(use_baseline = True)
 
-    # def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
-    #         rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None, trace = False, memory_config = None,
-    #         tax_and_benefit_system = None):
-
-    #     assert tax_and_benefit_system is not None
-
-    #     if data_year is None:
-    #         data_year = self.year
-
-    #     if calibration_kwargs is not None:
-    #         assert set(calibration_kwargs.keys()).issubset(set(
-    #             ['target_margins_by_variable', 'parameters', 'total_population']))
-
-    #     if inflation_kwargs is not None:
-    #         assert set(inflation_kwargs.keys()).issubset(set(['inflator_by_variable', 'target_by_variable']))
-
-    #     if rebuild_input_data:
-    #         if rebuild_kwargs is not None:
-    #             self.build_input_data(year = data_year, tax_and_benefit_system = tax_and_benefit_system, **rebuild_kwargs)
-    #         else:
-    #             self.build_input_data(year = data_year, tax_and_benefit_system = tax_and_benefit_system)
-
-    #     if self.input_data_table_by_period is None:
-    #         openfisca_survey_collection = SurveyCollection.load(collection = self.collection)
-    #         openfisca_survey = openfisca_survey_collection.get_survey("{}_{}".format(
-    #             self.input_data_survey_prefix, data_year))
-    #         input_data_frame = openfisca_survey.get_values(table = "input").reset_index(drop = True)
-
-    #         self.init_from_data_frame(
-    #             input_data_frame = input_data_frame,
-    #             )
-    #     else:
-    #         pass
-    #     #
-    #     input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
-    #     self.new_simulation(survey = input_survey_kwargs.get('input_survey'), trace = trace, memory_config = memory_config)
-    #     if self.baseline_tax_benefit_system is not None:
-    #         self.new_simulation(use_baseline = True, survey = input_survey_kwargs.get('baseline_input_survey'), trace = trace, memory_config = memory_config)
-    #     #
-    #     if calibration_kwargs:
-    #         self.calibrate(**calibration_kwargs)
-
-    #     if inflation_kwargs:
-    #         self.inflate(**inflation_kwargs)
-
     def custom_initialize(self, simulation):
         three_year_span_variables = [
             'categorie_salarie',
