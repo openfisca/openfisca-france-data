@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import configparser
+from configparser import NoOptionError
 import logging
 import numpy
 import os
@@ -326,8 +326,9 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     assert survey is not None
     try:
         openfisca_survey_collection = SurveyCollection.load(collection = collection)
-    except configparser.NoOptionError:
+    except Exception as e:
         openfisca_survey_collection = SurveyCollection(name = collection)
+
     log.debug("In collection {} the following survey are present: {}".format(collection, openfisca_survey_collection.surveys))
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     if table is None:

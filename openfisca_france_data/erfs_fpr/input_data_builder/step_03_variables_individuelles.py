@@ -152,7 +152,7 @@ def create_categorie_salarie(individus):
         u"public_non_titulaire
         u"non_pertinent"
 
-    A partir des variables de l'ecc' :
+    A partir des variables de l'eec' :
     chpub :
         1 - Etat
         2 - Collectivités locales, HLM
@@ -184,11 +184,11 @@ def create_categorie_salarie(individus):
     # TODO: Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
 
     assert individus.chpub.isin(range(0, 7)).all(), \
-        "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts())
+        "chpub n'est pas toujours dans l'intervalle [1, 6]\n{}".format(individus.chpub.value_counts(dropna = False))
 
     individus.loc[individus.encadr == 0, 'encadr'] = 2
     assert individus.encadr.isin(range(1, 3)).all(), \
-        "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts())
+        "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
 
     assert individus.prosa.isin(range(0, 10)).all(), \
         "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
@@ -202,7 +202,7 @@ def create_categorie_salarie(individus):
 
     assert individus.titc.isin(range(4)).all(), \
         "titc n'est pas toujours dans l'ensemble [0, 3] des valeurs antendues.\n{}".format(
-            individus.statut.value_counts()
+            individus.titc.value_counts()
             )
 
     chpub = individus.chpub
@@ -257,7 +257,6 @@ def create_categorie_salarie(individus):
     log.debug(u"Répartition des catégories de salariés: \n{}".format(
         individus.groupby(['contrat_de_travail'])['categorie_salarie'].value_counts().sort_index()
         ))
-
 
 def create_contrat_de_travail(individus, period):
     """
@@ -350,13 +349,13 @@ def create_contrat_de_travail(individus, period):
     assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] > 0).all()
     assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     del temps_plein, temps_plein_sous_smic
-    # 2.2 Pour les temps partiel on prends les heures hcc
+    # 2.2 Pour les temps partiel on prends les heures hhc
     # On vérfie que celles qu'on a créées jusqu'ici sont correctes
     assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     assert (individus.query('(contrat_de_travail == 1) & (salaire_net > 0)').heures_remunerees_volume < 35).all()
     #
     axes = (individus.query('(contrat_de_travail == 1) & (salaire_net > 0)').hhc).hist(bins=100)
-    axes.set_title("Heures (hcc)")
+    axes.set_title("Heures (hhc)")
     # individus.query('(contrat_de_travail == 1) & (salaire_net > 0)').hhc.isnull().sum() = 489
     # 2.2.1 On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
     temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire_net > 0)
@@ -458,6 +457,17 @@ def create_contrat_de_travail(individus, period):
             (individus.salaire_net < smic_net),
             'salaire_net'
             ] / smic_net * 35
+    # 2.3.3 On attribue des heures rémunérées aux individus à temps partiel qui ont un
+    # salaire strictement mais un nombre d'heures travaillées nul
+    salaire_sans_heures = (individus.contrat_de_travail == 1 ) & ~(individus.heures_remunerees_volume > 0)
+    assert (individus.loc[salaire_sans_heures, 'salaire_net'] > 0 ).all()
+    assert (individus.loc[salaire_sans_heures, 'duhab'] == 1 ).all()
+    # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic net.
+    # On leur attribue donc un nombre d'heures travaillées égal à 15.
+    individus.loc[
+            salaire_sans_heures &
+            (individus.salaire_net > smic_net),
+            'heures_remunerees_volume'] = 15
     #
     individus.query('salaire_net > 0').contrat_de_travail.value_counts(dropna = False)
     individus.query('salaire_net == 0').contrat_de_travail.value_counts(dropna = False)
@@ -466,14 +476,24 @@ def create_contrat_de_travail(individus, period):
     individus.loc[salarie_sans_contrat_de_travail, 'salaire_net'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
     # On vérifie que l'on n'a pas fait d'erreurs
-    assert (individus.salaire_net >= 0).all()
+    assert (individus.salaire_net >= 0).all(), \
+        "Salaire net n'es pas toujours positif ou nul : {} {}".format(
+                individus.query('~(salaire_net>=0)').salaire_net.value_counts(dropna = False),
+                individus.query('~(salaire_net>=0)').contrat_de_travail.value_counts(dropna = False),
+                )
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
     assert (individus.query('salaire_net > 0').contrat_de_travail.isin([0, 1])).all()
     assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
     assert (individus.query('salaire_net == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail in [0, 6]').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
-    assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all()
+    assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all(), \
+         "Heures remunerees volume n'est pas toujours positif: {}".format(
+             individus.query('contrat_de_travail == 1').loc[
+                 ~(individus.heures_remunerees_volume > 0),
+                 ['heures_remunerees_volume', 'salaire_net', 'hhc', 'tppred', 'duhab']
+                 ]
+             )
 
     # la variable heures_remunerees_volume est nombre d'heures par semaine. On ajuste selon la période
     period = periods.period(period)
@@ -726,8 +746,9 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
         target['prive_cadre'] = set(
             ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
             )
+        target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
 
-        for categorie in ['prive_non_cadre', 'prive_cadre']:
+        for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
             baremes_collection = salarie[categorie]
             baremes_to_remove = list()
             for name, bareme in baremes_collection.iteritems():
@@ -736,24 +757,26 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
             for name in baremes_to_remove:
                 del baremes_collection[name]
 
-        for categorie in ['prive_non_cadre', 'prive_cadre']:
+        for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
             test = set(
                 name for name, bareme in salarie[categorie].iteritems()
                 if isinstance(bareme, MarginalRateTaxScale)
                 )
             assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
         del bareme
+
         # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
-        # Pour éviter les divisions 0 /0 dans le switch
+        # Pour éviter les divisions 0 /0 dans le switch qui sert à calculer le salaire_pour_inversion_proratise
+
         if period.unit == 'year':
             plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
             heures_temps_plein = 52 * 35
         elif period.unit == 'month':
             plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
             heures_temps_plein = (52 * 35 / 12) * period.size
-
         else:
             raise
+
         heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
         salaire_pour_inversion_proratise = switch(
             contrat_de_travail,
@@ -767,7 +790,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
                 }
             )
         salaire_de_base = 0.0
-        for categorie in ['prive_non_cadre', 'prive_cadre']:
+        for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
             bareme = salarie[categorie].combine_tax_scales()
             bareme.add_tax_scale(csg_deductible)
             if revenu_type == 'net':
@@ -788,6 +811,10 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
             salaire_de_base += (
                 (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
                 )
+            if (categorie_salarie == CATEGORIE_SALARIE[categorie]).any():
+                print("Pour {} : brut = {}".format(CATEGORIE_SALARIE[categorie], brut))
+                print('bareme direct: {}'.format(bareme))
+
             assert (salaire_de_base >= 0).all()
             assert (salaire_de_base < 1e9).all()
 
@@ -801,6 +828,197 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
         #     cotisation_forfaitaire
         #     )
         individus['salaire_de_base'] = salaire_de_base
+
+
+def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable'):
+    """
+    Calcule le tratement indiciaire brut à partir du salaire imposable.
+    Note : le supplément familial de traitement est imposable. Pas géré
+    """
+    assert period is not None
+    assert revenu_type in ['net', 'imposable']
+    for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
+        assert variable in individus.columns
+
+    if revenu_type == 'imposable':
+        assert 'salaire_imposable' in individus.columns
+        salaire_pour_inversion = individus.salaire_imposable
+    else:
+        assert 'salaire_net' in individus.columns
+        salaire_pour_inversion = individus.salaire_net
+
+
+    categorie_salarie = individus.categorie_salarie
+    contrat_de_travail = individus.contrat_de_travail
+    heures_remunerees_volume = individus.heures_remunerees_volume
+
+    TAUX_DE_PRIME = 0.195 # 0.25
+
+    simulation = base.france_data_tax_benefit_system.new_scenario().init_single_entity(
+        period = period, parent1 = dict()).new_simulation()
+    legislation = simulation.legislation_at(period.start)
+
+    salarie = legislation.cotsoc.cotisations_salarie
+    plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
+    legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
+    taux_csg = legislation_csg_deductible.taux
+    taux_abattement = legislation_csg_deductible.abattement.rates[0]
+    try:
+        seuil_abattement = legislation_csg_deductible.abattement.thresholds[1]
+    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
+        seuil_abattement = None
+    csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
+    csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
+    if seuil_abattement is not None:
+        csg_deductible.add_bracket(seuil_abattement, taux_csg)
+
+    if revenu_type == 'net':
+    # Cas des revenus nets: On ajoute CSG imposable et crds qui s'appliquent à tous les revenus (pareil que pour les salariés du privé)
+        # csg imposable
+        legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
+        taux_csg = legislation_csg_imposable.taux
+        taux_abattement = legislation_csg_imposable.abattement.rates[0]
+        try:
+            seuil_abattement = legislation_csg_imposable.abattement.thresholds[1]
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
+            seuil_abattement = None
+        csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
+        csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
+        if seuil_abattement is not None:
+            csg_imposable.add_bracket(seuil_abattement, taux_csg)
+        # crds
+        legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
+        taux_csg = legislation_crds.taux
+        taux_abattement = legislation_crds.abattement.rates[0]
+        try:
+            seuil_abattement = legislation_crds.abattement.thresholds[1]
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
+            seuil_abattement = None
+        crds = MarginalRateTaxScale(name = 'crds')
+        crds.add_bracket(0, taux_csg * (1 - taux_abattement))
+        if seuil_abattement is not None:
+            crds.add_bracket(seuil_abattement, taux_csg)
+
+    # Check baremes
+    target = dict()
+    target['public_titulaire_etat'] = set(['excep_solidarite', 'pension', 'rafp'])
+    target['public_titulaire_hospitaliere'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
+    target['public_titulaire_territoriale'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
+
+    categories_salarie_du_public = [
+        'public_titulaire_etat',
+        'public_titulaire_hospitaliere',
+        'public_titulaire_territoriale',
+        ]
+
+    for categorie in categories_salarie_du_public:
+        baremes_collection = salarie[categorie]
+        test = set(
+            name for name, bareme in salarie[categorie].iteritems()
+            if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl2'
+            )
+        assert target[categorie] == test, 'target for {}: \n  target = {} \n  test = {}'.format(categorie, target[categorie], test)
+
+    # Barèmes à éliminer :
+        # cnracl1 = taux hors NBI -> OK
+        # cnracl2 = taux NBI -> On ne le prend pas en compte pour l'instant
+    for categorie in [
+            'public_titulaire_hospitaliere',
+            'public_titulaire_territoriale',
+            ]:
+        baremes_collection = salarie[categorie]
+        baremes_to_remove = list()
+        baremes_to_remove.append('cnracl2')
+        for name in baremes_to_remove:
+            if 'cnracl2' in baremes_collection:
+                del baremes_collection[name]
+
+    salarie = salarie.copy(deep = True)
+    # RAFP des agents titulaires
+    for categorie in categories_salarie_du_public:
+        baremes_collection = salarie[categorie]
+        baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
+
+
+    # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
+    if period.unit == 'year':
+        plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
+        heures_temps_plein = 52 * 35
+    elif period.unit == 'month':
+        plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
+        heures_temps_plein = (52 * 35 / 12) * period.size
+    else:
+        raise
+
+    # Pour a fonction publique la csg est calculée sur l'ensemble salbrut(=TIB) + primes
+    # Imposable = TIB - csg( (1+taux_prime)*TIB ) - pension(TIB) + taux_prime*TIB
+    for categorie in categories_salarie_du_public:
+        bareme_csg_deduc_public = csg_deductible.multiply_rates(
+            1 + TAUX_DE_PRIME, inplace = False, new_name = "csg deduc public")
+        if revenu_type == 'net':
+            bareme_csg_imp_public = csg_imposable.multiply_rates(
+                1 + TAUX_DE_PRIME, inplace = False, new_name = "csg imposable public")
+            bareme_crds_public = crds.multiply_rates(
+                1 + TAUX_DE_PRIME, inplace = False, new_name = "crds public")
+
+    for categorie in categories_salarie_du_public:
+        bareme_prime = MarginalRateTaxScale(name = "taux de prime")
+        bareme_prime.add_bracket(0, -TAUX_DE_PRIME)  # barème équivalent à taux_prime*TIB
+
+    heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
+    salaire_pour_inversion_proratise = switch(
+        contrat_de_travail,
+        {
+            # temps plein
+            0: salaire_pour_inversion / plafond_securite_sociale,
+            # temps partiel
+            1: salaire_pour_inversion / (
+                (heures_remunerees_volume_avoid_warning / heures_temps_plein) * plafond_securite_sociale
+                ),
+            }
+        )
+
+    traitement_indiciaire_brut = 0.0
+
+    for categorie in categories_salarie_du_public:
+        for key, value in salarie[categorie].iteritems():
+            log.debug(key, value)
+        bareme = salarie[categorie].combine_tax_scales()
+        log.debug('bareme cotsoc : {}'.format(bareme))
+        bareme.add_tax_scale(bareme_csg_deduc_public)
+        log.debug('bareme cotsoc + csg_deduc: {}'.format(bareme))
+        if revenu_type == 'net':
+            bareme.add_tax_scale(bareme_csg_imp_public)
+            log.debug('bareme cotsoc + csg_deduc + csg_imp: {}'.format(bareme))
+            bareme.add_tax_scale(bareme_crds_public)
+            log.debug('bareme cotsoc + csg_deduc + csg_imp + crds: {}'.format(bareme))
+
+        bareme.add_tax_scale(bareme_prime)
+        log.debug('bareme cotsoc + csg_deduc + csg_imp + crds + prime: {}'.format(bareme))
+
+        brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
+
+        assert np.isfinite(brut_proratise).all()
+        brut = plafond_securite_sociale * switch(
+            contrat_de_travail,
+            {
+                # temps plein
+                0: brut_proratise,
+                # temps partiel
+                1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
+                }
+            )
+        traitement_indiciaire_brut += (
+            (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
+            )
+        if (categorie_salarie == CATEGORIE_SALARIE[categorie]).any():
+            log.debug("Pour {} : brut = {}".format(CATEGORIE_SALARIE[categorie], brut))
+            log.debug('bareme direct: {}'.format(bareme))
+
+    # TODO: complete this to deal with the fonctionnaire
+    # supp_familial_traitement = 0  # TODO: dépend de salbrut
+    # indemnite_residence = 0  # TODO: fix bug
+    individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
 
 
 def create_statut_matrimonial(individus):
