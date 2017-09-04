@@ -488,7 +488,7 @@ def create_contrat_de_travail(individus, period):
     assert (individus.query('contrat_de_travail in [0, 6]').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all(), \
-         "Heures remunerees volume n'est pas toujours positif: {}".format(
+         "Les valeurs prises par la variable heures_remunerees_volume ne sont pas toujours positives: \n {}".format(
              individus.query('contrat_de_travail == 1').loc[
                  ~(individus.heures_remunerees_volume > 0),
                  ['heures_remunerees_volume', 'salaire_net', 'hhc', 'tppred', 'duhab']
