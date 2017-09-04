@@ -458,7 +458,7 @@ def create_contrat_de_travail(individus, period):
             'salaire_net'
             ] / smic_net * 35
     # 2.3.3 On attribue des heures rémunérées aux individus à temps partiel qui ont un
-    # salaire strictement mais un nombre d'heures travaillées nul
+    # salaire strictement positif mais un nombre d'heures travaillées nul
     salaire_sans_heures = (individus.contrat_de_travail == 1 ) & ~(individus.heures_remunerees_volume > 0)
     assert (individus.loc[salaire_sans_heures, 'salaire_net'] > 0 ).all()
     assert (individus.loc[salaire_sans_heures, 'duhab'] == 1 ).all()
