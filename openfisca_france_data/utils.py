@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import configparser
 import logging
-import numpy
 import os
+from ConfigParser import \
+    NoOptionError  # Use "ConfigParser" and not "configparser" to use the same as OpenFisca packages.
+
+import numpy
 from pandas import Series
 
 import openfisca_france
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-
 
 log = logging.getLogger(__name__)
 
@@ -326,7 +327,7 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     assert survey is not None
     try:
         openfisca_survey_collection = SurveyCollection.load(collection = collection)
-    except configparser.NoOptionError:
+    except NoOptionError:
         openfisca_survey_collection = SurveyCollection(name = collection)
     log.debug("In collection {} the following survey are present: {}".format(collection, openfisca_survey_collection.surveys))
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
