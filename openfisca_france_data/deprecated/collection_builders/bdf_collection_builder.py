@@ -32,7 +32,7 @@ import os
 
 from openfisca_survey_manager.scripts.surv import add_survey_to_collection, create_data_file_by_format
 from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_france_data import default_config_files_directory as config_files_directory
+
 
 
 log = logging.getLogger(__name__)

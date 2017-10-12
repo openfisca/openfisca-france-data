@@ -2,6 +2,16 @@
 # -*- coding: utf-8 -*-
 
 
+u"""This module provides routines to impute menage level variable to erfs_fpr data.
+These variables are loyer and is some case zone_apl.
+
+There are two ways of doing that:
+ - using an external IPP imputation with iNSEE enquête logement done using stata
+ - performing an inputation using R StatMatch library using rpy2 (to be extensively tested)
+
+"""
+
+
 # This step requires to have R installed with StatMatch library
 # You'll also need rpy2 2.3x available at
 # https://bitbucket.org/lgautier/rpy2/src/511312d70346f3f66c989e35443b2823e9b56d56?at=version_2.3.x
@@ -14,7 +24,8 @@ from __future__ import division
 import gc
 import logging
 import numpy
-import pandas
+import os
+import pandas as pd
 
 # problem with rpy last version is not working
 try:
@@ -25,13 +36,134 @@ except ImportError:
 
 from openfisca_france_data.utils import (
     assert_variable_in_range, count_NA)
-from openfisca_france_data.temporary import temporary_store_decorator, save_hdf_r_readable
+from openfisca_survey_manager.temporary import temporary_store_decorator
 from openfisca_survey_manager import matching
 from openfisca_survey_manager.statshelpers import mark_weighted_percentiles
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 log = logging.getLogger(__name__)
+
+
+@temporary_store_decorator(file_name = 'erfs_fpr')
+def merge_imputation_loyer(stata_file = None, temporary_store = None, year = None):
+    assert year is not None
+    assert stata_file is not None
+    menages = temporary_store['menages_{}'.format(year)]
+    logement = pd.read_stata(stata_file, preserve_dtypes = False)
+    logement['ident12'] = logement.ident12.astype('int')
+    logement.rename(columns = dict(zone_apl_EL = 'zone_apl', loyer_EL = 'loyer', ident12 = 'ident'), inplace = True)
+    logement = logement[['zone_apl', 'loyer', 'ident']]
+    menages = menages.merge(
+        logement,
+        left_on = 'ident',
+        right_on = 'ident',
+        how = 'left',
+        )
+    menages.rename(columns = dict(so = 'statut_occupation_logement'), inplace = True)
+    temporary_store['menages_{}'.format(year)] = menages
+    return menages
+
+
+@temporary_store_decorator(file_name = 'erfs_fpr')
+def imputation_loyer(temporary_store = None, year = None):
+    assert temporary_store is not None
+    assert year is not None
+
+    kind = 'erfs_fpr'
+    erf = create_comparable_erf_data_frame(temporary_store = temporary_store, year = year)
+    logement = create_comparable_logement_data_frame(temporary_store = temporary_store, year = year)
+
+    logement = logement.loc[logement.lmlm.notnull()].copy()
+    log.info("Dropping {} observations form logement".format(logement.lmlm.isnull().sum()))
+
+    if kind == 'erfs_fpr':
+        allvars = [
+            'deci',
+            'hnph2',
+            'magtr',
+            'mcs8',
+            'mdiplo',
+            'mtybd',
+            'statut_occupation',
+            ]
+    else:
+        allvars = [
+            'deci',
+            'hnph2',
+            'iaat_bis',
+            'magtr',
+            'mcs8',
+            'mdiplo',
+            'mtybd',
+            'statut_occupation',
+            'tu99_recoded',
+            ]
+
+    # TODO keep the variable indices
+
+    erf = erf[allvars + ['ident', 'wprm']].copy()
+
+    for variable in allvars:
+        erf_unique_values = set(erf[variable].unique())
+        logement_unique_values = set(logement[variable].unique())
+        if not erf_unique_values <= logement_unique_values:
+            print '''
+{} span wrong
+erf: {},
+logement: {}
+concerns {} observations
+'''.format(
+                variable,
+                erf_unique_values,
+                logement_unique_values,
+                erf[variable].isin(erf_unique_values - logement_unique_values).sum()
+                )
+
+    if kind == 'erfs_fpr':
+        log.info("dropping {} erf observations".format(len(erf.query('mtybd == 0 | mcs8 == 0'))))
+        erf = erf.query('mtybd != 0 & mcs8 != 0').copy()
+
+    else:
+        log.info("dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0'))))
+        erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
+
+    for variable in allvars:
+        erf_unique_values = set(erf[variable].unique())
+        logement_unique_values = set(logement[variable].unique())
+        assert erf_unique_values <= logement_unique_values
+
+    if kind == 'erfs_fpr':
+        classes = "deci"
+    else:
+        classes = ['deci', 'tu99_recoded']
+
+    matchvars = list(set(allvars) - set(classes))
+
+    fill_erf_nnd, fill_erf_nnd_1 = matching.nnd_hotdeck_using_rpy2(
+        receiver = erf,
+        donor = logement,
+        matching_variables = matchvars,
+        z_variables = u"lmlm",
+        donor_classes = classes,
+        )
+
+    fill_erf_nnd.rename(columns = {'lmlm': 'loyer'}, inplace = True)
+
+    loyers_imputes = fill_erf_nnd[['ident', 'loyer']].copy()
+    menages = temporary_store['menages_{}'.format(year)]
+    for loyer_var in ['loyer_x', 'loyer_y', 'loyer']:
+        if loyer_var in menages.columns:
+            del menages[loyer_var]
+
+    menages = menages.merge(loyers_imputes, on = 'ident', how = 'left')
+    assert 'loyer' in menages.columns, u"La variable loyer n'est pas présente dans menages"
+
+    temporary_store['menages_{}'.format(year)] = menages
+    return
+
+
+# Helpers
 
 
 def prepare_erf_menage(temporary_store = None, year = None, kind = None):
@@ -594,105 +726,13 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     return logement
 
 
-@temporary_store_decorator(file_name = 'erfs_fpr')
-def imputation_loyer(temporary_store = None, year = None):
-    assert temporary_store is not None
-    assert year is not None
-
-    kind = 'erfs_fpr'
-    erf = create_comparable_erf_data_frame(temporary_store = temporary_store, year = year)
-    logement = create_comparable_logement_data_frame(temporary_store = temporary_store, year = year)
-
-    logement = logement.loc[logement.lmlm.notnull()].copy()
-    log.info("Dropping {} observations form logement".format(logement.lmlm.isnull().sum()))
-
-    if kind == 'erfs_fpr':
-        allvars = [
-            'deci',
-            'hnph2',
-            'magtr',
-            'mcs8',
-            'mdiplo',
-            'mtybd',
-            'statut_occupation',
-            ]
-    else:
-        allvars = [
-            'deci',
-            'hnph2',
-            'iaat_bis',
-            'magtr',
-            'mcs8',
-            'mdiplo',
-            'mtybd',
-            'statut_occupation',
-            'tu99_recoded',
-            ]
-
-    # TODO keep the variable indices
-
-    erf = erf[allvars + ['ident', 'wprm']].copy()
-
-    for variable in allvars:
-        erf_unique_values = set(erf[variable].unique())
-        logement_unique_values = set(logement[variable].unique())
-        if not erf_unique_values <= logement_unique_values:
-            print '''
-{} span wrong
-erf: {},
-logement: {}
-concerns {} observations
-'''.format(
-                variable,
-                erf_unique_values,
-                logement_unique_values,
-                erf[variable].isin(erf_unique_values - logement_unique_values).sum()
-                )
-
-    if kind == 'erfs_fpr':
-        log.info("dropping {} erf observations".format(len(erf.query('mtybd == 0 | mcs8 == 0'))))
-        erf = erf.query('mtybd != 0 & mcs8 != 0').copy()
-
-    else:
-        log.info("dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0'))))
-        erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
-
-    for variable in allvars:
-        erf_unique_values = set(erf[variable].unique())
-        logement_unique_values = set(logement[variable].unique())
-        assert erf_unique_values <= logement_unique_values
-
-    if kind == 'erfs_fpr':
-        classes = "deci"
-    else:
-        classes = ['deci', 'tu99_recoded']
-
-    matchvars = list(set(allvars) - set(classes))
-
-    fill_erf_nnd, fill_erf_nnd_1 = matching.nnd_hotdeck_using_rpy2(
-        receiver = erf,
-        donor = logement,
-        matching_variables = matchvars,
-        z_variables = u"lmlm",
-        donor_classes = classes,
-        )
-
-    fill_erf_nnd.rename(columns = {'lmlm': 'loyer'}, inplace = True)
-
-    loyers_imputes = fill_erf_nnd[['ident', 'loyer']].copy()
-    menages = temporary_store['menages_{}'.format(year)]
-    for loyer_var in ['loyer_x', 'loyer_y', 'loyer']:
-        if loyer_var in menages.columns:
-            del menages[loyer_var]
-
-    menages = menages.merge(loyers_imputes, on = 'ident', how = 'left')
-    assert 'loyer' in menages.columns, u"La variable loyer n'est pas présente dans menages"
-
-    temporary_store['menages_{}'.format(year)] = menages
-    return
-
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2012
-    imputation_loyer(year = year)
+    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
+    step_01_preprocessing.build_merged_dataframes(year = year)
+    openfisca_survey_collection = SurveyCollection(name = 'openfisca')
+    output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    stata_file = os.path.join(output_data_directory, 'log_men_ERFS.dta')
+    menages = merge_imputation_loyer(stata_file = stata_file, year = year)

@@ -64,5 +64,5 @@ if __name__ == '__main__':
     start = time.time()
     print(test_pivot_table_1d_sum())
     print(test_pivot_table_1d_mean())
-    print(test_pivot_table_2d())
+    print(test_pivot_table_2d_2values())
     print(time.time() - start)

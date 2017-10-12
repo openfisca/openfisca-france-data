@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
+from configparser import NoOptionError
 import logging
 import numpy
 import os
@@ -9,7 +9,6 @@ from pandas import Series
 import openfisca_france
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_survey_manager.surveys import Survey
-from openfisca_france_data import default_config_files_directory as config_files_directory
 
 
 log = logging.getLogger(__name__)
@@ -240,9 +239,9 @@ def build_cerfa_fields_by_column_name(year, sections_cerfa):
                 start = column.start or None
                 end = column.end or None
                 if (start is None or start.year <= year) and (end is None or end.year >= year):
-                    if column.entity == 'ind':
+                    if column.entity.key == 'individu':
                         cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
-                    elif column.entity == 'foy':
+                    elif column.entity.key == 'foyer_fiscal':
                         cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
                     cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
     return cerfa_fields_by_column_name
@@ -321,21 +320,30 @@ def set_variables_default_value(dataframe, year):
             dataframe[column_name] = dataframe[column_name].astype(column.dtype)
 
 
-def store_input_data_frame(data_frame = None, collection = None, survey = None):
+def store_input_data_frame(data_frame = None, collection = None, survey = None, table = None):
     assert data_frame is not None
     assert collection is not None
     assert survey is not None
-    openfisca_survey_collection = SurveyCollection(name = collection, config_files_directory = config_files_directory)
+    try:
+        openfisca_survey_collection = SurveyCollection.load(collection = collection)
+    except Exception as e:
+        openfisca_survey_collection = SurveyCollection(name = collection)
+
+    log.debug("In collection {} the following survey are present: {}".format(collection, openfisca_survey_collection.surveys))
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
+    if table is None:
+        table = "input"
+    #
     survey_name = survey
-    table = "input"
     hdf5_file_path = os.path.join(os.path.dirname(output_data_directory), "{}.h5".format(survey_name))
-    survey = Survey(
-        name = survey_name,
-        hdf5_file_path = hdf5_file_path,
-        )
+    available_survey_names = [survey_.name for survey_ in openfisca_survey_collection.surveys]
+    if survey_name in available_survey_names:
+        survey = openfisca_survey_collection.get_survey(survey_name)
+    else:
+        survey = Survey(name = survey_name, hdf5_file_path = hdf5_file_path)
     survey.insert_table(name = table, data_frame = data_frame)
     openfisca_survey_collection.surveys.append(survey)
     collections_directory = openfisca_survey_collection.config.get('collections', 'collections_directory')
-    json_file_path = os.path.join(collections_directory, 'openfisca_erfs_fpr.json')
+    json_file_path = os.path.join(collections_directory, '{}.json'.format(collection))
+    log.debug("In collection {} the following surveyx are present: {}".format(collection, openfisca_survey_collection.surveys))
     openfisca_survey_collection.dump(json_file_path = json_file_path)

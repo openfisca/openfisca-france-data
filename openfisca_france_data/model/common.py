@@ -19,34 +19,47 @@ except ImportError:
 from .base import *  # noqa analysis:ignore
 
 
-class champm_individus(Variable):
-    column = BoolCol
-    entity_class = Individus
-    label = u"L'individu est dans un ménage du champ ménage",
+class assiette_csg_salaire(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Assiette CSG salaires"
 
-    def function(self, simulation, period):
-        champm_holder = simulation.calculate("champm", period)
-        return period, self.cast_from_entity_to_roles(champm_holder, entity = 'menage')
+    def function(individu, period, legislation):
+        period = period.this_month
+        assiette_csg_abattue = individu('assiette_csg_abattue', period)
+        assiette_csg_non_abattue = individu('assiette_csg_non_abattue', period)
+        plafond_securite_sociale = individu('plafond_securite_sociale', period)
+        abattement = legislation(period.start).prelevements_sociaux.contributions.csg.activite.deductible.abattement
+        assiette = assiette_csg_abattue - abattement.calc(
+            assiette_csg_abattue,
+            factor = plafond_securite_sociale,
+            round_base_decimals = 2,
+            ) + assiette_csg_non_abattue
+        return period, assiette
 
 
-class champm_familles(Variable):
-    column = BoolCol
-    entity_class = Familles
-    label = u"Le premier parent de la famille est dans un ménage du champ ménage",
+class assiette_csg_retraite(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Assiette CSG retraite"
 
-    def function(self, simulation, period):
-        champm_individus = simulation.calculate('champm_individus', period)
-        return period, self.filter_role(champm_individus, role = CHEF)
+    def function(individu, period, legislation):
+        period = period.this_month
+        retraite_brute = individu('retraite_brute', period)
+        taux_csg_remplacement = individu('taux_csg_remplacement', period)
+        return period, retraite_brute * (taux_csg_remplacement >= 2)
 
 
-class champm_foyers_fiscaux(Variable):
-    column = BoolCol
-    entity_class = FoyersFiscaux
-    label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
+class assiette_csg_chomage(Variable):
+    column = FloatCol
+    entity = Individu
+    label = u"Assiette CSG chomage"
 
-    def function(self, simulation, period):
-        champm_individus = simulation.calculate('champm_individus', period)
-        return period, self.filter_role(champm_individus, role = VOUS)
+    def function(individu, period, legislation):
+        period = period.this_month
+        chomage_brut = individu('chomage_brut', period)
+        taux_csg_remplacement = individu('taux_csg_remplacement', period)
+        return period, chomage_brut * (taux_csg_remplacement >= 2)
 
 
 class decile(Variable):
@@ -65,21 +78,21 @@ class decile(Variable):
             u"10e décile"
             ])
         )
-
-    entity_class = Menages
+    entity = Menage
     label = u"Décile de niveau de vie disponible"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        menage_ordinaire = menage('menage_ordinaire', period)
+        niveau_de_vie = menage('niveau_de_vie', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(
+            niveau_de_vie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         del values
-        return period, decile * champm
+        return period, decile * menage_ordinaire
 
 
 class decile_net(Variable):
@@ -98,90 +111,19 @@ class decile_net(Variable):
             u"10e décile",
             ])
         )
-    entity_class = Menages
+    entity = Menage
     label = u"Décile de niveau de vie net"
 
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie_net = simulation.calculate('nivvie_net', period)
-        wprm = simulation.calculate('wprm', period)
+    def function(menage, period):
+        menage_ordinaire = menage('menage_ordinaire', period)
+        niveau_de_vie_net = menage('niveau_de_vie_net', period)
+        wprm = menage('wprm', period)
         labels = arange(1, 11)
         method = 2
         if len(wprm) == 1:
             return period, wprm * 0
-        decile, values = mark_weighted_percentiles(nivvie_net, labels, wprm * champm, method, return_quantiles = True)
-        return period, decile * champm
-
-
-class pauvre40(Variable):
-    column = EnumCol(
-        enum = Enum([
-            u"Ménage au dessus du seuil de pauvreté à 40%",
-            u"Ménage en dessous du seuil de pauvreté à 40%",
-            ])
-        )
-    entity_class = Menages
-    label = u"Pauvreté monétaire au seuil de 40%"
-
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
-        labels = arange(1, 3)
-        method = 2
-        if len(wprm) == 1:
-            return period, wprm * 0
-        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-        threshold = .4 * values[1]
-        return period, (nivvie <= threshold) * champm
-
-
-class pauvre50(Variable):
-    column = EnumCol(
-        enum = Enum([
-            u"Ménage au dessus du seuil de pauvreté à 50%",
-            u"Ménage en dessous du seuil de pauvreté à 50%",
-            ])
-        )
-    entity_class = Menages
-    label = u"Pauvreté monétaire au seuil de 50%"
-
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
-        labels = arange(1, 3)
-        method = 2
-        if len(wprm) == 1:
-            return period, wprm * 0
-
-        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-        threshold = .5 * values[1]
-        return period, (nivvie <= threshold) * champm
-
-
-class pauvre60(Variable):
-    column = EnumCol(
-        enum = Enum([
-            u"Ménage au dessus du seuil de pauvreté à 60%",
-            u"Ménage en dessous du seuil de pauvreté à 60%",
-            ])
-        )
-    entity_class = Menages
-    label = u"Pauvreté monétaire au seuil de 60%"
-
-    def function(self, simulation, period):
-        champm = simulation.calculate('champm', period)
-        nivvie = simulation.calculate('nivvie', period)
-        wprm = simulation.calculate('wprm', period)
-        labels = arange(1, 3)
-        method = 2
-        if len(wprm) == 1:
-            return period, wprm * 0
-
-        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * champm, method, return_quantiles = True)
-        threshold = .6 * values[1]
-        return period, (nivvie <= threshold) * champm
+        decile, values = mark_weighted_percentiles(niveau_de_vie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        return period, decile * menage_ordinaire
 
 
 class decile_rfr(Variable):
@@ -200,18 +142,19 @@ class decile_rfr(Variable):
             u"10e décile"
             ])
         )
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence"
 
-    def function(self, simulation, period):
-        rfr = simulation.calculate('rfr', period)
-        weight_foyers = simulation.calculate('weight_foyers', period)
-        champm_foyers_fiscaux = simulation.calculate('champm_foyers_fiscaux', period)
+    def function(foyer_fiscal, period):
+        period = period.this_year
+        rfr = foyer_fiscal('rfr', period)
+        weight_foyers = foyer_fiscal('weight_foyers', period)
+        menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
-        decile, values = weighted_quantiles(rfr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+        decile, values = weighted_quantiles(rfr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, return_quantiles = True)
         return period, decile
 
 
@@ -231,48 +174,91 @@ class decile_rfr_par_part(Variable):
             u"10e décile"
             ])
         )
-    entity_class = FoyersFiscaux
+    entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence par part fiscale"
 
-    def function(self, simulation, period):
-        rfr = simulation.calculate('rfr', period)
-        nbptr = simulation.calculate('nbptr', period)
-        weight_foyers = simulation.calculate('weight_foyers', period)
-        champm_foyers_fiscaux = simulation.calculate('champm_foyers_fiscaux', period)
+    def function(foyer_fiscal, period):
+        period = period.this_year
+        rfr = foyer_fiscal('rfr', period)
+        nbptr = foyer_fiscal('nbptr', period)
+        weight_foyers = foyer_fiscal('weight_foyers', period)
+        menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
         labels = arange(1, 11)
         # Alternative method
         # method = 2
         # decile, values = mark_weighted_percentiles(niveau_de_vie, labels, pondmen, method, return_quantiles = True)
         decile, values = weighted_quantiles(
-            rfr / nbptr, labels, weight_foyers * champm_foyers_fiscaux, return_quantiles = True)
+            rfr / nbptr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, return_quantiles = True)
         return period, decile
 
 
-class weight_individus(Variable):
-    column = FloatCol
-    entity_class = Individus
-    label = u"Poids de l'individu"
+class pauvre40(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u"Ménage au dessus du seuil de pauvreté à 40%",
+            u"Ménage en dessous du seuil de pauvreté à 40%",
+            ])
+        )
+    entity = Menage
+    label = u"Pauvreté monétaire au seuil de 40%"
 
-    def function(self, simulation, period):
-        wprm_holder = simulation.calculate('wprm', period)
-        return period, self.cast_from_entity_to_roles(wprm_holder, entity = 'menage')
+    def function(menage, period):
+        menage_ordinaire = menage('menage_ordinaire', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
+        labels = arange(1, 3)
+        method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        threshold = .4 * values[1]
+        return period, (nivvie <= threshold) * menage_ordinaire
 
 
-class weight_familles(Variable):
-    column = FloatCol
-    entity_class = Familles
-    label = u"Poids de la famille"
+class pauvre50(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u"Ménage au dessus du seuil de pauvreté à 50%",
+            u"Ménage en dessous du seuil de pauvreté à 50%",
+            ])
+        )
+    entity = Menage
+    label = u"Pauvreté monétaire au seuil de 50%"
 
-    def function(self, simulation, period):
-        weight_individus_holder = simulation.calculate('weight_individus', period)
-        return period, self.filter_role(weight_individus_holder, entity = "famille", role = CHEF)
+    def function(menage, period):
+        menage_ordinaire = menage('menage_ordinaire', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
+        labels = arange(1, 3)
+        method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
+
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        threshold = .5 * values[1]
+        return period, (nivvie <= threshold) * menage_ordinaire
 
 
-class weight_foyers(Variable):
-    column = FloatCol
-    entity_class = FoyersFiscaux
-    label = u"Poids du foyer fiscal",
+class pauvre60(Variable):
+    column = EnumCol(
+        enum = Enum([
+            u"Ménage au dessus du seuil de pauvreté à 60%",
+            u"Ménage en dessous du seuil de pauvreté à 60%",
+            ])
+        )
+    entity = Menage
+    label = u"Pauvreté monétaire au seuil de 60%"
 
-    def function(self, simulation, period):
-        weight_individus_holder = simulation.calculate('weight_individus', period)
-        return period, self.filter_role(weight_individus_holder, entity = "foyer_fiscal", role = VOUS)
+    def function(menage, period):
+        menage_ordinaire = menage('menage_ordinaire', period)
+        nivvie = menage('nivvie', period)
+        wprm = menage('wprm', period)
+        labels = arange(1, 3)
+        method = 2
+        if len(wprm) == 1:
+            return period, wprm * 0
+
+        percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
+        threshold = .6 * values[1]
+        return period, (nivvie <= threshold) * menage_ordinaire
+

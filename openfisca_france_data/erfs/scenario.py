@@ -2,13 +2,13 @@
 
 
 from openfisca_france_data.surveys import AbstractErfsSurveyScenario
-from openfisca_france_data import default_config_files_directory as config_files_directory
+
 
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 class ErfsSurveyScenario(AbstractErfsSurveyScenario):
-    default_used_as_input_variables = [
+    used_as_input_variables = [
         'age_en_mois',
         'age',
         'chomage_imposable',

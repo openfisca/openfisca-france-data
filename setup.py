@@ -46,8 +46,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.5.3',
-
+    version = '0.5.8',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -56,15 +55,13 @@ setup(
     license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
     long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-france-data',
-
     data_files = [
         ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
     install_requires = [
         'configparser',
-        'OpenFisca-Core >= 3.0.0, < 4.0',
-        'OpenFisca-France >= 4.0.0, < 5.0',
-        'OpenFisca-Survey-Manager[calmar] >= 0.4',
+        'OpenFisca-France >= 6.0.1',
+        'OpenFisca-Survey-Manager[calmar] >= 0.7.0',
         'pandas >= 0.19',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles

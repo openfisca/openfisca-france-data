@@ -9,7 +9,7 @@ from pandas import Series, concat
 import numpy as np
 from numpy import where
 
-from openfisca_france_data.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator
 
 from openfisca_france_data.utils import print_id, control
 

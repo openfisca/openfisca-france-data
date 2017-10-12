@@ -33,7 +33,7 @@ import logging
 import numpy
 from pandas import merge, concat, DataFrame
 
-from openfisca_france_data import default_config_files_directory as config_files_directory
+
 from openfisca_france_data.erfs.input_data_builder.base import (
     year_specific_by_generic_data_frame_name)
 from openfisca_france_data.utils import simulation_results_as_data_frame
@@ -157,7 +157,7 @@ class Debugger(object):
         column_names = self.columns_to_fetch
         for column in column_names:
             assert column in survey_scenario.tax_benefit_system.column_by_name.keys()
-        data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity_key_plural(
+        data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity(
             variables = column_names + ['idmen_original'],
             indices = True,
             roles = True,

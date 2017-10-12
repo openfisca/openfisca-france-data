@@ -15,7 +15,6 @@ openfisca_france_data_location = pkg_resources.get_distribution('openfisca-franc
 def test_calibration():
     year = 2009
     survey_scenario = ErfsSurveyScenario().create(year = year)
-    survey_scenario.initialize_weights()
     calibration = Calibration(survey_scenario)
     calibration.parameters['method'] = 'linear'
     log.info('initial_total_population: {} '.format(calibration.initial_total_population))
