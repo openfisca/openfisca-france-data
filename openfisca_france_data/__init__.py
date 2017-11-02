@@ -602,7 +602,5 @@ DATA_DIR = os.path.join(
     pkg_resources.get_distribution('openfisca-france-data').location,
     'openfisca_france_data',
     'plugins',
-    'aggregates'
+    'aggregates',
     )
-WEIGHT = "wprm"
-WEIGHT_INI = "wprm_init"
