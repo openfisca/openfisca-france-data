@@ -211,7 +211,7 @@ class openfisca_france_data(reforms.Reform):
         neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
         for neutralized_variable in neutralized_variables:
             log.info("Neutralizing {}".format(neutralized_variable))
-            self.neutralize_column(neutralized_variable)
+            self.neutralize_variable(neutralized_variable)
 
         class ppa(DatedVariable):
             column = FloatCol
