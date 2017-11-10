@@ -498,7 +498,6 @@ class openfisca_france_data(reforms.Reform):
                         "format": "float",
                         "values": [{
                             'start': u'2009-06-01',
-                            'stop': u'2020-12-31',
                             'value': .68,
                             }],
                         },
@@ -509,7 +508,6 @@ class openfisca_france_data(reforms.Reform):
                         "unit": "currency",
                         "values": [{
                             'start': u'2009-06-01',
-                            'stop': u'2020-12-31',
                             'value': .33,
                             }],
                         },
@@ -520,7 +518,6 @@ class openfisca_france_data(reforms.Reform):
                         "unit": "currency",
                         "values": [{
                             'start': u'2009-06-01',
-                            'stop': u'2020-12-31',
                             'value': .36,
                             }],
                         },
@@ -530,7 +527,6 @@ class openfisca_france_data(reforms.Reform):
                         "format": "integer",
                         "values": [{
                             'start': u'2009-06-01',
-                            'stop': u'2020-12-31',
                             'value': 2011,  # Arbitraire
                             }],
                         },
