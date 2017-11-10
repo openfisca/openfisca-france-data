@@ -238,16 +238,16 @@ def test_reform():
     survey_scenario = ErfsSurveyScenario().init_from_data_frame(
         input_data_frame = input_data_frame,
         tax_benefit_system = reform,
-        reference_tax_benefit_system = base.france_data_tax_benefit_system,
+        baseline_tax_benefit_system = base.france_data_tax_benefit_system,
         year = 2013,
         )
-    reference_simulation = survey_scenario.new_simulation(reference = True)
+    baseline_simulation = survey_scenario.new_simulation(use_baseline = True)
     reform_simulation = survey_scenario.new_simulation()
 
     assert 'weight_individus' in reform_simulation.tax_benefit_system.column_by_name
-    assert 'weight_individus' in reference_simulation.tax_benefit_system.column_by_name
+    assert 'weight_individus' in baseline_simulation.tax_benefit_system.column_by_name
 
     error_margin = 1
-    assert_near(reference_simulation.calculate('irpp'), [-10124, -869], error_margin)
+    assert_near(baseline_simulation.calculate('irpp'), [-10124, -869], error_margin)
     assert_near(reform_simulation.calculate('irpp'), [-10118, -911.4 + (1135 - 911.4)], error_margin)
     # -911.4 + (1135 - 911.4) = -686.8

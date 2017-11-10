@@ -20,7 +20,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012, rebuild_input_data =
     tax_benefit_system = base_survey.france_data_tax_benefit_system
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
-        reference_tax_benefit_system = tax_benefit_system,
+        baseline_tax_benefit_system = tax_benefit_system,
         year = year,
         )
     survey_scenario.init_from_survey_tables(rebuild_input_data = rebuild_input_data)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     survey_scenario = test_erfs_fpr_survey_simulation_aggregates(rebuild_input_data = False)
 
     aggregates = Aggregates(survey_scenario = survey_scenario)
-    df = aggregates.compute_aggregates(reference = False)
+    df = aggregates.compute_aggregates(use_baseline = False)
     # difference_data_frame = aggregates.compute_difference()
     # return aggregates.base_data_frame, difference_data_frame, survey_scenario
 

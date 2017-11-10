@@ -60,7 +60,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         return input_data_frame
 
     @classmethod
-    def create(cls, input_data_type = None, reference_tax_benefit_system = None, reform = None, reform_key = None,
+    def create(cls, input_data_type = None, baseline_tax_benefit_system = None, reform = None, reform_key = None,
             tax_benefit_system = None, year = None):
 
         assert year is not None
@@ -71,12 +71,12 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if reform_key is not None:
             reform = base.get_cached_reform(
                 reform_key = reform_key,
-                tax_benefit_system = reference_tax_benefit_system or base.france_data_tax_benefit_system,
+                tax_benefit_system = baseline_tax_benefit_system or base.france_data_tax_benefit_system,
                 )
 
         if reform is None:
-            if reference_tax_benefit_system is None:
-                reference_tax_benefit_system = base.france_data_tax_benefit_system
+            if baseline_tax_benefit_system is None:
+                baseline_tax_benefit_system = base.france_data_tax_benefit_system
         else:
             tax_benefit_system = reform
         if input_data_type is not None:
@@ -86,7 +86,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
         survey_scenario.set_tax_benefit_systems(
             tax_benefit_system = tax_benefit_system,
-            reference_tax_benefit_system = reference_tax_benefit_system
+            baseline_tax_benefit_system = baseline_tax_benefit_system
             )
         survey_scenario.year = year
 
@@ -97,8 +97,8 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         input_data_frame = self.build_input_data_from_test_case(test_case_scenario)
         self.init_from_data_frame(input_data_frame = input_data_frame)
         self.new_simulation()
-        if self.reference_tax_benefit_system is not None:
-            self.new_simulation(reference = True)
+        if self.baseline_tax_benefit_system is not None:
+            self.new_simulation(use_baseline = True)
 
     def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
             rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None):
@@ -133,8 +133,8 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         #
         input_survey_kwargs = input_survey_kwargs if input_survey_kwargs else dict()
         self.new_simulation(survey = input_survey_kwargs.get('input_survey'))
-        if self.reference_tax_benefit_system is not None:
-            self.new_simulation(reference = True, survey = input_survey_kwargs.get('reference_input_survey'))
+        if self.baseline_tax_benefit_system is not None:
+            self.new_simulation(use_baseline = True, survey = input_survey_kwargs.get('baseline_input_survey'))
         #
         if calibration_kwargs:
             self.calibrate(**calibration_kwargs)

@@ -83,7 +83,7 @@ def test_erfs_fpr_survey_simulation(year = 2012, rebuild = False):
         )
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
-        reference_tax_benefit_system = tax_benefit_system,
+        baseline_tax_benefit_system = tax_benefit_system,
         year = year,
         # rebuild_input_data = True,
         )
@@ -102,7 +102,7 @@ def test_erfs_survey_simulation(year = 2009):
         )
     survey_scenario = ErfsSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
-        reference_tax_benefit_system = tax_benefit_system,
+        baseline_tax_benefit_system = tax_benefit_system,
         year = year,
         )
 

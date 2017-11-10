@@ -35,8 +35,8 @@ class Aggregates(object):
         ('entity', u"Entité"),
         ('reform_amount', u"Dépenses\n(millions d'€)"),
         ('reform_beneficiaries', u"Bénéficiaires\n(milliers)"),
-        ('reference_amount', u"Dépenses initiales\n(millions d'€)"),
-        ('reference_beneficiaries', u"Bénéficiaires\ninitiaux\n(milliers)"),
+        ('baseline_amount', u"Dépenses initiales\n(millions d'€)"),
+        ('baseline_beneficiaries', u"Bénéficiaires\ninitiaux\n(milliers)"),
         ('actual_amount', u"Dépenses\nréelles\n(millions d'€)"),
         ('actual_beneficiaries', u"Bénéficiaires\nréels\n(milliers)"),
         ('amount_absolute_difference', u"Diff. absolue\nDépenses\n(millions d'€)"),
@@ -44,7 +44,7 @@ class Aggregates(object):
         ('amount_relative_difference', u"Diff. relative\nDépenses"),
         ('beneficiaries_relative_difference', u"Diff. relative\nBénéficiaires"),
         ))
-    reference_simulation = None
+    baseline_simulation = None
     simulation = None
     survey_scenario = None
     totals_df = None
@@ -59,16 +59,16 @@ class Aggregates(object):
         assert survey_scenario.simulation is not None
         self.simulation = survey_scenario.simulation
 
-        if survey_scenario.reference_tax_benefit_system is not None:
-            assert survey_scenario.reference_simulation is not None
-            self.reference_simulation = survey_scenario.reference_simulation
+        if survey_scenario.baseline_tax_benefit_system is not None:
+            assert survey_scenario.baseline_simulation is not None
+            self.baseline_simulation = survey_scenario.baseline_simulation
         else:
-            self.reference_simulation = None
+            self.baseline_simulation = None
 
         self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
         self.aggregate_variables = AGGREGATES_DEFAULT_VARS
 
-    def compute_aggregates(self, reference = True, reform = True, actual = True):
+    def compute_aggregates(self, use_baseline = True, reform = True, actual = True):
         """
         Compute aggregate amounts
         """
@@ -76,9 +76,9 @@ class Aggregates(object):
         self.totals_df = load_actual_data(year = self.year)
 
         simulation_types = list()
-        if reference:
-            assert self.reference_simulation is not None
-            simulation_types.append('reference')
+        if use_baseline:
+            assert self.baseline_simulation is not None
+            simulation_types.append('baseline')
         if reform:
             simulation_types.append('reform')
         if actual:
@@ -90,11 +90,11 @@ class Aggregates(object):
             if simulation_type == 'actual':
                 data_frame_by_simulation_type['actual'] = self.totals_df.copy()
             else:
-                reference = False if simulation_type == 'reform' else True
+                use_baseline = False if simulation_type == 'reform' else True
                 data_frame = pd.DataFrame()
                 for variable in self.aggregate_variables:
                     variable_data_frame = self.compute_variable_aggregates(
-                        variable, reference = reference, filter_by = filter_by)
+                        variable, use_baseline = use_baseline, filter_by = filter_by)
                     data_frame = pd.concat((data_frame, variable_data_frame))
 
                 data_frame.rename(columns = {
@@ -105,14 +105,14 @@ class Aggregates(object):
                     )
                 data_frame_by_simulation_type[simulation_type] = data_frame
 
-        if reference and reform:
+        if use_baseline and reform:
             del data_frame_by_simulation_type['reform']['entity']
             del data_frame_by_simulation_type['reform']['label']
 
         self.base_data_frame = pd.concat(data_frame_by_simulation_type.values(), axis = 1).loc[self.aggregate_variables]
         return self.base_data_frame
 
-    def compute_difference(self, target = "reference", default = 'actual', amount = True, beneficiaries = True,
+    def compute_difference(self, target = "baseline", default = 'actual', amount = True, beneficiaries = True,
             absolute = True, relative = True):
         '''
         Compute and add relative and/or absolute differences to the data_frame
@@ -135,7 +135,7 @@ class Aggregates(object):
                 ) / abs(base_data_frame['{}_{}'.format(default, quantity)])
         return difference_data_frame
 
-    def compute_variable_aggregates(self, variable, reference = False, filter_by = None):
+    def compute_variable_aggregates(self, variable, use_baseline = False, filter_by = None):
         """
         Returns aggregate spending, and number of beneficiaries
         for the relevant entity level
@@ -144,14 +144,14 @@ class Aggregates(object):
         ----------
         variable : string
                    name of the variable aggregated according to its entity
-        reference : bool
-                    Use the reference or the reform or the only avalilable simulation when no reform (default)
+        use_baseline : bool
+                    Use the baseline or the reform or the only avalilable simulation when no reform (default)
         filter_by : string or boolean
                     If string use it as the name of the variable to filter by
                     If not None or False and the string is not present in the tax-benefit-system use the default filtering variable if any
         """
-        if reference:
-            simulation = self.reference_simulation
+        if use_baseline:
+            simulation = self.baseline_simulation
         else:
             simulation = self.simulation
 
@@ -159,7 +159,7 @@ class Aggregates(object):
         column = column_by_name.get(variable)
 
         if column is None:
-            print reference
+            print use_baseline
             print variable
             return pd.DataFrame(
                 data = {
@@ -332,7 +332,7 @@ class Aggregates(object):
     def get_calibration_coeffcient(self, target = "reform"):
         df = self.compute_aggregates(
             actual = True,
-            reference = 'reference' == target,
+            use_baseline = 'baseline' == target,
             reform = 'reform' == target,
             )
         return df['{}_amount'.format(target)] / df['actual_amount']
@@ -346,7 +346,7 @@ class Aggregates(object):
             relative = True,
             target = "reform",
             ):
-        assert target is None or target in ['reform', 'reference']
+        assert target is None or target in ['reform', 'baseline']
 
         columns = self.labels.keys()
         if (absolute or relative) and (target != default):
@@ -373,25 +373,25 @@ class Aggregates(object):
         if relative is False:
             columns = [column for column in columns if 'relative' not in column]
 
-        for simulation_type in ['reform', 'reference', 'actual']:
+        for simulation_type in ['reform', 'baseline', 'actual']:
             if simulation_type not in [target, default]:
                 columns = [column for column in columns if simulation_type not in column]
 
         aggregates_data_frame = self.compute_aggregates(
             actual = 'actual' in [target, default],
-            reference = 'reference' in [target, default],
+            use_baseline = 'baseline' in [target, default],
             reform = 'reform' in [target, default],
             )
         ordered_columns = [
             'label',
             'entity',
             'reform_amount',
-            'reference_amount',
+            'baseline_amount',
             'actual_amount',
             'amount_absolute_difference',
             'amount_relative_difference',
             'reform_beneficiaries',
-            'reference_beneficiaries',
+            'baseline_beneficiaries',
             'actual_beneficiaries',
             'beneficiaries_absolute_difference',
             'beneficiaries_relative_difference'

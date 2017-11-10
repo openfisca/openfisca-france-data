@@ -21,7 +21,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
     tax_benefit_system = base_survey.france_data_tax_benefit_system
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
-        reference_tax_benefit_system = tax_benefit_system,
+        baseline_tax_benefit_system = tax_benefit_system,
         year = year,
         rebuild_input_data = False,
         )

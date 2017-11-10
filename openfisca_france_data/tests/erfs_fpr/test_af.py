@@ -19,7 +19,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         )
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
-        reference_tax_benefit_system = tax_benefit_system,
+        baseline_tax_benefit_system = tax_benefit_system,
         year = year,
         rebuild_input_data = rebuild_input_data,
         )
