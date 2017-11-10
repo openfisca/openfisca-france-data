@@ -46,7 +46,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         entity = Famille
         label = u"activite_famille"
 
-        def function(famille, period):
+        def formula(famille, period):
             activite = famille.members('activite')
             return period, famille.max(activite, role = Famille.PARENT)
 
@@ -55,7 +55,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         entity = Famille
         label = u"activite_famille"
 
-        def function(famille, period):
+        def formula(famille, period):
             activite = famille.members('activite')
             return period, famille.min(activite, role = Famille.PARENT)
 

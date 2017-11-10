@@ -25,7 +25,7 @@ class assiette_csg_salaire(Variable):
     label = u"Assiette CSG salaires"
     definition_period = MONTH
 
-    def function(individu, period, legislation):
+    def formula(individu, period, legislation):
         assiette_csg_abattue = individu('assiette_csg_abattue', period)
         assiette_csg_non_abattue = individu('assiette_csg_non_abattue', period)
         plafond_securite_sociale = individu('plafond_securite_sociale', period)
@@ -44,7 +44,7 @@ class assiette_csg_retraite(Variable):
     label = u"Assiette CSG retraite"
     definition_period = MONTH
 
-    def function(individu, period, legislation):
+    def formula(individu, period, legislation):
         retraite_brute = individu('retraite_brute', period)
         taux_csg_remplacement = individu('taux_csg_remplacement', period)
         return retraite_brute * (taux_csg_remplacement >= 2)
@@ -56,7 +56,7 @@ class assiette_csg_chomage(Variable):
     label = u"Assiette CSG chomage"
     definition_period = MONTH
 
-    def function(individu, period, legislation):
+    def formula(individu, period, legislation):
         chomage_brut = individu('chomage_brut', period)
         taux_csg_remplacement = individu('taux_csg_remplacement', period)
         return chomage_brut * (taux_csg_remplacement >= 2)
@@ -82,7 +82,7 @@ class decile(Variable):
     label = u"Décile de niveau de vie disponible"
     definition_period = YEAR
 
-    def function(menage, period):
+    def formula(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
         niveau_de_vie = menage('niveau_de_vie', period)
         wprm = menage('wprm', period)
@@ -116,7 +116,7 @@ class decile_net(Variable):
     label = u"Décile de niveau de vie net"
     definition_period = YEAR
 
-    def function(menage, period):
+    def formula(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
         niveau_de_vie_net = menage('niveau_de_vie_net', period)
         wprm = menage('wprm', period)
@@ -148,7 +148,7 @@ class decile_rfr(Variable):
     label = u"Décile de revenu fiscal de référence"
     definition_period = YEAR
 
-    def function(foyer_fiscal, period):
+    def formula(foyer_fiscal, period):
         rfr = foyer_fiscal('rfr', period)
         weight_foyers = foyer_fiscal('weight_foyers', period)
         menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
@@ -180,7 +180,7 @@ class decile_rfr_par_part(Variable):
     label = u"Décile de revenu fiscal de référence par part fiscale"
     definition_period = YEAR
 
-    def function(foyer_fiscal, period):
+    def formula(foyer_fiscal, period):
         rfr = foyer_fiscal('rfr', period)
         nbptr = foyer_fiscal('nbptr', period)
         weight_foyers = foyer_fiscal('weight_foyers', period)
@@ -205,7 +205,7 @@ class pauvre40(Variable):
     label = u"Pauvreté monétaire au seuil de 40%"
     definition_period = YEAR
 
-    def function(menage, period):
+    def formula(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
         wprm = menage('wprm', period)
@@ -230,7 +230,7 @@ class pauvre50(Variable):
     definition_period = YEAR
 
 
-    def function(menage, period):
+    def formula(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
         wprm = menage('wprm', period)
@@ -255,7 +255,7 @@ class pauvre60(Variable):
     label = u"Pauvreté monétaire au seuil de 60%"
     definition_period = YEAR
 
-    def function(menage, period):
+    def formula(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
         wprm = menage('wprm', period)

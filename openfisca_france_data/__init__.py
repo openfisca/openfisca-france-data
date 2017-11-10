@@ -213,14 +213,13 @@ class openfisca_france_data(reforms.Reform):
             log.info("Neutralizing {}".format(neutralized_variable))
             self.neutralize_variable(neutralized_variable)
 
-        class ppa(DatedVariable):
+        class ppa(Variable):
             column = FloatCol
             entity = Famille
             definition_period = MONTH
             label = u"Prime Pour l'Activité"
 
-            @dated_function(start = date(2016, 1, 1))
-            def function(famille, period, legislation):
+            def formula_2016_01_01(famille, period, legislation):
                 seuil_non_versement = legislation(period).prestations.minima_sociaux.ppa.seuil_non_versement
                 # éligibilité étudiants
 
@@ -233,15 +232,13 @@ class openfisca_france_data(reforms.Reform):
 
                 return ppa * (rsa_socle_act_recourant | rsa_act_seul_recourant)
 
-        class rsa_montant(DatedVariable):
+        class rsa_montant(Variable):
             column = FloatCol
             definition_period = MONTH
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
             entity = Famille
-            start_date = date(2009, 6, 1)
 
-            @dated_function(start = date(2017, 1, 1))
-            def function_2017(famille, period, legislation):
+            def formula_2017_01_01(famille, period, legislation):
                 seuil_non_versement = legislation(period).prestations.minima_sociaux.rsa.rsa_nv
                 rsa = famille('rsa_fictif', period.last_3_months, extra_params = [period], options = [ADD]) / 3
                 rsa_socle_seul_recourant = famille('rsa_socle_seul_recourant', period)
@@ -253,8 +250,7 @@ class openfisca_france_data(reforms.Reform):
 
                 return rsa
 
-            @dated_function(start = date(2016, 1, 1), stop = date(2016, 12, 31))
-            def function_2016(famille, period, legislation):
+            def formula_2016_01_01(famille, period, legislation):
                 rsa_socle_non_majore = famille('rsa_socle', period)
                 rsa_socle_majore = famille('rsa_socle_majore', period)
                 rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -278,8 +274,7 @@ class openfisca_france_data(reforms.Reform):
 
                 return montant
 
-            @dated_function(start = date(2009, 6, 1), stop = date(2015, 12, 31))
-            def function_2009_2015(famille, period, legislation):
+            def formula_2009_06_01(famille, period, legislation):
                 rsa_socle_non_majore = famille('rsa_socle', period)
                 rsa_socle_majore = famille('rsa_socle_majore', period)
                 rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -309,7 +304,7 @@ class openfisca_france_data(reforms.Reform):
             label = u"Recourant au RSA socle si éligible."
             entity = Famille
 
-            def function(famille, period, legislation):
+            def formula(famille, period, legislation):
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
 
@@ -338,14 +333,13 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_rsa
 
-        class rsa_socle_act_recourant(DatedVariable):
+        class rsa_socle_act_recourant(Variable):
             column = BoolCol(default = False)
             definition_period = MONTH
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
 
-            @dated_function(start = date(2016, 1, 1))
-            def function_2016_(famille, period, legislation):
+            def formula_2016_01_01(famille, period, legislation):
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
 
@@ -379,8 +373,7 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_rsa_socle_ppa
 
-            @dated_function(start = date(2009, 6, 1), stop = date(2015, 12, 31))
-            def function_2009_2015(famille, period, legislation):
+            def formula_2009_06_01(famille, period, legislation):
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
 
@@ -410,14 +403,13 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_rsa_socle_activite
 
-        class rsa_act_seul_recourant(DatedVariable):
+        class rsa_act_seul_recourant(Variable):
             column = BoolCol(default = False)
             definition_period = MONTH
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
 
-            @dated_function(start = date(2016, 1, 1))
-            def function_2016_(famille, period, legislation):
+            def formula_2016_01_01(famille, period, legislation):
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
 
@@ -451,8 +443,7 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_ppa
 
-            @dated_function(start = date(2009, 6, 1), stop = date(2015, 12, 31))
-            def function_2009_2015(famille, period, legislation):
+            def formula_2009_06_01(famille, period, legislation):
                 last_period = period.last_month
                 legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
 

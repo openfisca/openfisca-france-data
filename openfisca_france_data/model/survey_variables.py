@@ -36,7 +36,7 @@ class menage_ordinaire_individus(Variable):
     label = u"L'individu est dans un ménage du champ ménage"
     definition_period = YEAR
 
-    def function(individu, period):
+    def formula(individu, period):
         return individu.menage('menage_ordinaire', period)
 
 
@@ -46,7 +46,7 @@ class menage_ordinaire_familles(Variable):
     label = u"Le premier parent de la famille est dans un ménage du champ ménage"
     definition_period = YEAR
 
-    def function(famille, period):
+    def formula(famille, period):
         return famille.demandeur('menage_ordinaire_individus', period)
 
 
@@ -56,7 +56,7 @@ class menage_ordinaire_foyers_fiscaux(Variable):
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
     definition_period = YEAR
 
-    def function(foyer_fiscal, period):
+    def formula(foyer_fiscal, period):
         return foyer_fiscal.declarant_principal('menage_ordinaire_individus', period)
 
 
@@ -66,7 +66,7 @@ class weight_familles(Variable):
     label = u"Poids de la famille"
     definition_period = YEAR
 
-    def function(famille, period):
+    def formula(famille, period):
         return famille.demandeur('weight_individus', period)
 
 
@@ -76,7 +76,7 @@ class weight_foyers(Variable):
     label = u"Poids du foyer fiscal"
     definition_period = YEAR
 
-    def function(foyer_fiscal, period):
+    def formula(foyer_fiscal, period):
         return foyer_fiscal.declarant_principal('weight_individus', period)
 
 
@@ -100,6 +100,6 @@ class weight_individus(Variable):
     label = u"Poids de l'individu"
     definition_period = YEAR
 
-    def function(individu, period):
+    def formula(individu, period):
         return individu.menage('wprm', period)
 

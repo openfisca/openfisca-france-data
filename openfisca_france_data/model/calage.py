@@ -26,7 +26,7 @@ class nbinde(Variable):
     label = u"Nombre d'individus dans le ménage"
     definition_period = YEAR
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         """
         Number of household members
         'men'
@@ -87,7 +87,7 @@ class cohab(Variable):
     label = u"Vie en couple"
     definition_period = YEAR
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         '''
         Indicatrice de vie en couple
         'men'
@@ -105,7 +105,7 @@ class act_cpl(Variable):
     label = u"Nombre d'actifs parmi la personne de référence du méange et son conjoint"
     definition_period = YEAR
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         '''
         Nombre d'actifs parmi la personne de référence et son conjoint
         'men'
@@ -124,7 +124,7 @@ class act_enf(Variable):
     label = u"Nombre d'enfants actifs"
     definition_period = YEAR
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         '''
         Nombre de membres actifs du ménage autre que la personne de référence ou son conjoint
         'men'
@@ -154,7 +154,7 @@ class cplx(Variable):
     label = u"Indicatrice de ménage complexe"
     definition_period = YEAR
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         """
         Indicatrice de ménage complexe
         'men'
@@ -207,7 +207,7 @@ class typmen15(Variable):
     label = u"Type de ménage"
     definition_period = YEAR
 
-    def function(self, simulation, period):
+    def formula(self, simulation, period):
         '''
         Type de ménage en 15 modalités
         1 Personne seule active
