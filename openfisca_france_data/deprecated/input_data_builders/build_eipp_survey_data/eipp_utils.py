@@ -191,10 +191,10 @@ def build_input_OF(data, ipp2of_input_variables, tax_benefit_system):
     variables_to_drop = [
         variable
         for variable in data.columns
-        if variable not in tax_benefit_system.column_by_name
+        if variable not in tax_benefit_system.variables
         ]
     print 'data.columns', data.columns
-    print 'tax_benefit_system.column_by_name', tax_benefit_system.column_by_name
+    print 'tax_benefit_system.variables', tax_benefit_system.variables
     print 'variables_to_drop', variables_to_drop
     #print data.iloc[44:]
   #  data.drop(variables_to_drop, axis = 1, inplace = True)

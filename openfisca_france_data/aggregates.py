@@ -155,8 +155,8 @@ class Aggregates(object):
         else:
             simulation = self.simulation
 
-        column_by_name = simulation.tax_benefit_system.column_by_name
-        column = column_by_name.get(variable)
+        variables = simulation.tax_benefit_system.variables
+        column = variables.get(variable)
 
         if column is None:
             print use_baseline
@@ -171,7 +171,7 @@ class Aggregates(object):
                 index = [variable],
                 )
         weight = self.weight_column_name_by_entity[column.entity.key]
-        assert weight in column_by_name, "{} not a variable of the tax_benefit_system".format(weight)
+        assert weight in variables, "{} not a variable of the tax_benefit_system".format(weight)
 
         weight_array = simulation.calculate(weight).astype('float')
         assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
@@ -188,7 +188,7 @@ class Aggregates(object):
         if filter_by:
             filter_dummy_variable = (
                 filter_by
-                if filter_by in column_by_name
+                if filter_by in variables
                 else self.survey_scenario.filtering_variable_by_entity[column.entity.key]
                 )
             filter_dummy_array = simulation.calculate(filter_dummy_variable)
@@ -207,8 +207,8 @@ class Aggregates(object):
             )
         variable_data_frame = pd.DataFrame(
             data = {
-                'label': column_by_name[variable].label,
-                'entity': column_by_name[variable].entity.key,
+                'label': variables[variable].label,
+                'entity': variables[variable].entity.key,
                 'amount': amount,
                 'beneficiaries': beneficiaries,
                 },

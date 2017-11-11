@@ -128,8 +128,8 @@ def show_variable(variable, index = None):
     simulation = survey_scenario.simulation
     holder = simulation.get_holder(variable)
     print 'formula: ', holder.__dict__['formula']
-    print 'scalar: ', holder.column.scalar
-    if holder.column.scalar:
+    print 'scalar: ', holder.variable.scalar
+    if holder.variable.scalar:
         print holder.array[0]
         return
     for period, array in sorted(holder._array_by_period.iteritems()):

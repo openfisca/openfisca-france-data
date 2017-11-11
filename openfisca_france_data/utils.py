@@ -234,7 +234,7 @@ def check_structure(dataframe):
 def build_cerfa_fields_by_column_name(year, sections_cerfa):
     tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
     cerfa_fields_by_column_name = dict()
-    for name, column in tax_benefit_system.column_by_name.iteritems():
+    for name, column in tax_benefit_system.variables.iteritems():
         for section_cerfa in sections_cerfa:
             if name.startswith('f{}'.format(section_cerfa)):
                 start = column.start or None
@@ -315,9 +315,9 @@ def set_variables_default_value(dataframe, year):
     import openfisca_france
     tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 
-    for column_name, column in tax_benefit_system.column_by_name.iteritems():
+    for column_name, column in tax_benefit_system.variables.iteritems():
         if column_name in dataframe.columns:
-            dataframe[column_name].fillna(column.default, inplace = True)
+            dataframe[column_name].fillna(column.default_value, inplace = True)
             dataframe[column_name] = dataframe[column_name].astype(column.dtype)
 
 

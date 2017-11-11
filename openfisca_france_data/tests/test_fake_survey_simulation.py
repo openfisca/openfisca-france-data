@@ -243,8 +243,8 @@ def test_reform():
     baseline_simulation = survey_scenario.new_simulation(use_baseline = True)
     reform_simulation = survey_scenario.new_simulation()
 
-    assert 'weight_individus' in reform_simulation.tax_benefit_system.column_by_name
-    assert 'weight_individus' in baseline_simulation.tax_benefit_system.column_by_name
+    assert 'weight_individus' in reform_simulation.tax_benefit_system.variables
+    assert 'weight_individus' in baseline_simulation.tax_benefit_system.variables
 
     error_margin = 1
     assert_near(baseline_simulation.calculate('irpp'), [-10124, -869], error_margin)

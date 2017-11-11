@@ -90,7 +90,9 @@ class weight_foyers(Variable):
 
 
 class wprm(Variable):
-    column = PeriodSizeIndependentFloatCol(default = 1)
+    default_value = 1
+    is_period_size_independent = True
+    value_type = float
     entity = Menage
     label = u"Effectifs"
     definition_period = YEAR

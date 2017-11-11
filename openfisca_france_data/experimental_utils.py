@@ -31,7 +31,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
     control(table_simu.table, verbose = True)
 
     # First : study of the datatable / the specification of columns given by table_simu
-    for var, varcol in table_simu.column_by_name.iteritems():
+    for var, varcol in table_simu.variables.iteritems():
         try:
             serie = dataframe[var]
             simu_serie = table_simu.table[var]
@@ -237,11 +237,11 @@ def get_data_frame(columns_name, survey_scenario, load_first = False, collection
     simulation = survey_scenario.simulation
     if load_first:
         assert collection is not None
-        entities = [simulation.tax_benefit_system.column_by_name[column_name].entity for column_name in columns_name]
+        entities = [simulation.tax_benefit_system.variables[column_name].entity for column_name in columns_name]
         assert len(set(entities)) == 1
         # entity_symbol = entities[0]
         for entity_key_plural in simulation.entity_by_key_plural:
-            if columns_name[0] in simulation.entity_by_key_plural[entity_key_plural].column_by_name:
+            if columns_name[0] in simulation.entity_by_key_plural[entity_key_plural].variables:
                 entity = entity_key_plural
                 break
         openfisca_survey_collection = SurveyCollection.load(collection = collection)
@@ -260,7 +260,7 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
     simulation = survey_scenario.simulation
     data_frame_by_entity = dict()
     for entity in simulation.entity_by_key_plural.itervalues():
-        variables_name = entity.column_by_name.keys()
+        variables_name = entity.variables.keys()
         data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
 
@@ -271,10 +271,10 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
     assert survey_scenario is not None
     assert force_sum is False or entity != 'ind', "force_sum cannot be True when entity is 'ind'"
     simulation = survey_scenario.simulation
-    column_by_name = simulation.tax_benefit_system.column_by_name
-    assert set(column_names) <= set(column_by_name), \
-        "Variables {} do not exist".format(list(set(column_names) - set(column_by_name)))
-    entities = list(set([column_by_name[column_name].entity for column_name in column_names] + [entity]))
+    variables = simulation.tax_benefit_system.variables
+    assert set(column_names) <= set(variables), \
+        "Variables {} do not exist".format(list(set(column_names) - set(variables)))
+    entities = list(set([variables[column_name].entity for column_name in column_names] + [entity]))
 
     if force_sum is False and entity != 'ind':
         assert len(entities) == 1
@@ -287,13 +287,13 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
 
         data_frame_by_entity = dict()
         individual_column_names = [
-            column_name for column_name in column_names if column_by_name[column_name].entity == 'ind'
+            column_name for column_name in column_names if variables[column_name].entity == 'ind'
             ]
         for selected_entity in entities:
             id_variables_column_names = ["id{}".format(selected_entity), "qui{}".format(selected_entity)]
             individual_column_names.extend(id_variables_column_names)
             selected_entity_column_names = [
-                column_name for column_name in column_names if column_by_name[column_name].entity == selected_entity
+                column_name for column_name in column_names if variables[column_name].entity == selected_entity
                 ]
             data_frame_by_entity[selected_entity] = get_data_frame(
                 selected_entity_column_names,
@@ -323,7 +323,7 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
             return individual_data_frame
 
         entity_column_names = [
-            column_name for column_name in column_names if column_by_name[column_name].entity == entity
+            column_name for column_name in column_names if variables[column_name].entity == entity
             ]
         entity_data_frame = get_data_frame(
             entity_column_names,

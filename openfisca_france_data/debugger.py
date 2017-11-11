@@ -65,7 +65,7 @@ class Debugger(object):
     def set_survey_scenario(self, survey_scenario = None):
         assert survey_scenario is not None
         self.survey_scenario = survey_scenario
-        self.column_by_name = self.survey_scenario.simulation.tax_benefit_system.column_by_name
+        self.variables = self.survey_scenario.simulation.tax_benefit_system.variables
         self.simulation = self.survey_scenario.simulation
         assert survey_scenario.simulation is not None, "The simulation attibute of survey_scenario is None"
 
@@ -85,19 +85,19 @@ class Debugger(object):
         openfisca_aggregates.set_survey_scenario(self.survey_scenario)
         openfisca_aggregates.compute()
 
-        column_by_name = self.column_by_name
+        variables = self.variables
         temp = (build_erf_aggregates(variables=[variable], year= self.survey_scenario.year))
-        selection = openfisca_aggregates.aggr_frame["Mesure"] == column_by_name[variable].label
+        selection = openfisca_aggregates.aggr_frame["Mesure"] == variables[variable].label
         print(openfisca_aggregates.aggr_frame[selection])
         print(temp)
         # TODO: clean this
         return
 
     def extract(self, data_frame, entities = "men"):
-        column_by_name = self.column_by_name
-        filtered_data_frame_columns = list(set(column_by_name.keys()).intersection(set(data_frame.columns)))
+        variables = self.variables
+        filtered_data_frame_columns = list(set(variables.keys()).intersection(set(data_frame.columns)))
         extracted_columns = [column_name for column_name in filtered_data_frame_columns
-                             if column_by_name[column_name].entity in entities]
+                             if variables[column_name].entity in entities]
         extracted_columns = list(set(extracted_columns).union(set(['idmen'])))
         return data_frame[extracted_columns].copy()
 
@@ -107,7 +107,7 @@ class Debugger(object):
         x = x + 1
         if x == 20:
             boum
-        column_by_name = self.column_by_name
+        variables = self.variables
         tax_benefit_system = self.survey_scenario.simulation.tax_benefit_system
 
         extractor = input_variables_extractors.setup(tax_benefit_system)
@@ -117,13 +117,13 @@ class Debugger(object):
         else:
             column_name = column_list[0].name
             print(column_name)
-            if extractor.get_input_variables(column_by_name[column_name]) is None:
+            if extractor.get_input_variables(variables[column_name]) is None:
                 return column_list
             else:
                 first_column = [column_list[0]]
                 input_columns = self.get_all_parameters([
-                    column_by_name[clean(parameter)]
-                    for parameter in list(extractor.get_input_variables(column_by_name[column_name]))
+                    variables[clean(parameter)]
+                    for parameter in list(extractor.get_input_variables(variables[column_name]))
                     ])
                 other_columns = list(
                     set(self.get_all_parameters(column_list[1:])) - set(first_column + input_columns)
@@ -137,14 +137,14 @@ class Debugger(object):
                 return new_column_list
 
     def build_columns_to_fetch(self):
-        column_by_name = self.column_by_name
-#        parameters_column = self.get_all_parameters([column_by_name.get(x) for x in [self.variable]])
+        variables = self.variables
+#        parameters_column = self.get_all_parameters([variables.get(x) for x in [self.variable]])
 #        parameters = [x.name for x in parameters_column]
         parameters = [self.variable]
         # We want to get all parameters and consumers that we're going to encounter
 #        consumers = []
 #        for variable in [self.variable]:
-#            column = column_by_name.get(variable)
+#            column = variables.get(variable)
 #            consumers = list(set(consumers).union(set(column.consumers)))
 #        column_names = list(set(parameters).union(set(consumers)))
 
@@ -156,7 +156,7 @@ class Debugger(object):
     def build_openfisca_data_frames(self):
         column_names = self.columns_to_fetch
         for column in column_names:
-            assert column in survey_scenario.tax_benefit_system.column_by_name.keys()
+            assert column in survey_scenario.tax_benefit_system.variables.keys()
         data_frame_by_entity_key_plural = survey_scenario.create_data_frame_by_entity(
             variables = column_names + ['idmen_original'],
             indices = True,

@@ -167,7 +167,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             for variable, value in self.default_value_by_variable.iteritems():
                 log.info('Setting {} to new default value {}'.format(variable, value))
                 holder = simulation.get_or_new_holder(variable)
-                array = np.empty(holder.entity.count, dtype = holder.column.dtype)
+                array = np.empty(holder.entity.count, dtype = holder.variable.dtype)
                 array.fill(value)
                 holder.set_input(simulation.period.offset(offset), array)
 
@@ -213,7 +213,7 @@ def new_simulation_from_array_dict(array_dict = None, debug = False,
         if id_var not in array_dict:
             array_dict[id_var] = np.arange(global_count, dtype = int)
 
-    column_by_name = tax_benefit_system.column_by_name
+    column_by_name = tax_benefit_system.variables
     for column_name, array in array_dict.iteritems():
         assert column_name in column_by_name, column_name
 
@@ -251,6 +251,6 @@ def new_simulation_from_array_dict(array_dict = None, debug = False,
             array.size,
             entity.count
             )
-        holder.array = np.array(array, dtype = holder.column.dtype)
+        holder.array = np.array(array, dtype = holder.variable.dtype)
 
     return simulation
