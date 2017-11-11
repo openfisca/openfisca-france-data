@@ -214,7 +214,7 @@ class openfisca_france_data(reforms.Reform):
             self.neutralize_variable(neutralized_variable)
 
         class ppa(Variable):
-            column = FloatCol
+            value_type = float
             entity = Famille
             definition_period = MONTH
             label = u"Prime Pour l'Activité"
@@ -233,7 +233,7 @@ class openfisca_france_data(reforms.Reform):
                 return ppa * (rsa_socle_act_recourant | rsa_act_seul_recourant)
 
         class rsa_montant(Variable):
-            column = FloatCol
+            value_type = float
             definition_period = MONTH
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
             entity = Famille
@@ -299,7 +299,7 @@ class openfisca_france_data(reforms.Reform):
                 return montant
 
         class rsa_socle_seul_recourant(Variable):
-            column = BoolCol(default = False)
+            value_type = bool
             definition_period = MONTH
             label = u"Recourant au RSA socle si éligible."
             entity = Famille
@@ -334,7 +334,7 @@ class openfisca_france_data(reforms.Reform):
                     return recourant_rsa
 
         class rsa_socle_act_recourant(Variable):
-            column = BoolCol(default = False)
+            value_type = bool
             definition_period = MONTH
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
@@ -404,7 +404,7 @@ class openfisca_france_data(reforms.Reform):
                     return recourant_rsa_socle_activite
 
         class rsa_act_seul_recourant(Variable):
-            column = BoolCol(default = False)
+            value_type = bool
             definition_period = MONTH
             label = u"Recourant au RSA activité si éligible."
             entity = Famille

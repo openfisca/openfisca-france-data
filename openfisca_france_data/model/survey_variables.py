@@ -5,33 +5,38 @@ from .base import * # noqa  analysis:ignore
 
 
 class idmen_original(Variable):
-    column = PeriodSizeIndependentIntCol
+    value_type = int
+    is_period_size_independent = True
     entity = Menage
     label = u"Identifiant ménage, lien avec l'identifiant dérivé de l'ERF"
     definition_period = YEAR
 
 
 class idfoy_original(Variable):
-    column = PeriodSizeIndependentIntCol
+    value_type = int
+    is_period_size_independent = True
     entity = FoyerFiscal
     label = u"Identifiant foyer, lien avec l'identifiant dérivé de l'ERF"
     definition_period = YEAR
 
 
 class idfam_original(Variable):
-    column = PeriodSizeIndependentIntCol
+    value_type = int
+    is_period_size_independent = True
     entity = Famille
     label = u"Identifiant famille, lien avec l'identifiant dérivé de l'ERF"
     definition_period = YEAR
 
 
 class menage_ordinaire(Variable):
-    column = PeriodSizeIndependentIntCol(default = True)
+    value_type = int
+    is_period_size_independent = True
     entity = Menage
     definition_period = YEAR
 
 class menage_ordinaire_individus(Variable):
-    column = PeriodSizeIndependentIntCol
+    value_type = int
+    is_period_size_independent = True
     entity = Individu
     label = u"L'individu est dans un ménage du champ ménage"
     definition_period = YEAR
@@ -41,7 +46,8 @@ class menage_ordinaire_individus(Variable):
 
 
 class menage_ordinaire_familles(Variable):
-    column = PeriodSizeIndependentIntCol
+    value_type = int
+    is_period_size_independent = True
     entity = Famille
     label = u"Le premier parent de la famille est dans un ménage du champ ménage"
     definition_period = YEAR
@@ -51,7 +57,8 @@ class menage_ordinaire_familles(Variable):
 
 
 class menage_ordinaire_foyers_fiscaux(Variable):
-    column = PeriodSizeIndependentIntCol
+    value_type = int
+    is_period_size_independent = True
     entity = FoyerFiscal
     label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
     definition_period = YEAR
@@ -61,7 +68,8 @@ class menage_ordinaire_foyers_fiscaux(Variable):
 
 
 class weight_familles(Variable):
-    column = PeriodSizeIndependentFloatCol
+    is_period_size_independent = True
+    value_type = float
     entity = Famille
     label = u"Poids de la famille"
     definition_period = YEAR
@@ -71,7 +79,8 @@ class weight_familles(Variable):
 
 
 class weight_foyers(Variable):
-    column = PeriodSizeIndependentFloatCol
+    is_period_size_independent = True
+    value_type = float
     entity = FoyerFiscal
     label = u"Poids du foyer fiscal"
     definition_period = YEAR
@@ -88,14 +97,16 @@ class wprm(Variable):
 
 
 class wprm_init(Variable):
-    column = PeriodSizeIndependentFloatCol
+    is_period_size_independent = True
+    value_type = float
     entity = Menage
     label = u"Effectifs"
     definition_period = YEAR
 
 
 class weight_individus(Variable):
-    column = PeriodSizeIndependentFloatCol
+    is_period_size_independent = True
+    value_type = float
     entity = Individu
     label = u"Poids de l'individu"
     definition_period = YEAR

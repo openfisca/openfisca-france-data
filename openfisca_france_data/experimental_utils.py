@@ -4,8 +4,7 @@
 import os
 
 from pandas import DataFrame, concat
-
-from openfisca_core.columns import EnumCol, IntCol, BoolCol, AgeCol, FloatCol, DateCol
+from openfisca_core.model_api import *
 
 
 def check_consistency(table_simu, dataframe, corrige = True):
@@ -63,11 +62,11 @@ def check_consistency(table_simu, dataframe, corrige = True):
             # Then checks if all values are of specified datatype
             # verify type, force type
 
-            if isinstance(varcol, EnumCol):
+            if varcol.value_type == Enum:
                 try:
-                    if set(serie.unique()) > set(sorted(varcol.enum._nums.values())):
-                        message += "Some variables out of range for EnumCol variable %s : \n" % var
-                        message += str(set(serie.unique()) - set(sorted(varcol.enum._nums.values()))) + "\n"
+                    if set(serie.unique()) > set(sorted(varcol.possible_values._nums.values())):
+                        message += "Some variables out of range for Enum variable %s : \n" % var
+                        message += str(set(serie.unique()) - set(sorted(varcol.possible_values._nums.values()))) + "\n"
                         # print varcol.enum._nums
                         # print sorted(serie.unique()), "\n"
                         is_ok = False
@@ -100,7 +99,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                     message += "Error : not enum attribute for EnumCol %s ! \n" % var
                     # Never happening, enum attribute is initialized to None at least
 
-            if isinstance(varcol, IntCol):
+            if varcol.value_type == int:
                 if serie.dtype not in ('int', 'int16', 'int32', 'int64'):
                     is_ok = False
                     # print serie[serie.notnull()]
@@ -120,7 +119,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                 else:
                     message += "Values for %s are in range [%s,%s]\n" % (var, str(serie.min()), str(serie.max()))
 
-            if isinstance(varcol, BoolCol):
+            if varcol.value_type == bool
                 if serie.dtype != 'bool':
                     is_ok = False
                     # print serie[serie.notnull()]
@@ -133,35 +132,36 @@ def check_consistency(table_simu, dataframe, corrige = True):
                         except:
                             message += "sorry, cannot force type.\n"
 
-            if isinstance(varcol, AgeCol):
-                if serie.dtype not in ('int', 'int16', 'int32', 'int64'):
-                    is_ok = False
-                    message += "Age variable %s not of type int: \n"
-                    stash = list(set(serie.value) - set(range(serie.min(), serie.max() + 1)))
-                    message += str(stash) + "\n"
-                    message += "Total frequency for non-integers for %s is %s \n" % (var, str(len(stash)))
-                    if corrige:
-                        pass
+            # There isn't a specific type of variable for age anymore
+            # if isinstance(varcol, AgeCol):
+            #     if serie.dtype not in ('int', 'int16', 'int32', 'int64'):
+            #         is_ok = False
+            #         message += "Age variable %s not of type int: \n"
+            #         stash = list(set(serie.value) - set(range(serie.min(), serie.max() + 1)))
+            #         message += str(stash) + "\n"
+            #         message += "Total frequency for non-integers for %s is %s \n" % (var, str(len(stash)))
+            #         if corrige:
+            #             pass
 
-                if not serie.isin(range(-1, 156)).all():  # Pas plus vieux que 100 ans ?
-                    is_ok = False
-                    # print serie[serie.notnull()]
-                    message += "Age variable %s not in wanted range: \n" % var
-                    stash = list(set(serie.unique()) - set(range(-1, 156)))
-                    message += str(stash) + "\n"
-                    message += "Total frequency of outranges for %s is %s \n" % (var, str(len(stash)))
-                    del stash
-                    if corrige:
-                        try:
-                            message += "Fixing the outranges for %s... " % var
-                            tmp = serie[serie.isin(range(-1, 156))]
-                            serie[~(serie.isin(range(-1, 156)))] = tmp.median()
-                            message += "Done \n"
-                            del tmp
-                        except:
-                            message += "sorry, cannot fix outranges.\n"
+            #     if not serie.isin(range(-1, 156)).all():  # Pas plus vieux que 100 ans ?
+            #         is_ok = False
+            #         # print serie[serie.notnull()]
+            #         message += "Age variable %s not in wanted range: \n" % var
+            #         stash = list(set(serie.unique()) - set(range(-1, 156)))
+            #         message += str(stash) + "\n"
+            #         message += "Total frequency of outranges for %s is %s \n" % (var, str(len(stash)))
+            #         del stash
+            #         if corrige:
+            #             try:
+            #                 message += "Fixing the outranges for %s... " % var
+            #                 tmp = serie[serie.isin(range(-1, 156))]
+            #                 serie[~(serie.isin(range(-1, 156)))] = tmp.median()
+            #                 message += "Done \n"
+            #                 del tmp
+            #             except:
+            #                 message += "sorry, cannot fix outranges.\n"
 
-            if isinstance(varcol, FloatCol):
+            if varcol.value_type == float:
                 if serie.dtype not in ('float', 'float32', 'float64', 'float16'):
                     is_ok = False
                     message += "Some values in column %s are not float as wanted \n" % var
@@ -169,7 +169,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                     message += str(stash) + "\n"
                     message += "Total frequency for non-integers for %s is %s \n" % (var, str(len(stash)))
 
-            if isinstance(varcol, DateCol):
+            if varcol.value_type == date:
                 if serie.dtype != 'np.datetime64':
                     is_ok = False
                     # print serie[serie.notnull()]

@@ -11,17 +11,16 @@ from .base import *  # noqa
 
 
 class nbinde(Variable):
-    column = EnumCol(default = 0, enum = Enum(
-        [
-            "Une personne",
-            "Deux personnes",
-            "Trois personnes",
-            "Quatre personnes",
-            "Cinq personnes",
-            "Six personnes et plus",
-            ],
-        start = 1,
-        ))
+    value_type = Enum
+    possible_values = Enum([
+        "",
+        "Une personne",
+        "Deux personnes",
+        "Trois personnes",
+        "Quatre personnes",
+        "Cinq personnes",
+        "Six personnes et plus",
+        ])
     entity = Menage
     label = u"Nombre d'individus dans le ménage"
     definition_period = YEAR
@@ -82,7 +81,7 @@ def _nb_ageq0(self, age_en_mois_holder):
 
 
 class cohab(Variable):
-    column = BoolCol(default = False)
+    value_type = bool
     entity = Menage
     label = u"Vie en couple"
     definition_period = YEAR
@@ -100,7 +99,8 @@ class cohab(Variable):
 
 
 class act_cpl(Variable):
-    column = PeriodSizeIndependentIntCol(default = 0)
+    is_period_size_independent = True
+    value_type = int
     entity = Menage
     label = u"Nombre d'actifs parmi la personne de référence du méange et son conjoint"
     definition_period = YEAR
@@ -119,7 +119,8 @@ class act_cpl(Variable):
 
 
 class act_enf(Variable):
-    column = PeriodSizeIndependentIntCol(default = 0)
+    is_period_size_independent = True
+    value_type = int
     entity = Menage
     label = u"Nombre d'enfants actifs"
     definition_period = YEAR
@@ -149,7 +150,7 @@ def _nb_act(act_cpl, act_enf):
 
 # def _cplx(typmen15):
 class cplx(Variable):
-    column = BoolCol(default = False)
+    value_type = bool
     entity = Menage
     label = u"Indicatrice de ménage complexe"
     definition_period = YEAR
@@ -183,26 +184,26 @@ class cplx(Variable):
 
 
 class typmen15(Variable):
-    column = EnumCol(default = 0, enum = Enum(
-        [
-            u"Personne seule active",
-            u"Personne seule inactive",
-            u"Familles monoparentales, parent actif",
-            u"Familles monoparentales, parent inactif et au moins un enfant actif",
-            u"Familles monoparentales, tous inactifs",
-            u"Couples sans enfant, 1 actif",
-            u"Couples sans enfant, 2 actifs",
-            u"Couples sans enfant, tous inactifs",
-            u"Couples avec enfant, 1 membre du couple actif",
-            u"Couples avec enfant, 2 membres du couple actif",
-            u"Couples avec enfant, couple inactif et au moins un enfant actif",
-            u"Couples avec enfant, tous inactifs",
-            u"Autres ménages, 1 actif",
-            u"Autres ménages, 2 actifs ou plus",
-            u"Autres ménages, tous inactifs",
-            ],
-        start = 1,
-        ))
+    value_type = Enum
+    possible_values = Enum([
+        u"",
+        u"Personne seule active",
+        u"Personne seule inactive",
+        u"Familles monoparentales, parent actif",
+        u"Familles monoparentales, parent inactif et au moins un enfant actif",
+        u"Familles monoparentales, tous inactifs",
+        u"Couples sans enfant, 1 actif",
+        u"Couples sans enfant, 2 actifs",
+        u"Couples sans enfant, tous inactifs",
+        u"Couples avec enfant, 1 membre du couple actif",
+        u"Couples avec enfant, 2 membres du couple actif",
+        u"Couples avec enfant, couple inactif et au moins un enfant actif",
+        u"Couples avec enfant, tous inactifs",
+        u"Autres ménages, 1 actif",
+        u"Autres ménages, 2 actifs ou plus",
+        u"Autres ménages, tous inactifs",
+        ],
+    )
     entity = Menage
     label = u"Type de ménage"
     definition_period = YEAR

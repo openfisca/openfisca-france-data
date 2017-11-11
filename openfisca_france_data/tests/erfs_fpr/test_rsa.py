@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 
-from openfisca_france_data.model.base import BoolCol, Individu, IntCol, Famille, FloatCol, Variable
+from openfisca_core.model_api import *
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.tests import base as base_survey
 
@@ -22,31 +22,31 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
     tax_benefit_system = base_survey.france_data_tax_benefit_system
 
     class rsa_origin(Variable):
-        column = FloatCol
+        value_type = float
         entity = Famille
         label = u"RSA de l'ENA"
         definition_period = MONTH
 
     class aah_origin(Variable):
-        column = FloatCol
+        value_type = float
         entity = Famille
         label = u"RSA de l'ENA"
         definition_period = MONTH
 
     class paje_clca_origin(Variable):
-        column = FloatCol
+        value_type = float
         entity = Famille
         label = u"RSA de l'ENA"
         definition_period = MONTH
 
     class hors_match(Variable):
-        column = BoolCol
+        value_type = bool
         entity = Individu
         label = u"hors match"
         definition_period = MONTH
 
     class activite_famille_max(Variable):
-        column = IntCol
+        value_type = int
         entity = Famille
         label = u"activite_famille"
         definition_period = MONTH
@@ -56,7 +56,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
             return period, famille.max(activite, role = Famille.PARENT)
 
     class activite_famille_min(Variable):
-        column = IntCol
+        value_type = int
         entity = Famille
         label = u"activite_famille"
         definition_period = MONTH
