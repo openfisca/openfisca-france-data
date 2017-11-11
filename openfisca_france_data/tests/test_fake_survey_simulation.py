@@ -8,7 +8,6 @@ import os
 import pandas
 
 from openfisca_core.tools import assert_near
-import openfisca_france.tests.base as france_base
 from openfisca_france_data.tests import base
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_survey_manager.calibration import Calibration
@@ -230,7 +229,7 @@ def test_reform():
     input_data_frame.loc[1, 'salaire_imposable'] = 18000
     input_data_frame = input_data_frame.loc[0:1].copy()
 
-    reform = france_base.get_cached_reform(
+    reform = base.get_cached_reform(
         reform_key = 'plf2015',
         tax_benefit_system = base.france_data_tax_benefit_system,
         )
