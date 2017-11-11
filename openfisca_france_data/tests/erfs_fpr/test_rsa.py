@@ -25,35 +25,41 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         column = FloatCol
         entity = Famille
         label = u"RSA de l'ENA"
+        definition_period = MONTH
 
     class aah_origin(Variable):
         column = FloatCol
         entity = Famille
         label = u"RSA de l'ENA"
+        definition_period = MONTH
 
     class paje_clca_origin(Variable):
         column = FloatCol
         entity = Famille
         label = u"RSA de l'ENA"
+        definition_period = MONTH
 
     class hors_match(Variable):
         column = BoolCol
         entity = Individu
         label = u"hors match"
+        definition_period = MONTH
 
     class activite_famille_max(Variable):
         column = IntCol
         entity = Famille
         label = u"activite_famille"
+        definition_period = MONTH
 
         def formula(famille, period):
-            activite = famille.members('activite')
+            activite = famille.members('activite', period)
             return period, famille.max(activite, role = Famille.PARENT)
 
     class activite_famille_min(Variable):
         column = IntCol
         entity = Famille
         label = u"activite_famille"
+        definition_period = MONTH
 
         def formula(famille, period):
             activite = famille.members('activite')
