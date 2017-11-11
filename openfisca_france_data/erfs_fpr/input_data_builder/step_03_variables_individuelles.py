@@ -677,15 +677,15 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
 
         simulation = base.france_data_tax_benefit_system.new_scenario().init_single_entity(
             period = period, parent1 = dict()).new_simulation()
-        legislation = simulation.legislation_at(period.start)
+        parameters = simulation.parameters_at(period.start)
 
-        salarie = legislation.cotsoc.cotisations_salarie
-        plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
-        legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
-        taux_csg = legislation_csg_deductible.taux
-        taux_abattement = legislation_csg_deductible.abattement.rates[0]
+        salarie = parameters.cotsoc.cotisations_salarie
+        plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
+        parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
+        taux_csg = parameters_csg_deductible.taux
+        taux_abattement = parameters_csg_deductible.abattement.rates[0]
         try:
-            seuil_abattement = legislation_csg_deductible.abattement.thresholds[1]
+            seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
             seuil_abattement = None
         csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
@@ -695,11 +695,11 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
 
         if revenu_type == 'net':  # On ajoute CSG imposable et crds
             # csg imposable
-            legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
-            taux_csg = legislation_csg_imposable.taux
-            taux_abattement = legislation_csg_imposable.abattement.rates[0]
+            parameters_csg_imposable = parameters.prelevements_sociaux.contributions.csg.activite.imposable
+            taux_csg = parameters_csg_imposable.taux
+            taux_abattement = parameters_csg_imposable.abattement.rates[0]
             try:
-                seuil_abattement = legislation_csg_imposable.abattement.thresholds[1]
+                seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
             except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
                 seuil_abattement = None
             csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
@@ -708,11 +708,11 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
                 csg_imposable.add_bracket(seuil_abattement, taux_csg)
             # crds
             # csg imposable
-            legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
-            taux_csg = legislation_crds.taux
-            taux_abattement = legislation_crds.abattement.rates[0]
+            parameters_crds = parameters.prelevements_sociaux.contributions.crds.activite
+            taux_csg = parameters_crds.taux
+            taux_abattement = parameters_crds.abattement.rates[0]
             try:
-                seuil_abattement = legislation_crds.abattement.thresholds[1]
+                seuil_abattement = parameters_crds.abattement.thresholds[1]
             except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
                 seuil_abattement = None
             crds = MarginalRateTaxScale(name = 'crds')

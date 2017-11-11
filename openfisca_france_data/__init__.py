@@ -219,8 +219,8 @@ class openfisca_france_data(reforms.Reform):
             definition_period = MONTH
             label = u"Prime Pour l'Activité"
 
-            def formula_2016_01_01(famille, period, legislation):
-                seuil_non_versement = legislation(period).prestations.minima_sociaux.ppa.seuil_non_versement
+            def formula_2016_01_01(famille, period, parameters):
+                seuil_non_versement = parameters(period).prestations.minima_sociaux.ppa.seuil_non_versement
                 # éligibilité étudiants
 
                 ppa_eligibilite_etudiants = famille('ppa_eligibilite_etudiants', period)
@@ -238,8 +238,8 @@ class openfisca_france_data(reforms.Reform):
             label = u"Revenu de solidarité active, avant prise en compte de la non-calculabilité."
             entity = Famille
 
-            def formula_2017_01_01(famille, period, legislation):
-                seuil_non_versement = legislation(period).prestations.minima_sociaux.rsa.rsa_nv
+            def formula_2017_01_01(famille, period, parameters):
+                seuil_non_versement = parameters(period).prestations.minima_sociaux.rsa.rsa_nv
                 rsa = famille('rsa_fictif', period.last_3_months, extra_params = [period], options = [ADD]) / 3
                 rsa_socle_seul_recourant = famille('rsa_socle_seul_recourant', period)
                 rsa_socle_act_recourant = famille('rsa_socle_act_recourant', period)
@@ -250,7 +250,7 @@ class openfisca_france_data(reforms.Reform):
 
                 return rsa
 
-            def formula_2016_01_01(famille, period, legislation):
+            def formula_2016_01_01(famille, period, parameters):
                 rsa_socle_non_majore = famille('rsa_socle', period)
                 rsa_socle_majore = famille('rsa_socle_majore', period)
                 rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -262,7 +262,7 @@ class openfisca_france_data(reforms.Reform):
                 rsa_socle_seul_recourant = famille('rsa_socle_seul_recourant', period)
                 rsa_socle_act_recourant = famille('rsa_socle_act_recourant', period)
 
-                P = legislation(period).prestations.minima_sociaux.rsa
+                P = parameters(period).prestations.minima_sociaux.rsa
                 seuil_non_versement = P.rsa_nv
                 montant = (
                     rsa_socle_seul_recourant + rsa_socle_act_recourant
@@ -274,7 +274,7 @@ class openfisca_france_data(reforms.Reform):
 
                 return montant
 
-            def formula_2009_06_01(famille, period, legislation):
+            def formula_2009_06_01(famille, period, parameters):
                 rsa_socle_non_majore = famille('rsa_socle', period)
                 rsa_socle_majore = famille('rsa_socle_majore', period)
                 rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -287,7 +287,7 @@ class openfisca_france_data(reforms.Reform):
                 rsa_socle_act_recourant = famille('rsa_socle_act_recourant', period)
                 rsa_act_seul_recourant = famille('rsa_act_seul_recourant', period)
 
-                P = legislation(period).prestations.minima_sociaux.rsa
+                P = parameters(period).prestations.minima_sociaux.rsa
                 seuil_non_versement = P.rsa_nv
                 montant = (
                     rsa_socle_seul_recourant + rsa_socle_act_recourant + rsa_act_seul_recourant
@@ -304,15 +304,15 @@ class openfisca_france_data(reforms.Reform):
             label = u"Recourant au RSA socle si éligible."
             entity = Famille
 
-            def formula(famille, period, legislation):
+            def formula(famille, period, parameters):
                 last_period = period.last_month
-                legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
 
-                if period.start.year <= legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year <= parameters_rsa.non_recours.annee_initialisation:
                     weight_familles = famille('weight_familles', period.this_year)
                     return weight_familles < -10
 
-                if period.start.year > legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year > parameters_rsa.non_recours.annee_initialisation:
                     rsa_socle_non_majore = famille('rsa_socle', period)
                     rsa_socle_majore = famille('rsa_socle_majore', period)
                     rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -323,7 +323,7 @@ class openfisca_france_data(reforms.Reform):
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_rsa_socle_seul = eligible_rsa_socle & not_(rsa_revenu_activite > 0)
                     recourant_last_period = famille('rsa_socle_seul_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_seul
+                    probabilite_de_non_recours = parameters_rsa.non_recours.probabilite_de_non_recours_socle_seul
                     recourant_rsa = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_seul,
@@ -339,15 +339,15 @@ class openfisca_france_data(reforms.Reform):
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
 
-            def formula_2016_01_01(famille, period, legislation):
+            def formula_2016_01_01(famille, period, parameters):
                 last_period = period.last_month
-                legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
 
-                if period.start.year <= legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year <= parameters_rsa.non_recours.annee_initialisation:
                     weight_familles = famille('weight_familles', period.this_year)
                     return weight_familles < -10
 
-                if period.start.year > legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year > parameters_rsa.non_recours.annee_initialisation:
                     rsa_socle_non_majore = famille('rsa_socle', period)
                     rsa_socle_majore = famille('rsa_socle_majore', period)
                     rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -359,11 +359,11 @@ class openfisca_france_data(reforms.Reform):
                     ppa = ppa_fictive * ppa_eligibilite_etudiants
 
                     weight_familles = famille('weight_familles', period.this_year)
-                    legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                    parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_rsa_socle_ppa = eligible_rsa_socle & (ppa > 0)
                     recourant_last_period = famille('rsa_socle_act_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_activite
+                    probabilite_de_non_recours = parameters_rsa.non_recours.probabilite_de_non_recours_socle_activite
                     recourant_rsa_socle_ppa = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_ppa,
@@ -373,15 +373,15 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_rsa_socle_ppa
 
-            def formula_2009_06_01(famille, period, legislation):
+            def formula_2009_06_01(famille, period, parameters):
                 last_period = period.last_month
-                legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
 
-                if period.start.year <= legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year <= parameters_rsa.non_recours.annee_initialisation:
                     weight_familles = famille('weight_familles', period.this_year)
                     return weight_familles < -10
 
-                if period.start.year > legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year > parameters_rsa.non_recours.annee_initialisation:
                     rsa_socle_non_majore = famille('rsa_socle', period)
                     rsa_socle_majore = famille('rsa_socle_majore', period)
                     rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -393,7 +393,7 @@ class openfisca_france_data(reforms.Reform):
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_rsa_socle_act = eligible_rsa_socle & (rsa_revenu_activite > 0)
                     recourant_last_period = famille('rsa_socle_act_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_socle_activite
+                    probabilite_de_non_recours = parameters_rsa.non_recours.probabilite_de_non_recours_socle_activite
                     recourant_rsa_socle_activite = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_socle_act,
@@ -409,15 +409,15 @@ class openfisca_france_data(reforms.Reform):
             label = u"Recourant au RSA activité si éligible."
             entity = Famille
 
-            def formula_2016_01_01(famille, period, legislation):
+            def formula_2016_01_01(famille, period, parameters):
                 last_period = period.last_month
-                legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
 
-                if period.start.year <= legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year <= parameters_rsa.non_recours.annee_initialisation:
                     weight_familles = famille('weight_familles', period.this_year)
                     return weight_familles < -10
 
-                if period.start.year > legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year > parameters_rsa.non_recours.annee_initialisation:
                     rsa_socle_non_majore = famille('rsa_socle', period)
                     rsa_socle_majore = famille('rsa_socle_majore', period)
                     rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -433,7 +433,7 @@ class openfisca_france_data(reforms.Reform):
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_ppa_seule = not_(eligible_rsa_socle) & (ppa > 0)
                     recourant_last_period = famille('rsa_act_seul_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_activite_seul
+                    probabilite_de_non_recours = parameters_rsa.non_recours.probabilite_de_non_recours_activite_seul
                     recourant_ppa = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_ppa_seule,
@@ -443,15 +443,15 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_ppa
 
-            def formula_2009_06_01(famille, period, legislation):
+            def formula_2009_06_01(famille, period, parameters):
                 last_period = period.last_month
-                legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
 
-                if period.start.year <= legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year <= parameters_rsa.non_recours.annee_initialisation:
                     weight_familles = famille('weight_familles', period.this_year)
                     return weight_familles < -10
 
-                if period.start.year > legislation_rsa.non_recours.annee_initialisation:
+                if period.start.year > parameters_rsa.non_recours.annee_initialisation:
                     rsa_socle_non_majore = famille('rsa_socle', period)
                     rsa_socle_majore = famille('rsa_socle_majore', period)
                     rsa_socle = max_(rsa_socle_non_majore, rsa_socle_majore)
@@ -459,16 +459,16 @@ class openfisca_france_data(reforms.Reform):
                     rsa_forfait_logement = famille('rsa_forfait_logement', period)
                     rsa_base_ressources = famille('rsa_base_ressources', period)
                     weight_familles = famille('weight_familles', period.this_year)
-                    legislation_rsa = legislation(period).prestations.minima_sociaux.rsa
+                    parameters_rsa = parameters(period).prestations.minima_sociaux.rsa
 
                     eligible_rsa_socle = (rsa_socle - rsa_forfait_logement - rsa_base_ressources) > 0
                     eligible_rsa = (
                         rsa_socle - rsa_forfait_logement - rsa_base_ressources +
-                        legislation_rsa.pente * rsa_revenu_activite
+                        parameters_rsa.pente * rsa_revenu_activite
                         ) > 0
                     eligible_rsa_act_seul = not_(eligible_rsa_socle) & (rsa_revenu_activite > 0) & eligible_rsa
                     recourant_last_period = famille('rsa_act_seul_recourant', last_period, max_nb_cycles = 1)
-                    probabilite_de_non_recours = legislation_rsa.non_recours.probabilite_de_non_recours_activite_seul
+                    probabilite_de_non_recours = parameters_rsa.non_recours.probabilite_de_non_recours_activite_seul
                     recourant_rsa_activite = impute_take_up(
                         target_probability = 1 - probabilite_de_non_recours,
                         eligible = eligible_rsa_act_seul,
@@ -478,57 +478,13 @@ class openfisca_france_data(reforms.Reform):
                         )
                     return recourant_rsa_activite
 
-        def reform_modify_legislation_json(reference_legislation_json_copy):
-            reform_legislation_subtree = {
-                "@type": "Node",
-                "description": u"Non recours au RSA",
-                "children": {
-                    "probabilite_de_non_recours_activite_seul": {
-                        "@type": "Parameter",
-                        "description": u"Probabilité de non recours au RSA activité",
-                        "format": "float",
-                        "values": [{
-                            'start': u'2009-06-01',
-                            'value': .68,
-                            }],
-                        },
-                    "probabilite_de_non_recours_socle_activite": {
-                        "@type": "Parameter",
-                        "description": u"Probabilité de non recours au RSA socle seul",
-                        "format": "float",
-                        "unit": "currency",
-                        "values": [{
-                            'start': u'2009-06-01',
-                            'value': .33,
-                            }],
-                        },
-                    "probabilite_de_non_recours_socle_seul": {
-                        "@type": "Parameter",
-                        "description": u"Probabilité de non recours au RSA socle seul",
-                        "format": "float",
-                        "unit": "currency",
-                        "values": [{
-                            'start': u'2009-06-01',
-                            'value': .36,
-                            }],
-                        },
-                    "annee_initialisation": {
-                        "@type": "Parameter",
-                        "description": u"Probabilité de non recours au RSA socle seul",
-                        "format": "integer",
-                        "values": [{
-                            'start': u'2009-06-01',
-                            'value': 2011,  # Arbitraire
-                            }],
-                        },
-                    },
-                }
-            reference_legislation_json_copy[
-                'children']['prestations']['children']['minima_sociaux']['children']['rsa']['children'][
-                    'non_recours'] = reform_legislation_subtree
-            return reference_legislation_json_copy
+        def reform_modify_parameters(reference_parameters_copy):
+            parameters_file = os.path.join(os.path.dirname(__file__), 'parameters', 'non_recours.yaml')
+            parameters_subtree = load_parameter_file(name = 'non_recours', file_path = parameters_file)
+            reference_parameters_copy.prestations.minima_sociaux.rsa.add_child('non_recours', parameters_subtree)
+            return reference_parameters_copy
 
-        self.modify_legislation_json(modifier_function = reform_modify_legislation_json)
+        self.modify_parameters(modifier_function = reform_modify_parameters)
         self.update_variable(ppa)
         self.add_variable(rsa_socle_seul_recourant)
         self.add_variable(rsa_act_seul_recourant)

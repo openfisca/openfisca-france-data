@@ -25,11 +25,11 @@ class assiette_csg_salaire(Variable):
     label = u"Assiette CSG salaires"
     definition_period = MONTH
 
-    def formula(individu, period, legislation):
+    def formula(individu, period, parameters):
         assiette_csg_abattue = individu('assiette_csg_abattue', period)
         assiette_csg_non_abattue = individu('assiette_csg_non_abattue', period)
         plafond_securite_sociale = individu('plafond_securite_sociale', period)
-        abattement = legislation(period.start).prelevements_sociaux.contributions.csg.activite.deductible.abattement
+        abattement = parameters(period.start).prelevements_sociaux.contributions.csg.activite.deductible.abattement
         assiette = assiette_csg_abattue - abattement.calc(
             assiette_csg_abattue,
             factor = plafond_securite_sociale,
@@ -44,7 +44,7 @@ class assiette_csg_retraite(Variable):
     label = u"Assiette CSG retraite"
     definition_period = MONTH
 
-    def formula(individu, period, legislation):
+    def formula(individu, period, parameters):
         retraite_brute = individu('retraite_brute', period)
         taux_csg_remplacement = individu('taux_csg_remplacement', period)
         return retraite_brute * (taux_csg_remplacement >= 2)
@@ -56,7 +56,7 @@ class assiette_csg_chomage(Variable):
     label = u"Assiette CSG chomage"
     definition_period = MONTH
 
-    def formula(individu, period, legislation):
+    def formula(individu, period, parameters):
         chomage_brut = individu('chomage_brut', period)
         taux_csg_remplacement = individu('taux_csg_remplacement', period)
         return chomage_brut * (taux_csg_remplacement >= 2)
