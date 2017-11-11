@@ -193,12 +193,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             log.debug(input_data_frame[variable].value_counts(dropna = False))
 
 
-def new_simulation_from_array_dict(array_dict = None, debug = False, debug_all = False, legislation_json = None,
+def new_simulation_from_array_dict(array_dict = None, debug = False,
         tax_benefit_system = None, trace = False, year = None):
     simulation = simulations.Simulation(
         debug = debug,
-        debug_all = debug_all,
-        legislation_json = legislation_json,
         period = periods.period(year),
         tax_benefit_system = tax_benefit_system,
         trace = trace,

@@ -50,7 +50,7 @@ class Aggregates(object):
     totals_df = None
     aggregate_variables = None
 
-    def __init__(self, survey_scenario = None, debug = False, debug_all = False, trace = False):
+    def __init__(self, survey_scenario = None, debug = False, trace = False):
         assert survey_scenario is not None
         self.year = survey_scenario.year
         self.survey_scenario = survey_scenario
