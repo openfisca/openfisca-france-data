@@ -63,6 +63,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     def create(cls, input_data_type = None, baseline_tax_benefit_system = None, reform = None, reform_key = None,
             tax_benefit_system = None, year = None):
 
+        assert baseline_tax_benefit_system is not None
         assert year is not None
         assert not(
             (reform is not None) and (reform_key is not None)
@@ -71,13 +72,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if reform_key is not None:
             reform = base.get_cached_reform(
                 reform_key = reform_key,
-                tax_benefit_system = baseline_tax_benefit_system or base.france_data_tax_benefit_system,
+                tax_benefit_system = baseline_tax_benefit_system,
                 )
 
-        if reform is None:
-            if baseline_tax_benefit_system is None:
-                baseline_tax_benefit_system = base.france_data_tax_benefit_system
-        else:
+        if reform is not None:
             tax_benefit_system = reform
         if input_data_type is not None:
             survey_scenario = cls(input_data_type = input_data_type, year = year)
