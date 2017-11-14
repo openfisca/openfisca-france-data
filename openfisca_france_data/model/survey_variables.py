@@ -31,6 +31,7 @@ class idfam_original(Variable):
 class menage_ordinaire(Variable):
     value_type = int
     is_period_size_independent = True
+    default_value = True
     entity = Menage
     definition_period = YEAR
 
