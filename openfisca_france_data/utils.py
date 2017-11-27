@@ -237,9 +237,8 @@ def build_cerfa_fields_by_column_name(year, sections_cerfa):
     for name, column in tax_benefit_system.variables.iteritems():
         for section_cerfa in sections_cerfa:
             if name.startswith('f{}'.format(section_cerfa)):
-                start = column.start or None
                 end = column.end or None
-                if (start is None or start.year <= year) and (end is None or end.year >= year):
+                if end is None or end.year >= year:
                     if column.entity.key == 'individu':
                         cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
                     elif column.entity.key == 'foyer_fiscal':
