@@ -9,7 +9,7 @@ import pandas as pd
 
 from openfisca_core import periods
 from openfisca_core.formula_helpers import switch
-from openfisca_core.taxscales import MarginalRateTaxScale
+from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_france.model.base import CATEGORIE_SALARIE
 from openfisca_france_data.tests import base
 from openfisca_france_data.utils import (
@@ -768,7 +768,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
             )
         salaire_de_base = 0.0
         for categorie in ['prive_non_cadre', 'prive_cadre']:
-            bareme = salarie[categorie].combine_tax_scales()
+            bareme = combine_tax_scales(salarie[categorie])
             bareme.add_tax_scale(csg_deductible)
             if revenu_type == 'net':
                 bareme.add_tax_scale(csg_imposable)
