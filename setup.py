@@ -56,8 +56,9 @@ setup(
     long_description = '\n'.join(doc_lines[2:]),
     url = 'https://github.com/openfisca/openfisca-france-data',
     data_files = [
-        ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
+        # ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
+    include_package_data = True,
     install_requires = [
         'OpenFisca-France >= 15.0.0, < 16.0',
         'OpenFisca-Core >= 6.0, < 7.0',
