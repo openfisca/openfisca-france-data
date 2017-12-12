@@ -8,12 +8,16 @@ from .. import france_data_tax_benefit_system
 from openfisca_france.reforms import (
     allocations_familiales_imposables,
     cesthra_invalidee,
-    inversion_directe_salaires,
+    # inversion_directe_salaires, # We use a custom inversion_directe_salaires, not merged in the openfisca-france yet
     plf2016,
     plf2016_ayrault_muet,
     plf2015,
     plfr2014,
     trannoy_wasmer,
+    )
+
+from openfisca_france_data.reforms import (
+    inversion_directe_salaires
     )
 
 # The reforms commented haven't been adapted to the new core API yet.
