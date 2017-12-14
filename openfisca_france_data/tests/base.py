@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from openfisca_core.tools import assert_near
 from openfisca_core.reforms import Reform
-
-from .. import france_data_tax_benefit_system
 
 from openfisca_france.reforms import (
     allocations_familiales_imposables,
