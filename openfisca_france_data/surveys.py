@@ -68,6 +68,9 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         assert not(
             (reform is not None) and (reform_key is not None)
             )
+        assert not(
+            ((reform is not None) or (reform_key is not None)) and (tax_benefit_system is not None)
+            )
 
         if reform_key is not None:
             reform = base.get_cached_reform(
