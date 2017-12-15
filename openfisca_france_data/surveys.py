@@ -102,7 +102,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             self.new_simulation(use_baseline = True)
 
     def init_from_survey_tables(self, calibration_kwargs = None, data_year = None, inflation_kwargs = None,
-            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None, trace = False, memory_config = None):
+            rebuild_input_data = False, rebuild_kwargs = None, input_survey_kwargs = None, trace = False, memory_config = None,
+            tax_and_benefit_system = None):
+
+        assert tax_and_benefit_system is not None
 
         if data_year is None:
             data_year = self.year
@@ -116,9 +119,9 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
         if rebuild_input_data:
             if rebuild_kwargs is not None:
-                self.build_input_data(year = data_year, **rebuild_kwargs)
+                self.build_input_data(year = data_year, tax_and_benefit_system = tax_and_benefit_system, **rebuild_kwargs)
             else:
-                self.build_input_data(year = data_year)
+                self.build_input_data(year = data_year, tax_and_benefit_system = tax_and_benefit_system)
 
         if self.input_data_table_by_period is None:
             openfisca_survey_collection = SurveyCollection.load(collection = self.collection)

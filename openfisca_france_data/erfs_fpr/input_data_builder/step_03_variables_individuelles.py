@@ -656,7 +656,7 @@ def create_revenus(individus, net_only = False):
         assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 
-def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
+def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_and_benefit_system = None):
         """Calcule le salaire brut à partir du salaire imposable par inversion du barème
         de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
         """
@@ -664,6 +664,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
         assert revenu_type in ['net', 'imposable']
         for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
             assert variable in individus.columns
+        assert tax_and_benefit_system is not None
 
         if revenu_type == 'imposable':
             salaire_pour_inversion = individus.salaire_imposable
@@ -675,7 +676,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable'):
         heures_remunerees_volume = individus.heures_remunerees_volume
         # hsup = simulation.calculate('hsup', period = this_year)
 
-        simulation = base.france_data_tax_benefit_system.new_scenario().init_single_entity(
+        simulation = tax_and_benefit_system.new_scenario().init_single_entity(
             period = period, parent1 = dict()).new_simulation()
         parameters = simulation.parameters_at(period.start)
 
