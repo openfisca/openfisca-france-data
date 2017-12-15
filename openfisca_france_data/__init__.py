@@ -17,7 +17,7 @@ from openfisca_core import reforms
 import openfisca_france
 
 # Load input variables and output variables into entities
-from .model import common, survey_variables  # noqa analysis:ignore
+from .model import common, survey_variables, id_variables  # noqa analysis:ignore
 from .model.base import * # noqa  analysis:ignore
 
 
