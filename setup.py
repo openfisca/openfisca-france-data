@@ -60,10 +60,9 @@ setup(
         ],
     include_package_data = True,
     install_requires = [
-        'OpenFisca-France >= 15.0.0, < 16.0',
-        'OpenFisca-Core >= 6.0, < 7.0',
-        'OpenFisca-Survey-Manager[calmar] >= 0.7.0',
-        'pandas == 0.20.3',
+        'OpenFisca-France >= 19.0.0, < 20.0',
+        'OpenFisca-Survey-Manager[calmar] >= 0.9.1',
+        'pandas >= 0.20.3',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
         ],
