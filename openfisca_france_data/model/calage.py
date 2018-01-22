@@ -11,25 +11,14 @@ from .base import *  # noqa
 
 
 class nbinde(Variable):
-    value_type = Enum
-    possible_values = Enum([
-        "",
-        "Une personne",
-        "Deux personnes",
-        "Trois personnes",
-        "Quatre personnes",
-        "Cinq personnes",
-        "Six personnes et plus",
-        ])
+    value_type = int
     entity = Menage
-    label = u"Nombre d'individus dans le ménage"
+    label = u"Nombre d'individus dans le ménage. La valeur varie entre 1 et 6 pour 6 membres et plus."
     definition_period = YEAR
 
     def formula(self, simulation, period):
         """
         Number of household members
-        'men'
-        Values range between 1 and 6 for 6 members or more
         """
         age_en_mois_holder = simulation.compute('age_en_mois', period)
 
@@ -152,16 +141,10 @@ def _nb_act(act_cpl, act_enf):
 class cplx(Variable):
     value_type = bool
     entity = Menage
-    label = u"Indicatrice de ménage complexe"
+    label = u"Indicatrice de ménage complexe. Un ménage est complexe si les personnes autres que la personne de référence ou son conjoint ne sont pas enfants."
     definition_period = YEAR
 
     def formula(self, simulation, period):
-        """
-        Indicatrice de ménage complexe
-        'men'
-
-        Un ménage est complexe si les personnes autres que la personne de référence ou son conjoint ne sont pas enfants.
-        """
         quifam_holder = simulation.compute('quifam', period)
         quimen_holder = simulation.compute('quimen', period)
         age_holder = simulation.compute('age', period)
@@ -183,51 +166,35 @@ class cplx(Variable):
     # return (typmen15 > 12)
 
 
+class TypesMenage15(Enum):
+    __order__ = 'inconnu personne_seule_active personne_seule_inactive famille_monoparentale_parent_actif famille_monoparentale_parent_inactif_enfant_actif famille_monoparentale_inactifs couple_sans_enfants_1_actif couple_sans_enfants_2_actifs couple_sans_enfants_inactifs couple_avec_enfants_1_actif couple_avec_enfants_2_actifs couple_avec_enfants_parents_inactifs_enfant_actif couple_avec_enfants_inactifs autres_1_actif autres_2_actifs autres_inactifs'  # Needed to preserve the order in Python 2
+    inconnu = u""
+    personne_seule_active = u"Personne seule active"
+    personne_seule_inactive = u"Personne seule inactive"
+    famille_monoparentale_parent_actif = u"Familles monoparentales, parent actif"
+    famille_monoparentale_parent_inactif_enfant_actif = u"Familles monoparentales, parent inactif et au moins un enfant actif"
+    famille_monoparentale_inactifs = u"Familles monoparentales, tous inactifs"
+    couple_sans_enfants_1_actif = u"Couples sans enfant, 1 actif"
+    couple_sans_enfants_2_actifs = u"Couples sans enfant, 2 actifs"
+    couple_sans_enfants_inactifs = u"Couples sans enfant, tous inactifs"
+    couple_avec_enfants_1_actif = u"Couples avec enfant, 1 membre du couple actif"
+    couple_avec_enfants_2_actifs = u"Couples avec enfant, 2 membres du couple actif"
+    couple_avec_enfants_parents_inactifs_enfant_actif = u"Couples avec enfant, couple inactif et au moins un enfant actif"
+    couple_avec_enfants_inactifs = u"Couples avec enfant, tous inactifs"
+    autres_1_actif = u"Autres ménages, 1 actif"
+    autres_2_actifs = u"Autres ménages, 2 actifs ou plus"
+    autres_inactifs = u"Autres ménages, tous inactifs"
+
+
 class typmen15(Variable):
     value_type = Enum
-    possible_values = Enum([
-        u"",
-        u"Personne seule active",
-        u"Personne seule inactive",
-        u"Familles monoparentales, parent actif",
-        u"Familles monoparentales, parent inactif et au moins un enfant actif",
-        u"Familles monoparentales, tous inactifs",
-        u"Couples sans enfant, 1 actif",
-        u"Couples sans enfant, 2 actifs",
-        u"Couples sans enfant, tous inactifs",
-        u"Couples avec enfant, 1 membre du couple actif",
-        u"Couples avec enfant, 2 membres du couple actif",
-        u"Couples avec enfant, couple inactif et au moins un enfant actif",
-        u"Couples avec enfant, tous inactifs",
-        u"Autres ménages, 1 actif",
-        u"Autres ménages, 2 actifs ou plus",
-        u"Autres ménages, tous inactifs",
-        ],
-    )
+    possible_values = TypesMenage15
+    default_value = TypesMenage15.inconnu
     entity = Menage
     label = u"Type de ménage"
     definition_period = YEAR
 
     def formula(self, simulation, period):
-        '''
-        Type de ménage en 15 modalités
-        1 Personne seule active
-        2 Personne seule inactive
-        3 Familles monoparentales, parent actif
-        4 Familles monoparentales, parent inactif et au moins un enfant actif
-        5 Familles monoparentales, tous inactifs
-        6 Couples sans enfant, 1 actif
-        7 Couples sans enfant, 2 actifs
-        8 Couples sans enfant, tous inactifs
-        9 Couples avec enfant, 1 membre du couple actif
-        10 Couples avec enfant, 2 membres du couple actif
-        11 Couples avec enfant, couple inactif et au moins un enfant actif
-        12 Couples avec enfant, tous inactifs
-        13 Autres ménages, 1 actif
-        14 Autres ménages, 2 actifs ou plus
-        15 Autres ménages, tous inactifs
-        'men'
-        '''
         nbinde = simulation.calculate('nbinde', period)
         cohab = simulation.calculate('cohab', period)
         act_cpl = simulation.calculate('act_cpl', period)

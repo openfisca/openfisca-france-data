@@ -10,7 +10,7 @@ import pandas as pd
 from openfisca_core import periods
 from openfisca_core.formula_helpers import switch
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
-from openfisca_france.model.base import CATEGORIE_SALARIE
+from openfisca_france.model.base import TypesCategorieSalarie
 from openfisca_france_data.tests import base
 from openfisca_france_data.utils import (
     assert_dtype,
@@ -787,7 +787,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
                     }
                 )
             salaire_de_base += (
-                (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
+                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
                 )
             assert (salaire_de_base >= 0).all()
             assert (salaire_de_base < 1e9).all()
