@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.10
+
+* Migration vers la version 21 d'openfisca-core
+
+
 ## 0.5.7
 
 * Migration vers la nouvelle syntaxe (abandon des entity_key_plural)

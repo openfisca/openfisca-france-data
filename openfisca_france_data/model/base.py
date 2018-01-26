@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 
+
 from datetime import date
+
 
 from openfisca_france.model.base import *
 
 
 class Deciles(Enum):
     __order__ = 'hors_champs decile_1 decile_2 decile_3 decile_4 decile_5 decile_6 decile_7 decile_8 decile_9 decile_10'  # Needed to keep the order in Python 2
-    hors_champs =  u"Hors champ"
+    hors_champs = u"Hors champ"
     decile_1 = u"1er décile"
     decile_2 = u"2nd décile"
     decile_3 = u"3e décile"
