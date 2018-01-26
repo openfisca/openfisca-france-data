@@ -60,7 +60,7 @@ setup(
         ],
     include_package_data = True,
     install_requires = [
-        'OpenFisca-France >= 21.0.0, < 22.0',
+        'OpenFisca-France >= 20.0, < 21.0',
         'OpenFisca-Survey-Manager[calmar] >= 0.9.2',
         'pandas >= 0.20.3',
         'tables',  # Needed by pandas.HDFStore
