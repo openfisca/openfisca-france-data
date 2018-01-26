@@ -119,7 +119,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                 else:
                     message += "Values for %s are in range [%s,%s]\n" % (var, str(serie.min()), str(serie.max()))
 
-            if varcol.value_type == bool
+            if varcol.value_type == bool:
                 if serie.dtype != 'bool':
                     is_ok = False
                     # print serie[serie.notnull()]
@@ -263,8 +263,6 @@ def get_calculated_data_frame_by_entity(survey_scenario = None):
         variables_name = entity.variables.keys()
         data_frame_by_entity[entity] = get_data_frame(variables_name, survey_scenario)
     return data_frame_by_entity
-
-
 
 
 def simulation_results_as_data_frame(survey_scenario = None, column_names = None, entity = None, force_sum = False):
