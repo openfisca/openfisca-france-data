@@ -25,21 +25,18 @@ class nbinde(Variable):
     label = u"Nombre d'individus dans le ménage"
     definition_period = YEAR
 
-    def formula(self, simulation, period):
+    def formula(menage, period, parameters):
         """
         Number of household members
         'men'
         Values range between 1 and 6 for 6 members or more
         """
-        age_en_mois_holder = simulation.compute('age_en_mois', period)
 
-        age_en_mois = self.split_by_roles(age_en_mois_holder)
+        age_en_mois_i = menage.members('age_en_mois', period)
 
-        n1 = 0
-        for ind in age_en_mois.iterkeys():
-            n1 += 1 * (floor(age_en_mois[ind]) >= 0)
-        n2 = where(n1 >= 6, 6, n1)
-        return n2
+        n1 = menage.sum(floor(age_en_mois_i) >= 0)
+
+        return where(n1 >= 6, 6, n1)
 
 
 def _ageq(age_en_mois):
@@ -86,16 +83,13 @@ class cohab(Variable):
     label = u"Vie en couple"
     definition_period = YEAR
 
-    def formula(self, simulation, period):
+    def formula(menage, period, parameters):
         '''
         Indicatrice de vie en couple
         'men'
         '''
-        quimen_holder = simulation.compute('quimen', period)
 
-        quimen = self.filter_role(quimen_holder, role = CREF)
-
-        return quimen == 1
+        return menage.nb_persons(role = Menage.CONJOINT) == 1
 
 
 class act_cpl(Variable):
@@ -105,17 +99,17 @@ class act_cpl(Variable):
     label = u"Nombre d'actifs parmi la personne de référence du méange et son conjoint"
     definition_period = YEAR
 
-    def formula(self, simulation, period):
+    def formula(menage, period, parameters):
         '''
         Nombre d'actifs parmi la personne de référence et son conjoint
         'men'
         '''
-        activite_holder = simulation.compute('activite', period)
-        cohab = simulation.calculate('cohab', period)
+        cohab = menage('cohab', period)
 
-        activite = self.split_by_roles(activite_holder, roles = [PREF, CREF])
-
-        return 1 * (activite[PREF] <= 1) + 1 * (activite[CREF] <= 1) * cohab
+        return (
+            1 * (menage.personne_de_reference('activite', period) <= 1) +
+            1 * (menage.conjoint('activite', period) <= 1)
+            ) * cohab
 
 
 class act_enf(Variable):
@@ -125,19 +119,14 @@ class act_enf(Variable):
     label = u"Nombre d'enfants actifs"
     definition_period = YEAR
 
-    def formula(self, simulation, period):
+    def formula(menage, period, parameters):
         '''
         Nombre de membres actifs du ménage autre que la personne de référence ou son conjoint
         'men'
         '''
-        activite_holder = simulation.compute('activite', period)
+        act_i = menage.members('activite', period)
 
-        activite = self.split_by_roles(activite_holder, roles = ENFS)
-
-        res = 0
-        for act in activite.itervalues():
-            res += 1 * (act <= 1)
-        return res
+        return menage.sum(1 * (act_i <= 1), role = Menage.ENFANT)
 
 
 def _nb_act(act_cpl, act_enf):
@@ -155,28 +144,25 @@ class cplx(Variable):
     label = u"Indicatrice de ménage complexe"
     definition_period = YEAR
 
-    def formula(self, simulation, period):
+    def formula(menage, period, parameters):
         """
         Indicatrice de ménage complexe
         'men'
 
         Un ménage est complexe si les personnes autres que la personne de référence ou son conjoint ne sont pas enfants.
         """
-        quifam_holder = simulation.compute('quifam', period)
-        quimen_holder = simulation.compute('quimen', period)
-        age_holder = simulation.compute('age', period)
 
-        age = self.split_by_roles(age_holder, roles = ENFS)
-        quifam = self.split_by_roles(quifam_holder, roles = ENFS)
-        quimen = self.split_by_roles(quimen_holder, roles = ENFS)
+        individus = menage.members
+        age_i = individus('age', period)
 
-        # TODO problème avec les ENFS qui n'existent pas: leur quifam = 0
-        # On contourne en utilisant le fait que leur quimen = 0 également
-        res = 0
-        for quif, quim, age_i in izip(quifam.itervalues(), quimen.itervalues(), age.itervalues()):
-            res += 1 * (quif == 0) * (quim != 0) + age_i > 25
+        is_enfant_plus_25 = individus.has_role(Famille.ENFANT) * (age_i > 25)
+        is_not_pref = not_(individus.has_role(Menage.PERSONNE_DE_REFERENCE))
+        is_demandeur = individus.has_role(Famille.DEMANDEUR)
 
-        return (res > 0.5)
+        return menage.any(
+            is_not_pref * is_demandeur + is_enfant_plus_25
+            )
+
 
 
     # En fait on ne peut pas car on n'a les enfants qu'au sens des allocations familiales ...
@@ -208,7 +194,7 @@ class typmen15(Variable):
     label = u"Type de ménage"
     definition_period = YEAR
 
-    def formula(self, simulation, period):
+    def formula(menage, period, parameters):
         '''
         Type de ménage en 15 modalités
         1 Personne seule active
@@ -228,11 +214,11 @@ class typmen15(Variable):
         15 Autres ménages, tous inactifs
         'men'
         '''
-        nbinde = simulation.calculate('nbinde', period)
-        cohab = simulation.calculate('cohab', period)
-        act_cpl = simulation.calculate('act_cpl', period)
-        cplx = simulation.calculate('cplx', period)
-        act_enf = simulation.calculate('act_enf', period)
+        nbinde = menage('nbinde', period)
+        cohab = menage('cohab', period)
+        act_cpl = menage('act_cpl', period)
+        cplx = menage('cplx', period)
+        act_enf = menage('act_enf', period)
 
         res = 0 + (cplx == 0) * (
                 1 * ((nbinde == 1) & (cohab == 0) & (act_cpl == 1)) +  # Personne seule active
