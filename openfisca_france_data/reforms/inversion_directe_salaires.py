@@ -26,27 +26,27 @@ class salaire_imposable_pour_inversion(Variable):
 class salaire_de_base(Variable):
     definition_period = MONTH
 
-    def formula(self, simulation, period):
+    def formula(individu, period, parameters):
         """Calcule le salaire brut à partir du salaire imposable par inversion du barème
         de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
         """
         # Get value for year and divide below.
         this_year = period.this_year
-        salaire_imposable_pour_inversion = simulation.calculate('salaire_imposable_pour_inversion',
+        salaire_imposable_pour_inversion = individu('salaire_imposable_pour_inversion',
             period = this_year)
 
         # Calcule le salaire brut (salaire de base) à partir du salaire imposable.
 
-        categorie_salarie = simulation.calculate('categorie_salarie', period = this_year)
-        contrat_de_travail = simulation.calculate('contrat_de_travail', period = this_year)
-        heures_remunerees_volume = simulation.calculate('heures_remunerees_volume', period = this_year)
-        hsup = simulation.calculate('hsup', period = this_year)
+        categorie_salarie = individu('categorie_salarie', period = this_year)
+        contrat_de_travail = individu('contrat_de_travail', period = this_year)
+        heures_remunerees_volume = individu('heures_remunerees_volume', period = this_year)
+        hsup = individu('hsup', period = this_year)
 
-        P = simulation.parameters_at(period.start)
+        P = parameters(period)
 
         salarie = P.cotsoc.cotisations_salarie
         plafond_securite_sociale_annuel = P.cotsoc.gen.plafond_securite_sociale * 12
-        csg_deductible = simulation.parameters_at(period.start).prelevements_sociaux.contributions.csg.activite.deductible
+        csg_deductible = parameters(period).prelevements_sociaux.contributions.csg.activite.deductible
         taux_csg = csg_deductible.taux
         taux_abattement = csg_deductible.abattement.rates[0]
         try:
