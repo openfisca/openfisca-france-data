@@ -296,7 +296,10 @@ class inversion_directe_salaires(Reform):
         neutralized_variables += list(set(neutralized_reductions + neutralized_credits))
         for neutralized_variable in neutralized_variables:
             log.info("Neutralizing {}".format(neutralized_variable))
-            self.neutralize_variable(neutralized_variable)
+            try:
+                self.neutralize_variable(neutralized_variable)
+            except AttributeError:
+                continue
 
         self.add_variable(salaire_imposable_pour_inversion)
         for variable in [salaire_de_base]:  # traitement_indiciaire_brut, primes_fonction_publique,
