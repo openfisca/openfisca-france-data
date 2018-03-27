@@ -9,24 +9,11 @@ import numpy as np
 
 
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
+from openfisca_france_data.tests import base as base_surve
 
 
-def get_survey_scenario(year = 2012, rebuild_input_data = False):
-    tax_benefit_system = base_survey.get_cached_reform(
-        reform_key = 'inversion_directe_salaires',
-        tax_benefit_system = base_survey.france_data_tax_benefit_system,
-        )
-    survey_scenario = ErfsFprSurveyScenario.create(
-        tax_benefit_system = tax_benefit_system,
-        baseline_tax_benefit_system = tax_benefit_system,
-        year = year,
-        rebuild_input_data = rebuild_input_data,
-        )
-    return survey_scenario
-
-
-survey_scenario = get_survey_scenario()
+survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
 
 #%%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
