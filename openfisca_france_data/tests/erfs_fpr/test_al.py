@@ -7,10 +7,7 @@
 from __future__ import division
 
 
-from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
-
-from openfisca_france_data.tests import base as base_survey
 
 
 survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
@@ -47,6 +44,9 @@ assert .39 < statut_occupation_logement_pct[3:7].sum() < .43
 #%%
 
 11e10 < (famille.aide_logement_montant_brut * famille.weight_familles).sum()
-11e10 < (famille.apl * famille.weight_familles).sum() + (famille.als * famille.weight_familles).sum() + (famille.alf * famille.weight_familles).sum()
-
+11e10 < (
+    (famille.apl * famille.weight_familles).sum()
+    + (famille.als * famille.weight_familles).sum()
+    + (famille.alf * famille.weight_familles).sum()
+    )
 ## Reste un peu faiblard

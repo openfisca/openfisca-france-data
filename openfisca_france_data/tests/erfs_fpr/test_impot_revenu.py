@@ -7,12 +7,7 @@
 from __future__ import division
 
 
-import numpy as np
-
-
-from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
-from openfisca_france_data.tests import base as base_survey
 
 
 survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
