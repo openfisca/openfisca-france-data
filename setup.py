@@ -5,7 +5,7 @@
 # OpenFisca -- A versatile microsimulation software
 # By: OpenFisca Team <contact@openfisca.fr>
 #
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
+# Copyright (C) 2011-2018 OpenFisca Team
 # https://github.com/openfisca
 #
 # This file is part of OpenFisca.
@@ -46,7 +46,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.5.9.2',
+    version = '0.6.0',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -60,8 +60,8 @@ setup(
         ],
     include_package_data = True,
     install_requires = [
-        'OpenFisca-France >= 19.0.0, < 20.0',
-        'OpenFisca-Survey-Manager[calmar] >= 0.9.1',
+        'OpenFisca-France >= 21.10.7, < 22.0',
+        'OpenFisca-Survey-Manager[calmar] >= 0.10.0',
         'pandas >= 0.20.3',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles

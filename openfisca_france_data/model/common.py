@@ -64,19 +64,8 @@ class assiette_csg_chomage(Variable):
 
 class decile(Variable):
     value_type = Enum
-    possible_values = Enum([
-        u"Hors champ"
-        u"1er décile",
-        u"2nd décile",
-        u"3e décile",
-        u"4e décile",
-        u"5e décile",
-        u"6e décile",
-        u"7e décile",
-        u"8e décile",
-        u"9e décile",
-        u"10e décile"
-        ])
+    possible_values = Deciles
+    default_value = Deciles.hors_champs
     entity = Menage
     label = u"Décile de niveau de vie disponible"
     definition_period = YEAR
@@ -96,19 +85,8 @@ class decile(Variable):
 
 
 class decile_net(Variable):
-    possible_values = Enum([
-        u"Hors champ"
-        u"1er décile",
-        u"2nd décile",
-        u"3e décile",
-        u"4e décile",
-        u"5e décile",
-        u"6e décile",
-        u"7e décile",
-        u"8e décile",
-        u"9e décile",
-        u"10e décile",
-        ])
+    possible_values = Deciles
+    default_value = Deciles.hors_champs
     value_type = Enum
     entity = Menage
     label = u"Décile de niveau de vie net"
@@ -128,19 +106,8 @@ class decile_net(Variable):
 
 class decile_rfr(Variable):
     value_type = Enum
-    possible_values = Enum([
-        u"Hors champ",
-        u"1er décile",
-        u"2nd décile",
-        u"3e décile",
-        u"4e décile",
-        u"5e décile",
-        u"6e décile",
-        u"7e décile",
-        u"8e décile",
-        u"9e décile",
-        u"10e décile"
-        ])
+    possible_values = Deciles
+    default_value = Deciles.hors_champs
     entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence"
     definition_period = YEAR
@@ -159,19 +126,8 @@ class decile_rfr(Variable):
 
 class decile_rfr_par_part(Variable):
     value_type = Enum
-    possible_values = Enum([
-        u"Hors champ",
-        u"1er décile",
-        u"2nd décile",
-        u"3e décile",
-        u"4e décile",
-        u"5e décile",
-        u"6e décile",
-        u"7e décile",
-        u"8e décile",
-        u"9e décile",
-        u"10e décile"
-        ])
+    possible_values = Deciles
+    default_value = Deciles.hors_champs
     entity = FoyerFiscal
     label = u"Décile de revenu fiscal de référence par part fiscale"
     definition_period = YEAR
@@ -191,13 +147,9 @@ class decile_rfr_par_part(Variable):
 
 
 class pauvre40(Variable):
-    value_type = Enum
-    possible_values = Enum([
-        u"Ménage au dessus du seuil de pauvreté à 40%",
-        u"Ménage en dessous du seuil de pauvreté à 40%",
-        ])
+    value_type = bool
     entity = Menage
-    label = u"Pauvreté monétaire au seuil de 40%"
+    label = u"Ménage en dessous du seuil de pauvreté à 40%"
     definition_period = YEAR
 
     def formula(menage, period):
@@ -214,13 +166,9 @@ class pauvre40(Variable):
 
 
 class pauvre50(Variable):
-    value_type = Enum
-    possible_values = Enum([
-        u"Ménage au dessus du seuil de pauvreté à 50%",
-        u"Ménage en dessous du seuil de pauvreté à 50%",
-        ])
+    value_type = bool
     entity = Menage
-    label = u"Pauvreté monétaire au seuil de 50%"
+    label = u"Ménage en dessous du seuil de pauvreté à 50%"
     definition_period = YEAR
 
 
@@ -239,13 +187,9 @@ class pauvre50(Variable):
 
 
 class pauvre60(Variable):
-    value_type = Enum
-    possible_values = Enum([
-        u"Ménage au dessus du seuil de pauvreté à 60%",
-        u"Ménage en dessous du seuil de pauvreté à 60%",
-        ])
+    value_type = bool
     entity = Menage
-    label = u"Pauvreté monétaire au seuil de 60%"
+    label = u"Ménage en dessous du seuil de pauvreté à 60%"
     definition_period = YEAR
 
     def formula(menage, period):

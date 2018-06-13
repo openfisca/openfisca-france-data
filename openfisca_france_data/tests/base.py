@@ -2,6 +2,9 @@
 
 from openfisca_core.reforms import Reform
 
+from openfisca_france.entities import Famille
+from openfisca_france_data import france_data_tax_benefit_system
+
 from openfisca_france.reforms import (
     allocations_familiales_imposables,
     cesthra_invalidee,
@@ -51,6 +54,7 @@ def compose_reforms(reforms, tax_benefit_system):
     final_tbs = reduce(compose_reforms_reducer, reforms, tax_benefit_system)
     return final_tbs
 
+
 def get_cached_composed_reform(reform_keys, tax_benefit_system):
     full_key = '.'.join(
         [tax_benefit_system.full_key] + reform_keys
@@ -77,3 +81,4 @@ def get_cached_composed_reform(reform_keys, tax_benefit_system):
 
 def get_cached_reform(reform_key, tax_benefit_system):
     return get_cached_composed_reform([reform_key], tax_benefit_system)
+

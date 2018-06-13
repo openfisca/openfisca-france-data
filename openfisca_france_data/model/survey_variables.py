@@ -67,7 +67,7 @@ class weight_foyers(Variable):
 
 
 class wprm(Variable):
-    default_value = 1
+    default_value = 1.0
     is_period_size_independent = True
     value_type = float
     entity = Menage

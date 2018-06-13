@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 def test_erfs_fpr_survey_simulation_aggregates(year = 2012, rebuild_input_data = False):
-    np.seterr(all='raise')
+    np.seterr(all = 'raise')
     tax_benefit_system = base_survey.france_data_tax_benefit_system
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
@@ -33,7 +33,11 @@ def test_erfs_fpr_aggregates_reform():
     :param year: year of data and simulation to test agregates
     :param reform: optional argument, put an openfisca_france.refoms object, default None
     '''
-    survey_scenario = ErfsFprSurveyScenario.create(data_year = 2012, year = 2015, reform_key = 'plf2015')
+    survey_scenario = ErfsFprSurveyScenario.create(
+        year = 2015,
+        reform_key = 'plf2015',
+        baseline_tax_benefit_system = base_survey.france_data_tax_benefit_system,
+        )
     aggregates = Aggregates(survey_scenario = survey_scenario)
     base_data_frame = aggregates.compute_aggregates()
 
