@@ -11,7 +11,6 @@ from openfisca_core import periods
 from openfisca_core.formula_helpers import switch
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_france.model.base import TypesCategorieSalarie
-from openfisca_france_data.tests import base
 from openfisca_france_data.utils import (
     assert_dtype,
     )
@@ -676,10 +675,9 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         heures_remunerees_volume = individus.heures_remunerees_volume
         # hsup = simulation.calculate('hsup', period = this_year)
 
-        simulation = tax_and_benefit_system.new_scenario().init_single_entity(
-            period = period, parent1 = dict()).new_simulation()
-        parameters = simulation.parameters_at(period.start)
-
+        # simulation = tax_and_benefit_system.new_scenario().init_single_entity(
+        #     period = period, parent1 = dict()).new_simulation()
+        parameters = tax_and_benefit_system.get_parameters_at_instant(period.start)
         salarie = parameters.cotsoc.cotisations_salarie
         plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
         parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
