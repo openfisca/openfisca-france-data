@@ -36,7 +36,6 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         cotisation_sociale_mode_recouvrement = 2,
         # taux_incapacite = .50,
         )
-    input_data_survey_prefix = 'openfisca_erfs_fpr_data'
     non_neutralizable_variables = [
         'menage_ordinaire',
         'idfam_original',
@@ -46,6 +45,11 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         # 'ressortissant_eee',
         'wprm_init',
         ]
+
+    def __init__(self, year = None):
+        assert year is not None
+        self.year = year
+
 
     @classmethod
     def build_input_data(cls, year = None):
