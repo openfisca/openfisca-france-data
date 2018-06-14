@@ -62,14 +62,18 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     def create(cls, input_data_type = None, baseline_tax_benefit_system = None, reform = None, reform_key = None,
             tax_benefit_system = None, year = None):
 
-        assert baseline_tax_benefit_system is not None
         assert year is not None
         assert not(
             (reform is not None) and (reform_key is not None)
             )
-        assert not(
-            ((reform is not None) or (reform_key is not None)) and (tax_benefit_system is not None)
-            )
+
+        reform_is_provided = (reform is not None) or (reform_key is not None)
+        # With booleans != is xor
+        # See https://stackoverflow.com/questions/432842/how-do-you-get-the-logical-xor-of-two-variables-in-python
+        assert reform_is_provided != (tax_benefit_system is not None)
+
+        if reform_is_provided:
+            assert baseline_tax_benefit_system is not None
 
         if reform_key is not None:
             reform = base.get_cached_reform(
@@ -159,14 +163,19 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             'retraite_imposable',
             'salaire_de_base',
             ]
-        for offset in [0, -1, -2]:
+        for offset in [-1, -2]:
             for variable in three_year_span_variables:
                 assert variable in self.used_as_input_variables, \
                     '{} is not a in the input_varaibles to be used {}'.format(
                         variable, self.used_as_input_variables)
                 holder = simulation.get_holder(variable)
-                holder.set_input(simulation.period.offset(offset), simulation.calculate_add(
-                    variable, period = self.year))
+                try:
+                    holder.set_input(simulation.period.offset(offset), simulation.calculate_add(
+                        variable, period = self.year))
+                except TypeError:  # TODO Should explicitly test about Enums, avoid enums sum which is forbidden
+                    holder.set_input(simulation.period.offset(offset), simulation.calculate(
+                        variable, period = periods.period(self.year).first_month))
+
             #
             for variable, value in self.default_value_by_variable.iteritems():
                 log.info('Setting {} to new default value {}'.format(variable, value))

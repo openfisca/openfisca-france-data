@@ -11,6 +11,7 @@ import numpy as np
 
 
 from openfisca_core.model_api import *
+from openfisca_france.entities import Famille, Individu
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.tests import base as base_survey
 
@@ -72,7 +73,14 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         tax_benefit_system = tax_benefit_system,
         year = year,
         )
-    survey_scenario.init_from_survey_tables(rebuild_input_data = rebuild_input_data)
+    data = dict(
+        input_data_table = dict(),
+        input_data_survey_prefix = 'openfisca_erfs_fpr_data',
+        )
+    survey_scenario.init_from_data(
+        data = data,
+        rebuild_input_data = rebuild_input_data,
+        )
     return survey_scenario
 
 

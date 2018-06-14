@@ -71,7 +71,7 @@ individu.groupby(
     )['weight_individus'].sum()
 
 #%%
-survey_scenario.get_memory_usage('rempli_obligation_scolaire')
+survey_scenario.memory_usage('rempli_obligation_scolaire')
 
 #%%
 # survey_scenario.summarize_variable('age')
