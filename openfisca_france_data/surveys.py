@@ -164,12 +164,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 assert variable in self.used_as_input_variables, \
                     '{} is not a in the input_varaibles to be used {}'.format(
                         variable, self.used_as_input_variables)
-                holder = simulation.get_or_new_holder(variable)
-                holder.set_input(simulation.period.offset(offset), simulation.calculate_add(variable))
+                holder = simulation.get_holder(variable)
+                holder.set_input(simulation.period.offset(offset), simulation.calculate_add(
+                    variable, period = self.year))
             #
             for variable, value in self.default_value_by_variable.iteritems():
                 log.info('Setting {} to new default value {}'.format(variable, value))
-                holder = simulation.get_or_new_holder(variable)
+                holder = simulation.get_holder(variable)
                 array = np.empty(holder.entity.count, dtype = holder.variable.dtype)
                 array.fill(value)
                 holder.set_input(simulation.period.offset(offset), array)
@@ -177,7 +178,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         # salaire_de_base = simulation.calculate_add('salaire_de_base')
         # months = ["0{}".format(i) for i in range(1, 10)] + ["10", "11", "12"]
         # for month in months:
-        #     holder = simulation.get_or_new_holder('salaire_de_base')
+        #     holder = simulation.get_holder('salaire_de_base')
         #     year = str(simulation.period.this_year)
         #     period = periods.period('{}-{}'.format(year, month))
         #     holder.set_input(period, salaire_de_base / 12)
@@ -243,7 +244,7 @@ def new_simulation_from_array_dict(array_dict = None, debug = False,
     foyers_fiscaux.roles_count = array_dict['quifoy'].max() + 1
 
     for column_name, column_array in array_dict.iteritems():
-        holder = simulation.get_or_new_holder(column_name)
+        holder = simulation.get_holder(column_name)
         entity = holder.entity
         if entity.is_persons_entity:
             array = column_array
