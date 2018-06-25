@@ -4,4 +4,4 @@ Biryani[datetimeconv] >= 0.10.4
 --editable git+https://github.com/openfisca/openfisca-core.git#egg=OpenFisca-Core
 --editable git+https://github.com/openfisca/openfisca-france.git#egg=OpenFisca-France
 --editable git+https://github.com/openfisca/openfisca-survey-manager.git#egg=OpenFisca-Survey-Manager
---editable .
+--editable .[test]
