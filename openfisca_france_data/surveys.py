@@ -107,7 +107,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     def custom_initialize(self, simulation):
         three_year_span_variables = [
             'categorie_salarie',
-            'chomage_brut',
+            # 'chomage_brut',
             'chomage_imposable',
             'contrat_de_travail',
             'effectif_entreprise',
@@ -132,12 +132,12 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                         variable, period = periods.period(self.year).first_month))
 
             #
-            for variable, value in self.default_value_by_variable.iteritems():
-                log.info('Setting {} to new default value {}'.format(variable, value))
-                holder = simulation.get_holder(variable)
-                array = np.empty(holder.entity.count, dtype = holder.variable.dtype)
-                array.fill(value)
-                holder.set_input(simulation.period.offset(offset), array)
+            # for variable, value in self.default_value_by_variable.iteritems():
+            #     log.info('Setting {} to new default value {}'.format(variable, value))
+            #     holder = simulation.get_holder(variable)
+            #     array = np.empty(holder.entity.count, dtype = holder.variable.dtype)
+            #     array.fill(value)
+            #     holder.set_input(simulation.period.offset(offset), array)
 
         # salaire_de_base = simulation.calculate_add('salaire_de_base')
         # months = ["0{}".format(i) for i in range(1, 10)] + ["10", "11", "12"]

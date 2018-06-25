@@ -4,15 +4,23 @@
 from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 
 
-from openfisca_survey_manager.survey_collections import SurveyCollection
-
-
 class ErfsSurveyScenario(AbstractErfsSurveyScenario):
     used_as_input_variables = [
+        'activite',
         'age_en_mois',
         'age',
+        'autonomie_financiere',
+        'categorie_salarie',
+        'chomage_brut',
         'chomage_imposable',
+        'contrat_de_travail',
+        'cotisation_sociale_mode_recouvrement',
+        'date_naissance',
+        'effectif_entreprise',
+        'f4ba',
+        'heures_remunerees_volume',
         'hsup',
+        'loyer',
         'nbF',
         'nbG',
         'nbH',
@@ -20,48 +28,20 @@ class ErfsSurveyScenario(AbstractErfsSurveyScenario):
         'nbJ',
         'nbN',
         'nbR',
+        'pensions_alimentaires_percues',
+        'rag',
+        'retraite_brute',
         'retraite_imposable',
+        'ric',
+        'rnc',
+        'salaire_de_base',
         'salaire_imposable',
-        'autonomie_financiere',
+        'statut_marital',
+        'statut_occupation_logement',
+        'taxe_habitation',
+        'zone_apl',
         ]
 
-    @classmethod
-    def create(cls, year = None, input_data_frame = None):
+    def __init__(self, year = None):
         assert year is not None
-        openfisca_survey_collection = SurveyCollection.load(
-            collection = "openfisca", config_files_directory = config_files_directory)
-        openfisca_survey = openfisca_survey_collection.get_survey("openfisca_data_{}".format(year))
-        if input_data_frame:
-            input_data_frame = (input_data_frame
-                .reset_index(drop = True)
-                .rename(
-                    columns = dict(
-                        alr = 'pensions_alimentaires_percues',
-                        choi = 'chomage_imposable',
-                        cho_ld = 'chomeur_longue_duree',
-                        fra = 'frais_reels',
-                        rsti = 'retraite_imposable',
-                        sali = 'salaire_imposable',
-                        ),
-                    inplace = True,
-                    )
-                )
-        else:
-            input_data_frame = (openfisca_survey.get_values(table = "input")
-                .reset_index(drop = True)
-                .rename(
-                    columns = dict(
-                        alr = 'pensions_alimentaires_percues',
-                        choi = 'chomage_imposable',
-                        cho_ld = 'chomeur_longue_duree',
-                        fra = 'frais_reels',
-                        rsti = 'retraite_imposable',
-                        sali = 'salaire_imposable',
-                        ),
-                    inplace = True,
-                    )
-                )
-        return cls().init_from_data_frame(
-            input_data_frame = input_data_frame,
-            year = year,
-            )
+        self.year = year

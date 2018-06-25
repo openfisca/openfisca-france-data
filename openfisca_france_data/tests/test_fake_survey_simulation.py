@@ -59,7 +59,7 @@ def get_fake_input_data_frame(year = None):
     assert year is not None
     try:
         input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
-    except:
+    except Exception:
         input_data_frame = pandas.read_csv(csv_file_realpath)
     input_data_frame.rename(
         columns = dict(sali = 'salaire_imposable', choi = 'chomage_imposable', rsti = 'retraite_imposable'),
@@ -89,28 +89,33 @@ def test_fake_survey_simulation():
     assert input_data_frame.salaire_imposable.loc[0] == 20000
     assert input_data_frame.salaire_imposable.loc[1] == 10000
 
-    survey_scenario = ErfsSurveyScenario().init_from_data_frame(
-        input_data_frame = input_data_frame,
+    survey_scenario = ErfsSurveyScenario.create(
+        tax_benefit_system = base.france_data_tax_benefit_system,
         year = year,
         )
-    assert (survey_scenario.input_data_frame.salaire_imposable.loc[0] == 20000).all()
-    assert (survey_scenario.input_data_frame.salaire_imposable.loc[1] == 10000).all()
 
-    simulation = survey_scenario.new_simulation()
+    survey_scenario.init_from_data(
+        data = dict(input_data_frame = input_data_frame),
+        )
+    assert (input_data_frame.salaire_imposable.loc[0] == 20000).all()
+    assert (input_data_frame.salaire_imposable.loc[1] == 10000).all()
 
-    salaire_imposable = simulation.calculate('salaire_imposable')
+    simulation = survey_scenario.simulation
+
+    salaire_imposable = simulation.calculate_add('salaire_imposable', period = year)
     assert (salaire_imposable[0:1] == 20000).all()
     assert (salaire_imposable[1:2] == 10000).all()
-    age = simulation.calculate('age')
+    from openfisca_core import periods
+    age = simulation.calculate('age', period = periods.period(year).first_month)
     assert age[0] == 77
     assert age[1] == 37
-    age_en_mois = simulation.calculate('age_en_mois')
-    assert age_en_mois[0] == 924
-    assert age_en_mois[1] == 444
-    sal_2003 = simulation.calculate_add('salaire_imposable', period = "2003")
-    sal_2004 = simulation.calculate_add('salaire_imposable', period = "2004")
-    sal_2005 = simulation.calculate_add('salaire_imposable', period = "2005")
-    sal_2006 = simulation.calculate_add('salaire_imposable', period = "2006")
+    # age_en_mois = simulation.calculate('age_en_mois', period = year)
+    # assert age_en_mois[0] == 924
+    # assert age_en_mois[1] == 444
+    sal_2003 = simulation.calculate_add('salaire_imposable', period = 2003)
+    sal_2004 = simulation.calculate_add('salaire_imposable', period = 2004)
+    sal_2005 = simulation.calculate_add('salaire_imposable', period = 2005)
+    sal_2006 = simulation.calculate_add('salaire_imposable', period = 2006)
 
     assert (sal_2003 == 0).all()
     assert (sal_2004 == sal_2006).all()
@@ -126,7 +131,7 @@ def test_fake_survey_simulation():
         # print sal_2006 / 12
         assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
-    create_data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
+    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = [
             'age',
             'activite',
@@ -149,15 +154,18 @@ def test_fake_survey_simulation():
             'impo',
             ]
         )
-    return data_frame_by_entity_key_plural, simulation
+    return data_frame_by_entity, simulation
 
 
 def create_fake_calibration():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
-    survey_scenario = ErfsSurveyScenario().init_from_data_frame(
-        input_data_frame = input_data_frame,
+    survey_scenario = ErfsSurveyScenario.create(
+        tax_benefit_system = base.france_data_tax_benefit_system,
         year = year,
+        )
+    survey_scenario.init_from_data(
+        data = dict(input_data_frame = input_data_frame),
         )
     survey_scenario.new_simulation()
     calibration = Calibration(survey_scenario = survey_scenario)
@@ -222,7 +230,7 @@ def test_fake_calibration_age():
 
 
 def test_reform():
-    year = 2006
+    year = 2014
     input_data_frame = get_fake_input_data_frame(year)
     # On ne garde que les deux parents
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
@@ -233,12 +241,15 @@ def test_reform():
         reform_key = 'plf2015',
         tax_benefit_system = base.france_data_tax_benefit_system,
         )
-
-    survey_scenario = ErfsSurveyScenario().init_from_data_frame(
-        input_data_frame = input_data_frame,
+    year = 2013
+    survey_scenario = ErfsSurveyScenario.create(
         tax_benefit_system = reform,
         baseline_tax_benefit_system = base.france_data_tax_benefit_system,
-        year = 2013,
+        year = year,
+        )
+
+    survey_scenario.init_from_data(
+        data = dict(input_data_frame = input_data_frame),
         )
     baseline_simulation = survey_scenario.new_simulation(use_baseline = True)
     reform_simulation = survey_scenario.new_simulation()

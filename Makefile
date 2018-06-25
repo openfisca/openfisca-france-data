@@ -1,5 +1,8 @@
 all: flake8 test
 
+archive: clean
+	git archive HEAD --format=zip > archive.zip
+
 check-no-prints:
 	@test -z "`git grep -w print openfisca_france_data/model`"
 
