@@ -251,13 +251,8 @@ def test_reform():
     survey_scenario.init_from_data(
         data = dict(input_data_frame = input_data_frame),
         )
-    baseline_simulation = survey_scenario.new_simulation(use_baseline = True)
-    reform_simulation = survey_scenario.new_simulation()
-
-    assert 'weight_individus' in reform_simulation.tax_benefit_system.variables
-    assert 'weight_individus' in baseline_simulation.tax_benefit_system.variables
 
     error_margin = 1
-    assert_near(baseline_simulation.calculate('irpp'), [-10124, -869], error_margin)
-    assert_near(reform_simulation.calculate('irpp'), [-10118, -911.4 + (1135 - 911.4)], error_margin)
+    assert_near(survey_scenario.calculate_variable('irpp', use_baseline = True, period = year), [-10124, -869], error_margin)
+    assert_near(survey_scenario.calculate_variable('irpp', period = year), [-10118, -911.4 + (1135 - 911.4)], error_margin)
     # -911.4 + (1135 - 911.4) = -686.8
