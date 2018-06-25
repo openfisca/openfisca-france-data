@@ -173,12 +173,12 @@ class Aggregates(object):
         weight = self.weight_column_name_by_entity[column.entity.key]
         assert weight in variables, "{} not a variable of the tax_benefit_system".format(weight)
 
-        weight_array = simulation.calculate(weight).astype('float')
+        weight_array = simulation.calculate(weight, period = self.year).astype('float')
         assert not np.isnan(np.sum(weight_array)), "The are some NaN in weights {} for entity {}".format(
             weight, column.entity.key)
         # amounts and beneficiaries from current data and default data if exists
         # Build weights for each entity
-        variable_array = simulation.calculate_add(variable).astype('float')
+        variable_array = simulation.calculate_add(variable, period = self.year).astype('float')
         assert np.isfinite(variable_array).all(), "The are non finite values in variable {} for entity {}".format(
             variable, column.entity.key)
         data = pd.DataFrame({
@@ -191,7 +191,7 @@ class Aggregates(object):
                 if filter_by in variables
                 else self.survey_scenario.filtering_variable_by_entity[column.entity.key]
                 )
-            filter_dummy_array = simulation.calculate(filter_dummy_variable)
+            filter_dummy_array = simulation.calculate(filter_dummy_variable, period = self.year)
 
         else:
             filter_dummy_array = 1
