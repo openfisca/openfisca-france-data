@@ -8,7 +8,6 @@ import logging
 import os
 import pkg_resources
 
-from numpy import (logical_not as not_, maximum as max_)
 import pandas as pd
 
 from openfisca_core import reforms
