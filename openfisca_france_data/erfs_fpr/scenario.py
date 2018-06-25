@@ -50,7 +50,6 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         assert year is not None
         self.year = year
 
-
     @classmethod
     def build_input_data(cls, year = None):
         assert year is not None

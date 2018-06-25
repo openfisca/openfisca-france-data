@@ -46,7 +46,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.6.0',
+    version = '0.6.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -59,6 +59,11 @@ setup(
         # ('share/locale/fr/LC_MESSAGES', ['openfisca_france_data/i18n/fr/LC_MESSAGES/openfisca-france-data.mo']),
         ],
     include_package_data = True,
+    extras_require = {
+        'test': [
+            'nose-exclude',
+            ],
+        },
     install_requires = [
         'OpenFisca-France >= 21.10.7, < 22.0',
         'OpenFisca-Survey-Manager[calmar] >= 0.10.1',
