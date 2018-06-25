@@ -19,6 +19,12 @@ from openfisca_france_data.tests import base as base_survey
 log = logging.getLogger(__name__)
 
 
+is_travis = 'TRAVIS' in os.environ
+
+if is_travis:
+    exit()
+
+
 def get_survey_scenario(year = 2012, rebuild_input_data = False):
     tax_benefit_system = base_survey.france_data_tax_benefit_system
 

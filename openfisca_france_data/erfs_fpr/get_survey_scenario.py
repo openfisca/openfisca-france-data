@@ -1,17 +1,12 @@
 #! /usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-#%%
-
 
 from __future__ import division
 
 
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.tests import base as base_survey
-
-
-from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 
 
 def get_survey_scenario(year = 2012, rebuild_input_data = False, reform_key = None):

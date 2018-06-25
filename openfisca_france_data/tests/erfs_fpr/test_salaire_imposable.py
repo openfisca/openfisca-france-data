@@ -6,9 +6,16 @@
 from __future__ import division
 
 
-from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
+import os
+
+
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
-from openfisca_france_data.tests import base as base_survey
+
+
+is_travis = 'TRAVIS' in os.environ
+
+if is_travis:
+    exit()
 
 
 survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
@@ -33,8 +40,8 @@ data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         'salaire_de_base',
         'salaire_imposable',
         # 'csg_imposable_salaire',
-        # 'categorie_salarie',
-        # 'salaire_imposable_pour_inversion',
+        'categorie_salarie',
+        'salaire_imposable_pour_inversion',
         # 'weight_individus',
         # 'wprm',
         ],
