@@ -7,8 +7,15 @@
 from __future__ import division
 
 
+import os
+
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 
+
+is_travis = 'TRAVIS' in os.environ
+
+if is_travis:
+    exit()
 
 survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
 
