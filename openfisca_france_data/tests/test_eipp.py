@@ -60,7 +60,7 @@ def test_survey_simulation():
     simulation = survey_scenario.new_simulation()
     try:
         from pandas import DataFrame
-        revdisp = DataFrame({"revdisp": simulation.calculate('revdisp')})
+        revenu_disponible = DataFrame({"revenu_disponible": simulation.calculate('revenu_disponible')})
     except NaNCreationError as error:
         index = error.index
         entity = error.entity
@@ -79,7 +79,7 @@ def test_survey_simulation():
             )
         simulation_debug.calculate(column_name)
 
-    print revdisp.info()
+    print revenu_disponible.info()
     print 'finished'
 
 

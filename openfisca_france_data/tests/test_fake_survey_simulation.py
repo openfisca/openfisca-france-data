@@ -150,7 +150,7 @@ def test_fake_survey_simulation():
             'aspa',
             'aide_logement_montant_brut',
             'weight_familles',
-            'revdisp',
+            'revenu_disponible',
             'impo',
             ]
         )
@@ -175,24 +175,25 @@ def create_fake_calibration():
 
 
 def test_fake_calibration_float():
+    year = 2006
     calibration = create_fake_calibration()
     calibration.total_population = calibration.initial_total_population * 1.123
 
-    revdisp_target = 7e6
-    calibration.set_target_margin('revdisp', revdisp_target)
+    revenu_disponible_target = 7e6
+    calibration.set_target_margin('revenu_disponible', revenu_disponible_target)
 
     calibration.calibrate()
     calibration.set_calibrated_weights()
     simulation = calibration.survey_scenario.simulation
     assert_near(
-        simulation.calculate("wprm").sum(),
+        simulation.calculate("wprm", period = year).sum(),
         calibration.total_population,
         absolute_error_margin = None,
         relative_error_margin = .00001
         )
     assert_near(
-        (simulation.calculate('revdisp') * simulation.calculate("wprm")).sum(),
-        revdisp_target,
+        (simulation.calculate('revenu_disponible', period = year) * simulation.calculate("wprm", period = year)).sum(),
+        revenu_disponible_target,
         absolute_error_margin = None,
         relative_error_margin = .00001
         )
