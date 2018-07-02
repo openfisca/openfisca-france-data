@@ -124,7 +124,7 @@ famille.groupby(
 #%%
 
 rsa_pivot_table = survey_scenario.compute_pivot_table(
-    columns = ['nb_parents', 'activite_famille_max', 'activite_famille_min'],
+    columns = ['nb_parents'],
     values = ['rsa'],
     aggfunc = 'sum',
     period = 2012,
@@ -132,7 +132,7 @@ rsa_pivot_table = survey_scenario.compute_pivot_table(
 
 
 count_pivot_table = survey_scenario.compute_pivot_table(
-    columns = ['nb_parents', 'activite_famille_max', 'activite_famille_min'],
+    columns = ['nb_parents'],
     values = ['rsa'],
     aggfunc = 'count',
     period = 2012,
@@ -171,8 +171,8 @@ for revenu in types_revenus_non_pros:
 
 
 #%%
-
-assert 9e9 < (famille.rsa_montant * famille.weight_familles).sum() / 1e9 < 10e9
+assert 9e9 < (famille.rsa_montant * famille.weight_familles).sum() / 1e9 < 10e9, \
+    u"Rsa = {} Mds €".format((famille.rsa_montant * famille.weight_familles).sum() / 1e9)
 
 
 
