@@ -7,7 +7,6 @@ from __future__ import division
 
 
 import logging
-import numpy as np
 
 
 from openfisca_core.model_api import *
@@ -54,7 +53,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
 
         def formula(famille, period):
             activite = famille.members('activite', period)
-            return period, famille.max(activite, role = Famille.PARENT)
+            return famille.max(activite, role = Famille.PARENT)
 
     class activite_famille_min(Variable):
         value_type = int
@@ -63,8 +62,8 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
         definition_period = MONTH
 
         def formula(famille, period):
-            activite = famille.members('activite')
-            return period, famille.min(activite, role = Famille.PARENT)
+            activite = famille.members('activite', period)
+            return famille.min(activite, role = Famille.PARENT)
 
     tax_benefit_system.add_variable(activite_famille_max)
     tax_benefit_system.add_variable(activite_famille_min)
@@ -84,11 +83,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
     return survey_scenario
 
 
-survey_scenario = get_survey_scenario(rebuild_input_data = True)
-
-
-#%%
-
+survey_scenario = get_survey_scenario(rebuild_input_data = False)
 
 
 
@@ -119,8 +114,6 @@ famille = data_frame_by_entity['famille']
 individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
-
-
 #%%
 famille.activite_famille_min.value_counts(dropna = False)
 
@@ -134,6 +127,7 @@ rsa_pivot_table = survey_scenario.compute_pivot_table(
     columns = ['nb_parents', 'activite_famille_max', 'activite_famille_min'],
     values = ['rsa'],
     aggfunc = 'sum',
+    period = 2012,
     )
 
 
@@ -141,6 +135,7 @@ count_pivot_table = survey_scenario.compute_pivot_table(
     columns = ['nb_parents', 'activite_famille_max', 'activite_famille_min'],
     values = ['rsa'],
     aggfunc = 'count',
+    period = 2012,
     )
 #%%
 
@@ -173,8 +168,6 @@ types_revenus_non_pros = [
     ]
 for revenu in types_revenus_non_pros:
     survey_scenario.summarize_variable(revenu, weighted = True)
-
-
 
 
 #%%
