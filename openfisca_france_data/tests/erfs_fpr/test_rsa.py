@@ -172,7 +172,7 @@ for revenu in types_revenus_non_pros:
 
 #%%
 assert 9e9 < (famille.rsa_montant * famille.weight_familles).sum() / 1e9 < 10e9, \
-    u"Rsa = {} Mds €".format((famille.rsa_montant * famille.weight_familles).sum() / 1e9)
+    "Rsa = {} Mds €".format((famille.rsa_montant * famille.weight_familles).sum() / 1e9)
 
 
 
