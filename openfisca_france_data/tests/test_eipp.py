@@ -83,22 +83,9 @@ def test_survey_simulation():
     print 'finished'
 
 
-def test_weights_building():
-    year = 2011
-    input_data_frame = get_input_data_frame(year)
-    tax_benefit_system_class = openfisca_france.FranceTaxBenefitSystem()
-    survey_scenario = SurveyScenario().init_from_data_frame(
-        input_data_frame = input_data_frame,
-        tax_benefit_system_class = tax_benefit_system_class,
-        year = year,
-        )
-    simulation = survey_scenario.new_simulation()
-
-
 if __name__ == '__main__':
     import logging
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     test_survey_simulation()
-#    test_weights_building()

@@ -109,7 +109,11 @@ class Aggregates(object):
             del data_frame_by_simulation_type['reform']['entity']
             del data_frame_by_simulation_type['reform']['label']
 
-        self.base_data_frame = pd.concat(data_frame_by_simulation_type.values(), axis = 1).loc[self.aggregate_variables]
+        self.base_data_frame = pd.concat(
+            data_frame_by_simulation_type.values(),
+            axis = 1,
+            sort = True,
+            ).loc[self.aggregate_variables]
         return self.base_data_frame
 
     def compute_difference(self, target = "baseline", default = 'actual', amount = True, beneficiaries = True,
@@ -476,13 +480,19 @@ def load_actual_data(year = None):
     if os.path.exists(minimum_vieillesse_beneficiaries_csv):
         minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
 
-    amounts = pd.concat([
-        assiette_csg_by_type_amounts,
-        csg_by_type_amounts,
-        csg_crds_amounts,
-        prestations_sociales_amounts,
-        ])
-    beneficiaries = pd.concat([minimum_vieillesse_beneficiaries, prestations_sociales_beneficiaries])
+    amounts = pd.concat(
+        [
+            assiette_csg_by_type_amounts,
+            csg_by_type_amounts,
+            csg_crds_amounts,
+            prestations_sociales_amounts,
+            ],
+        sort = True,
+        )
+    beneficiaries = pd.concat(
+        [minimum_vieillesse_beneficiaries, prestations_sociales_beneficiaries],
+        sort = True,
+        )
 
     return pd.DataFrame(data = {
         "actual_amount": amounts[str(year)],

@@ -2,7 +2,10 @@
 
 
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
+
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
+from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
+
 from openfisca_france_data.tests import base as base_survey
 
 
@@ -76,16 +79,16 @@ def loose_check(data_frame_by_entity):
                     variable, entity)
 
 
-def test_erfs_fpr_survey_simulation(year = 2012, rebuild = False):
+def test_erfs_fpr_survey_simulation(year = 2012, rebuild_input_data = False):
     tax_benefit_system = base_survey.get_cached_reform(
         reform_key = 'inversion_directe_salaires',
         tax_benefit_system = base_survey.france_data_tax_benefit_system,
         )
-    survey_scenario = ErfsFprSurveyScenario.create(
+    survey_scenario = get_survey_scenario(
         tax_benefit_system = tax_benefit_system,
         baseline_tax_benefit_system = tax_benefit_system,
         year = year,
-        # rebuild_input_data = True,
+        rebuild_input_data = rebuild_input_data,
         )
     data_frame_by_entity = None
     #    data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
@@ -100,7 +103,7 @@ def test_erfs_survey_simulation(year = 2009):
         reform_key = 'inversion_directe_salaires',
         tax_benefit_system = base_survey.france_data_tax_benefit_system,
         )
-    survey_scenario = ErfsSurveyScenario.create(
+    survey_scenario = get_survey_scenario(
         tax_benefit_system = tax_benefit_system,
         baseline_tax_benefit_system = tax_benefit_system,
         year = year,
@@ -108,13 +111,14 @@ def test_erfs_survey_simulation(year = 2009):
 
     data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = variables,
+        period = year,
         )
-    loose_check(frame_by_entity)
+    loose_check(data_frame_by_entity)
     assert (
         data_frame_by_entity['familles'].weight_familles * data_frame_by_entity['familles'].af
         ).sum() / 1e9 > 10
 
-    return survey_scenario, frame_by_entity
+    return survey_scenario, data_frame_by_entity
 
 
 def test_weights_building():
@@ -124,28 +128,15 @@ def test_weights_building():
     return survey_scenario.simulation
 
 
-def show_variable(variable, index = None):
-    simulation = survey_scenario.simulation
-    holder = simulation.get_holder(variable)
-    print 'formula: ', holder.__dict__['formula']
-    print 'scalar: ', holder.variable.scalar
-    if holder.variable.scalar:
-        print holder.array[0]
-        return
-    for period, array in sorted(holder._array_by_period.iteritems()):
-        if index is not None:
-            print str(period), array[index]
-        else:
-            print str(period), array.mean(), array.min(), array.max()
-
 if __name__ == '__main__':
     import time
     log = logging.getLogger(__name__)
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     start = time.time()
-    survey_scenario, data_frame_by_entity = test_erfs_fpr_survey_simulation(year = 2012)
-    print survey_scenario.simulation.calculate('salaire_imposable_pour_inversion')
+    year = 2012
+    survey_scenario, data_frame_by_entity = test_erfs_fpr_survey_simulation(year = year)
+    print survey_scenario.calculate_variable('salaire_imposable_pour_inversion', period = year)
 
     # print survey_scenario.simulation.calculate('salaire_de_base')
 
@@ -192,22 +183,17 @@ if __name__ == '__main__':
         (mask.salaire_imposable_pour_inversion - mask.salaire_imposable).abs() > .1
         ).sum()
 
-    show_variable('salaire_imposable_pour_inversion', index = 7)
-    show_variable('salaire_de_base', index = 7)
+    survey_scenario.summarize_variable('salaire_imposable_pour_inversion')
+    survey_scenario.summarize_variable('salaire_de_base')
 
-    bim
-    simulation.calculate('plafond_securite_sociale')
-    simulation.calculate('assiette_cotisations_sociales')
-    simulation.calculate('assiette_cotisations_sociales_prive')
+    simulation.calculate_add('plafond_securite_sociale', period = year)
+    simulation.calculate_add('assiette_cotisations_sociales', period = year)
+    simulation.calculate_add('assiette_cotisations_sociales_prive', period = year)
 
-    simulation.calculate('agff_salarie')
-    simulation.calculate('salaire_imposable')
-    show_variable('agff_salarie', index = 7)
+    simulation.calculate_add('agff_salarie', period = year)
+    simulation.calculate_add('salaire_imposable', period = year)
+    survey_scenario.summarize_variable('agff_salarie')
 
-    show_variable('salaire_imposable', index = 7)
-    for variable in [
-       'age',
-       'age_en_mois',
-       'af_nbenf',
-       ]:
-       show_variable(variable)
+    survey_scenario.summarize_variable('salaire_imposable')
+    for variable in ['age', 'age_en_mois', 'af_nbenf']:
+        survey_scenario.summarize_variable(variable, force_compute = True)

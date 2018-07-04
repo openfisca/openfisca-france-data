@@ -44,8 +44,9 @@ def test_erfs_fpr_aggregates_reform():
         )
     aggregates = Aggregates(survey_scenario = survey_scenario)
     base_data_frame = aggregates.compute_aggregates()
+    difference_data_frame = aggregates.compute_difference()
 
-    return aggregates, base_data_frame
+    return aggregates, base_data_frame, difference_data_frame
 
 
 if __name__ == '__main__':
@@ -55,12 +56,5 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # aggregates_data_frame, difference_data_frame,
     survey_scenario = test_erfs_fpr_survey_simulation_aggregates(rebuild_input_data = False)
-
-    # aggregates = Aggregates(survey_scenario = survey_scenario)
-    # df = aggregates.compute_aggregates(use_baseline = False)
-    # print df
-    # difference_data_frame = aggregates.compute_difference()
-    # return aggregates.base_data_frame, difference_data_frame, survey_scenario
-
-    aggregates, base_data_frame = test_erfs_fpr_aggregates_reform()
+    aggregates, base_data_frame, difference_data_frame = test_erfs_fpr_aggregates_reform()
 

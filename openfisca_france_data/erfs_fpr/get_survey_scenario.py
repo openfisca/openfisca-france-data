@@ -11,7 +11,7 @@ from openfisca_france_data.tests import base as base_survey
 
 def get_survey_scenario(year = 2012, rebuild_input_data = False, tax_benefit_system = None,
         baseline_tax_benefit_system = None, reform_key = None):
-    if tax_benefit_system is None:
+    if tax_benefit_system is None and reform_key is not None:
         tax_benefit_system = base_survey.get_cached_reform(
             reform_key = reform_key,
             tax_benefit_system = base_survey.france_data_tax_benefit_system,

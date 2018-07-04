@@ -16,19 +16,6 @@ from openfisca_france_data.tests import base as base_survey
 log = logging.getLogger(__name__)
 
 
-def test_erfs_fpr_survey_simulation_aggregates(year = 2012):
-    np.seterr(all='raise')
-    tax_benefit_system = base_survey.france_data_tax_benefit_system
-    survey_scenario = ErfsFprSurveyScenario.create(
-        tax_benefit_system = tax_benefit_system,
-        baseline_tax_benefit_system = tax_benefit_system,
-        year = year,
-        rebuild_input_data = False,
-        )
-    survey_scenario.init_from_survey_tables()
-    return survey_scenario
-
-
 def test_erfs_survey_simulation(year = 2009):
     survey_scenario = ErfsSurveyScenario.create(year = year)
     aggregates = Aggregates(survey_scenario = survey_scenario)
