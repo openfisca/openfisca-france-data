@@ -288,6 +288,9 @@ def create_contrat_de_travail(individus, period):
         9 - Pas d'horaire habituel ou horaire habituel non déclaré
     TODO: utiliser la variable forfait
     """
+    if not isinstance(period, periods.Period):
+        period = periods.period(period)
+
     smic_net = smic_annuel_net_by_year[period.start.year]
 
     if period.unit == 'month':
@@ -675,158 +678,153 @@ def create_revenus(individus, net_only = False):
         assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 
-def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_and_benefit_system = None):
-        """Calcule le salaire brut à partir du salaire imposable par inversion du barème
-        de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
-        """
-        assert period is not None
-        assert revenu_type in ['net', 'imposable']
-        for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
-            assert variable in individus.columns
-        assert tax_and_benefit_system is not None
+def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
+    """Calcule le salaire brut à partir du salaire imposable par inversion du barème
+    de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
+    """
+    assert period is not None
+    assert revenu_type in ['net', 'imposable']
+    for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
+        assert variable in individus.columns, "{} is missing".format(variable)
+    assert tax_benefit_system is not None
 
-        if revenu_type == 'imposable':
-            salaire_pour_inversion = individus.salaire_imposable
-        else:
-            salaire_pour_inversion = individus.salaire_net
+    if revenu_type == 'imposable':
+        salaire_pour_inversion = individus.salaire_imposable
+    else:
+        salaire_pour_inversion = individus.salaire_net
 
-        categorie_salarie = individus.categorie_salarie
-        contrat_de_travail = individus.contrat_de_travail
-        heures_remunerees_volume = individus.heures_remunerees_volume
-        # hsup = simulation.calculate('hsup', period = this_year)
+    categorie_salarie = individus.categorie_salarie
+    contrat_de_travail = individus.contrat_de_travail
+    heures_remunerees_volume = individus.heures_remunerees_volume
+    # hsup = simulation.calculate('hsup', period = this_year)
 
-        # simulation = tax_and_benefit_system.new_scenario().init_single_entity(
-        #     period = period, parent1 = dict()).new_simulation()
-        parameters = tax_and_benefit_system.get_parameters_at_instant(period.start)
-        salarie = parameters.cotsoc.cotisations_salarie
-        plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
-        parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
-        taux_csg = parameters_csg_deductible.taux
-        taux_abattement = parameters_csg_deductible.abattement.rates[0]
+    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    salarie = parameters.cotsoc.cotisations_salarie
+    plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
+    parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
+    taux_csg = parameters_csg_deductible.taux
+    taux_abattement = parameters_csg_deductible.abattement.rates[0]
+    try:
+        seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
+    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+        seuil_abattement = None
+    csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
+    csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
+    if seuil_abattement is not None:
+        csg_deductible.add_bracket(seuil_abattement, taux_csg)
+
+    if revenu_type == 'net':  # On ajoute CSG imposable et crds
+        # csg imposable
+        parameters_csg_imposable = parameters.prelevements_sociaux.contributions.csg.activite.imposable
+        taux_csg = parameters_csg_imposable.taux
+        taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
-            seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
+            seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
             seuil_abattement = None
-        csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
-        csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
+        csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
+        csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
         if seuil_abattement is not None:
-            csg_deductible.add_bracket(seuil_abattement, taux_csg)
+            csg_imposable.add_bracket(seuil_abattement, taux_csg)
+        # crds
+        # csg imposable
+        parameters_crds = parameters.prelevements_sociaux.contributions.crds.activite
+        taux_csg = parameters_crds.taux
+        taux_abattement = parameters_crds.abattement.rates[0]
+        try:
+            seuil_abattement = parameters_crds.abattement.thresholds[1]
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+            seuil_abattement = None
+        crds = MarginalRateTaxScale(name = 'crds')
+        crds.add_bracket(0, taux_csg * (1 - taux_abattement))
+        if seuil_abattement is not None:
+            crds.add_bracket(seuil_abattement, taux_csg)
 
-        if revenu_type == 'net':  # On ajoute CSG imposable et crds
-            # csg imposable
-            parameters_csg_imposable = parameters.prelevements_sociaux.contributions.csg.activite.imposable
-            taux_csg = parameters_csg_imposable.taux
-            taux_abattement = parameters_csg_imposable.abattement.rates[0]
-            try:
-                seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
-            except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
-                seuil_abattement = None
-            csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
-            csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
-            if seuil_abattement is not None:
-                csg_imposable.add_bracket(seuil_abattement, taux_csg)
-            # crds
-            # csg imposable
-            parameters_crds = parameters.prelevements_sociaux.contributions.crds.activite
-            taux_csg = parameters_crds.taux
-            taux_abattement = parameters_crds.abattement.rates[0]
-            try:
-                seuil_abattement = parameters_crds.abattement.thresholds[1]
-            except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
-                seuil_abattement = None
-            crds = MarginalRateTaxScale(name = 'crds')
-            crds.add_bracket(0, taux_csg * (1 - taux_abattement))
-            if seuil_abattement is not None:
-                crds.add_bracket(seuil_abattement, taux_csg)
+    # Check baremes
+    target = dict()
+    target['prive_non_cadre'] = set(['maladie', 'arrco', 'vieillesse_deplafonnee', 'vieillesse', 'agff', 'assedic'])
+    target['prive_cadre'] = set(
+        ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
+        )
+    target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
 
-        # Check baremes
-        target = dict()
-        target['prive_non_cadre'] = set(['maladie', 'arrco', 'vieillesse_deplafonnee', 'vieillesse', 'agff', 'assedic'])
-        target['prive_cadre'] = set(
-            ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
+    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+        baremes_collection = salarie[categorie]
+        baremes_to_remove = list()
+        for name, bareme in baremes_collection._children.iteritems():
+            if name.endswith('alsace_moselle'):
+                baremes_to_remove.append(name)
+        for name in baremes_to_remove:
+            del baremes_collection._children[name]
+
+    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+        test = set(
+            name for name, bareme in salarie[categorie]._children.iteritems()
+            if isinstance(bareme, MarginalRateTaxScale)
             )
-        target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
+        assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
+    del bareme
 
-        for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-            baremes_collection = salarie[categorie]
-            baremes_to_remove = list()
-            for name, bareme in baremes_collection._children.iteritems():
-                if name.endswith('alsace_moselle'):
-                    baremes_to_remove.append(name)
-            for name in baremes_to_remove:
-                del baremes_collection._children[name]
+    # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
+    # Pour éviter les divisions 0 /0 dans le switch qui sert à calculer le salaire_pour_inversion_proratise
 
-        for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-            test = set(
-                name for name, bareme in salarie[categorie]._children.iteritems()
-                if isinstance(bareme, MarginalRateTaxScale)
-                )
-            assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
-        del bareme
+    if period.unit == 'year':
+        plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
+        heures_temps_plein = 52 * 35
+    elif period.unit == 'month':
+        plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
+        heures_temps_plein = (52 * 35 / 12) * period.size
+    else:
+        raise
 
-        # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
-        # Pour éviter les divisions 0 /0 dans le switch qui sert à calculer le salaire_pour_inversion_proratise
+    heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
+    salaire_pour_inversion_proratise = switch(
+        contrat_de_travail,
+        {
+            # temps plein
+            0: salaire_pour_inversion / plafond_securite_sociale,
+            # temps partiel
+            1: salaire_pour_inversion / (
+                (heures_remunerees_volume_avoid_warning / heures_temps_plein) * plafond_securite_sociale
+                ),
+            }
+        )
+    salaire_de_base = 0.0
+    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+        bareme = combine_tax_scales(salarie[categorie])
+        bareme.add_tax_scale(csg_deductible)
+        if revenu_type == 'net':
+            bareme.add_tax_scale(csg_imposable)
+            bareme.add_tax_scale(crds)
 
-        if period.unit == 'year':
-            plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
-            heures_temps_plein = 52 * 35
-        elif period.unit == 'month':
-            plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
-            heures_temps_plein = (52 * 35 / 12) * period.size
-        else:
-            raise
-
-        heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
-        salaire_pour_inversion_proratise = switch(
+        brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
+        assert np.isfinite(brut_proratise).all()
+        brut = plafond_securite_sociale * switch(
             contrat_de_travail,
             {
                 # temps plein
-                0: salaire_pour_inversion / plafond_securite_sociale,
+                0: brut_proratise,
                 # temps partiel
-                1: salaire_pour_inversion / (
-                    (heures_remunerees_volume_avoid_warning / heures_temps_plein) * plafond_securite_sociale
-                    ),
+                1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
                 }
             )
-        salaire_de_base = 0.0
-        for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-            bareme = combine_tax_scales(salarie[categorie])
-            bareme.add_tax_scale(csg_deductible)
-            if revenu_type == 'net':
-                bareme.add_tax_scale(csg_imposable)
-                bareme.add_tax_scale(crds)
+        salaire_de_base += (
+            (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
+            )
+        if (categorie_salarie == TypesCategorieSalarie[categorie].index).any():
+            log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
+            log.debug('bareme direct: {}'.format(bareme))
 
-            brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
-            assert np.isfinite(brut_proratise).all()
-            brut = plafond_securite_sociale * switch(
-                contrat_de_travail,
-                {
-                    # temps plein
-                    0: brut_proratise,
-                    # temps partiel
-                    1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
-                    }
-                )
-            salaire_de_base += (
-                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
-                )
-            if (categorie_salarie == CATEGORIE_SALARIE[categorie]).any():
-                log.debug("Pour {} : brut = {}".format(CATEGORIE_SALARIE[categorie], brut))
-                log.debug('bareme direct: {}'.format(bareme))
-
-            assert (salaire_de_base >= 0).all()
-            assert (salaire_de_base < 1e9).all()
-
-        # agirc_gmp
-        # gmp = P.prelevements_sociaux.gmp
-        # salaire_charniere = gmp.salaire_charniere_annuel
-        # cotisation_forfaitaire = gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
-        # salaire_de_base += (
-        #     (categorie_salarie == CATEGORIE_SALARIE['prive_cadre']) *
-        #     (salaire_de_base <= salaire_charniere) *
-        #     cotisation_forfaitaire
-        #     )
-        individus['salaire_de_base'] = salaire_de_base
+    # agirc_gmp
+    # gmp = P.prelevements_sociaux.gmp
+    # salaire_charniere = gmp.salaire_charniere_annuel
+    # cotisation_forfaitaire = gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
+    # salaire_de_base += (
+    #     (categorie_salarie == CATEGORIE_SALARIE['prive_cadre']) *
+    #     (salaire_de_base <= salaire_charniere) *
+    #     cotisation_forfaitaire
+    #     )
+    individus['salaire_de_base'] = salaire_de_base
 
 
 def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable'):
