@@ -292,11 +292,9 @@ NaN are present : {}
     if verbose:
         print(set(series_to_rectify).difference(rectified_series))
 
-
-def normalizes_roles_in_entity(dataframe, entity_suffix):
-    entity_id_name = 'id' + entity_suffix
-    entity_role_name = 'qui' + entity_suffix
-    dataframe.set_index('noindiv', inplace = True, verify_integrity = True)
+def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name, person_id = None):
+    if person_id is not None:
+        dataframe.set_index(person_id, inplace = True, verify_integrity = True)
     test1 = dataframe.loc[dataframe[entity_role_name] >= 2, [entity_id_name, entity_role_name]].copy()
     test1.loc[:, entity_role_name] = 2
     j = 2
