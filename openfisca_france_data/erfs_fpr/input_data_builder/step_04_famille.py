@@ -155,8 +155,8 @@ def complete_indivi(indivi, year):
         indivi = indivi[~(selection_enfant_en_nourrice)].copy()
         log.info(u"{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
 
-    for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
-        assert_dtype(indivi[series_name], "object")
+    # for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
+    #     assert_dtype(indivi[series_name], "object")
 
 
 def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_enfants_a_naitre = True, year = None):
@@ -183,8 +183,8 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
     base['jeune_eligible_rsa'] = base.agepf >= AGE_RSA
 
     if kind == 'erfs_fpr':
-        base['salaire_imposable'].fillna(0, inplace = True)
-        base['smic55'] = base.salaire_imposable >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
+        base['salaire_de_base'].fillna(0, inplace = True)
+        base['smic55'] = base.salaire_de_base >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     else:
         base['ztsai'].fillna(0, inplace = True)
         base['smic55'] = base.ztsai >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
@@ -391,7 +391,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         assert_dtype(conjoint_mere[series_name], "int")
 
     famille = famille[~(famille.noindiv.isin(conjoint_mere.noindiv.values))].copy()  # Avoid duplication in famille
-    famille = pd.concat([famille, avec_mere, mere, conjoint_mere])
+    famille = pd.concat([famille, avec_mere, mere, conjoint_mere], sort = True)
     del avec_mere, mere, conjoint_mere, conjoint_mere_id
     control_04(famille, base)
 
@@ -441,7 +441,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         famille = pd.concat([famille, avec_pere, pere, conjoint_pere])
     else:
         conjoint_pere = None
-        famille = pd.concat([famille, avec_pere, pere])
+        famille = pd.concat([famille, avec_pere, pere], sort = True)
 
     control_04(famille, base)
 
@@ -619,7 +619,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         non_attribue1['kid'] = True
         assert_dtype(non_attribue1.kid, "bool")
         assert_dtype(non_attribue1.famille, "int")
-        famille = pd.concat([famille, non_attribue1])
+        famille = pd.concat([famille, non_attribue1], sort = True)
         control_04(famille, base)
         del personne_de_reference, non_attribue1
 

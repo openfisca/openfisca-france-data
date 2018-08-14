@@ -50,7 +50,7 @@ def merge_imputation_loyer(stata_file = None, temporary_store = None, year = Non
     assert year is not None
     assert stata_file is not None
     menages = temporary_store['menages_{}'.format(year)]
-    logement = pd.read_stata(stata_file, preserve_dtypes = False)
+    logement = pd.read_stata(stata_file, preserve_dtypes = False, encoding = 'latin1')
     logement['ident12'] = logement.ident12.astype('int')
     logement.rename(columns = dict(zone_apl_EL = 'zone_apl', loyer_EL = 'loyer', ident12 = 'ident'), inplace = True)
     logement = logement[['zone_apl', 'loyer', 'ident']]

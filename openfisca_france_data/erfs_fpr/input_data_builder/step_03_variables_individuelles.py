@@ -10,6 +10,7 @@ import pandas as pd
 from openfisca_core import periods
 from openfisca_core.formula_helpers import switch
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
+from openfisca_france import FranceTaxBenefitSystem
 from openfisca_france.model.base import TypesCategorieSalarie
 from openfisca_france_data.utils import (
     assert_dtype,
@@ -84,6 +85,24 @@ def build_variables_individuelles(temporary_store = None, year = None):
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
     individus = temporary_store['individus_{}_post_01'.format(year)]
+
+    old_by_new_variables = {
+        'chomage_i': 'chomage_net',
+        'pens_alim_recue_i': 'pensions_alimentaires_percues',
+        'rag_i': 'rag_net',
+        'retraites_i': 'retraite_nette',
+        'ric_i': 'ric_net',
+        'rnc_i': 'rnc_net',
+        'salaires_i': 'salaire_net',
+        }
+
+    for variable in old_by_new_variables.keys():
+        assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
+
+    individus.rename(
+        columns = old_by_new_variables,
+        inplace = True,
+        )
     create_variables_individuelles(individus, year)
     temporary_store['individus_{}'.format(year)] = individus
     log.debug(u"step_03_variables_individuelles terminée")
@@ -97,10 +116,13 @@ def create_variables_individuelles(individus, year):
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
     create_activite(individus)
-    create_revenus(individus)
-    create_contrat_de_travail(individus, period = periods.period(year))
-    create_categorie_salarie(individus)
-    create_salaire_de_base(individus, period = periods.period(year))
+    revenu_type = 'net'
+    period = periods.period(year)
+    create_revenus(individus, revenu_type = revenu_type)
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
+    create_categorie_salarie(individus, period = period)
+    tax_benefit_system = FranceTaxBenefitSystem()
+    create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
     create_effectif_entreprise(individus)
     create_statut_matrimonial(individus)
 
@@ -180,7 +202,7 @@ def create_ages(individus, year = None):
             individus[variable].notnull().sum(), variable)
 
 
-def create_categorie_salarie(individus):
+def create_categorie_salarie(individus, period):
     """
     Création de la variable categorie_salarie:
       - "prive_non_cadre
@@ -217,7 +239,7 @@ def create_categorie_salarie(individus):
           1 - Oui
           2 - Non
 
-      - prosa (<= 2013, voir qprcent)
+      - prosa (< 2013, voir qprcent)
           1 Manoeuvre ou ouvrier spécialisé
           2 Ouvrier qualifié ou hautement qualifié
           3 Technicien
@@ -264,7 +286,9 @@ def create_categorie_salarie(individus):
 
     # TODO: Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
     # FIXME Hack pour basculer sur la définition pré-2013 (voir doc string)
+    year = period.start.year
     if year >= 2013:
+        log.debug('Using qprcent to infer prosa for year {}'.format(year))
         chpub_replacement = {
             0: 0,
             3: 1,
@@ -384,7 +408,7 @@ def create_categorie_salarie(individus):
             .sort_index()
         ))
 
-def create_contrat_de_travail(individus, period):
+def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     """
     Création de la variable contrat_de_travail et heure_remunerees_volume
         0 - temps_plein
@@ -420,15 +444,15 @@ def create_contrat_de_travail(individus, period):
         period = periods.period(period)
 
     assert salaire_type in ['net', 'imposable']
-        # TODO smic_imposable
-        individus.loc[individus.hhc == 0, 'hhc'] = np.nan
-        assert (
-                (individus.hhc > 0) | individus.hhc.isnull()
-            ).all()
+
+    individus.loc[individus.hhc == 0, 'hhc'] = np.nan
+    assert (
+            (individus.hhc > 0) | individus.hhc.isnull()
+        ).all()
     # assert individus.tppred.dtype is integer
 
     assert individus.tppred.isin(range(3)).all(), \
-        'tppred values {} should be in [0, 1, 2]'.format(individus.tppred.unique()))
+        'tppred values {} should be in [0, 1, 2]'.format(individus.tppred.unique())
     assert (
         individus.duhab.isin(range(10)) & (individus.duhab != 8)
         ).all(), 'duhab values {} should be in [0, 1, 2, 3, 4, 5, 6, 7, 9]'.format(individus.duhab.unique())
@@ -534,7 +558,7 @@ def create_contrat_de_travail(individus, period):
     axes.set_title("Heures (heures_remunerees_volume)")
     # 2.2.2 Il reste à ajuster le nombre d'heures pour les salariés à temps partiel qui n'ont pas de hhc
     # et qui disposent de moins que le smic_horaire ou de les basculer en temps plein sinon
-    moins_que_smic_horaire_sans_hhc = (individus.salaire_net < smic_net) & individus.hhc.isnull()
+    moins_que_smic_horaire_sans_hhc = (individus.salaire < smic) & individus.hhc.isnull()
     individus.loc[
         temps_partiel & moins_que_smic_horaire_sans_hhc,
         'heures_remunerees_volume'
@@ -632,7 +656,6 @@ def create_contrat_de_travail(individus, period):
     assert (individus.query('salaire_net == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail in [0, 6]').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
-    assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all(), \
     assert (individus.heures_remunerees_volume >= 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all(), \
         u"Des heures des temps partiels ne sont pas strictement positives: {}".format(
@@ -776,7 +799,7 @@ def create_effectif_entreprise(individus):
                 individus.effectif_entreprise.value_counts(dropna = False))
 
 
-def create_revenus(individus, revenus_type = 'imposable'):
+def create_revenus(individus, revenu_type = 'imposable'):
     """
     Création des variables:
         chomage_net,
@@ -793,7 +816,8 @@ def create_revenus(individus, revenus_type = 'imposable'):
         rnc,
         salaire_imposable,
     """
-    if revenus_type == 'imposable':
+
+    if revenu_type == 'imposable':
         variables = [
             # 'pension_alimentaires_percues',
             'chomage_imposable',
@@ -802,16 +826,16 @@ def create_revenus(individus, revenus_type = 'imposable'):
         for variable in variables:
             assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
 
-    for variable in variables:
-        if (individus[variable] < 0).any():
+        for variable in variables:
+            if (individus[variable] < 0).any():
 
-            negatives_values = individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
-            log.debug("La variable {} contient {} valeurs négatives\n {}".format(
-                variable,
-                negatives_values.sum(),
-                negatives_values,
+                negatives_values = individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
+                log.debug("La variable {} contient {} valeurs négatives\n {}".format(
+                    variable,
+                    negatives_values.sum(),
+                    negatives_values,
+                    )
                 )
-            )
         #
         # csg des revenus de replacement
         # 0 - Non renseigné/non pertinent

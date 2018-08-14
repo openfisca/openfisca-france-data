@@ -24,13 +24,12 @@ def build(year = None):
     assert year is not None
     #
     preprocessing.build_merged_dataframes(year = year)
-    #
-    # imputation_loyer.imputation_loyer(year = year)
-    #
-    openfisca_survey_collection = SurveyCollection(name = 'openfisca')
-    stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
-    stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
-    imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
+
+    # openfisca_survey_collection = SurveyCollection(name = 'openfisca')
+    # stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
+    # stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
+    # imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
+
     #
     variables_individuelles.build_variables_individuelles(year = year)
     famille.build_famille(year = year)
@@ -56,4 +55,3 @@ if __name__ == '__main__':
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
-

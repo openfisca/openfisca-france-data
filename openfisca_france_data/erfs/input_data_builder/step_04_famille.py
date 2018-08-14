@@ -77,6 +77,8 @@ def famille(temporary_store = None, year = None):
         )].copy()
 
     assert_dtype(indivi.year, "int64")
+    assert_dtype(indivi.agepf, "int64")
+
     for series_name in ['agepf', 'noidec']:  # integer with NaN
         assert_dtype(indivi[series_name], "object")
 
