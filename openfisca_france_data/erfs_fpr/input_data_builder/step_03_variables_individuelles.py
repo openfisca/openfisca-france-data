@@ -866,7 +866,7 @@ def create_revenus(individus, revenu_type = 'imposable'):
 
 
 def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
-    """Calcule le salaire brut à partir du salaire imposable par inversion du barème
+    """Calcule la variable salaire_de_base à partir du salaire imposable par inversion du barème
     de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
     """
     assert period is not None
@@ -1014,13 +1014,16 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     individus['salaire_de_base'] = salaire_de_base
 
 
-def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable'):
+def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable',
+            tax_benefit_system = None):
     """
     Calcule le tratement indiciaire brut à partir du salaire imposable.
     Note : le supplément familial de traitement est imposable. Pas géré
     """
     assert period is not None
     assert revenu_type in ['net', 'imposable']
+    assert tax_benefit_system is not None
+
     for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
         assert variable in individus.columns
 
@@ -1031,16 +1034,14 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         assert 'salaire_net' in individus.columns
         salaire_pour_inversion = individus.salaire_net
 
-
     categorie_salarie = individus.categorie_salarie
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
     TAUX_DE_PRIME = 0.195 # 0.25
 
-    simulation = base.france_data_tax_benefit_system.new_scenario().init_single_entity(
-        period = period, parent1 = dict()).new_simulation()
-    legislation = simulation.legislation_at(period.start)
+
+    legislation = parameters = tax_benefit_system.get_parameters_at_instant(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
@@ -1098,7 +1099,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     for categorie in categories_salarie_du_public:
         baremes_collection = salarie[categorie]
         test = set(
-            name for name, bareme in salarie[categorie].iteritems()
+            name for name, bareme in salarie[categorie]._children.iteritems()
             if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl2'
             )
         assert target[categorie] == test, 'target for {}: \n  target = {} \n  test = {}'.format(categorie, target[categorie], test)
@@ -1115,9 +1116,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_to_remove.append('cnracl2')
         for name in baremes_to_remove:
             if 'cnracl2' in baremes_collection:
-                del baremes_collection[name]
+                del baremes_collection._children[name]
 
-    salarie = salarie.copy(deep = True)
+    salarie = salarie._children.copy()
     # RAFP des agents titulaires
     for categorie in categories_salarie_du_public:
         baremes_collection = salarie[categorie]
@@ -1165,9 +1166,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     traitement_indiciaire_brut = 0.0
 
     for categorie in categories_salarie_du_public:
-        for key, value in salarie[categorie].iteritems():
+        for key, value in salarie[categorie]._children.iteritems():
             log.debug(key, value)
-        bareme = salarie[categorie].combine_tax_scales()
+        bareme = combine_tax_scales(salarie[categorie])
         log.debug('bareme cotsoc : {}'.format(bareme))
         bareme.add_tax_scale(bareme_csg_deduc_public)
         log.debug('bareme cotsoc + csg_deduc: {}'.format(bareme))
@@ -1193,10 +1194,10 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
                 }
             )
         traitement_indiciaire_brut += (
-            (categorie_salarie == CATEGORIE_SALARIE[categorie]) * brut
+            (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
             )
-        if (categorie_salarie == CATEGORIE_SALARIE[categorie]).any():
-            log.debug("Pour {} : brut = {}".format(CATEGORIE_SALARIE[categorie], brut))
+        if (categorie_salarie == TypesCategorieSalarie[categorie].index).any():
+            log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
             log.debug('bareme direct: {}'.format(bareme))
 
     # TODO: complete this to deal with the fonctionnaire
