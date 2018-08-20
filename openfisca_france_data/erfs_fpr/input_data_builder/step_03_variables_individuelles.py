@@ -344,7 +344,6 @@ def create_categorie_salarie(individus, period):
                 individus.titc.value_counts(dropna = False)
                 )
 
-
     chpub = individus.chpub
     titc = individus.titc
 
@@ -630,15 +629,15 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
             ] / smic * 35
     # 2.3.3 On attribue des heures rémunérées aux individus à temps partiel qui ont un
     # salaire strictement positif mais un nombre d'heures travaillées nul
-    salaire_sans_heures = (individus.contrat_de_travail == 1 ) & ~(individus.heures_remunerees_volume > 0)
-    assert (individus.loc[salaire_sans_heures, 'salaire'] > 0 ).all()
-    assert (individus.loc[salaire_sans_heures, 'duhab'] == 1 ).all()
+    salaire_sans_heures = (individus.contrat_de_travail == 1) & ~(individus.heures_remunerees_volume > 0)
+    assert (individus.loc[salaire_sans_heures, 'salaire'] > 0).all()
+    assert (individus.loc[salaire_sans_heures, 'duhab'] == 1).all()
     # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic net.
     # On leur attribue donc un nombre d'heures travaillées égal à 15.
     individus.loc[
-            salaire_sans_heures &
-            (individus.salaire > smic),
-            'heures_remunerees_volume'] = 15
+        salaire_sans_heures &
+        (individus.salaire > smic),
+        'heures_remunerees_volume'] = 15
     #
     individus.query('salaire > 0').contrat_de_travail.value_counts(dropna = False)
     individus.query('salaire == 0').contrat_de_travail.value_counts(dropna = False)
@@ -1106,9 +1105,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # cnracl1 = taux hors NBI -> OK
         # cnracl2 = taux NBI -> On ne le prend pas en compte pour l'instant
     for categorie in [
-            'public_titulaire_hospitaliere',
-            'public_titulaire_territoriale',
-            ]:
+        'public_titulaire_hospitaliere',
+        'public_titulaire_territoriale',
+        ]:
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
         baremes_to_remove.append('cnracl2')
@@ -1133,7 +1132,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         raise
 
     # Pour a fonction publique la csg est calculée sur l'ensemble salbrut(=TIB) + primes
-    # Imposable = TIB - csg( (1+taux_prime)*TIB ) - pension(TIB) + taux_prime*TIB
+    # Imposable = (1 + taux_prime) * TIB - csg[(1 + taux_prime) * TIB] - pension[TIB]
     for categorie in categories_salarie_du_public:
         bareme_csg_deduc_public = csg_deductible.multiply_rates(
             1 + TAUX_DE_PRIME, inplace = False, new_name = "csg deduc public")
@@ -1202,6 +1201,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     # indemnite_residence = 0  # TODO: fix bug
     individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
+
 
 def create_statut_matrimonial(individus):
     u"""

@@ -31,6 +31,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'statut_occupation_logement',
         'traitement_indiciaire_brut',
         'taxe_habitation',
+        'traitement_indiciaire_brut',
         'zone_apl',
         ]
     # Might be used: hsup
