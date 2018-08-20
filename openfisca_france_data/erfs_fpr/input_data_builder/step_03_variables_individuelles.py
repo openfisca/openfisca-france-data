@@ -11,7 +11,7 @@ from openfisca_core import periods
 from openfisca_core.formula_helpers import switch
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.model.base import TypesCategorieSalarie
+from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
 from openfisca_france_data.utils import (
     assert_dtype,
     )
@@ -1017,7 +1017,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable',
             tax_benefit_system = None):
     """
-    Calcule le tratement indiciaire brut à partir du salaire imposable.
+    Calcule le tratement indiciaire brut à partir du salaire imposable ou du salaire net.
     Note : le supplément familial de traitement est imposable. Pas géré
     """
     assert period is not None
@@ -1038,9 +1038,6 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    TAUX_DE_PRIME = 0.195 # 0.25
-
-
     legislation = parameters = tax_benefit_system.get_parameters_at_instant(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
@@ -1058,8 +1055,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         csg_deductible.add_bracket(seuil_abattement, taux_csg)
 
     if revenu_type == 'net':
-    # Cas des revenus nets: On ajoute CSG imposable et crds qui s'appliquent à tous les revenus (pareil que pour les salariés du privé)
-        # csg imposable
+        # Cas des revenus nets:
+        # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
+        # 1. csg imposable
         legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
         taux_csg = legislation_csg_imposable.taux
         taux_abattement = legislation_csg_imposable.abattement.rates[0]
@@ -1071,7 +1069,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
-        # crds
+        # 2. crds
         legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
         taux_csg = legislation_crds.taux
         taux_abattement = legislation_crds.abattement.rates[0]
@@ -1123,7 +1121,6 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     for categorie in categories_salarie_du_public:
         baremes_collection = salarie[categorie]
         baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
-
 
     # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
     if period.unit == 'year':
@@ -1204,7 +1201,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     # supp_familial_traitement = 0  # TODO: dépend de salbrut
     # indemnite_residence = 0  # TODO: fix bug
     individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
-
+    individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 def create_statut_matrimonial(individus):
     u"""

@@ -27,6 +27,7 @@ def test_create_salaire_de_base(year):
     temporary_store = get_store(file_name = 'erfs_fpr')
     individu = temporary_store['individu_for_inversion_{}'.format(year)]
 
+    salaire_net_pour_inversion = individu.salaire_net.copy()
     id_variables = ['idfoy', 'idmen', 'idfam']
     for id_variable in id_variables:
         individu[id_variable] = range(0, len(individu))
@@ -35,7 +36,6 @@ def test_create_salaire_de_base(year):
     for position_variable in position_variables:
         individu[position_variable] = 0
 
-    individu['zone_apl'] = 2
     data = dict(
         input_data_frame_by_entity = dict(
             individu = individu,
@@ -46,10 +46,18 @@ def test_create_salaire_de_base(year):
         data = data,
         )
 
-    variables = ['salaire_de_base', 'salaire_imposable']
-    survey_scenario.create_data_frame_by_entity(variables = variables, period = periods.period(year))
-
-    return survey_scenario
+    variables = [
+        'salaire_de_base',
+        'salaire_imposable',
+        'salaire_net',
+        'categorie_salarie',
+        'traitement_indiciaire_brut',
+        ]
+    data_frame = survey_scenario.create_data_frame_by_entity(
+        variables = variables, period = periods.period(year)
+        )['individu']
+    data_frame['salaire_net_pour_inversion'] = salaire_net_pour_inversion
+    return survey_scenario, data_frame
 
 
 def create_individu_for_inversion(year):
@@ -108,12 +116,14 @@ def create_individu_for_inversion(year):
     create_traitement_indiciaire_brut(individus, period = period, revenu_type = revenu_type,
         tax_benefit_system = tax_benefit_system)
     created_variables.append('traitement_indiciaire_brut')
+    created_variables.append('primes_fonction_publique')
 
-    temporary_store['individu_for_inversion_{}'.format(year)] = individus[created_variables]
-
+    other_variables = ['salaire_net']
+    temporary_store['individu_for_inversion_{}'.format(year)] = individus[
+        created_variables + other_variables]
 
 
 if __name__ == '__main__':
     year = 2012
     create_individu_for_inversion(year)
-    survey_scenario = test_create_salaire_de_base(year)
+    survey_scenario, data_frame = test_create_salaire_de_base(year)

@@ -20,6 +20,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'heures_remunerees_volume',
         'loyer',
         'pensions_alimentaires_percues',
+        'primes_fonction_publique',
         'rag',
         'retraite_brute',
         'retraite_imposable',
@@ -28,6 +29,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'statut_marital',
         'salaire_de_base',
         'statut_occupation_logement',
+        'traitement_indiciaire_brut',
         'taxe_habitation',
         'zone_apl',
         ]

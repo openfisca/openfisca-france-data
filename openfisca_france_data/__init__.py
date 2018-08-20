@@ -30,7 +30,7 @@ def get_variables_from_module(module):
         if inspect.isclass(getattr(module, item))
         ]
     return [
-        variable for variable in variables if issubclass(variable, Variable)
+        variable for variable in variables if issubclass(variable, Variable)  # noqa  analysis:ignore
         ]
 
 
