@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 
 
+import logging
+
+
 from openfisca_core import periods
 from openfisca_france import FranceTaxBenefitSystem
+from openfisca_france.model.base import TypesCategorieSalarie
 from openfisca_france_data.erfs_fpr.input_data_builder.step_03_variables_individuelles import (
     create_ages,
     create_date_naissance,
@@ -20,13 +24,95 @@ from openfisca_survey_manager.temporary import get_store
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 
 
+log = logging.getLogger(__name__)
+
+
+variables_de_base = [
+    'salaire_imposable',
+    'salaire_net',
+    'categorie_salarie',
+    'heures_remunerees_volume',
+    'contrat_de_travail',
+    'nombre_jours_calendaires',
+    ]
+
+variables_nulles_hors_prive = [
+    'salaire_de_base',
+    ]
+
+variables_nulles_hors_fonction_publique = [
+    'traitement_indiciaire_brut',
+    'remuneration_principale',
+    'primes_fonction_publique',
+    'indemnite_residence',
+    'supplement_familial_traitement',
+    ]
+
+categories_salarie_du_public = [
+    'public_titulaire_etat',
+    'public_titulaire_hospitaliere',
+    'public_titulaire_territoriale',
+    'public_titulaire_militaire'
+    ]
+index_by_categorie_salarie_du_public = dict(
+    (categorie, TypesCategorieSalarie[categorie].index)
+    for categorie in categories_salarie_du_public
+    )
+
+index_by_categorie_salarie_hors_public = dict(
+    (categorie, TypesCategorieSalarie[categorie].index)
+    for categorie in TypesCategorieSalarie.__members__.keys()
+    if categorie not in categories_salarie_du_public
+    )
+
+def check_variable_nullity(data_frame, variable, categorie_salarie, categorie_salarie_index):
+    extraction = data_frame.query(
+        'categorie_salarie == @categorie_salarie_index'
+        )
+    if not (extraction[variable] < 1).all():
+        print(
+            "{} non nul categorie_salarie={} ({})".format(
+            variable, categorie_salarie_index, categorie_salarie)
+            )
+        print(
+            extraction.loc[~(extraction[variable] < 1), variable].head()
+            )
+
+
+def check_nullity_public_variables(data_frame):
+    for variable in variables_nulles_hors_fonction_publique:
+        for categorie_salarie, categorie_salarie_index in index_by_categorie_salarie_hors_public.items():
+            print("{}, {}".format(variable, categorie_salarie))
+            if variable == 'indemnite_residence' and categorie_salarie == 'public_non_titulaire':
+                continue
+
+            check_variable_nullity(data_frame, variable, categorie_salarie, categorie_salarie_index)
+
+
+def check_nullity_private_variables(data_frame):
+    for variable in variables_nulles_hors_prive:
+        for categorie_salarie, categorie_salarie_index in index_by_categorie_salarie_du_public.items():
+            print("{}, {}".format(variable, categorie_salarie))
+            check_variable_nullity(data_frame, variable, categorie_salarie, categorie_salarie_index)
+
+
+def remove_some_variables_after_check(data_frame):
+    zero_variables = ['indemnite_residence', 'supplement_familial_traitement']
+    for variable in zero_variables:
+        assert (data_frame[variable] == 0).all(), "{} is not always = 0".format(variable)
+        del data_frame[variable]
+
+    assert (data_frame['nombre_jours_calendaires'] == 366).all()
+    del data_frame['nombre_jours_calendaires']
+
+
 def test_create_salaire_de_base(year):
     """
     Test create_salaire_de_base avec données de l'enquête erfs_fpr
     """
     temporary_store = get_store(file_name = 'erfs_fpr')
     individu = temporary_store['individu_for_inversion_{}'.format(year)]
-
+    salaire_net_pour_inversion = individu['salaire_net']
     id_variables = ['idfoy', 'idmen', 'idfam']
     for id_variable in id_variables:
         individu[id_variable] = range(0, len(individu))
@@ -35,7 +121,6 @@ def test_create_salaire_de_base(year):
     for position_variable in position_variables:
         individu[position_variable] = 0
 
-    individu['zone_apl'] = 2
     data = dict(
         input_data_frame_by_entity = dict(
             individu = individu,
@@ -46,10 +131,20 @@ def test_create_salaire_de_base(year):
         data = data,
         )
 
-    variables = ['salaire_de_base', 'salaire_imposable']
-    survey_scenario.create_data_frame_by_entity(variables = variables, period = periods.period(year))
+    survey_scenario.tax_benefit_system.neutralize_variable('indemnite_residence')
 
-    return survey_scenario
+    variables = set(
+        variables_de_base
+        + variables_nulles_hors_prive
+        + variables_nulles_hors_fonction_publique
+        )
+    data_frame = survey_scenario.create_data_frame_by_entity(
+        variables = variables, period = periods.period(year)
+        )['individu']
+    data_frame['salaire_net_pour_inversion'] = salaire_net_pour_inversion
+
+
+    return survey_scenario, data_frame
 
 
 def create_individu_for_inversion(year):
@@ -109,11 +204,42 @@ def create_individu_for_inversion(year):
         tax_benefit_system = tax_benefit_system)
     created_variables.append('traitement_indiciaire_brut')
 
-    temporary_store['individu_for_inversion_{}'.format(year)] = individus[created_variables]
+    other_variables = ['salaire_net']
+    temporary_store['individu_for_inversion_{}'.format(year)] = individus[
+        created_variables + other_variables]
 
 
 
 if __name__ == '__main__':
     year = 2012
-    create_individu_for_inversion(year)
-    survey_scenario = test_create_salaire_de_base(year)
+    # create_individu_for_inversion(year)
+    survey_scenario, data_frame = test_create_salaire_de_base(year)
+    check_nullity_public_variables(data_frame)
+    check_nullity_private_variables(data_frame)
+    remove_some_variables_after_check(data_frame)
+
+    data_frame['absolute_error'] =  (data_frame.salaire_net - data_frame.salaire_net_pour_inversion).abs()
+    data_frame['relative_error'] = (
+        (data_frame.salaire_net - data_frame.salaire_net_pour_inversion).abs()
+        / (data_frame.salaire_net_pour_inversion + 1 * (data_frame.salaire_net_pour_inversion == 0))
+        )
+
+    absolute_error_threshold = 5
+    relative_error_threshold = .01
+
+    dispatch = ['categorie_salarie', 'contrat_de_travail']
+    data_frame['absolute_errored'] = data_frame['absolute_error'] > absolute_error_threshold
+    data_frame['relative_errored'] = data_frame['relative_error'] > relative_error_threshold
+
+    data_frame.groupby(dispatch)['absolute_errored'].sum() /  data_frame.groupby(['categorie_salarie', 'contrat_de_travail'])['absolute_errored'].count()
+
+
+
+    data_frame.query('absolute_errored').groupby(dispatch)['absolute_error'].mean()
+    data_frame.groupby(dispatch)['absolute_error'].max()
+
+
+    data_frame.groupby(dispatch)['relative_errored'].sum() /  data_frame.groupby(dispatch)['relative_errored'].count()
+    data_frame.query('relative_errored').groupby(dispatch)['relative_error'].mean()
+    data_frame.groupby(dispatch)['relative_error'].max()
+

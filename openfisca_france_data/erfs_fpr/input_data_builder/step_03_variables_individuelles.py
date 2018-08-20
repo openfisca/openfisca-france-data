@@ -11,7 +11,7 @@ from openfisca_core import periods
 from openfisca_core.formula_helpers import switch
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.model.base import TypesCategorieSalarie
+from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
 from openfisca_france_data.utils import (
     assert_dtype,
     )
@@ -1038,9 +1038,6 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    TAUX_DE_PRIME = 0.195 # 0.25
-
-
     legislation = parameters = tax_benefit_system.get_parameters_at_instant(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
@@ -1108,9 +1105,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # cnracl1 = taux hors NBI -> OK
         # cnracl2 = taux NBI -> On ne le prend pas en compte pour l'instant
     for categorie in [
-            'public_titulaire_hospitaliere',
-            'public_titulaire_territoriale',
-            ]:
+        'public_titulaire_hospitaliere',
+        'public_titulaire_territoriale',
+        ]:
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
         baremes_to_remove.append('cnracl2')
@@ -1124,7 +1121,6 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_collection = salarie[categorie]
         baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
 
-
     # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
     if period.unit == 'year':
         plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
@@ -1136,7 +1132,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         raise
 
     # Pour a fonction publique la csg est calculée sur l'ensemble salbrut(=TIB) + primes
-    # Imposable = TIB - csg( (1+taux_prime)*TIB ) - pension(TIB) + taux_prime*TIB
+    # Imposable = (1 + taux_prime) * TIB - csg[(1 + taux_prime) * TIB] - pension[TIB]
     for categorie in categories_salarie_du_public:
         bareme_csg_deduc_public = csg_deductible.multiply_rates(
             1 + TAUX_DE_PRIME, inplace = False, new_name = "csg deduc public")
@@ -1204,6 +1200,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     # supp_familial_traitement = 0  # TODO: dépend de salbrut
     # indemnite_residence = 0  # TODO: fix bug
     individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
+    individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 
 def create_statut_matrimonial(individus):

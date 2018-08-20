@@ -20,6 +20,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'heures_remunerees_volume',
         'loyer',
         'pensions_alimentaires_percues',
+        'primes_fonction_publique',
         'rag',
         'retraite_brute',
         'retraite_imposable',
@@ -29,6 +30,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'salaire_de_base',
         'statut_occupation_logement',
         'taxe_habitation',
+        'traitement_indiciaire_brut',
         'zone_apl',
         ]
     # Might be used: hsup
