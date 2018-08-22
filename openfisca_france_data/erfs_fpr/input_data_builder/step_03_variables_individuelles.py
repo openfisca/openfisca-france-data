@@ -975,13 +975,31 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
                 ),
             }
         )
+
+    def add_agirc_gmp_to_agirc(agirc, parameters):
+        plafond_securite_sociale_annuel = parameters.cotsoc.gen.plafond_securite_sociale * 12
+        salaire_charniere = parameters.prelevements_sociaux.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
+        cotisation = parameters.prelevements_sociaux.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
+        n = (cotisation + 1) * 12
+        agirc.add_bracket(n / plafond_securite_sociale_annuel, 0)
+        agirc.rates[0] = cotisation / n
+        agirc.thresholds[2] = salaire_charniere
+
     salaire_de_base = 0.0
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+        if categorie == 'prive_cadre':
+            add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
+
         bareme = combine_tax_scales(salarie[categorie])
         bareme.add_tax_scale(csg_deductible)
         if revenu_type == 'net':
             bareme.add_tax_scale(csg_imposable)
             bareme.add_tax_scale(crds)
+
+        assert bareme.inverse().thresholds[0] == 0, "Invalid inverse bareme for {}:\n {}".format(
+            categorie, bareme.inverse())
+        for rate in bareme.inverse().rates:
+            assert rate > 0
 
         brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
         assert np.isfinite(brut_proratise).all()

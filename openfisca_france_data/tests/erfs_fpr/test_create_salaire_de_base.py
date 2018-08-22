@@ -28,16 +28,43 @@ log = logging.getLogger(__name__)
 
 
 variables_de_base = [
+    'categorie_salarie',
+    'contrat_de_travail',
+    'heures_remunerees_volume',
+    'hsup',
+    'nombre_jours_calendaires',
     'salaire_imposable',
     'salaire_net',
-    'categorie_salarie',
-    'heures_remunerees_volume',
-    'contrat_de_travail',
-    'nombre_jours_calendaires',
+    ]
+
+cotisations_nulles_hors_prive = [
+    # non contributives
+    'agff_salarie',
+    'agirc_salarie',
+    'agirc_gmp_salarie',
+    'apec_salarie',
+    'arrco_salarie',
+    'chomage_salarie',
+    'cotisation_exceptionnelle_temporaire_salarie',
+    'vieillesse_deplafonnee_salarie',
+    'vieillesse_plafonnee_salarie',
+    # contributives
+    'mmid_salarie',
     ]
 
 variables_nulles_hors_prive = [
+    'complementaire_sante_salarie',
+    'indemnite_fin_contrat',
     'salaire_de_base',
+    ] + cotisations_nulles_hors_prive
+
+cotisations_nulles_hors_fonction_publique = [
+    # non contributives
+    'ircantec_salarie',
+    'pension_civile_salarie',
+    'rafp_salarie',
+    # contributives
+    'contribution_exceptionnelle_solidarite',
     ]
 
 variables_nulles_hors_fonction_publique = [
@@ -46,7 +73,8 @@ variables_nulles_hors_fonction_publique = [
     'primes_fonction_publique',
     'indemnite_residence',
     'supplement_familial_traitement',
-    ]
+    ] + cotisations_nulles_hors_fonction_publique
+
 
 categories_salarie_du_public = [
     'public_titulaire_etat',
@@ -54,6 +82,7 @@ categories_salarie_du_public = [
     'public_titulaire_territoriale',
     'public_titulaire_militaire'
     ]
+
 index_by_categorie_salarie_du_public = dict(
     (categorie, TypesCategorieSalarie[categorie].index)
     for categorie in categories_salarie_du_public
@@ -98,7 +127,14 @@ def check_nullity_private_variables(data_frame):
 
 
 def remove_some_variables_after_check(data_frame):
-    zero_variables = ['indemnite_residence', 'supplement_familial_traitement']
+    zero_variables = [
+        'complementaire_sante_salarie',
+        'hsup',
+        'indemnite_fin_contrat',
+        'indemnite_residence',
+        'supplement_familial_traitement',
+        ]
+
     for variable in zero_variables:
         assert (data_frame[variable] == 0).all(), "{} is not always = 0".format(variable)
         del data_frame[variable]
@@ -213,7 +249,7 @@ def create_individu_for_inversion(year):
 
 if __name__ == '__main__':
     year = 2012
-    # create_individu_for_inversion(year)
+    create_individu_for_inversion(year)
     survey_scenario, data_frame = test_create_salaire_de_base(year)
     check_nullity_public_variables(data_frame)
     check_nullity_private_variables(data_frame)
@@ -231,16 +267,16 @@ if __name__ == '__main__':
     dispatch = ['categorie_salarie', 'contrat_de_travail']
     data_frame['absolute_errored'] = data_frame['absolute_error'] > absolute_error_threshold
     data_frame['relative_errored'] = data_frame['relative_error'] > relative_error_threshold
-
-    data_frame.groupby(dispatch)['absolute_errored'].sum() /  data_frame.groupby(['categorie_salarie', 'contrat_de_travail'])['absolute_errored'].count()
-
-
-
-    data_frame.query('absolute_errored').groupby(dispatch)['absolute_error'].mean()
-    data_frame.groupby(dispatch)['absolute_error'].max()
-
+    nb = data_frame.groupby(dispatch)['contrat_de_travail'].count()
+    nb_absolute = data_frame.groupby(dispatch)['absolute_errored'].sum().astype(int)
+    pct_absolute = data_frame.groupby(dispatch)['absolute_errored'].sum() /  data_frame.groupby(['categorie_salarie', 'contrat_de_travail'])['absolute_errored'].count()
+    mean_absolute = data_frame.query('absolute_errored').groupby(dispatch)['absolute_error'].mean()
+    max_aboslute = data_frame.groupby(dispatch)['absolute_error'].max()
 
     data_frame.groupby(dispatch)['relative_errored'].sum() /  data_frame.groupby(dispatch)['relative_errored'].count()
     data_frame.query('relative_errored').groupby(dispatch)['relative_error'].mean()
     data_frame.groupby(dispatch)['relative_error'].max()
 
+
+    max_aboslute
+    pct_absolute
