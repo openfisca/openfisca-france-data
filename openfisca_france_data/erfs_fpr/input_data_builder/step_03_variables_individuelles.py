@@ -111,19 +111,19 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
 # helpers
 
-def create_variables_individuelles(individus, year):
+def create_variables_individuelles(individus, year, survey_year = None):
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
     create_activite(individus)
     revenu_type = 'net'
     period = periods.period(year)
-    create_revenus(individus, revenu_type = revenu_type)
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
-    create_categorie_salarie(individus, period = period)
+    # create_revenus(individus, revenu_type = revenu_type)
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type, survey_year = survey_year)
+    create_categorie_salarie(individus, period = period, suvrey_year = survey_year)
     tax_benefit_system = FranceTaxBenefitSystem()
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
-    create_effectif_entreprise(individus)
+    create_effectif_entreprise(individus, period = period, survey_year = survey_year)
     create_statut_matrimonial(individus)
 
 
@@ -202,7 +202,7 @@ def create_ages(individus, year = None):
             individus[variable].notnull().sum(), variable)
 
 
-def create_categorie_salarie(individus, period):
+def create_categorie_salarie(individus, period, survey_year = None):
     """
     Création de la variable categorie_salarie:
       - "prive_non_cadre
@@ -239,7 +239,7 @@ def create_categorie_salarie(individus, period):
           1 - Oui
           2 - Non
 
-      - prosa (< 2013, voir qprcent)
+      - prosa (survey_year < 2013, voir qprcent)
           1 Manoeuvre ou ouvrier spécialisé
           2 Ouvrier qualifié ou hautement qualifié
           3 Technicien
@@ -249,7 +249,7 @@ def create_categorie_salarie(individus, period):
           8 Directeur général, adjoint direct
           9 Autre
 
-      - qprcent (>= 2013, voir prosa)
+      - qprcent (survey_year >= 2013, voir prosa)
           Vide Sans objet (personnes non actives occupées, travailleurs informels et travailleurs intérimaires,
                           en activité temporaire ou d'appoint)
           1 Manoeuvre ou ouvrier spécialisé
@@ -285,9 +285,12 @@ def create_categorie_salarie(individus, period):
     """
 
     # TODO: Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
-    # FIXME Hack pour basculer sur la définition pré-2013 (voir doc string)
-    year = period.start.year
-    if year >= 2013:
+
+    assert period is not None
+    if survey_year is None:
+        survey_year = period.start.year
+
+    if survey_year >= 2013:
         log.debug('Using qprcent to infer prosa for year {}'.format(year))
         chpub_replacement = {
             0: 0,
@@ -333,7 +336,7 @@ def create_categorie_salarie(individus, period):
             individus.statut.value_counts(dropna = False)
             )
 
-    if year >= 2013:
+    if survey_year >= 2013:
         assert individus.titc.isin(range(5)).all(), \
             "titc n'est pas toujours dans l'ensemble [0, 1, 2, 3, 4] des valeurs antendues.\n{}".format(
                 individus.titc.value_counts(dropna = False)
@@ -642,17 +645,17 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus.query('salaire > 0').contrat_de_travail.value_counts(dropna = False)
     individus.query('salaire == 0').contrat_de_travail.value_counts(dropna = False)
 
-    individus.loc[salarie_sans_contrat_de_travail, 'salaire_net'].min()
-    individus.loc[salarie_sans_contrat_de_travail, 'salaire_net'].hist(bins = 1000)
+    individus.loc[salarie_sans_contrat_de_travail, 'salaire'].min()
+    individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
     # On vérifie que l'on n'a pas fait d'erreurs
     assert (individus.salaire >= 0).all(), u"Des salaires sont negatifs: {}".format(
             individus.loc[~(individus.salaire >= 0), 'salaire']
             )
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
-    assert (individus.query('salaire_net > 0').contrat_de_travail.isin([0, 1])).all()
-    assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
-    assert (individus.query('salaire_net == 0').heures_remunerees_volume == 0).all()
+    assert (individus.query('salaire > 0').contrat_de_travail.isin([0, 1])).all()
+    assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
+    assert (individus.query('salaire == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail in [0, 6]').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
     assert (individus.heures_remunerees_volume >= 0).all()
@@ -715,7 +718,7 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
         )
 
 
-def create_effectif_entreprise(individus):
+def create_effectif_entreprise(individus, period = None, survey_year = None):
     """
     Création de la variable effectif_entreprise
     à partir de la variable nbsala qui prend les valeurs suivantes:
@@ -748,7 +751,11 @@ def create_effectif_entreprise(individus):
         9 - 1000 salariés ou plus
         99 - Ne sait pas
     """
-    if year >= 2013:
+    assert period is not None
+    if survey_year is None:
+        survey_year = period.start.year
+
+    if survey_year >= 2013:
         assert individus.nbsala.isin(range(0, 13) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
@@ -953,7 +960,6 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
     # Pour éviter les divisions 0 /0 dans le switch qui sert à calculer le salaire_pour_inversion_proratise
-
     if period.unit == 'year':
         plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
         heures_temps_plein = 52 * 35
