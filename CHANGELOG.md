@@ -2,6 +2,10 @@
 
 ## 0.6
 
+* Amélioration de script d'inversion (WIP)
+
+## 0.6
+
 * Migration vers la version 23 d'openfisca-core
 
 ## 0.5.10
