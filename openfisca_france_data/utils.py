@@ -247,6 +247,24 @@ def build_cerfa_fields_by_column_name(year, sections_cerfa):
     return cerfa_fields_by_column_name
 
 
+def build_cerfa_fields_by_variable(year):
+    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    cerfa_fields_by_variable = dict()
+    for name, variable in sorted(tax_benefit_system.variables.items()):
+        if variable.cerfa_field is None:
+            continue
+        if name.startswith('case') or name.startswith('nb'):
+            continue
+        end = variable.end or None
+        if end is None or end.year >= year:
+            if variable.entity.key == 'individu':
+                cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in variable.cerfa_field.values()]
+            elif variable.entity.key == 'foyer_fiscal':
+                cerfa_field = ['f' + variable.cerfa_field.lower().encode('ascii', 'ignore')]
+            cerfa_fields_by_variable[name.encode('ascii', 'ignore')] = cerfa_field
+    return cerfa_fields_by_variable
+
+
 def rectify_dtype(dataframe, verbose = True):
     series_to_rectify = []
     rectified_series = []

@@ -143,14 +143,18 @@ def remove_some_variables_after_check(data_frame):
     del data_frame['nombre_jours_calendaires']
 
 
-def test_create_salaire_de_base(year):
+def test_create_salaire_de_base(year, revenu_type = 'net'):
     """
     Test create_salaire_de_base avec données de l'enquête erfs_fpr
     """
     temporary_store = get_store(file_name = 'erfs_fpr')
     individu = temporary_store['individu_for_inversion_{}'.format(year)]
 
-    salaire_net_pour_inversion = individu.salaire_net.copy()
+    if revenu_type == 'net':
+        salaire_pour_inversion = individu.salaire_net.copy()
+    elif revenu_type == 'imposable':
+        salaire_pour_inversion = individu.salaire_imposable.copy()
+
     id_variables = ['idfoy', 'idmen', 'idfam']
     for id_variable in id_variables:
         individu[id_variable] = range(0, len(individu))
@@ -179,27 +183,40 @@ def test_create_salaire_de_base(year):
     data_frame = survey_scenario.create_data_frame_by_entity(
         variables = variables, period = periods.period(year)
         )['individu']
-    data_frame['salaire_net_pour_inversion'] = salaire_net_pour_inversion
+    data_frame['salaire_pour_inversion'] = salaire_pour_inversion
+    data_frame.rename(columns = {'salaire_{}'.format(revenu_type): 'salaire'}, inplace = True)
 
     return survey_scenario, data_frame
 
 
-def create_individu_for_inversion(year):
+def create_individu_for_inversion(year, revenu_type = 'net'):
+    assert revenu_type in ['net', 'imposable']
     assert year is not None
 
     # Using data produced by preprocessing.build_merged_dataframes
     temporary_store = get_store(file_name = 'erfs_fpr')
     individus = temporary_store['individus_{}_post_01'.format(year)]
 
-    old_by_new_variables = {
-        'chomage_i': 'chomage_net',
-        'pens_alim_recue_i': 'pensions_alimentaires_percues',
-        'rag_i': 'rag_net',
-        'retraites_i': 'retraite_nette',
-        'ric_i': 'ric_net',
-        'rnc_i': 'rnc_net',
-        'salaires_i': 'salaire_net',
-        }
+    if revenu_type == 'net':
+        old_by_new_variables = {
+            'chomage_i': 'chomage_net',
+            'pens_alim_recue_i': 'pensions_alimentaires_percues',
+            'rag_i': 'rag_net',
+            'retraites_i': 'retraite_nette',
+            'ric_i': 'ric_net',
+            'rnc_i': 'rnc_net',
+            'salaires_i': 'salaire_net',
+            }
+    elif revenu_type == 'imposable':
+        old_by_new_variables = {
+            'chomage_i': 'chomage_imposable',
+            'pens_alim_recue_i': 'pensions_alimentaires_percues',
+            'rag_i': 'rag_net',
+            'retraites_i': 'retraite_imposable',
+            'ric_i': 'ric_net',
+            'rnc_i': 'rnc_net',
+            'salaires_i': 'salaire_imposable',
+            }
 
     for variable in old_by_new_variables:
         assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
@@ -218,9 +235,8 @@ def create_individu_for_inversion(year):
         year = year)
     created_variables.append('date_naissance')
 
-    revenu_type = 'net'
     period = periods.period(year)
-    create_revenus(individus, revenu_type = revenu_type)
+    # create_revenus(individus, revenu_type = revenu_type)
     # created_variables.append('taux_csg_remplacement')
 
     create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
@@ -234,7 +250,7 @@ def create_individu_for_inversion(year):
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
     created_variables.append('salaire_de_base')
 
-    create_effectif_entreprise(individus)
+    create_effectif_entreprise(individus, period = period)
     created_variables.append('effectif_entreprise')
 
     create_traitement_indiciaire_brut(individus, period = period, revenu_type = revenu_type,
@@ -242,27 +258,30 @@ def create_individu_for_inversion(year):
     created_variables.append('traitement_indiciaire_brut')
     created_variables.append('primes_fonction_publique')
 
-    other_variables = ['salaire_net']
+    other_variables = ['salaire_{}'.format(revenu_type)]
     temporary_store['individu_for_inversion_{}'.format(year)] = individus[
         created_variables + other_variables]
 
 
 if __name__ == '__main__':
     year = 2012
-    create_individu_for_inversion(year)
-    survey_scenario, data_frame = test_create_salaire_de_base(year)
+    revenu_type = 'imposable'
+
+    create_individu_for_inversion(year, revenu_type = revenu_type)
+    survey_scenario, data_frame = test_create_salaire_de_base(year, revenu_type = revenu_type)
+
     check_nullity_public_variables(data_frame)
     check_nullity_private_variables(data_frame)
     remove_some_variables_after_check(data_frame)
 
-    data_frame['absolute_error'] =  (data_frame.salaire_net - data_frame.salaire_net_pour_inversion).abs()
+    data_frame['absolute_error'] =  (data_frame.salaire - data_frame.salaire_pour_inversion).abs()
     data_frame['relative_error'] = (
-        (data_frame.salaire_net - data_frame.salaire_net_pour_inversion).abs()
-        / (data_frame.salaire_net_pour_inversion + 1 * (data_frame.salaire_net_pour_inversion == 0))
+        (data_frame.salaire - data_frame.salaire_pour_inversion).abs()
+        / (data_frame.salaire_pour_inversion + 1 * (data_frame.salaire_pour_inversion == 0))
         )
 
     absolute_error_threshold = 5
-    relative_error_threshold = .01
+    relative_error_threshold = .001
 
     dispatch = ['categorie_salarie', 'contrat_de_travail']
     data_frame['absolute_errored'] = data_frame['absolute_error'] > absolute_error_threshold
@@ -273,10 +292,14 @@ if __name__ == '__main__':
     mean_absolute = data_frame.query('absolute_errored').groupby(dispatch)['absolute_error'].mean()
     max_aboslute = data_frame.groupby(dispatch)['absolute_error'].max()
 
-    data_frame.groupby(dispatch)['relative_errored'].sum() /  data_frame.groupby(dispatch)['relative_errored'].count()
-    data_frame.query('relative_errored').groupby(dispatch)['relative_error'].mean()
-    data_frame.groupby(dispatch)['relative_error'].max()
+    pct_relative = data_frame.groupby(dispatch)['relative_errored'].sum() /  data_frame.groupby(dispatch)['relative_errored'].count()
+    mean_relative = data_frame.query('relative_errored').groupby(dispatch)['relative_error'].mean()
+    max_relative = data_frame.groupby(dispatch)['relative_error'].max()
 
 
     max_aboslute
     pct_absolute
+
+    max_relative
+    pct_relative
+    nb
