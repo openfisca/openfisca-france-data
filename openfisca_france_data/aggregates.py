@@ -108,7 +108,7 @@ class Aggregates(object):
             del data_frame_by_simulation_type['reform']['label']
 
         self.base_data_frame = pd.concat(
-            data_frame_by_simulation_type.values(),
+            list(data_frame_by_simulation_type.values()),
             axis = 1,
             sort = True,
             ).loc[self.aggregate_variables]

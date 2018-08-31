@@ -601,4 +601,3 @@ if __name__ == '__main__':
     imputation_loyer(year = year)
 
     # menagem, erf, fill_erf_nnd, logement = imputation_loyer(year = year)
-

@@ -1,36 +1,45 @@
 # -*- coding: utf-8 -*-
 
-
 import logging
 import numpy as np
 import pandas as pd
 
-from openfisca_core import periods  # type: ignore
-from openfisca_core.formula_helpers import switch  # type: ignore
-from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales  # type: ignore
-from openfisca_france import FranceTaxBenefitSystem  # type: ignore
-from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME  # type: ignore
-from openfisca_france_data.utils import (
-    assert_dtype,
+
+from openfisca_core import periods
+from openfisca_france import FranceTaxBenefitSystem
+from openfisca_france_data import select_to_match_target
+from openfisca_france_data.common import (
+    create_salaire_de_base,
+    create_traitement_indiciaire_brut,
+    create_revenus_remplacement_bruts,
     )
-from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
+from openfisca_france_data.utils import assert_dtype
+from openfisca_survey_manager.temporary import temporary_store_decorator
 
 log = logging.getLogger(__name__)
 
-smic_horaire_brut = {  # smic horaire brut moyen sur l'année
-    2017: 9.76,
-    2016: 9.67,
-    2015: 9.61,
-    2014: 9.53,
-    2013: 9.43,
-    2012: 9.4 * 6 / 12 + 9.22 * 6 / 12,
-    2011: 9.19 * 1 / 12 + 9.0 * 11 / 12 ,
-    2010: 8.86,
-    }
+# smic_horaire_brut = {  # smic horaire brut moyen sur l'année
+#     2017: 9.76,
+#     2016: 9.67,
+#     2015: 9.61,
+#     2014: 9.53,
+#     2013: 9.43,
+#     2012: 9.4 * 6 / 12 + 9.22 * 6 / 12,
+#     2011: 9.19 * 1 / 12 + 9.0 * 11 / 12 ,
+#     2010: 8.86,
+#     }
 
+smic_horaire_brut = dict()
+for year in range(2010, 2020):
+    try:
+        smic_horaire_brut[year] = FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
+    except:
+        continue
 
 # Sources BDM
 smic_annuel_net_by_year = {
+    2019: 12 * 1200.0,
+    2018: 9 * 1173.60 + 3 * 1187.83,  # Baisse de la cotisaation chômage en cours d'annnée
     2017: 12 * 1151.50,
     2016: 12 * 1141.61,
     2015: 12 * 1135.99,
@@ -41,8 +50,8 @@ smic_annuel_net_by_year = {
     2010: 12 * 1056.24,
     }
 
-
 abattement_by_year = {
+    2018: .0175,
     2017: .0175,
     2016: .0175,
     2015: .0175,
@@ -66,8 +75,20 @@ def smic_annuel_imposbale_from_net(year):
 
 smic_annuel_imposbale_by_year = dict([
     (year, smic_annuel_imposbale_from_net(year))
-    for year in range(2010, 2018)
+    for year in range(2010, 2019)
     ])
+
+
+smic_horaire_brut_by_year = dict([
+    (year, FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
+    for year in range(2005, 2020)
+    ])
+
+smic_annuel_brut_by_year = dict([
+    (year, value * 35 * 52)
+    for year, value in smic_horaire_brut_by_year.items()
+    ])
+
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
@@ -109,7 +130,8 @@ def build_variables_individuelles(temporary_store = None, year = None):
 # helpers
 
 def create_variables_individuelles(individus, year, survey_year = None):
-    """C'est là les vraies étapes"""
+    """Création des variables individuelles
+    """
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -134,6 +156,61 @@ def create_variables_individuelles(individus, year, survey_year = None):
 
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus)
+
+
+def create_individu_variables_brutes(individus, revenu_type = None, period = None, tax_benefit_system = None,
+         mass_by_categorie_salarie = None):
+    """
+    Crée les variables brutes de revenus:
+      - salaire_de_base
+      - traitement_indiciaire_brut
+      - primes_fonction_publique
+      - retraite_bruite
+      - chomage_brut
+    à partir des valeurs nettes ou imposables de ces revenus
+    et d'autres information individuelles
+    """
+    assert revenu_type in ['imposable', 'net']
+    assert period is not None
+    assert tax_benefit_system is not None
+
+    assert 'age' in individus.columns
+
+    created_variables = []
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
+    created_variables.append('contrat_de_travail')
+    created_variables.append('heures_remunerees_volume')
+
+    create_categorie_salarie(individus, period = period)
+    created_variables.append('categorie_salarie')
+    create_categorie_non_salarie(individus)
+    created_variables.append('categorie_non_salarie')
+
+    # FIXME: categorie_non_salarie modifie aussi categorie_salarie  !!
+    if mass_by_categorie_salarie is not None:
+        calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = mass_by_categorie_salarie)
+
+    create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
+    created_variables.append('salaire_de_base')
+
+    create_effectif_entreprise(individus, period = period)
+    created_variables.append('effectif_entreprise')
+
+    create_traitement_indiciaire_brut(individus, period = period, revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system)
+    created_variables.append('traitement_indiciaire_brut')
+    created_variables.append('primes_fonction_publique')
+
+    create_taux_csg_remplacement(individus, period, tax_benefit_system)
+    created_variables.append('taux_csg_remplacement')
+    created_variables.append('taux_csg_remplacement_n_1')
+    created_variables.append('rfr_special_csg_n')
+    created_variables.append('rfr_special_csg_n_1')
+
+    create_revenus_remplacement_bruts(individus, period, tax_benefit_system)
+    created_variables.append('chomage_brut')
+    created_variables.append('retraite_brute')
+    return created_variables
 
 
 def create_activite(individus):
@@ -252,7 +329,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
           1 - Oui
           2 - Non
 
-      - prosa (survey_year < 2013, voir qprcent)
+      - prosa (survey_year < 2013, voir qprc)
           1 Manoeuvre ou ouvrier spécialisé
           2 Ouvrier qualifié ou hautement qualifié
           3 Technicien
@@ -262,7 +339,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
           8 Directeur général, adjoint direct
           9 Autre
 
-      - qprcent (survey_year >= 2013, voir prosa)
+      - qprc (survey_year >= 2013, voir prosa)
           Vide Sans objet (personnes non actives occupées, travailleurs informels et travailleurs intérimaires,
                           en activité temporaire ou d'appoint)
           1 Manoeuvre ou ouvrier spécialisé
@@ -295,10 +372,8 @@ def create_categorie_salarie(individus, period, survey_year = None):
           1 - Elève fonctionnaire ou stagiaire
           2 - Agent titulaire
           3 - Contractuel
+
     """
-
-    # TODO: Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
-
     assert period is not None
     if survey_year is None:
         survey_year = period.start.year
@@ -316,7 +391,8 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 1,
             }
         individus['chpub'] = individus.chpub.map(chpub_replacement)
-        qprcent_to_prosa = {
+        log.debug('Using qprc to infer prosa for year {}'.format(survey_year))
+        qprc_to_prosa = {
             0: 0,
             1: 1,
             2: 2,
@@ -328,7 +404,10 @@ def create_categorie_salarie(individus, period, survey_year = None):
             8: 9,
             9: 5,  # On met les non renseignés en catégorie B
             }
-        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)  # Actually prosa is there I don't need to change it further
+        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
+        individus['prosa'] = individus.qprcent.map(qprc_to_prosa)
+        # TODO should be qprc instaed of qprcent
+        # Actually prosa is there I don't need to change it further
     else:
         pass
 
@@ -350,6 +429,11 @@ def create_categorie_salarie(individus, period, survey_year = None):
             )
 
     if survey_year >= 2013:
+        if individus.titc.isnull().any():
+            individus.loc[
+                individus.titc.isnull() & ~(individus.chpub.isin([3, 4, 5])),
+                'titc'
+            ] = 0
         assert individus.titc.isin(range(5)).all(), \
             "titc n'est pas toujours dans l'ensemble [0, 1, 2, 3, 4] des valeurs antendues.\n{}".format(
                 individus.titc.value_counts(dropna = False)
@@ -368,23 +452,26 @@ def create_categorie_salarie(individus, period, survey_year = None):
     individus['cadre'] = False
     individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
     individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
-    cadre = (individus.statut == 35) & (chpub > 3) & individus.cadre
+    cadre = (
+        (individus.statut >= 21) & (individus.statut <= 35)  # En activité hors fonction publique
+        & (chpub > 3) # Hors fonction publique mais entreprise publique
+        & individus.cadre
+        )
     del individus['cadre']
 
-    # etat_stag = (chpub==1) & (titc == 1)
+    # etat_stag = (chpub == 1) & (titc == 1)
     etat_titulaire = (chpub == 1) & ((titc == 2) | (titc == 1))
     etat_contractuel = (chpub == 1) & (titc == 3)
 
     militaire = False  # TODO:
 
     # collect_stag = (chpub==2) & (titc == 1)
-    collectivites_locales_titulaire = (chpub == 2) & (titc == 2)
+    collectivites_locales_titulaire = (chpub == 2) & ((titc == 2) | (titc == 1))
     collectivites_locales_contractuel = (chpub == 2) & (titc == 3)
 
     # hosp_stag = (chpub==2)*(titc == 1)
-    hopital_titulaire = (chpub == 3) & (titc == 2)
+    hopital_titulaire = (chpub == 3) & ((titc == 2) | (titc == 1))
     hopital_contractuel = (chpub == 3) & (titc == 3)
-
     contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
     if 'salaire_net' in individus and (individus['salaire_net'] > 0).any():
@@ -416,12 +503,128 @@ def create_categorie_salarie(individus, period, survey_year = None):
     assert individus['categorie_salarie'].isin(range(8)).all(), \
         "categorie_salarie n'est pas toujours dans l'intervalle [0, 7]\n{}".format(
             individus.categorie_salarie.value_counts(dropna = False))
-    log.debug(u"Répartition des catégories de salariés: \n{}".format(
-        individus
-        .groupby(['contrat_de_travail'])['categorie_salarie']
-        .value_counts(dropna = False)
-        .sort_index()
-        ))
+
+
+def create_categorie_non_salarie(individus):
+    """
+    Création de la variable categorie_salarie:
+      - "non_pertinent
+      - "artisan
+      - "commercant
+      - "profession_liberale
+    à partir des variables de l'eec' :
+      - cstot
+        - 00 Non renseigné (pour les actifs)
+        - 11 Agriculteurs sur petite exploitation
+        - 12 Agriculteurs sur moyenne exploitation
+        - 13 Agriculteurs sur grande exploitation
+        - 21 Artisans
+        - 22 Commerçants et assimilés
+        - 23 Chefs d'entreprise de 10 salariés ou plus
+        - 31 Professions libérales
+        - 33 Cadres de la fonction publique
+        - 34 Professeurs, professions scientifiques
+        - 35 Professions de l'information, des arts et des spectacles
+        - 37 Cadres administratifs et commerciaux d'entreprise
+        - 38 Ingénieurs et cadres techniques d'entreprise
+        - 42 Professeurs des écoles, instituteurs et assimilés
+        - 43 Professions intermédiaires de la santé et du travail social
+        - 44 Clergé, religieux
+        - 45 Professions intermédiaires administratives de la fonction publique
+        - 46 Professions intermédiaires administratives et commerciales des entreprises
+        - 47 Techniciens
+        - 48 Contremaîtres, agents de maîtrise
+        - 52 Employés civils et agents de service de la fonction publique
+        - 53 Policiers et militaires
+        - 54 Employés administratifs d'entreprise
+        - 55 Employés de commerce
+        - 56 Personnels des services directs aux particuliers
+        - 62 Ouvriers qualifiés de type industriel
+        - 63 Ouvriers qualifiés de type artisanal
+        - 64 Chauffeurs
+        - 65 Ouvriers qualifiés de la manutention, du magasinage et du transport
+        - 67 Ouvriers non qualifiés de type industriel
+        - 68 Ouvriers non qualifiés de type artisanal
+        - 69 Ouvriers agricoles
+        - 71 Anciens agriculteurs exploitants
+        - 72 Anciens artisans, commerçants, chefs d'entreprise
+        - 74 Anciens cadres
+        - 75 Anciennes professions intermédiaires
+        - 77 Anciens employés
+        - 78 Anciens ouvriers
+        - 81 Chômeurs n'ayant jamais travaillé
+        - 83 Militaires du contingent
+        - 84 Elèves, étudiants
+        - 85 Personnes diverses sans activité professionnelle de moins de 60 ans (sauf retraités)
+        - 86 Personnes diverses sans activité professionnelle de 60 ans et plus (sauf retraités)
+    """
+    assert individus.cstot.notnull().all()
+    if not pd.api.types.is_numeric_dtype(individus.cstot):
+        individus.replace(
+            {
+                'cstot' : {'': '0', '00': '0'}
+                },
+            inplace = True
+            )
+
+    individus['cstot'] = individus.cstot.astype('int')
+    assert set(individus.cstot.unique()) < set([
+        0,
+        11, 12, 13,
+        21, 22, 23,
+        31, 33, 34, 35, 37, 38,
+        42, 43, 44, 45, 46, 47, 48,
+        52, 53, 54, 55, 56,
+        62, 63, 64, 65, 67, 68, 69,
+        71, 72, 74, 75, 77, 78,
+        81, 83, 84, 85, 86,
+        ])
+
+    agriculteur = individus.cstot.isin([11, 12, 13])
+    artisan = individus.cstot.isin([21])
+    commercant = individus.cstot.isin([22])
+    chef_entreprise = individus.cstot.isin([23])
+    profession_liberale = individus.cstot.isin([31])
+    individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut
+    individus.loc[
+        agriculteur | artisan,
+        'categorie_non_salarie'
+        ] = 1
+    individus.loc[
+        commercant | chef_entreprise,
+        'categorie_non_salarie'
+        ] = 2
+    individus.loc[
+        profession_liberale,
+        'categorie_non_salarie'
+        ] = 3
+    # Correction fonction publique
+    individus.loc[
+        (
+            (individus.categorie_salarie == 0)
+            & (individus.cstot.isin([31, 33, 34, 35, 37, 38,]))
+            ),
+        'categorie_salarie'
+        ] = 1
+
+    # Correction encadrement
+    individus.loc[
+        (
+            (individus.categorie_salarie == 0)
+            & (individus.cstot.isin([31, 34, 35, 37 ,38]))  # Cadres hors FP
+            ),
+        'categorie_salarie'
+        ] = 1
+    # Correction fonction publique
+    individus.loc[
+        (
+            (individus.categorie_salarie.isin([0, 1, 7]))
+            & (individus.cstot == 53) # Policiers et militaires reversé dans titulaire état
+            ),
+        'categorie_salarie'
+        ] = 2
+
+
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
@@ -651,7 +854,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     salaire_sans_heures = (individus.contrat_de_travail == 1) & ~(individus.heures_remunerees_volume > 0)
     assert (individus.loc[salaire_sans_heures, 'salaire'] > 0).all()
     assert (individus.loc[salaire_sans_heures, 'duhab'] == 1).all()
-    # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic net.
+    # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic.
     # On leur attribue donc un nombre d'heures travaillées égal à 15.
     individus.loc[
         salaire_sans_heures &
@@ -775,8 +978,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
         assert individus.nbsala.isin(list(range(0, 13)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
-        individus['effectif_entreprise'] = np.select(
-            [0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500],
+        individus['effectif_entreprise'] = np.select( # condition_lits, choice_list
             [
                 individus.nbsala == 0,  # 0
                 individus.nbsala == 1,  # 1
@@ -791,7 +993,8 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.nbsala == 10,  # 9
                 (individus.nbsala == 11) | (individus.nbsala == 99),  # 9
                 individus.nbsala == 12,  # 9
-                ]
+                ],
+            [0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500],
             )
         assert individus.effectif_entreprise.isin([0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500]).all(), \
             "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
@@ -802,7 +1005,6 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
             "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
-            [0, 1, 5, 10, 20, 50, 200, 500, 1000],
             [
                 individus.nbsala.isin([0, 1]),  # 0
                 individus.nbsala == 2,  # 1
@@ -813,12 +1015,15 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.nbsala == 7,  # 200
                 individus.nbsala == 8,  # 500
                 individus.nbsala == 9,  # 1000
-                ]
+                ],
+            [0, 1, 5, 10, 20, 50, 200, 500, 1000],
             )
 
         assert individus.effectif_entreprise.isin([0, 1, 5, 10, 20, 50, 200, 500, 1000]).all(), \
             "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
                 individus.effectif_entreprise.value_counts(dropna = False))
+        log.debug('Effectif entreprise:\n{}'.format(
+            individus.effectif_entreprise.value_counts(dropna = False)))
 
 
 def create_revenus(individus, revenu_type = 'imposable'):
@@ -891,362 +1096,6 @@ def create_revenus(individus, revenu_type = 'imposable'):
     assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 
-def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
-    """Calcule la variable salaire_de_base à partir du salaire imposable par inversion du barème
-    de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
-    """
-    assert period is not None
-    assert revenu_type in ['net', 'imposable']
-    for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
-        assert variable in individus.columns, "{} is missing".format(variable)
-    assert tax_benefit_system is not None
-
-    if revenu_type == 'imposable':
-        salaire_pour_inversion = individus.salaire_imposable
-    else:
-        salaire_pour_inversion = individus.salaire_net
-
-    categorie_salarie = individus.categorie_salarie
-    contrat_de_travail = individus.contrat_de_travail
-    heures_remunerees_volume = individus.heures_remunerees_volume
-    # hsup = simulation.calculate('hsup', period = this_year)
-
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
-    salarie = parameters.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
-    parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
-    taux_csg = parameters_csg_deductible.taux
-    taux_abattement = parameters_csg_deductible.abattement.rates[0]
-    try:
-        seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
-    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
-        seuil_abattement = None
-    csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
-    csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
-    if seuil_abattement is not None:
-        csg_deductible.add_bracket(seuil_abattement, taux_csg)
-
-    if revenu_type == 'net':  # On ajoute CSG imposable et crds
-        # csg imposable
-        parameters_csg_imposable = parameters.prelevements_sociaux.contributions.csg.activite.imposable
-        taux_csg = parameters_csg_imposable.taux
-        taux_abattement = parameters_csg_imposable.abattement.rates[0]
-        try:
-            seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
-            seuil_abattement = None
-        csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
-        csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
-        if seuil_abattement is not None:
-            csg_imposable.add_bracket(seuil_abattement, taux_csg)
-        # crds
-        # csg imposable
-        parameters_crds = parameters.prelevements_sociaux.contributions.crds.activite
-        taux_csg = parameters_crds.taux
-        taux_abattement = parameters_crds.abattement.rates[0]
-        try:
-            seuil_abattement = parameters_crds.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
-            seuil_abattement = None
-        crds = MarginalRateTaxScale(name = 'crds')
-        crds.add_bracket(0, taux_csg * (1 - taux_abattement))
-        if seuil_abattement is not None:
-            crds.add_bracket(seuil_abattement, taux_csg)
-
-    # Check baremes
-    target = dict()
-    target['prive_non_cadre'] = set(['maladie', 'arrco', 'vieillesse_deplafonnee', 'vieillesse', 'agff', 'assedic'])
-    target['prive_cadre'] = set(
-        ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
-        )
-    target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
-
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        baremes_collection = salarie[categorie]
-        baremes_to_remove = list()
-        for name, bareme in baremes_collection._children.items():
-            if name.endswith('alsace_moselle'):
-                baremes_to_remove.append(name)
-        for name in baremes_to_remove:
-            del baremes_collection._children[name]
-
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        test = set(
-            name for name, bareme in salarie[categorie]._children.items()
-            if isinstance(bareme, MarginalRateTaxScale)
-            )
-        assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
-    del bareme
-
-    # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
-    # Pour éviter les divisions 0 /0 dans le switch qui sert à calculer le salaire_pour_inversion_proratise
-    if period.unit == 'year':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
-        heures_temps_plein = 52 * 35
-    elif period.unit == 'month':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
-        heures_temps_plein = (52 * 35 / 12) * period.size
-    else:
-        raise
-
-    heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
-    salaire_pour_inversion_proratise = switch(
-        contrat_de_travail,
-        {
-            # temps plein
-            0: salaire_pour_inversion / plafond_securite_sociale,
-            # temps partiel
-            1: salaire_pour_inversion / (
-                (heures_remunerees_volume_avoid_warning / heures_temps_plein) * plafond_securite_sociale
-                ),
-            }
-        )
-
-    def add_agirc_gmp_to_agirc(agirc, parameters):
-        plafond_securite_sociale_annuel = parameters.cotsoc.gen.plafond_securite_sociale * 12
-        salaire_charniere = parameters.prelevements_sociaux.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
-        cotisation = parameters.prelevements_sociaux.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
-        n = (cotisation + 1) * 12
-        agirc.add_bracket(n / plafond_securite_sociale_annuel, 0)
-        agirc.rates[0] = cotisation / n
-        agirc.thresholds[2] = salaire_charniere
-
-    salaire_de_base = 0.0
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        if categorie == 'prive_cadre':
-            add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
-
-        bareme = combine_tax_scales(salarie[categorie])
-        bareme.add_tax_scale(csg_deductible)
-        if revenu_type == 'net':
-            bareme.add_tax_scale(csg_imposable)
-            bareme.add_tax_scale(crds)
-
-        assert bareme.inverse().thresholds[0] == 0, "Invalid inverse bareme for {}:\n {}".format(
-            categorie, bareme.inverse())
-        for rate in bareme.inverse().rates:
-            assert rate > 0
-
-        brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
-        assert np.isfinite(brut_proratise).all()
-        brut = plafond_securite_sociale * switch(
-            contrat_de_travail,
-            {
-                # temps plein
-                0: brut_proratise,
-                # temps partiel
-                1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
-                }
-            )
-        salaire_de_base += (
-            (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
-            )
-        if (categorie_salarie == TypesCategorieSalarie[categorie].index).any():
-            log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
-            log.debug('bareme direct: {}'.format(bareme))
-
-    # agirc_gmp
-    # gmp = P.prelevements_sociaux.gmp
-    # salaire_charniere = gmp.salaire_charniere_annuel
-    # cotisation_forfaitaire = gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
-    # salaire_de_base += (
-    #     (categorie_salarie == CATEGORIE_SALARIE['prive_cadre']) *
-    #     (salaire_de_base <= salaire_charniere) *
-    #     cotisation_forfaitaire
-    #     )
-    individus['salaire_de_base'] = salaire_de_base
-
-
-def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable',
-            tax_benefit_system = None):
-    """
-    Calcule le tratement indiciaire brut à partir du salaire imposable ou du salaire net.
-    Note : le supplément familial de traitement est imposable. Pas géré
-    """
-    assert period is not None
-    assert revenu_type in ['net', 'imposable']
-    assert tax_benefit_system is not None
-
-    for variable in ['categorie_salarie', 'contrat_de_travail', 'heures_remunerees_volume']:
-        assert variable in individus.columns
-
-    if revenu_type == 'imposable':
-        assert 'salaire_imposable' in individus.columns
-        salaire_pour_inversion = individus.salaire_imposable
-    else:
-        assert 'salaire_net' in individus.columns
-        salaire_pour_inversion = individus.salaire_net
-
-    categorie_salarie = individus.categorie_salarie
-    contrat_de_travail = individus.contrat_de_travail
-    heures_remunerees_volume = individus.heures_remunerees_volume
-
-    legislation = parameters = tax_benefit_system.get_parameters_at_instant(period.start)
-
-    salarie = legislation.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
-    legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
-    taux_csg = legislation_csg_deductible.taux
-    taux_abattement = legislation_csg_deductible.abattement.rates[0]
-    try:
-        seuil_abattement = legislation_csg_deductible.abattement.thresholds[1]
-    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
-        seuil_abattement = None
-    csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
-    csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
-    if seuil_abattement is not None:
-        csg_deductible.add_bracket(seuil_abattement, taux_csg)
-
-    if revenu_type == 'net':
-        # Cas des revenus nets:
-        # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
-        # 1. csg imposable
-        legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
-        taux_csg = legislation_csg_imposable.taux
-        taux_abattement = legislation_csg_imposable.abattement.rates[0]
-        try:
-            seuil_abattement = legislation_csg_imposable.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
-            seuil_abattement = None
-        csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
-        csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
-        if seuil_abattement is not None:
-            csg_imposable.add_bracket(seuil_abattement, taux_csg)
-        # 2. crds
-        legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
-        taux_csg = legislation_crds.taux
-        taux_abattement = legislation_crds.abattement.rates[0]
-        try:
-            seuil_abattement = legislation_crds.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
-            seuil_abattement = None
-        crds = MarginalRateTaxScale(name = 'crds')
-        crds.add_bracket(0, taux_csg * (1 - taux_abattement))
-        if seuil_abattement is not None:
-            crds.add_bracket(seuil_abattement, taux_csg)
-
-    # Check baremes
-    target = dict()
-    target['public_titulaire_etat'] = set(['excep_solidarite', 'pension', 'rafp'])
-    target['public_titulaire_hospitaliere'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
-    target['public_titulaire_territoriale'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
-
-    categories_salarie_du_public = [
-        'public_titulaire_etat',
-        'public_titulaire_hospitaliere',
-        'public_titulaire_territoriale',
-        ]
-
-    for categorie in categories_salarie_du_public:
-        baremes_collection = salarie[categorie]
-        test = set(
-            name for name, bareme in salarie[categorie]._children.items()
-            if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl2'
-            )
-        assert target[categorie] == test, 'target for {}: \n  target = {} \n  test = {}'.format(categorie, target[categorie], test)
-
-    # Barèmes à éliminer :
-        # cnracl1 = taux hors NBI -> OK
-        # cnracl2 = taux NBI -> On ne le prend pas en compte pour l'instant
-    for categorie in [
-        'public_titulaire_hospitaliere',
-        'public_titulaire_territoriale',
-        ]:
-        baremes_collection = salarie[categorie]
-        baremes_to_remove = list()
-        baremes_to_remove.append('cnracl2')
-        for name in baremes_to_remove:
-            if 'cnracl2' in baremes_collection:
-                del baremes_collection._children[name]
-
-    salarie = salarie._children.copy()
-    # RAFP des agents titulaires
-    for categorie in categories_salarie_du_public:
-        baremes_collection = salarie[categorie]
-        baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
-
-    # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
-    if period.unit == 'year':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
-        heures_temps_plein = 52 * 35
-    elif period.unit == 'month':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
-        heures_temps_plein = (52 * 35 / 12) * period.size
-    else:
-        raise
-
-    # Pour a fonction publique la csg est calculée sur l'ensemble salbrut(=TIB) + primes
-    # Imposable = (1 + taux_prime) * TIB - csg[(1 + taux_prime) * TIB] - pension[TIB]
-    for categorie in categories_salarie_du_public:
-        bareme_csg_deduc_public = csg_deductible.multiply_rates(
-            1 + TAUX_DE_PRIME, inplace = False, new_name = "csg deduc public")
-        if revenu_type == 'net':
-            bareme_csg_imp_public = csg_imposable.multiply_rates(
-                1 + TAUX_DE_PRIME, inplace = False, new_name = "csg imposable public")
-            bareme_crds_public = crds.multiply_rates(
-                1 + TAUX_DE_PRIME, inplace = False, new_name = "crds public")
-
-    for categorie in categories_salarie_du_public:
-        bareme_prime = MarginalRateTaxScale(name = "taux de prime")
-        bareme_prime.add_bracket(0, -TAUX_DE_PRIME)  # barème équivalent à taux_prime*TIB
-
-    heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
-    salaire_pour_inversion_proratise = switch(
-        contrat_de_travail,
-        {
-            # temps plein
-            0: salaire_pour_inversion / plafond_securite_sociale,
-            # temps partiel
-            1: salaire_pour_inversion / (
-                (heures_remunerees_volume_avoid_warning / heures_temps_plein) * plafond_securite_sociale
-                ),
-            }
-        )
-
-    traitement_indiciaire_brut = 0.0
-
-    for categorie in categories_salarie_du_public:
-        for key, value in salarie[categorie]._children.items():
-            log.debug(key, value)
-        bareme = combine_tax_scales(salarie[categorie])
-        log.debug('bareme cotsoc : {}'.format(bareme))
-        bareme.add_tax_scale(bareme_csg_deduc_public)
-        log.debug('bareme cotsoc + csg_deduc: {}'.format(bareme))
-        if revenu_type == 'net':
-            bareme.add_tax_scale(bareme_csg_imp_public)
-            log.debug('bareme cotsoc + csg_deduc + csg_imp: {}'.format(bareme))
-            bareme.add_tax_scale(bareme_crds_public)
-            log.debug('bareme cotsoc + csg_deduc + csg_imp + crds: {}'.format(bareme))
-
-        bareme.add_tax_scale(bareme_prime)
-        log.debug('bareme cotsoc + csg_deduc + csg_imp + crds + prime: {}'.format(bareme))
-
-        brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
-
-        assert np.isfinite(brut_proratise).all()
-        brut = plafond_securite_sociale * switch(
-            contrat_de_travail,
-            {
-                # temps plein
-                0: brut_proratise,
-                # temps partiel
-                1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
-                }
-            )
-        traitement_indiciaire_brut += (
-            (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
-            )
-        if (categorie_salarie == TypesCategorieSalarie[categorie].index).any():
-            log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
-            log.debug('bareme direct: {}'.format(bareme))
-
-    # TODO: complete this to deal with the fonctionnaire
-    # supp_familial_traitement = 0  # TODO: dépend de salbrut
-    # indemnite_residence = 0  # TODO: fix bug
-    individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
-    individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
-
-
 def create_statut_matrimonial(individus):
     u"""
     Création de la variable statut_marital qui prend les valeurs:
@@ -1271,6 +1120,112 @@ def create_statut_matrimonial(individus):
     individus.loc[individus.matri == 4, 'statut_marital'] = 3  # divorcé(e)
 
     assert individus.statut_marital.isin(range(1, 7)).all()
+
+
+def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = (28.1) ** 2):
+    assert 'revkire' in individus
+    assert 'nbp' in individus
+    if period.start.year < 2015:  # Should be an assert
+        period = periods.period(2015)
+
+    rfr = individus.revkire
+    nbptr = individus.nbp / 100
+
+    def compute_taux_csg_remplacement(rfr, nbptr):
+        parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+        seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
+        seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
+        seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
+        taux_csg_remplacement = 0.0 * rfr
+        taux_csg_remplacement = np.where(
+            rfr <= seuil_exoneration,
+            1,
+            np.where(
+                rfr <= seuil_reduction,
+                2,
+                3,
+                )
+            )
+
+        return taux_csg_remplacement
+
+    individus['rfr_special_csg_n'] = rfr
+    individus['taux_csg_remplacement'] = compute_taux_csg_remplacement(rfr, nbptr)
+    if sigma is not None:
+        np.random.seed(42)
+        rfr_n_1 = rfr + (individus.retraite_imposable > 0) * np.random.normal(
+            scale = sigma, size = len(individus['taux_csg_remplacement'])
+            )
+    individus['rfr_special_csg_n_1'] = rfr_n_1
+    individus['taux_csg_remplacement_n_1'] = compute_taux_csg_remplacement(rfr_n_1, nbptr)
+
+    distribution = individus.groupby(['taux_csg_remplacement', 'taux_csg_remplacement_n_1'])['ponderation'].sum() / 1000
+    log.debug(
+        "Distribution of taux_csg_remplacement:\n",
+        distribution)
+    log.info(
+        "Target of taux_csg_remplacement (in thousands):\n",
+        distribution[[(2, 1), (3 , 2)]].sum()
+        )
+    assert individus['taux_csg_remplacement_n_1'].isin(range(4)).all()
+    assert individus['taux_csg_remplacement'].isin(range(4)).all()
+
+
+def calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = None):
+    assert mass_by_categorie_salarie is not None
+    log.info(
+        mass_by_categorie_salarie
+        )
+
+    weight_individus = individus['ponderation'].values
+    for rebalanced_categorie, target_mass in mass_by_categorie_salarie.items():
+        categorie_salarie = individus['categorie_salarie'].values
+        eligible = (
+            (categorie_salarie == 0) | (categorie_salarie == rebalanced_categorie)
+            )
+        take = (categorie_salarie == rebalanced_categorie)
+        log.info(
+            """
+initial take population: {}
+initial eligible population: {}
+target mass: {}""".format(
+                (take * eligible * weight_individus).sum() / 1e6,
+                (eligible * weight_individus).sum() / 1e6,
+                target_mass / 1e6,
+                ))
+        selected = select_to_match_target(
+            target_mass = target_mass,
+            eligible = eligible,
+            weights = weight_individus,
+            take = take,
+            seed = 9779972
+            )
+        log.info("""
+    final selected population: {}
+    error: {} %
+    """.format(
+            (eligible * selected * weight_individus).sum() / 1e6,
+            ((eligible * selected * weight_individus).sum() - target_mass) / target_mass * 100,
+            ))
+        individus.loc[selected, 'categorie_salarie'] = rebalanced_categorie
+        log.info(individus.groupby('categorie_salarie')['ponderation'].sum())
+        seuil_salaire_imposable_mensuel = 2 * 3000
+        individus.loc[
+            (
+                (individus.contrat_de_travail == 0)
+                & (individus.categorie_salarie == 0)
+                & (individus.salaire_imposable > 12 * seuil_salaire_imposable_mensuel)
+                ),
+            'categorie_salarie'
+            ] = 1
+        individus.loc[
+            (
+                (individus.contrat_de_travail == 1)
+                & (individus.categorie_salarie == 0)
+                & (individus.salaire_imposable  > (12 * seuil_salaire_imposable_mensuel) / (35 * 52) * individus.heures_remunerees_volume)
+                ),
+            'categorie_salarie'
+            ] = 1
 
 
 def todo_create(individus):

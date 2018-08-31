@@ -28,7 +28,7 @@ def get_input_data_frame(year):
 # TODO, move to SurveyScenario
 def filter_input_data_frame(data_frame, filter_entity = None, filter_index = None, simulation = None):
     symbol = filter_entity.symbol
-    other_symbols = [entity.symbol for entity in simulation.entity_by_key_singular.values()]
+    other_symbols = [entity.symbol for entity in list(simulation.entity_by_key_singular.values())]
     other_symbols = other_symbols.remove('ind')
     person_index = dict()
     if symbol is 'ind':
@@ -46,7 +46,7 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
         final_selection_index += person_index[other_symbol]
 
     data_frame = data_frame.iloc[final_selection_index].copy().reset_index()
-    for entity_id in ['id' + entity.symbol for entity in simulation.entity_by_key_singular.values()]:
+    for entity_id in ['id' + entity.symbol for entity in list(simulation.entity_by_key_singular.values())]:
         data_frame = id_formatter(data_frame, entity_id)
     return data_frame
 

@@ -263,7 +263,7 @@ def foyer_all(temporary_store = None, year = None):
         }
     cases_f6_f7_f8 = build_cerfa_fields_by_column_name(year = year, sections_cerfa = [6, 7, 8])
     var_dict.update(cases_f6_f7_f8)
-    vars_sets = [set(var_list) for var_list in var_dict.values()]
+    vars_sets = [set(var_list) for var_list in list(var_dict.values())]
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))
 
     log.info(

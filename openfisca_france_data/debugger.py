@@ -389,7 +389,7 @@ class Debugger(object):
         index_by_entity = {
             entity_class_by_key_plural['individus']: individus_index,
             }
-        for entity in entity_class_by_key_plural.values():
+        for entity in list(entity_class_by_key_plural.values()):
             if entity.key_plural != 'individus':
                 index_by_entity[entity] = input_data_frame.loc[
                     individus_index, entity.index_for_person_variable_name].unique()
