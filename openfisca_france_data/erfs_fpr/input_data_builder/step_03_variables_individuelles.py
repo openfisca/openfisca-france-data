@@ -19,6 +19,7 @@ log = logging.getLogger(__name__)
 
 
 smic_horaire_brut = {  # smic horaire brut moyen sur l'année
+    2018: 9.88,
     2017: 9.76,
     2016: 9.67,
     2015: 9.61,
@@ -32,6 +33,7 @@ smic_horaire_brut = {  # smic horaire brut moyen sur l'année
 
 # Sources BDM
 smic_annuel_net_by_year = {
+    2018: 9 * 1173.60 + 3 * 1187.83,
     2017: 12 * 1151.50,
     2016: 12 * 1141.61,
     2015: 12 * 1135.99,
@@ -44,6 +46,7 @@ smic_annuel_net_by_year = {
 
 
 abattement_by_year = {
+    2018: .0175,
     2017: .0175,
     2016: .0175,
     2015: .0175,
@@ -110,7 +113,9 @@ def build_variables_individuelles(temporary_store = None, year = None):
 # helpers
 
 def create_variables_individuelles(individus, year, survey_year = None):
-    """C'est là les vraies étapes"""
+    """
+    TODO: deprecated ?
+    """
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -135,6 +140,59 @@ def create_variables_individuelles(individus, year, survey_year = None):
 
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus)
+
+
+def create_individu_variables_brutes(individus, revenu_type = None, period = None, tax_benefit_system = None):
+    """
+    Crée les variables brutes de revenus:
+      - salaire_de_base
+      - traitement_indiciaire_brut
+      - primes_fonction_publique
+      - retraite_bruite
+      - chomage_brut
+    à partir des valeurs nettes ou imposables de ces revenus
+    et d'autres information individuelles
+    """
+    assert revenu_type in ['imposable', 'net']
+    assert period is not None
+    assert tax_benefit_system is not None
+    created_variables = []
+    # create_ages(individus, year)
+    # created_variables.append('age')
+    assert 'age' in individus.columns
+    #    assert 'age_en_mois' in individus.columns
+    #    created_variables.append('age_en_mois')
+
+    #    create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
+    #        year = year)
+    #    assert 'date_naissance' in individus.columns
+    #    created_variables.append('date_naissance')
+
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
+    created_variables.append('contrat_de_travail')
+    created_variables.append('heures_remunerees_volume')
+
+    create_categorie_salarie(individus, period = period)
+    created_variables.append('categorie_salarie')
+
+    create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
+    created_variables.append('salaire_de_base')
+
+    create_effectif_entreprise(individus, period = period)
+    created_variables.append('effectif_entreprise')
+
+    create_traitement_indiciaire_brut(individus, period = period, revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system)
+    created_variables.append('traitement_indiciaire_brut')
+    created_variables.append('primes_fonction_publique')
+
+    create_taux_csg_remplacement(individus, period, tax_benefit_system)
+    created_variables.append('taux_csg_remplacement')
+
+    create_revenus_remplacement_bruts(individus, period, tax_benefit_system)
+    created_variables.append('chomage_brut')
+    created_variables.append('retraite_brute')
+    return created_variables
 
 
 def create_activite(individus):
@@ -301,7 +359,6 @@ def create_categorie_salarie(individus, period, survey_year = None):
         survey_year = period.start.year
 
     if survey_year >= 2013:
-        log.debug('Using qprcent to infer prosa for year {}'.format(year))
         chpub_replacement = {
             0: 0,
             3: 1,
@@ -313,6 +370,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 1,
             }
         individus['chpub'] = individus.chpub.map(chpub_replacement)
+        log.debug('Using qprcent to infer prosa for year {}'.format(year))
         qprcent_to_prosa = {
             0: 0,
             1: 1,
@@ -323,7 +381,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 7,
             7: 8,
             8: 9,
-            9: 5, # On met les non renseignés en catégorie B
+            9: 5,  # On met les non renseignés en catégorie B
             }
         individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
     else:
@@ -347,6 +405,11 @@ def create_categorie_salarie(individus, period, survey_year = None):
             )
 
     if survey_year >= 2013:
+        if individus.titc.isnull().any():
+            individus.loc[
+                individus.titc.isnull() & ~(individus.chpub.isin([3, 4, 5])),
+                'titc'
+            ] = 0
         assert individus.titc.isin(range(5)).all(), \
             "titc n'est pas toujours dans l'ensemble [0, 1, 2, 3, 4] des valeurs antendues.\n{}".format(
                 individus.titc.value_counts(dropna = False)
@@ -1261,6 +1324,71 @@ def create_statut_matrimonial(individus):
     individus.loc[individus.matri == 4, 'statut_marital'] = 3  # divorcé(e)
 
     assert individus.statut_marital.isin(range(1, 7)).all()
+
+
+def create_taux_csg_remplacement(individus, period, tax_benefit_system):
+    assert 'revkire' in individus
+    assert 'nbp' in individus
+    if period.start.year < 2015:  # Should be an assert
+        period = periods.period(2015)
+    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
+    rfr = individus.revkire
+    nbptr = individus.nbp / 100
+    seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
+    seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
+    individus['taux_csg_remplacement'] = 0
+    individus['taux_csg_remplacement'] = np.where(
+        rfr <= seuil_exoneration,
+        1,
+        np.where(
+            rfr <= seuil_reduction,
+            2,
+            3,
+            )
+        )
+
+
+def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
+    assert 'taux_csg_remplacement' in individus
+    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+
+#    plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
+#    seuil_4_pss = 4 * 12 * plafond_securite_sociale_mensuel
+#    bareme_taux_plein = TODO
+#    bareme_taux_reduit = TODO
+    csg = parameters.prelevements_sociaux.contributions.csg
+
+    csg_deductible_chomage = csg.chomage.deductible
+    taux_plein = csg_deductible_chomage.taux_plein
+    taux_reduit = csg_deductible_chomage.taux_reduit
+    seuil_chomage_net_exoneration = (
+        (35 * 52) * smic_horaire_brut[period.start.year]
+        * (
+            (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
+            + (individus.taux_csg_remplacement == 3) / (1 - taux_plein)
+            )
+        )
+    exonere_csg_chomage = (
+        (individus.taux_csg_remplacement < 2)
+        | (individus.chomage_imposable <= seuil_chomage_net_exoneration)
+        )
+    individus['chomage_brut'] = np.where(
+        exonere_csg_chomage,
+        individus.chomage_imposable,
+        (individus.taux_csg_remplacement == 2) * individus.chomage_imposable / (1 - taux_reduit)
+        + (individus.taux_csg_remplacement == 3) * individus.chomage_imposable / (1 - taux_plein)
+        )
+
+    csg_deductible_retraite = parameters.prelevements_sociaux.contributions.csg.retraite.deductible
+    taux_plein = csg_deductible_retraite.taux_plein
+    taux_reduit = csg_deductible_retraite.taux_reduit
+    individus['retraite_brute'] = (
+        (individus.taux_csg_remplacement < 2) * individus.retraite_imposable
+        + (individus.taux_csg_remplacement == 2) * individus.retraite_imposable / (1 - taux_reduit)
+        + (individus.taux_csg_remplacement == 3) * individus.retraite_imposable / (1 - taux_plein)
+        )
+
 
 
 def todo_create(individus):
