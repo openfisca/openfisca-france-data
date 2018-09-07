@@ -104,46 +104,6 @@ class centile(Variable):
         return centile * menage_ordinaire
 
 
-class decile_net(Variable):
-    possible_values = Deciles
-    default_value = Deciles.hors_champs
-    value_type = Enum
-    entity = Menage
-    label = u"Décile de niveau de vie net"
-    definition_period = YEAR
-
-    def formula(menage, period):
-        menage_ordinaire = menage('menage_ordinaire', period)
-        niveau_de_vie_net = menage('niveau_de_vie_net', period)
-        wprm = menage('wprm', period)
-        labels = arange(1, 11)
-        method = 2
-        if len(wprm) == 1:
-            return wprm * 0
-        decile, values = mark_weighted_percentiles(niveau_de_vie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
-        return decile * menage_ordinaire
-
-
-class centile_net(Variable):
-    possible_values = Deciles
-    default_value = Deciles.hors_champs
-    value_type = Enum
-    entity = Menage
-    label = u"Centile de niveau de vie net"
-    definition_period = YEAR
-
-    def formula(menage, period):
-        menage_ordinaire = menage('menage_ordinaire', period)
-        niveau_de_vie_net = menage('niveau_de_vie_net', period)
-        wprm = menage('wprm', period)
-        labels = arange(1, 101)
-        method = 2
-        if len(wprm) == 1:
-            return wprm * 0
-        centile, values = mark_weighted_percentiles(niveau_de_vie_net, labels, wprm * menage_ordinaire, method, return_quantiles = True)
-        return centile * menage_ordinaire
-
-
 class decile_rfr(Variable):
     value_type = Enum
     possible_values = Deciles
