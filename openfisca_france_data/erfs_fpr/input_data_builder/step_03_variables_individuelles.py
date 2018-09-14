@@ -174,6 +174,8 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
 
     create_categorie_salarie(individus, period = period)
     created_variables.append('categorie_salarie')
+    create_categorie_non_salarie(individus)
+    created_variables.append('categorie_non_salarie')
 
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
     created_variables.append('salaire_de_base')
@@ -307,7 +309,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
           1 - Oui
           2 - Non
 
-      - prosa (survey_year < 2013, voir qprcent)
+      - prosa (survey_year < 2013, voir qprc)
           1 Manoeuvre ou ouvrier spécialisé
           2 Ouvrier qualifié ou hautement qualifié
           3 Technicien
@@ -317,7 +319,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
           8 Directeur général, adjoint direct
           9 Autre
 
-      - qprcent (survey_year >= 2013, voir prosa)
+      - qprc (survey_year >= 2013, voir prosa)
           Vide Sans objet (personnes non actives occupées, travailleurs informels et travailleurs intérimaires,
                           en activité temporaire ou d'appoint)
           1 Manoeuvre ou ouvrier spécialisé
@@ -350,10 +352,8 @@ def create_categorie_salarie(individus, period, survey_year = None):
           1 - Elève fonctionnaire ou stagiaire
           2 - Agent titulaire
           3 - Contractuel
+
     """
-
-    # TODO: Est-ce que les stagiaires sont considérées comme des contractuels dans OF ?
-
     assert period is not None
     if survey_year is None:
         survey_year = period.start.year
@@ -370,8 +370,8 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 1,
             }
         individus['chpub'] = individus.chpub.map(chpub_replacement)
-        log.debug('Using qprcent to infer prosa for year {}'.format(year))
-        qprcent_to_prosa = {
+        log.debug('Using qprc to infer prosa for year {}'.format(year))
+        qprc_to_prosa = {
             0: 0,
             1: 1,
             2: 2,
@@ -383,7 +383,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             8: 9,
             9: 5,  # On met les non renseignés en catégorie B
             }
-        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
+        individus['prosa'] = individus.qprcent.map(qprc_to_prosa)  # TODO should be qprc instaed aof qprcent
     else:
         pass
 
@@ -428,23 +428,26 @@ def create_categorie_salarie(individus, period, survey_year = None):
     individus['cadre'] = False
     individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
     individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
-    cadre = (individus.statut == 35) & (chpub > 3) & individus.cadre
+    cadre = (
+        (individus.statut >= 21) & (individus.statut <= 35)  # En activité hors fonction publique
+        & (chpub > 3) # Hors fonction publique mais entreprise publique
+        & individus.cadre
+        )
     del individus['cadre']
 
-    # etat_stag = (chpub==1) & (titc == 1)
+    # etat_stag = (chpub == 1) & (titc == 1)
     etat_titulaire = (chpub == 1) & ((titc == 2) | (titc == 1))
     etat_contractuel = (chpub == 1) & (titc == 3)
 
     militaire = False  # TODO:
 
     # collect_stag = (chpub==2) & (titc == 1)
-    collectivites_locales_titulaire = (chpub == 2) & (titc == 2)
+    collectivites_locales_titulaire = (chpub == 2) & ((titc == 2) | (titc == 1))
     collectivites_locales_contractuel = (chpub == 2) & (titc == 3)
 
     # hosp_stag = (chpub==2)*(titc == 1)
-    hopital_titulaire = (chpub == 3) & (titc == 2)
+    hopital_titulaire = (chpub == 3) & ((titc == 2) | (titc == 1))
     hopital_contractuel = (chpub == 3) & (titc == 3)
-
     contractuel = collectivites_locales_contractuel | hopital_contractuel | etat_contractuel
 
     if 'salaire_net' in individus and (individus['salaire_net'] > 0).any():
@@ -476,12 +479,126 @@ def create_categorie_salarie(individus, period, survey_year = None):
     assert individus['categorie_salarie'].isin(range(8)).all(), \
         "categorie_salarie n'est pas toujours dans l'intervalle [0, 7]\n{}".format(
             individus.categorie_salarie.value_counts(dropna = False))
-    log.debug(u"Répartition des catégories de salariés: \n{}".format(
-        individus
-            .groupby(['contrat_de_travail'])['categorie_salarie']
-            .value_counts(dropna = False)
-            .sort_index()
-        ))
+
+
+def create_categorie_non_salarie(individus):
+    """
+    Création de la variable categorie_salarie:
+      - "non_pertinent
+      - "artisan
+      - "commercant
+      - "profession_liberale
+    à partir des variables de l'eec' :
+      - cstot
+        - 00 Non renseigné (pour les actifs)
+        - 11 Agriculteurs sur petite exploitation
+        - 12 Agriculteurs sur moyenne exploitation
+        - 13 Agriculteurs sur grande exploitation
+        - 21 Artisans
+        - 22 Commerçants et assimilés
+        - 23 Chefs d'entreprise de 10 salariés ou plus
+        - 31 Professions libérales
+        - 33 Cadres de la fonction publique
+        - 34 Professeurs, professions scientifiques
+        - 35 Professions de l'information, des arts et des spectacles
+        - 37 Cadres administratifs et commerciaux d'entreprise
+        - 38 Ingénieurs et cadres techniques d'entreprise
+        - 42 Professeurs des écoles, instituteurs et assimilés
+        - 43 Professions intermédiaires de la santé et du travail social
+        - 44 Clergé, religieux
+        - 45 Professions intermédiaires administratives de la fonction publique
+        - 46 Professions intermédiaires administratives et commerciales des entreprises
+        - 47 Techniciens
+        - 48 Contremaîtres, agents de maîtrise
+        - 52 Employés civils et agents de service de la fonction publique
+        - 53 Policiers et militaires
+        - 54 Employés administratifs d'entreprise
+        - 55 Employés de commerce
+        - 56 Personnels des services directs aux particuliers
+        - 62 Ouvriers qualifiés de type industriel
+        - 63 Ouvriers qualifiés de type artisanal
+        - 64 Chauffeurs
+        - 65 Ouvriers qualifiés de la manutention, du magasinage et du transport
+        - 67 Ouvriers non qualifiés de type industriel
+        - 68 Ouvriers non qualifiés de type artisanal
+        - 69 Ouvriers agricoles
+        - 71 Anciens agriculteurs exploitants
+        - 72 Anciens artisans, commerçants, chefs d'entreprise
+        - 74 Anciens cadres
+        - 75 Anciennes professions intermédiaires
+        - 77 Anciens employés
+        - 78 Anciens ouvriers
+        - 81 Chômeurs n'ayant jamais travaillé
+        - 83 Militaires du contingent
+        - 84 Elèves, étudiants
+        - 85 Personnes diverses sans activité professionnelle de moins de 60 ans (sauf retraités)
+        - 86 Personnes diverses sans activité professionnelle de 60 ans et plus (sauf retraités)
+    """
+    assert individus.cstot.notnull().all()
+    individus.replace(
+        {
+            'cstot' : {'': '0', '00': '0'}
+            },
+        inplace = True
+        )
+    individus['cstot'] = individus.cstot.astype('int')
+    assert set(individus.cstot.unique()) < set([
+        0,
+        11, 12, 13,
+        21, 22, 23,
+        31, 33, 34, 35, 37, 38,
+        42, 43, 44, 45, 46, 47, 48,
+        52, 53, 54, 55, 56,
+        62, 63, 64, 65, 67, 68, 69,
+        71, 72, 74, 75, 77, 78,
+        81, 83, 84, 85, 86,
+        ])
+
+    agriculteur = individus.cstot.isin([11, 12, 13])
+    artisan = individus.cstot.isin([21])
+    commercant = individus.cstot.isin([22])
+    chef_entreprise = individus.cstot.isin([23])
+    profession_liberale = individus.cstot.isin([31])
+    individus['categorie_non_salarie'] = 0
+    individus.loc[
+        agriculteur | artisan,
+        'categorie_non_salarie'
+        ] = 1
+    individus.loc[
+        commercant | chef_entreprise,
+        'categorie_non_salarie'
+        ] = 2
+    individus.loc[
+        profession_liberale,
+        'categorie_non_salarie'
+        ] = 3
+    # Correction fonction publique
+    individus.loc[
+        (
+            (individus.categorie_salarie == 0)
+            & (individus.cstot.isin([31, 33, 34, 35, 37, 38,]))
+            ),
+        'categorie_salarie'
+        ] = 1
+
+    # Correction encadrement
+    individus.loc[
+        (
+            (individus.categorie_salarie == 0)
+            & (individus.cstot.isin([31, 34, 35, 37 ,38]))  # Cadres hors FP
+            ),
+        'categorie_salarie'
+        ] = 1
+    # Correction fonction publique
+    individus.loc[
+        (
+            (individus.categorie_salarie.isin([0, 1, 7]))
+            & (individus.cstot == 53) # Policiers et militaires reversé dans titulaire état
+            ),
+        'categorie_salarie'
+        ] = 2
+
+
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     """
@@ -708,7 +825,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     salaire_sans_heures = (individus.contrat_de_travail == 1) & ~(individus.heures_remunerees_volume > 0)
     assert (individus.loc[salaire_sans_heures, 'salaire'] > 0).all()
     assert (individus.loc[salaire_sans_heures, 'duhab'] == 1).all()
-    # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic net.
+    # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic.
     # On leur attribue donc un nombre d'heures travaillées égal à 15.
     individus.loc[
         salaire_sans_heures &
@@ -832,8 +949,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
         assert individus.nbsala.isin(range(0, 13) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
-        individus['effectif_entreprise'] = np.select(
-            [0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500],
+        individus['effectif_entreprise'] = np.select( # condition_lits, choice_list
             [
                 individus.nbsala == 0,  # 0
                 individus.nbsala == 1,  # 1
@@ -848,7 +964,8 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.nbsala == 10,  # 9
                 (individus.nbsala == 11) | (individus.nbsala == 99),  # 9
                 individus.nbsala == 12,  # 9
-                ]
+                ],
+            [0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500],
             )
         assert individus.effectif_entreprise.isin([0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500]).all(), \
             "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
@@ -859,7 +976,6 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
             "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
-            [0, 1, 5, 10, 20, 50, 200, 500, 1000],
             [
                 individus.nbsala.isin([0, 1]),  # 0
                 individus.nbsala == 2,  # 1
@@ -870,12 +986,15 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.nbsala == 7,  # 200
                 individus.nbsala == 8,  # 500
                 individus.nbsala == 9,  # 1000
-                ]
+                ],
+            [0, 1, 5, 10, 20, 50, 200, 500, 1000],
             )
 
         assert individus.effectif_entreprise.isin([0, 1, 5, 10, 20, 50, 200, 500, 1000]).all(), \
             "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
                 individus.effectif_entreprise.value_counts(dropna = False))
+        log.debug('Effectif entreprise:\n{}'.format(
+            individus.effectif_entreprise.value_counts(dropna = False)))
 
 
 def create_revenus(individus, revenu_type = 'imposable'):
