@@ -70,7 +70,7 @@ def smic_annuel_imposbale_from_net(year):
 
 smic_annuel_imposbale_by_year = dict([
     (year, smic_annuel_imposbale_from_net(year))
-    for year in range(2010, 2018)
+    for year in range(2010, 2019)
     ])
 
 
@@ -535,12 +535,14 @@ def create_categorie_non_salarie(individus):
         - 86 Personnes diverses sans activité professionnelle de 60 ans et plus (sauf retraités)
     """
     assert individus.cstot.notnull().all()
-    individus.replace(
-        {
-            'cstot' : {'': '0', '00': '0'}
-            },
-        inplace = True
-        )
+    if not pd.api.types.is_numeric_dtype(individus.cstot):
+        individus.replace(
+            {
+                'cstot' : {'': '0', '00': '0'}
+                },
+            inplace = True
+            )
+
     individus['cstot'] = individus.cstot.astype('int')
     assert set(individus.cstot.unique()) < set([
         0,
