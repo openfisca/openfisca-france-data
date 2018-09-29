@@ -79,6 +79,57 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
     return data.recourant.values
 
 
+def select_to_match_target(target_probability = None, target_mass = None, eligible = None, weights = None, take = None, seed = None):
+    """
+    Compute a vector of boolean for take_up according a target probability accross eligble population
+    """
+    assert (target_probability is not None) or (target_mass is not None)
+
+    if target_mass is not None:
+        assert target_mass <= (eligible * weights).sum(), "target too high {}, {}".format(
+            target_mass, (eligible * weights).sum())
+        target_probability = target_mass / (eligible * weights).sum()
+
+    assert (target_probability >= 0) and (target_probability <= 1)
+
+
+    print("target_probability: {}".format(target_probability))
+    if target_probability == 0:
+        return eligible * False
+    elif target_probability == 1:
+        return eligible * True
+
+    data = pd.DataFrame({
+        'eligible': eligible,
+        'weights': weights,
+        'take': take,
+        }).copy()
+
+    eligibles = data.loc[data.eligible].copy()
+    eligibles['selected'] = eligibles['take'].copy()
+    initial_probability = eligibles.loc[eligibles['take'], 'weights'].sum() / eligibles.weights.sum()
+
+    if target_probability > initial_probability:
+        adjusted_target_probability = (target_probability - initial_probability) / (1 - initial_probability)
+        s_data = eligibles.loc[~eligibles.selected].copy()
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
+        eligibles.loc[eligibles.index.isin(s_data.index), 'selected'] = True
+        eligibles_selected_indices = eligibles.query('eligible & selected').index
+        data['selected'] = False
+        data.loc[data.index.isin(eligibles_selected_indices), 'selected'] = True
+
+    elif target_probability <= initial_probability:
+        adjusted_target_probability = 1 - target_probability / initial_probability
+        s_data = eligibles.loc[eligibles.selected].copy()
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
+        eligibles_unselected_indices = s_data.index
+        data['selected'] = data['take'] & data.eligible
+        data.loc[data.index.isin(eligibles_unselected_indices), 'selected'] = False
+
+    return data.selected.values
+
+
+
 variables = get_variables_from_modules([common, survey_variables])
 
 

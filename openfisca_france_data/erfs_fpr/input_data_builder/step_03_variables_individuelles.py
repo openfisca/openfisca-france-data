@@ -10,6 +10,7 @@ from openfisca_core.formula_helpers import switch
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_france import FranceTaxBenefitSystem
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
+from openfisca_france_data import select_to_match_target
 from openfisca_france_data.utils import (
     assert_dtype,
     )
@@ -33,7 +34,7 @@ smic_horaire_brut = {  # smic horaire brut moyen sur l'année
 
 # Sources BDM
 smic_annuel_net_by_year = {
-    2018: 9 * 1173.60 + 3 * 1187.83,
+    2018: 9 * 1173.60 + 3 * 1187.83,  # Baisse de la cotisaation chômage en cours d'annnée
     2017: 12 * 1151.50,
     2016: 12 * 1141.61,
     2015: 12 * 1135.99,
@@ -142,7 +143,8 @@ def create_variables_individuelles(individus, year, survey_year = None):
     create_statut_matrimonial(individus)
 
 
-def create_individu_variables_brutes(individus, revenu_type = None, period = None, tax_benefit_system = None):
+def create_individu_variables_brutes(individus, revenu_type = None, period = None, tax_benefit_system = None,
+         mass_by_categorie_salarie = None):
     """
     Crée les variables brutes de revenus:
       - salaire_de_base
@@ -176,6 +178,10 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
     created_variables.append('categorie_salarie')
     create_categorie_non_salarie(individus)
     created_variables.append('categorie_non_salarie')
+
+    # FIXME: categorie_non_salarie modifie aussi categorie_salarie  !!
+    if mass_by_categorie_salarie is not None:
+        calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = mass_by_categorie_salarie)
 
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
     created_variables.append('salaire_de_base')
@@ -561,7 +567,7 @@ def create_categorie_non_salarie(individus):
     commercant = individus.cstot.isin([22])
     chef_entreprise = individus.cstot.isin([23])
     profession_liberale = individus.cstot.isin([31])
-    individus['categorie_non_salarie'] = 0
+    individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut 
     individus.loc[
         agriculteur | artisan,
         'categorie_non_salarie'
@@ -1198,7 +1204,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
         assert bareme.inverse().thresholds[0] == 0, "Invalid inverse bareme for {}:\n {}".format(
             categorie, bareme.inverse())
-        for rate in bareme.inverse().rates:
+        for rate in bareme.inverse().rates:  # Vérification que l'on peut inverser correctement
             assert rate > 0
 
         brut_proratise = bareme.inverse().calc(salaire_pour_inversion_proratise)
@@ -1219,16 +1225,21 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
             log.debug('bareme direct: {}'.format(bareme))
 
-    # agirc_gmp
-    # gmp = P.prelevements_sociaux.gmp
-    # salaire_charniere = gmp.salaire_charniere_annuel
-    # cotisation_forfaitaire = gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
-    # salaire_de_base += (
-    #     (categorie_salarie == CATEGORIE_SALARIE['prive_cadre']) *
-    #     (salaire_de_base <= salaire_charniere) *
-    #     cotisation_forfaitaire
-    #     )
+
     individus['salaire_de_base'] = salaire_de_base
+
+    if period.unit == 'year':
+        year = period.start.year
+        # Correction pour sous_smic: TODO chercher la source de cet erreur !
+        individus.loc[
+            (individus.contrat_de_travail == 0) & (individus.salaire_de_base > 0),
+            'salaire_de_base'
+            ] = np.maximum(salaire_de_base, smic_horaire_brut[year] * 35 * 52 / 12)
+        individus.loc[
+            (individus.contrat_de_travail == 1) & (individus.salaire_de_base > 0),
+            'salaire_de_base'
+            ] = np.maximum(salaire_de_base, smic_horaire_brut[year] * heures_remunerees_volume)
+
 
 
 def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable',
@@ -1415,8 +1426,8 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
             log.debug('bareme direct: {}'.format(bareme))
 
     # TODO: complete this to deal with the fonctionnaire
-    # supp_familial_traitement = 0  # TODO: dépend de salbrut
-    # indemnite_residence = 0  # TODO: fix bug
+    # supp_familial_traitement = 0  # TODO: dépend du traitement_indiciaire_brut
+    # indemnite_residence = 0  # TODO: fix
     individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
@@ -1472,14 +1483,15 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system):
 
 def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     assert 'taux_csg_remplacement' in individus
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    individus.chomage_imposable.fillna(0, inplace = True)
+    individus.retraite_imposable.fillna(0, inplace = True)
 
+    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
 #    plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
 #    seuil_4_pss = 4 * 12 * plafond_securite_sociale_mensuel
 #    bareme_taux_plein = TODO
 #    bareme_taux_reduit = TODO
     csg = parameters.prelevements_sociaux.contributions.csg
-
     csg_deductible_chomage = csg.chomage.deductible
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
@@ -1500,6 +1512,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         (individus.taux_csg_remplacement == 2) * individus.chomage_imposable / (1 - taux_reduit)
         + (individus.taux_csg_remplacement == 3) * individus.chomage_imposable / (1 - taux_plein)
         )
+    assert individus['chomage_brut'].notnull().all()
 
     csg_deductible_retraite = parameters.prelevements_sociaux.contributions.csg.retraite.deductible
     taux_plein = csg_deductible_retraite.taux_plein
@@ -1509,7 +1522,47 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         + (individus.taux_csg_remplacement == 2) * individus.retraite_imposable / (1 - taux_reduit)
         + (individus.taux_csg_remplacement == 3) * individus.retraite_imposable / (1 - taux_plein)
         )
+    assert individus['retraite_brute'].notnull().all()
 
+
+def calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = None):
+    assert mass_by_categorie_salarie is not None
+    log.info(
+        mass_by_categorie_salarie
+        )
+
+    weight_individus = individus['ponderation'].values
+    for rebalanced_categorie, target_mass in mass_by_categorie_salarie.items():
+        categorie_salarie = individus['categorie_salarie'].values
+        eligible = (
+            (categorie_salarie == 0) | (categorie_salarie == rebalanced_categorie)
+            )
+        take = (categorie_salarie == rebalanced_categorie)
+        print(
+            """
+initial take population: {}
+initial eligible population: {}
+target mass: {}""".format(
+                (take * eligible * weight_individus).sum() / 1e6,
+                (eligible * weight_individus).sum() / 1e6,
+                target_mass / 1e6,
+                ))
+        selected = select_to_match_target(
+            target_mass = target_mass,
+            eligible = eligible,
+            weights = weight_individus,
+            take = take,
+            seed = 9779972
+            )
+        print("""
+    final selected population: {}
+    error: {} %
+    """.format(
+            (eligible * selected * weight_individus).sum() / 1e6,
+            ((eligible * selected * weight_individus).sum() - target_mass) / target_mass * 100,
+            ))
+        individus.loc[selected, 'categorie_salarie'] = rebalanced_categorie
+        print(individus.groupby('categorie_salarie')['ponderation'].sum())
 
 
 def todo_create(individus):
