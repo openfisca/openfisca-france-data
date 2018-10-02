@@ -84,7 +84,8 @@ def select_to_match_target(target_probability = None, target_mass = None, eligib
     Compute a vector of boolean for take_up according a target probability accross eligble population
     """
     assert (target_probability is not None) or (target_mass is not None)
-
+    if take is None:
+        take = False
     if target_mass is not None:
         assert target_mass <= (eligible * weights).sum(), "target too high {}, {}".format(
             target_mass, (eligible * weights).sum())
@@ -92,8 +93,6 @@ def select_to_match_target(target_probability = None, target_mass = None, eligib
 
     assert (target_probability >= 0) and (target_probability <= 1)
 
-
-    print("target_probability: {}".format(target_probability))
     if target_probability == 0:
         return eligible * False
     elif target_probability == 1:

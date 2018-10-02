@@ -567,7 +567,7 @@ def create_categorie_non_salarie(individus):
     commercant = individus.cstot.isin([22])
     chef_entreprise = individus.cstot.isin([23])
     profession_liberale = individus.cstot.isin([31])
-    individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut 
+    individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut
     individus.loc[
         agriculteur | artisan,
         'categorie_non_salarie'
@@ -1458,26 +1458,47 @@ def create_statut_matrimonial(individus):
     assert individus.statut_marital.isin(range(1, 7)).all()
 
 
-def create_taux_csg_remplacement(individus, period, tax_benefit_system):
+def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = (28.1) ** 2):
     assert 'revkire' in individus
     assert 'nbp' in individus
     if period.start.year < 2015:  # Should be an assert
         period = periods.period(2015)
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
-    seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
+
     rfr = individus.revkire
     nbptr = individus.nbp / 100
-    seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
-    seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
-    individus['taux_csg_remplacement'] = 0
-    individus['taux_csg_remplacement'] = np.where(
-        rfr <= seuil_exoneration,
-        1,
-        np.where(
-            rfr <= seuil_reduction,
-            2,
-            3,
+
+    def compute_taux_csg_remplacement(rfr, nbptr):
+        parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+        seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
+        seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
+        seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
+        taux_csg_remplacement = 0.0 * rfr
+        taux_csg_remplacement = np.where(
+            rfr <= seuil_exoneration,
+            1,
+            np.where(
+                rfr <= seuil_reduction,
+                2,
+                3,
+                )
             )
+        return taux_csg_remplacement
+
+    individus['taux_csg_remplacement'] = compute_taux_csg_remplacement(rfr, nbptr)
+    if sigma is not None:
+        np.random.seed(42)
+        rfr_n_1 = rfr + (individus.retraite_imposable > 0) * np.random.normal(
+            scale = sigma, size = len(individus['taux_csg_remplacement'])
+            )
+    individus['taux_csg_remplacement_n_1'] = compute_taux_csg_remplacement(rfr_n_1, nbptr)
+
+    distribution = individus.groupby(['taux_csg_remplacement', 'taux_csg_remplacement_n_1'])['ponderation'].sum() / 1000
+    log.debug(
+        "Distribution of taux_csg_remplacement:\n",
+        distribution)
+    log.info(
+        "Target of taux_csg_remplacement (in thousands):\n",
+        distribution[[(2, 1), (3 , 2)]].sum()
         )
 
 
@@ -1538,7 +1559,7 @@ def calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salari
             (categorie_salarie == 0) | (categorie_salarie == rebalanced_categorie)
             )
         take = (categorie_salarie == rebalanced_categorie)
-        print(
+        log.info(
             """
 initial take population: {}
 initial eligible population: {}
@@ -1554,7 +1575,7 @@ target mass: {}""".format(
             take = take,
             seed = 9779972
             )
-        print("""
+        log.info("""
     final selected population: {}
     error: {} %
     """.format(
@@ -1562,7 +1583,7 @@ target mass: {}""".format(
             ((eligible * selected * weight_individus).sum() - target_mass) / target_mass * 100,
             ))
         individus.loc[selected, 'categorie_salarie'] = rebalanced_categorie
-        print(individus.groupby('categorie_salarie')['ponderation'].sum())
+        log.info(individus.groupby('categorie_salarie')['ponderation'].sum())
 
 
 def todo_create(individus):
