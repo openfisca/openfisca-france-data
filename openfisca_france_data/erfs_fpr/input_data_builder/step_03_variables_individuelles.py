@@ -186,6 +186,8 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
     created_variables.append('salaire_de_base')
 
+
+
     create_effectif_entreprise(individus, period = period)
     created_variables.append('effectif_entreprise')
 
@@ -196,6 +198,7 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
 
     create_taux_csg_remplacement(individus, period, tax_benefit_system)
     created_variables.append('taux_csg_remplacement')
+    created_variables.append('taux_csg_remplacement_n_1')
 
     create_revenus_remplacement_bruts(individus, period, tax_benefit_system)
     created_variables.append('chomage_brut')
@@ -1472,7 +1475,6 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
         seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
         seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
         seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
-        taux_csg_remplacement = 0.0 * rfr
         taux_csg_remplacement = np.where(
             rfr <= seuil_exoneration,
             1,
@@ -1584,6 +1586,23 @@ target mass: {}""".format(
             ))
         individus.loc[selected, 'categorie_salarie'] = rebalanced_categorie
         log.info(individus.groupby('categorie_salarie')['ponderation'].sum())
+        seuil_salaire_imposable_mensuel = 2 * 3000
+        individus.loc[
+            (
+                (individus.contrat_de_travail == 0)
+                & (individus.categorie_salarie == 0)
+                & (individus.salaire_imposable > 12 * seuil_salaire_imposable_mensuel)
+                ),
+            'categorie_salarie'
+            ] = 1
+        individus.loc[
+            (
+                (individus.contrat_de_travail == 1)
+                & (individus.categorie_salarie == 0)
+                & (individus.salaire_imposable  > (12 * seuil_salaire_imposable_mensuel) / (35 * 52) * individus.heures_remunerees_volume)
+                ),
+            'categorie_salarie'
+            ] = 1
 
 
 def todo_create(individus):
