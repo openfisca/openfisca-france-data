@@ -1475,6 +1475,7 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
         seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
         seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
         seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
+        taux_csg_remplacement = 0.0 * rfr
         taux_csg_remplacement = np.where(
             rfr <= seuil_exoneration,
             1,
@@ -1484,6 +1485,7 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
                 3,
                 )
             )
+
         return taux_csg_remplacement
 
     individus['taux_csg_remplacement'] = compute_taux_csg_remplacement(rfr, nbptr)
@@ -1502,6 +1504,8 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
         "Target of taux_csg_remplacement (in thousands):\n",
         distribution[[(2, 1), (3 , 2)]].sum()
         )
+    assert individus['taux_csg_remplacement_n_1'].isin(range(4)).all()
+    assert individus['taux_csg_remplacement'].isin(range(4)).all()
 
 
 def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
