@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-
-import csv, pickle
+import pickle
+import csv
 
 if __name__ == '__main__':
 
@@ -11,9 +11,7 @@ if __name__ == '__main__':
     code = csv.reader(open(fileName), delimiter = ";")
 
     for row in code:
-        codeDict.update({row[2]:(row[1],row[4])})
-
-    # print(codeDict['75017'])
+        codeDict.update({row[2]: (row[1], row[4])})
 
     outputFile = open("code_apl", 'wb')
     pickle.dump(codeDict, outputFile)
