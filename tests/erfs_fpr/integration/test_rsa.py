@@ -75,6 +75,7 @@ def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
         )
     return survey_scenario
 
+
 survey_scenario = get_custom_survey_scenario(rebuild_input_data = False)
 
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
