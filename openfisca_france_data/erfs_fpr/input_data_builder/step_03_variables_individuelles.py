@@ -955,7 +955,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
-        for name, bareme in baremes_collection._children.iteritems():
+        for name, bareme in baremes_collection._children.items():
             if name.endswith('alsace_moselle'):
                 baremes_to_remove.append(name)
         for name in baremes_to_remove:
@@ -963,7 +963,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         test = set(
-            name for name, bareme in salarie[categorie]._children.iteritems()
+            name for name, bareme in salarie[categorie]._children.items()
             if isinstance(bareme, MarginalRateTaxScale)
             )
         assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
@@ -1131,7 +1131,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     for categorie in categories_salarie_du_public:
         baremes_collection = salarie[categorie]
         test = set(
-            name for name, bareme in salarie[categorie]._children.iteritems()
+            name for name, bareme in salarie[categorie]._children.items()
             if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl2'
             )
         assert target[categorie] == test, 'target for {}: \n  target = {} \n  test = {}'.format(categorie, target[categorie], test)
@@ -1197,7 +1197,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     traitement_indiciaire_brut = 0.0
 
     for categorie in categories_salarie_du_public:
-        for key, value in salarie[categorie]._children.iteritems():
+        for key, value in salarie[categorie]._children.items():
             log.debug(key, value)
         bareme = combine_tax_scales(salarie[categorie])
         log.debug('bareme cotsoc : {}'.format(bareme))

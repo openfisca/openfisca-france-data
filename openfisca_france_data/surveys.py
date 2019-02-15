@@ -172,7 +172,7 @@ def new_simulation_from_array_dict(array_dict = None, debug = False,
             array_dict[id_var] = np.arange(global_count, dtype = int)
 
     column_by_name = tax_benefit_system.variables
-    for column_name, array in array_dict.iteritems():
+    for column_name, array in array_dict.items():
         assert column_name in column_by_name, column_name
 
     entity_by_key_plural = simulation.entity_by_key_plural
@@ -197,7 +197,7 @@ def new_simulation_from_array_dict(array_dict = None, debug = False,
     menages.roles_count = array_dict['quimen'].max() + 1
     foyers_fiscaux.roles_count = array_dict['quifoy'].max() + 1
 
-    for column_name, column_array in array_dict.iteritems():
+    for column_name, column_array in array_dict.items():
         holder = simulation.get_holder(column_name)
         entity = holder.entity
         if entity.is_persons_entity:

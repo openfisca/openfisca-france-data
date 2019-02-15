@@ -217,7 +217,7 @@ def test_fake_calibration_age():
     age = survey_scenario.simulation.calculate('age'),
     weight_individus = survey_scenario.simulation.calculate('weight_individus')
 
-    for category, target in calibration.margins_by_variable['age']['target'].iteritems():
+    for category, target in calibration.margins_by_variable['age']['target'].items():
         assert_near(
             ((age == category) * weight_individus).sum() / weight_individus.sum(),
             target / numpy.sum(calibration.margins_by_variable['age']['target'].values()),

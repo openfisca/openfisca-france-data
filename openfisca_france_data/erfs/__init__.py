@@ -37,5 +37,5 @@ def get_of2erf(year=None):
 
 def get_erf2of():
     of2erf = get_of2erf()
-    erf2of = dict((v,k) for k, v in of2erf.iteritems())
+    erf2of = dict((v,k) for k, v in of2erf.items())
     return erf2of

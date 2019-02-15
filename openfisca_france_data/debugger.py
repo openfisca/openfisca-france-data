@@ -181,7 +181,7 @@ class Debugger(object):
             # Getting only heads of other entities prenent in the projected on entity
             boolean_index = person_data_frame[entity.role_for_person_variable_name] == 0  # Heads
             index_entity = person_data_frame.loc[boolean_index, entity.index_for_person_variable_name].values  # Ent.
-            for column_name, column_series in self.data_frame_by_entity_key_plural[entity_key_plural].iteritems():
+            for column_name, column_series in self.data_frame_by_entity_key_plural[entity_key_plural].items():
                 person_data_frame.loc[boolean_index, column_name] \
                     = column_series.iloc[index_entity].values
                 person_data_frame[column_name].fillna(0)
@@ -224,7 +224,7 @@ class Debugger(object):
                     ) for erf_variable in erf_variables
                 ]
             )
-        for variable, year_specific_tables in year_specific_tables_by_erf_variable.iteritems():
+        for variable, year_specific_tables in year_specific_tables_by_erf_variable.items():
             if len(year_specific_tables) < 1:
                 log.info("No tables are present for variable {}".format(variable))
                 continue
@@ -236,7 +236,7 @@ class Debugger(object):
 
         erf2of = get_erf2of()
 
-        for table, erf_variables in erf_variables_by_generic_table.iteritems():
+        for table, erf_variables in erf_variables_by_generic_table.items():
             if erf_variables:
                 data_frame_by_table[table] = erf_survey.get_values(
                     variables = erf_variables, table = year_specific_by_generic[table]
@@ -395,7 +395,7 @@ class Debugger(object):
                     individus_index, entity.index_for_person_variable_name].unique()
 
         extracted_indices = individus_index
-        for entity, entity_index in index_by_entity.iteritems():
+        for entity, entity_index in index_by_entity.items():
             if entity.key_plural in ['menages', 'individus']:
                 continue
             extracted_indices = extracted_indices + \

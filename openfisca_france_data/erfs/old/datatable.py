@@ -50,7 +50,7 @@ class Survey(object):
         if name not in self.tables.keys():
             self.tables[name] = dict()
 
-        for key, val in kwargs.iteritems():
+        for key, val in kwargs.items():
             if key in ["RData_dir", "RData_filename", "variables"]:
                     self.tables[name][key] = val
 
@@ -139,15 +139,9 @@ def build_erfs_survey_collection():
         config_local_ini = os.path.join(CONFIG_DIR, 'config_local.ini')
         config_ini = os.path.join(CONFIG_DIR, 'config.ini')
         found = parser.read(config_local_ini, config_ini)
-        print(found)
-
         data_directory = parser.get('data', 'input_directory')
         for table in erf_tables:
             table["RData_filename"] = os.path.join(os.path.dirname(data_directory),'R','erf')
-
-
-
-
 
     def initialize(self):
         """
@@ -251,7 +245,7 @@ def build_erfs_survey_collection():
                                  "lgt_logt" : lgt_lgt}
 
         RData_dir = os.path.join(os.path.dirname(DATA_DIR),'R','logement')
-        for name, RData_filename in lgt_tables_to_process.iteritems():
+        for name, RData_filename in lgt_tables_to_process.items():
             lgt.insert_table(name=name,
                              RData_filename=RData_filename,
                              RData_dir=RData_dir)
@@ -291,8 +285,8 @@ def build_erfs_survey_collection():
             raise Exception("year should be defined")
 
         store = HDFStore(self.hdf5_filename)
-        for survey_name, description in self.surveys.iteritems():
-            for destination_table_name, tables in description.tables.iteritems():
+        for survey_name, description in self.surveys.items():
+            for destination_table_name, tables in description.tables.items():
                 data_dir = tables["RData_dir"]
                 R_table_name = tables["RData_filename"]
                 try:

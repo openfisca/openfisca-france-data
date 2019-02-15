@@ -31,7 +31,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
     control(table_simu.table, verbose = True)
 
     # First : study of the datatable / the specification of columns given by table_simu
-    for var, varcol in table_simu.variables.iteritems():
+    for var, varcol in table_simu.variables.items():
         try:
             serie = dataframe[var]
             simu_serie = table_simu.table[var]
@@ -211,7 +211,7 @@ def dump_simulation_results_data_frame(survey_scenario, collection = None):
     openfisca_survey_collection = SurveyCollection.load(collection = "openfisca")
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_data_{}".format(year)
-    for entity, data_frame in data_frame_by_entity.iteritems():
+    for entity, data_frame in data_frame_by_entity.items():
         print(entity)
         table = entity
         hdf5_file_path = os.path.join(
@@ -310,7 +310,7 @@ def simulation_results_as_data_frame(survey_scenario = None, column_names = None
             if other_entity != entity:
                 boolean_index = individual_data_frame["qui{}".format(other_entity)] == 0
                 index_other_entity = individual_data_frame.loc[boolean_index, "id{}".format(other_entity)].values
-                for column_name, column_series in data_frame_by_entity[other_entity].iteritems():
+                for column_name, column_series in data_frame_by_entity[other_entity].items():
                     individual_data_frame.loc[boolean_index, column_name] \
                         = column_series.loc[index_other_entity].values
                     individual_data_frame[column_name].fillna(0)

@@ -62,7 +62,7 @@ def loose_check(data_frame_by_entity):
     strictly_positive_sum_variables = positive_variables
     strictly_positive_sum_variables.remove('aide_logement_montant_brut')
 
-    for entity, data_frame in data_frame_by_entity.iteritems():
+    for entity, data_frame in data_frame_by_entity.items():
         for variable in data_frame.columns:
             if variable in positive_variables:
                 assert (data_frame[variable] >= 0).all(), \
