@@ -199,11 +199,9 @@ def check_consistency(table_simu, dataframe, corrige = True):
         print(message)
 
     if corrige:
-        return dataframe
+        return(dataframe)
     else:
         return
-
-    # NotImplementedError
 
 
 def dump_simulation_results_data_frame(survey_scenario, collection = None):
