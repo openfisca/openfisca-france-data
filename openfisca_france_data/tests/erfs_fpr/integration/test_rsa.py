@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 #%%
@@ -15,7 +14,7 @@ from openfisca_france_data.tests import base as base_survey
 log = logging.getLogger(__name__)
 
 
-def get_survey_scenario(year = 2012, rebuild_input_data = False):
+def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
     tax_benefit_system = base_survey.france_data_tax_benefit_system
 
     class rsa_origin(Variable):
@@ -80,8 +79,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
     return survey_scenario
 
 
-survey_scenario = get_survey_scenario(rebuild_input_data = False)
-
+survey_scenario = get_custom_survey_scenario(rebuild_input_data = False)
 
 
 #%%
@@ -102,7 +100,7 @@ data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         'rsa_forfait_logement',
         'rsa_montant',
         'rsa_origin',
-        'rsa_revenu_activite'
+        'rsa_revenu_activite',
         'rsa_forfait_logement',
         'weight_familles',
         ],
@@ -145,21 +143,18 @@ survey_scenario.summarize_variable('rsa_base_ressources')
 survey_scenario.summarize_variable('rsa_base_ressources_individu', weighted = True)
 survey_scenario.summarize_variable('rsa', weighted = True)
 
-survey_scenario.summarize_variable('rev_cap_bar', weighted = True)
-survey_scenario.summarize_variable('rev_cap_lib', weighted = True)
+survey_scenario.summarize_variable('revenus_capitaux_prelevement_bareme', weighted = True)
+survey_scenario.summarize_variable('revenus_capitaux_prelevement_liberatoire', weighted = True)
 
 
 types_revenus_non_pros = [
-    'allocation_aide_retour_emploi',
     'allocation_securisation_professionnelle',
     'dedommagement_victime_amiante',
-    'div_ms',
     'gains_exceptionnels',
     'pensions_alimentaires_percues',
     'pensions_invalidite',
     'prestation_compensatoire',
     'prime_forfaitaire_mensuelle_reprise_activite',
-    'revenus_fonciers_minima_sociaux',
     'rsa_base_ressources_patrimoine_individu',
     'rsa_indemnites_journalieres_hors_activite',
     ]
