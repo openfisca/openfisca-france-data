@@ -25,7 +25,6 @@ def test_inversion():
             # 'wprm',
             ],
         )
-    print(data_frame_by_entity)
 
     #famille = data_frame_by_entity['famille']
     individu = data_frame_by_entity['individu']
