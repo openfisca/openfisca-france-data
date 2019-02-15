@@ -17,7 +17,6 @@ def final_check(year=2006):
     survey = HDFStore(survey_filename)
 
     final2 = store.get('survey_2006')
-    print(survey)
     finalT = survey.get('survey_2006')
 
     varlist = [
