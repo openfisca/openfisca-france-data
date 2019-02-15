@@ -139,15 +139,9 @@ def build_erfs_survey_collection():
         config_local_ini = os.path.join(CONFIG_DIR, 'config_local.ini')
         config_ini = os.path.join(CONFIG_DIR, 'config.ini')
         found = parser.read(config_local_ini, config_ini)
-        print(found)
-
         data_directory = parser.get('data', 'input_directory')
         for table in erf_tables:
             table["RData_filename"] = os.path.join(os.path.dirname(data_directory),'R','erf')
-
-
-
-
 
     def initialize(self):
         """
