@@ -1,7 +1,8 @@
 # OpenFisca France Data
 
 [![Slack](https://img.shields.io/badge/slack-join%20us!-blueviolet.svg?style=flat)](https://openfisca.slack.com/signup)
-[![PyPi](https://img.shields.io/pypi/v/openfisca-france-data.svg?style=flat)](https://pypi.org/project/OpenFisca-France-Data)
+[![PyPi](https://img.shields.io/pypi/v/openfisca-france-data.svg?style=flat)](https://pypi.python.org/pypi/openfisca-france-data)
+[![Python](https://img.shields.io/pypi/pyversions/openfisca-france-data.svg)](https://pypi.python.org/pypi/openfisca-france-data)
 [![CircleCI](https://img.shields.io/circleci/project/github/openfisca/openfisca-france-data/master.svg?style=flat)](https://circleci.com/gh/openfisca/openfisca-france-data)
 
 [OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
