@@ -1,5 +1,13 @@
 all: flake8 test
 
+uninstall:
+	pip freeze | grep -v "^-e" | xargs pip uninstall -y
+
+install:
+	pip install --upgrade pip
+	pip install --editable . --upgrade
+	pip install --editable .[test] --upgrade
+
 archive: clean
 	git archive HEAD --format=zip > archive.zip
 
