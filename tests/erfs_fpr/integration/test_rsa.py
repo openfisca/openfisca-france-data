@@ -3,16 +3,16 @@
 
 import logging
 
-from openfisca_core.model_api import *
-from openfisca_france.entities import Famille, Individu
-from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
-from openfisca_france_data import base_survey
+from openfisca_core.model_api import *  # type:ignore
+from openfisca_france.entities import Famille, Individu  # type:ignore
+from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario  # type:ignore
+from openfisca_france_data import france_data_tax_benefit_system  # type:ignore
 
 log = logging.getLogger(__name__)
 
 
 def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
-    tax_benefit_system = base_survey.france_data_tax_benefit_system
+    tax_benefit_system = france_data_tax_benefit_system
 
     class rsa_origin(Variable):
         value_type = float
@@ -75,7 +75,6 @@ def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
         )
     return survey_scenario
 
-
 survey_scenario = get_custom_survey_scenario(rebuild_input_data = False)
 
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
@@ -108,7 +107,11 @@ menage = data_frame_by_entity['menage']
 famille.activite_famille_min.value_counts(dropna = False)
 
 famille.groupby(
-    ['nb_parents', 'activite_famille_max', 'activite_famille_min']
+    [
+        'nb_parents',
+        'activite_famille_max',
+        'activite_famille_min',
+        ],
     )['rsa'].sum()
 
 rsa_pivot_table = survey_scenario.compute_pivot_table(
@@ -148,6 +151,7 @@ types_revenus_non_pros = [
     'rsa_base_ressources_patrimoine_individu',
     'rsa_indemnites_journalieres_hors_activite',
     ]
+
 for revenu in types_revenus_non_pros:
     survey_scenario.summarize_variable(revenu, weighted = True)
 
