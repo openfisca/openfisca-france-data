@@ -131,7 +131,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                     holder.set_input(simulation.period.offset(offset), simulation.calculate(
                         variable, period = periods.period(self.year).first_month))
 
-
     def custom_input_data_frame(self, input_data_frame, **kwargs):
         # input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
         if 'loyer' in input_data_frame:

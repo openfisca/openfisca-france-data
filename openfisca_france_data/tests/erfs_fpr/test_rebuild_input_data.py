@@ -29,13 +29,11 @@ def test_rebuild_input_data(year = 2012):
     return survey_scenario
 
 
-
-
 if __name__ == '__main__':
     import logging
     log = logging.getLogger(__name__)
     import sys
-    logging.basicConfig(level = logging.DEBUG   , stream = sys.stdout)
+    logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     survey_scenario = test_rebuild_input_data()
     survey_scenario.summarize_variable('salaire_de_base', force_compute = True)
     survey_scenario.summarize_variable('salaire_imposable', force_compute = True)

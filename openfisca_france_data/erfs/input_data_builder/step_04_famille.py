@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 
 AGE_RSA = 25
 
+
 def control_04(dataframe, base):
     log.info(u"longueur de la dataframe après opération :".format(len(dataframe.index)))
     log.info(u"contrôle des doublons : il y a {} individus en double".format(
@@ -68,8 +69,8 @@ def famille(temporary_store = None, year = None):
     indivi['year'] = year
     indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
     indivi["agepf"] = (
-        (indivi.naim < 7) * (indivi.year - indivi.naia) +
-        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
+        (indivi.naim < 7) * (indivi.year - indivi.naia)
+        + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
         ).astype(object)  # TODO: naia has some NaN but naim do not and then should be an int
 
     indivi = indivi[~(
@@ -149,8 +150,8 @@ def famille(temporary_store = None, year = None):
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
     log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
-    nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.moins_de_15_ans_inclus)) |
-                 ((base.lpr == 3) & (base.jeune_non_eligible_rsa) & (~base.smic55))].copy()
+    nof01 = base[(base.lpr.isin([1, 2])) | ((base.lpr == 3) & (base.moins_de_15_ans_inclus))
+                 | ((base.lpr == 3) & (base.jeune_non_eligible_rsa) & (~base.smic55))].copy()
     log.info('longueur de nof01 avant merge : {}'.format(len(nof01.index)))
     nof01 = nof01.merge(personne_de_reference, on='ident', how='outer')
     nof01['famille'] = 10
@@ -197,8 +198,8 @@ def famille(temporary_store = None, year = None):
     log.info(u"Etape 3: Récupération des personnes seules")
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1) &
-                  (seul1.sexe == 2)].copy()
+    seul1 = seul1[(seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1)
+                  & (seul1.sexe == 2)].copy()
     if len(seul1.index) > 0:
         seul1['noifam'] = (100 * seul1.ident + seul1.noi).astype(int)
         seul1['famille'] = 31
@@ -231,8 +232,8 @@ def famille(temporary_store = None, year = None):
     log.info(u"    3.4 : personnes seules de catégorie 4")
     seul4 = subset_base(base, famille)
     assert seul4.noimer.notnull().all()
-    seul4 = seul4[(seul4.lpr == 4) & seul4.jeune_non_eligible_rsa & ~(seul4.smic55) & (seul4.noimer == 0) &
-                  (seul4.persfip == 'vous')].copy()
+    seul4 = seul4[(seul4.lpr == 4) & seul4.jeune_non_eligible_rsa & ~(seul4.smic55) & (seul4.noimer == 0)
+                  & (seul4.persfip == 'vous')].copy()
     if len(seul4.index) > 0:
         seul4['noifam'] = (100 * seul4.ident + seul4.noi).astype(int)
         seul4['famille'] = 34
@@ -244,8 +245,8 @@ def famille(temporary_store = None, year = None):
     log.info(u"Etape 4 : traitement des enfants")
     log.info(u"    4.1 : enfant avec mère")
     avec_mere = subset_base(base, famille)
-    avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.jeune_non_eligible_rsa == 1) | (avec_mere.moins_de_15_ans_inclus == 1)) &
-                           (avec_mere.noimer > 0))].copy()
+    avec_mere = avec_mere[((avec_mere.lpr == 4) & ((avec_mere.jeune_non_eligible_rsa == 1) | (avec_mere.moins_de_15_ans_inclus == 1))
+                           & (avec_mere.noimer > 0))].copy()
     avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
     avec_mere['famille'] = 41
     avec_mere['kid'] = True
@@ -290,9 +291,9 @@ def famille(temporary_store = None, year = None):
     log.info(u"    4.2 : enfants avec père")
     avec_pere = subset_base(base, famille)
     assert avec_pere.noiper.notnull().all()
-    avec_pere = avec_pere[(avec_pere.lpr == 4) &
-                          ((avec_pere.jeune_non_eligible_rsa == 1) | (avec_pere.moins_de_15_ans_inclus == 1)) &
-                          (avec_pere.noiper > 0)]
+    avec_pere = avec_pere[(avec_pere.lpr == 4)
+                          & ((avec_pere.jeune_non_eligible_rsa == 1) | (avec_pere.moins_de_15_ans_inclus == 1))
+                          & (avec_pere.noiper > 0)]
     avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
     avec_pere['famille'] = 44
     avec_pere['kid'] = True
@@ -334,9 +335,9 @@ def famille(temporary_store = None, year = None):
     log.info(u"    4.3 : enfants avec déclarant")
     avec_dec = subset_base(base, famille)
     avec_dec = avec_dec[
-        (avec_dec.persfip == "pac") &
-        (avec_dec.lpr == 4) &
-        (
+        (avec_dec.persfip == "pac")
+        & (avec_dec.lpr == 4)
+        & (
             (avec_dec.jeune_non_eligible_rsa & ~(avec_dec.smic55)) | (avec_dec.moins_de_15_ans_inclus == 1)
             )
         ]
@@ -436,8 +437,8 @@ def famille(temporary_store = None, year = None):
     enfant_fip = subset_base(base_, famille)
     enfant_fip = enfant_fip[
         (enfant_fip.quelfic == "FIP") & (
-            (enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55)) |
-            ((enfant_fip.naia == enfant_fip.year - 1) & (enfant_fip.rga.astype('int') == 6))
+            (enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55))
+            | ((enfant_fip.naia == enfant_fip.year - 1) & (enfant_fip.rga.astype('int') == 6))
             )
         ].copy()
     enfant_fip['noifam'] = (100 * enfant_fip.ident + enfant_fip.noidec).astype(int)
@@ -556,9 +557,9 @@ def famille(temporary_store = None, year = None):
     famille['quifam'] = -1
     # famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
     # ATTENTTION : ^ stands for XOR
-    famille.quifam = (0 +
-        ((~famille['chef']) & (~famille['kid'])).astype(int) +
-        famille.kid * famille.rang
+    famille.quifam = (0
+        + ((~famille['chef']) & (~famille['kid'])).astype(int)
+        + famille.kid * famille.rang
         ).astype('int')
 
     # TODO: Test a groupby to improve the following this (should be placed )

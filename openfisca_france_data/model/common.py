@@ -171,7 +171,6 @@ class pauvre50(Variable):
     label = u"Ménage en dessous du seuil de pauvreté à 50%"
     definition_period = YEAR
 
-
     def formula(menage, period):
         menage_ordinaire = menage('menage_ordinaire', period)
         nivvie = menage('nivvie', period)
@@ -204,4 +203,3 @@ class pauvre60(Variable):
         percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         threshold = .6 * values[1]
         return (nivvie <= threshold) * menage_ordinaire
-

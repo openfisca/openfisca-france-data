@@ -57,4 +57,3 @@ if __name__ == '__main__':
     # aggregates_data_frame, difference_data_frame,
     survey_scenario = test_erfs_fpr_survey_simulation_aggregates(rebuild_input_data = False)
     aggregates, base_data_frame, difference_data_frame = test_erfs_fpr_aggregates_reform()
-

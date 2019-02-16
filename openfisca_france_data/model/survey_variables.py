@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from .base import * # noqa  analysis:ignore
+from .base import *  # noqa  analysis:ignore
 
 
 class menage_ordinaire(Variable):
@@ -10,6 +10,7 @@ class menage_ordinaire(Variable):
     default_value = True
     entity = Menage
     definition_period = YEAR
+
 
 class menage_ordinaire_individus(Variable):
     value_type = int
@@ -92,4 +93,3 @@ class weight_individus(Variable):
 
     def formula(individu, period):
         return individu.menage('wprm', period)
-

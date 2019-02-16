@@ -12,7 +12,6 @@ from pandas import DataFrame, MultiIndex, concat
 import numpy as np
 
 
-
 from openfisca_france_data.erfs.input_data_builder.base import (
     year_specific_by_generic_data_frame_name)
 from openfisca_survey_manager.temporary import temporary_store_decorator

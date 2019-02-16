@@ -224,7 +224,7 @@ def foyer_all(temporary_store = None, year = None):
         'nacc_defs': ['f5nm', 'f5om', 'f5pm'],
         'mncn_impo': ['f5ku', 'f5lu', 'f5mu'],
         'cncn_bene': ['f5sn', 'f5ns', 'f5os'],
-        'cncn_defi': ['f5sp', 'f5nu', 'f5ou', 'f5sr'], # TODO: check
+        'cncn_defi': ['f5sp', 'f5nu', 'f5ou', 'f5sr'],  # TODO: check
         'mbnc_exon': ['f5hp', 'f5ip', 'f5jp'],
         'abnc_exon': ['f5qb', 'f5rb', 'f5sb'],
         'nbnc_exon': ['f5qh', 'f5rh', 'f5sh'],
@@ -338,7 +338,7 @@ if __name__ == '__main__':
     year = 2009
     # import sys
     # logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    logging.basicConfig(level = logging.INFO,  filename = 'step_05.log', filemode = 'w')
+    logging.basicConfig(level = logging.INFO, filename = 'step_05.log', filemode = 'w')
     sif(year = year)
     foyer_all(year = year)
     log.info(u"étape 05 foyer terminée")

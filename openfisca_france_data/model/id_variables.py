@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from .base import * # noqa  analysis:ignore
+from .base import *  # noqa  analysis:ignore
 
 
 class idmen_original(Variable):

@@ -84,8 +84,8 @@ def create_totals_first_pass(temporary_store = None, year = None):
     log.info("Etape 2 : isolation des FIP")
     fip_imp = indivi.quelfic == "FIP_IMP"
     indivi["idfoy"] = (
-        indivi.idmen.astype('int') * 100 +
-        (indivi.declar1.str[0:2]).convert_objects(convert_numeric=True)
+        indivi.idmen.astype('int') * 100
+        + (indivi.declar1.str[0:2]).convert_objects(convert_numeric=True)
         )
 
     # indivi.loc[fip_imp, "idfoy"] = np.nan
@@ -151,11 +151,11 @@ def create_totals_first_pass(temporary_store = None, year = None):
         # On traite les gens qui ont quifoy=conj mais dont l'idfoy n'a pas de vous
         # 1) s'ils ont un conjoint et qu'il est vous avec un idfoy valide on leur attribue son idfoy:
         avec_conjoint = (
-            indivi_without_idfoy &
-            indivi.idfoy.notnull() &
-            indivi.quifoy.isin(['conj']) &
-            (indivi.noicon != 0) &
-            (100 * indivi.idmen + indivi.noicon).isin(idfoyList)
+            indivi_without_idfoy
+            & indivi.idfoy.notnull()
+            & indivi.quifoy.isin(['conj'])
+            & (indivi.noicon != 0)
+            & (100 * indivi.idmen + indivi.noicon).isin(idfoyList)
             )
         indivi.loc[avec_conjoint, 'idfoy'] = (
             100 * indivi.loc[avec_conjoint, 'idmen'] + indivi.loc[avec_conjoint, 'noicon']
@@ -166,10 +166,10 @@ def create_totals_first_pass(temporary_store = None, year = None):
     if (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj'])).any():
         # 2) sinon ils deviennent vous
         devient_vous = (
-            indivi_without_idfoy &
-            indivi.idfoy.notnull() &
-            indivi.quifoy.isin(['conj']) &
-            (indivi.noicon == 0)
+            indivi_without_idfoy
+            & indivi.idfoy.notnull()
+            & indivi.quifoy.isin(['conj'])
+            & (indivi.noicon == 0)
             )
         indivi.loc[devient_vous, 'idfoy'] = indivi.loc[devient_vous, 'noindiv'].copy()
         indivi.loc[devient_vous, 'quifoy'] = 'vous'
@@ -181,7 +181,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     if problem.sum() > 0:
         log.info("Dropping {} conj without valid idfoy".format(
             problem.sum()
-        ))
+            ))
         indivi.drop(indivi[problem].index, inplace = True)
         indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)  # Mise à jour des cas problématiques
         problem = (indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['conj']))
@@ -218,11 +218,11 @@ def create_totals_first_pass(temporary_store = None, year = None):
 
     # Adultes non enfants avec conjoints déclarants
     married_adult_with_vous = (
-        indivi_without_idfoy &
-        ((indivi.noiper == 0) | (indivi.noimer == 0)) &
-        (indivi.age >= 25) &
-        (indivi.noicon > 0) &
-        (100 * indivi.idmen + indivi.noicon).isin(idfoyList)
+        indivi_without_idfoy
+        & ((indivi.noiper == 0) | (indivi.noimer == 0))
+        & (indivi.age >= 25)
+        & (indivi.noicon > 0)
+        & (100 * indivi.idmen + indivi.noicon).isin(idfoyList)
         )
     indivi.loc[married_adult_with_vous, 'idfoy'] = (
         100 * indivi.loc[married_adult_with_vous, 'idmen'] + indivi.loc[married_adult_with_vous, 'noicon']
@@ -236,11 +236,11 @@ def create_totals_first_pass(temporary_store = None, year = None):
 
     # Les deux membres du couples n'ont pas d'idfoy
     married_adult_without_vous = (
-        indivi_without_idfoy &
-        ((indivi.noiper == 0) | (indivi.noimer == 0)) &
-        (indivi.age >= 18) &
-        (indivi.noicon > 0) &
-        (~married_adult_with_vous)
+        indivi_without_idfoy
+        & ((indivi.noiper == 0) | (indivi.noimer == 0))
+        & (indivi.age >= 18)
+        & (indivi.noicon > 0)
+        & (~married_adult_with_vous)
         )
     # On les groupes par ménages, on vérifie qu'ils ne sont que deux
     couple_by_idmen = (
@@ -251,8 +251,8 @@ def create_totals_first_pass(temporary_store = None, year = None):
     couple_idmens = list(idmen for idmen in couple_by_idmen.keys() if couple_by_idmen[idmen])
     # On crée un foyer vous-conj si couple
     vous = married_adult_without_vous & (
-        ((indivi.sexe == 1) & indivi.idmen.isin(couple_idmens)) |
-        (~indivi.idmen.isin(couple_idmens))
+        ((indivi.sexe == 1) & indivi.idmen.isin(couple_idmens))
+        | (~indivi.idmen.isin(couple_idmens))
         )
     conj = married_adult_without_vous & (~vous) & indivi.idmen.isin(couple_idmens)
     indivi.loc[vous, 'idfoy'] = indivi.loc[vous, 'noindiv'].copy()
@@ -271,10 +271,10 @@ def create_totals_first_pass(temporary_store = None, year = None):
 
     # Cas des enfants agés sans conjoint >= 25 ans
     non_married_aged_kids = (
-        indivi_without_idfoy &
-        ((indivi.noiper > 0) | (indivi.noimer > 0)) &
-        (indivi.age >= 25) &
-        (indivi.noicon == 0)
+        indivi_without_idfoy
+        & ((indivi.noiper > 0) | (indivi.noimer > 0))
+        & (indivi.age >= 25)
+        & (indivi.noicon == 0)
         )
     indivi.loc[non_married_aged_kids, 'idfoy'] = indivi.loc[non_married_aged_kids, 'noindiv'].copy()
     indivi.loc[non_married_aged_kids, 'quifoy'] = 'vous'
@@ -290,18 +290,18 @@ vivant avec leurs parents""".format(
 
     # Cas des enfants agés avec conjoint >= 18 ans
     married_aged_kids = (
-        indivi_without_idfoy &
-        ((indivi.noiper > 0) | (indivi.noimer > 0)) &
-        (indivi.age >= 18) &
-        (indivi.noicon != 0)
+        indivi_without_idfoy
+        & ((indivi.noiper > 0) | (indivi.noimer > 0))
+        & (indivi.age >= 18)
+        & (indivi.noicon != 0)
         )
 
     # Cas des enfants agés avec conjoint >= 18 ans
     married_aged_kids = (
-        indivi_without_idfoy &
-        ((indivi.noiper > 0) | (indivi.noimer > 0)) &
-        (indivi.age >= 18) &
-        (indivi.noicon != 0)
+        indivi_without_idfoy
+        & ((indivi.noiper > 0) | (indivi.noimer > 0))
+        & (indivi.age >= 18)
+        & (indivi.noicon != 0)
         )
     noiconjs = 100 * indivi.idmen + indivi.noicon
     quifoy_by_noiconj = indivi.loc[
@@ -358,9 +358,9 @@ vivant avec leurs parents qui ne sont pas traités""".format(
 
     # Cas des enfants jeunes < 25 ans
     kids = (
-        indivi_without_idfoy &
-        (indivi.age < 25) &
-        ((indivi.noiper > 0) | (indivi.noimer > 0))
+        indivi_without_idfoy
+        & (indivi.age < 25)
+        & ((indivi.noiper > 0) | (indivi.noimer > 0))
         )
     # On rattache les enfants au foyer de leur pères s'il existe
     log.info(u"On traite le cas des {} enfants (noiper ou noimer non nuls) repérés non rattachés".format(
@@ -370,8 +370,8 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         pere_declarant_potentiel = kids & (indivi.noiper > 0)
         indivi['pere_noindiv'] = (100 * indivi.idmen.fillna(0) + indivi.noiper.fillna(0)).astype('int')
         pere_noindiv = (
-            100 * indivi.loc[pere_declarant_potentiel, 'idmen'].fillna(0) +
-            indivi.loc[pere_declarant_potentiel, 'noiper'].fillna(0)
+            100 * indivi.loc[pere_declarant_potentiel, 'idmen'].fillna(0)
+            + indivi.loc[pere_declarant_potentiel, 'noiper'].fillna(0)
             ).astype('int')
         idfoy_by_noindiv = indivi.loc[
             indivi.noindiv.isin(pere_noindiv), ['noindiv', 'idfoy']
@@ -391,9 +391,9 @@ vivant avec leurs parents qui ne sont pas traités""".format(
     idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
     indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
     kids = (
-        indivi_without_idfoy &
-        (indivi.age < 25) &
-        ((indivi.noiper > 0) | (indivi.noimer > 0))
+        indivi_without_idfoy
+        & (indivi.age < 25)
+        & ((indivi.noiper > 0) | (indivi.noimer > 0))
         )
     log.info(u"Il reste {} enfants (noimer non nuls) repérés non rattachés".format(
         kids.sum()
@@ -403,8 +403,8 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         mere_declarant_potentiel = kids & (indivi.noimer > 0)
         indivi['mere_noindiv'] = (100 * indivi.idmen.fillna(0) + indivi.noimer.fillna(0)).astype('int')
         mere_noindiv = (
-            100 * indivi.loc[mere_declarant_potentiel, 'idmen'].fillna(0) +
-            indivi.loc[mere_declarant_potentiel, 'noimer'].fillna(0)
+            100 * indivi.loc[mere_declarant_potentiel, 'idmen'].fillna(0)
+            + indivi.loc[mere_declarant_potentiel, 'noimer'].fillna(0)
             ).astype('int')
         idfoy_by_noindiv = indivi.loc[
             indivi.noindiv.isin(mere_noindiv), ['noindiv', 'idfoy']
@@ -433,7 +433,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             'quifoy':
                 lambda quifoy: (quifoy == 'vous').sum() == 1,
             }
-        )
+            )
         parents_dummy_by_idmen = parents_by_idmen.quifoy.copy()
         parents_idmens = parents_dummy_by_idmen.index[
             parents_dummy_by_idmen.astype('bool')].tolist()
@@ -441,21 +441,21 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             indivi.idmen.isin(parents_idmens) & (indivi.quifoy == 'vous'),
             ['idmen', 'noindiv']].dropna().astype('int').set_index('idmen').squeeze().to_dict()
         avec_parents = (
-            indivi_without_idfoy &
-            indivi.idmen.isin(parents_idmens) &
-            (
-                (indivi.age < 18) |
-                (
-                    (indivi.age < 25) &
-                    (indivi.sali == 0) &
-                    (indivi.choi == 0) &
-                    (indivi.alr == 0)
+            indivi_without_idfoy
+            & indivi.idmen.isin(parents_idmens)
+            & (
+                (indivi.age < 18)
+                | (
+                    (indivi.age < 25)
+                    & (indivi.sali == 0)
+                    & (indivi.choi == 0)
+                    & (indivi.alr == 0)
                     )
                 ) &
-            (indivi.lpr == 4) &
-            (indivi.noiper == 0) &
-            (indivi.noimer == 0) &
             (indivi.lpr == 4)
+            & (indivi.noiper == 0)
+            & (indivi.noimer == 0)
+            & (indivi.lpr == 4)
             )
         indivi.loc[avec_parents, 'idfoy'] = (
             indivi.loc[avec_parents, 'idmen'].map(parents_idfoy_by_idmem))
@@ -476,19 +476,19 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             ['idmen', 'quifoy', 'noindiv', 'lpr']].copy()
         parents_by_idmen = parents_non_pr.groupby('idmen').filter(
             lambda df: (
-                ((df.quifoy == 'vous').sum() >= 1) &
-                (df.lpr > 2).any()
-            )).query('lpr > 2')
+                ((df.quifoy == 'vous').sum() >= 1)
+                & (df.lpr > 2).any()
+                )).query('lpr > 2')
         parents_idfoy_by_idmem = parents_by_idmen[
             ['idmen', 'noindiv']
             ].dropna().astype('int').set_index('idmen').squeeze().to_dict()
         avec_parents_non_pr = (
-            indivi_without_idfoy &
-            indivi.idmen.isin(parents_idfoy_by_idmem.keys()) &
-            (indivi.age < 18) &
-            (indivi.lpr == 4) &
-            (indivi.noiper == 0) &
-            (indivi.noimer == 0)
+            indivi_without_idfoy
+            & indivi.idmen.isin(parents_idfoy_by_idmem.keys())
+            & (indivi.age < 18)
+            & (indivi.lpr == 4)
+            & (indivi.noiper == 0)
+            & (indivi.noimer == 0)
             )
         indivi.loc[avec_parents_non_pr, 'idfoy'] = (
             indivi.loc[avec_parents_non_pr, 'idmen'].map(parents_idfoy_by_idmem))
@@ -884,6 +884,7 @@ def create_final(temporary_store = None, year = None):
     temporary_store['final_{}'.format(year)] = final
     log.info(u"final sauvegardé")
     del sif, final
+
 
 if __name__ == '__main__':
     year = 2009

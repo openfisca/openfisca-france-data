@@ -144,8 +144,8 @@ def complete_indivi(indivi, year):
     # indivi["noidec"] = indivi["declar1"].str[0:2].copy()  # Not converted to int because some NaN are present
 
     indivi["agepf"] = (
-        (indivi.naim < 7) * (indivi.year - indivi.naia) +
-        (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
+        (indivi.naim < 7) * (indivi.year - indivi.naia)
+        + (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
         )
 
     # Enfant en nourrice exclus
@@ -206,16 +206,16 @@ def famille_2(base, year = None):
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
     log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
     nof01 = base.loc[
-        base.lpr.isin([1, 2]) |
-        ((base.lpr == 3) & (base.moins_de_15_ans_inclus)) |
-        ((base.lpr == 3) & base.jeune_non_eligible_rsa & (~base.smic55))
+        base.lpr.isin([1, 2])
+        | ((base.lpr == 3) & (base.moins_de_15_ans_inclus))
+        | ((base.lpr == 3) & base.jeune_non_eligible_rsa & (~base.smic55))
         ].copy()
     log.info('longueur de nof01 avant merge: {}'.format(len(nof01.index)))
     nof01 = nof01.merge(personne_de_reference, on = 'ident', how = 'outer')
     nof01['famille'] = 10
     nof01['kid'] = (
-        ((nof01.lpr == 3) & (nof01.moins_de_15_ans_inclus)) |
-        ((nof01.lpr == 3) & (nof01.jeune_non_eligible_rsa) & ~(nof01.smic55))
+        ((nof01.lpr == 3) & (nof01.moins_de_15_ans_inclus))
+        | ((nof01.lpr == 3) & (nof01.jeune_non_eligible_rsa) & ~(nof01.smic55))
         )
     for series_name in ['famille', 'noifam']:
         assert_dtype(nof01[series_name], "int")
@@ -243,7 +243,7 @@ def famille_2(base, year = None):
     if conjoints.noindiv.duplicated().sum() > 0:
         log.info(u"Nombre de personnes polyandres/polygames: {}".format(
             conjoints.duplicated().sum()
-        ))
+            ))
     del noindiv_conjoint
 
     couple['famille'] = 20
@@ -273,8 +273,8 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
     seul1 = seul1[
-        (seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1) &
-        (seul1.sexe == 2)].copy()
+        (seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1)
+        & (seul1.sexe == 2)].copy()
     log.info(u"Il y a {} personnes seules de catégorie 1".format(
         len(seul1.index)))
     if len(seul1.index) > 0:
@@ -318,20 +318,20 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert seul4.noimer.notnull().all()
     if kind == 'erfs_fpr':
         seul4 = seul4[
-            (seul4.lpr == 4) &
-            seul4.jeune_non_eligible_rsa &
-            (~(seul4.smic55)) &
+            (seul4.lpr == 4)
+            & seul4.jeune_non_eligible_rsa
+            & (~(seul4.smic55))
             # (seul4.noiper == 0) &
-            (seul4.noimer == 0)
+            & (seul4.noimer == 0)
             ].copy()
     else:
         seul4 = seul4[
-            (seul4.lpr == 4) &
-            seul4.jeune_non_eligible_rsa &
-            (~(seul4.smic55)) &
+            (seul4.lpr == 4)
+            & seul4.jeune_non_eligible_rsa
+            & (~(seul4.smic55))
             # (seul4.noiper == 0) &
-            (seul4.noimer == 0) &
-            (seul4.persfip == 'vous')
+            & (seul4.noimer == 0)
+            & (seul4.persfip == 'vous')
             ].copy()
     log.info(u"Il y a {} personnes seules de catégorie 4".format(
         len(seul4.index)))
@@ -348,9 +348,9 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     log.info(u"    4.1 : enfant avec mère")
     avec_mere = subset_base(base, famille)
     avec_mere = avec_mere[
-        (avec_mere.lpr == 4) &
-        (avec_mere.jeune_non_eligible_rsa | avec_mere.moins_de_15_ans_inclus) &
-        (avec_mere.noimer > 0)
+        (avec_mere.lpr == 4)
+        & (avec_mere.jeune_non_eligible_rsa | avec_mere.moins_de_15_ans_inclus)
+        & (avec_mere.noimer > 0)
         ].copy()
     log.info(u"Il y a {} enfants rattachés à leur mère".format(
         len(avec_mere.index)))
@@ -367,7 +367,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         .rename(columns = {'noifam': 'noindiv'})
         .drop_duplicates()
         .merge(base)
-        )
+            )
     log.info(u"qui sont au nombre de {}".format(len(mere)))
 
     mere['noifam'] = (100 * mere.ident + mere.noi).astype(int)
@@ -399,9 +399,9 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     avec_pere = subset_base(base, famille)
     assert avec_pere.noiper.notnull().all()
     avec_pere = avec_pere[
-        (avec_pere.lpr == 4) &
-        (avec_pere.jeune_non_eligible_rsa | avec_pere.moins_de_15_ans_inclus) &
-        (avec_pere.noiper > 0)
+        (avec_pere.lpr == 4)
+        & (avec_pere.jeune_non_eligible_rsa | avec_pere.moins_de_15_ans_inclus)
+        & (avec_pere.noiper > 0)
         ].copy()
     log.info(u"Il y a {} enfants rattachés à leur père".format(
         len(avec_pere.index)))
@@ -417,7 +417,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         .rename(columns = {'noifam': 'noindiv'})
         .drop_duplicates()
         .merge(base)
-        )
+            )
     pere['noifam'] = (100 * pere.ident + pere.noi).astype(int)
     pere['famille'] = 45
     famille = famille[~(famille.noindiv.isin(pere.noindiv.values))].copy()  # Avoid duplication in famille
@@ -454,9 +454,9 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         log.info(u"    4.3 : enfants avec déclarant")
         avec_dec = subset_base(base, famille)
         avec_dec = avec_dec[
-            (avec_dec.persfip == "pac") &
-            (avec_dec.lpr == 4) &
-            (
+            (avec_dec.persfip == "pac")
+            & (avec_dec.lpr == 4)
+            & (
                 (avec_dec.jeune_non_eligible_rsa & ~(avec_dec.smic55)) | (avec_dec.moins_de_15_ans_inclus == 1)
                 )
             ]
@@ -546,8 +546,8 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         enfant_fip = subset_base(base_, famille)
         enfant_fip = enfant_fip[
             (enfant_fip.quelfic == "FIP") & (
-                (enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55)) |
-                ((enfant_fip.naia == enfant_fip.year - 1) & (enfant_fip.rga.astype('int') == 6))
+                (enfant_fip.agepf.isin([19, 20]) & ~(enfant_fip.smic55))
+                | ((enfant_fip.naia == enfant_fip.year - 1) & (enfant_fip.rga.astype('int') == 6))
                 )
             ].copy()
         enfant_fip['noifam'] = (100 * enfant_fip.ident + enfant_fip.noidec).astype(int)
@@ -589,23 +589,23 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
     non_attribue1 = subset_base(base, famille)
     if kind == 'erfs_fpr':
         non_attribue1 = non_attribue1[
-            non_attribue1.moins_de_15_ans_inclus |
-            (
-                non_attribue1.jeune_non_eligible_rsa &
-                (non_attribue1.lien.isin(range(1, 5))) &
-                (non_attribue1.agepr >= 35)
+            non_attribue1.moins_de_15_ans_inclus
+            | (
+                non_attribue1.jeune_non_eligible_rsa
+                & (non_attribue1.lien.isin(range(1, 5)))
+                & (non_attribue1.agepr >= 35)
                 )
             ].copy()
 
     else:
         non_attribue1 = non_attribue1[
-            (~(non_attribue1.quelfic != 'FIP')) &
-            (
-                non_attribue1.moins_de_15_ans_inclus |
-                (
-                    non_attribue1.jeune_non_eligible_rsa &
-                    (non_attribue1.lien.isin(range(1, 5))) &
-                    (non_attribue1.agepr >= 35)
+            (~(non_attribue1.quelfic != 'FIP'))
+            & (
+                non_attribue1.moins_de_15_ans_inclus
+                | (
+                    non_attribue1.jeune_non_eligible_rsa
+                    & (non_attribue1.lien.isin(range(1, 5)))
+                    & (non_attribue1.agepr >= 35)
                     )
                 )
             ].copy()
@@ -704,9 +704,9 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
     famille['quifam'] = -1
     famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
     famille.quifam = (
-        0 +
-        ((~famille.chef) & (~famille.kid)).astype(int) +
-        famille.kid * (famille.rang + 1)
+        0
+        + ((~famille.chef) & (~famille.kid)).astype(int)
+        + famille.kid * (famille.rang + 1)
         ).astype('int')
 
     assert (famille.groupby('noifam')['chef'].sum() <= 1).all(), "Il y a plusieurs chefs par famille"

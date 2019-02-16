@@ -150,8 +150,8 @@ def invalide(temporary_store = None, year = None):
         how = 'left',
         )
     foy_inv_pac['invalide'] = (
-        foy_inv_pac['type_pac'].isin(['G', 'R', 'I']) |
-        (
+        foy_inv_pac['type_pac'].isin(['G', 'R', 'I'])
+        | (
             (foy_inv_pac.type_pac == "F") & ((year - foy_inv_pac.naia) > 18)
             )
         )
@@ -190,6 +190,7 @@ def invalide(temporary_store = None, year = None):
 
     temporary_store['final_{}'.format(year)] = final
     log.info(u'final complétée et sauvegardée')
+
 
 if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, filename = 'step_07.log', filemode = 'w')

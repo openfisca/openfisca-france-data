@@ -81,4 +81,3 @@ def get_cached_composed_reform(reform_keys, tax_benefit_system):
 
 def get_cached_reform(reform_key, tax_benefit_system):
     return get_cached_composed_reform([reform_key], tax_benefit_system)
-

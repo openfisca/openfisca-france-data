@@ -75,12 +75,12 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erf_menages = erf_menages[menage_variables].copy()
 
     erf_menages['revtot'] = (
-        erf_menages.zperm +
-        erf_menages.zragm +
-        erf_menages.zricm +
-        erf_menages.zrncm +
-        erf_menages.ztsam +
-        erf_menages.zracm
+        erf_menages.zperm
+        + erf_menages.zragm
+        + erf_menages.zricm
+        + erf_menages.zrncm
+        + erf_menages.ztsam
+        + erf_menages.zracm
         )
     # Niveau de vie de la personne de référence
     erf_menages['nvpr'] = erf_menages.revtot.astype('float') / erf_menages.nb_uci.astype('float')
@@ -104,16 +104,16 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         )
     values.sort()
     erf['deci'] = (
-        1 +
-        (erf.nvpr > values[1]) +
-        (erf.nvpr > values[2]) +
-        (erf.nvpr > values[3]) +
-        (erf.nvpr > values[4]) +
-        (erf.nvpr > values[5]) +
-        (erf.nvpr > values[6]) +
-        (erf.nvpr > values[7]) +
-        (erf.nvpr > values[8]) +
-        (erf.nvpr > values[9])
+        1
+        + (erf.nvpr > values[1])
+        + (erf.nvpr > values[2])
+        + (erf.nvpr > values[3])
+        + (erf.nvpr > values[4])
+        + (erf.nvpr > values[5])
+        + (erf.nvpr > values[6])
+        + (erf.nvpr > values[7])
+        + (erf.nvpr > values[8])
+        + (erf.nvpr > values[9])
         )
     assert erf.deci.isin(range(1, 11)).all()
     del dec, values
@@ -325,10 +325,10 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     logement_menage['mrsal'].fillna(0, inplace = True)
     logement_menage['mrtns'].fillna(0, inplace = True)
     logement_menage['revtot'] = (
-        logement_menage['mrcho'] +
-        logement_menage['mrret'] +
-        logement_menage['mrsal'] +
-        logement_menage['mrtns']
+        logement_menage['mrcho']
+        + logement_menage['mrret']
+        + logement_menage['mrsal']
+        + logement_menage['mrtns']
         )  # TODO : Virer les revenus négatifs ? mrtns :  118 revenus négatifs sur 42845 en 2006
     assert logement_menage.revtot.notnull().all()
     logement_menage['nvpr'] = 10.0 * logement_menage['revtot'] / logement_menage['muc1']
@@ -345,16 +345,16 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
         )
     values.sort()
     logement_menage['deci'] = (
-        1 +
-        (logement_menage.nvpr > values[1]) +
-        (logement_menage.nvpr > values[2]) +
-        (logement_menage.nvpr > values[3]) +
-        (logement_menage.nvpr > values[4]) +
-        (logement_menage.nvpr > values[5]) +
-        (logement_menage.nvpr > values[6]) +
-        (logement_menage.nvpr > values[7]) +
-        (logement_menage.nvpr > values[8]) +
-        (logement_menage.nvpr > values[9])
+        1
+        + (logement_menage.nvpr > values[1])
+        + (logement_menage.nvpr > values[2])
+        + (logement_menage.nvpr > values[3])
+        + (logement_menage.nvpr > values[4])
+        + (logement_menage.nvpr > values[5])
+        + (logement_menage.nvpr > values[6])
+        + (logement_menage.nvpr > values[7])
+        + (logement_menage.nvpr > values[8])
+        + (logement_menage.nvpr > values[9])
         )
 
     del dec, values
@@ -604,4 +604,3 @@ if __name__ == '__main__':
     imputation_loyer(year = year)
 
     # menagem, erf, fill_erf_nnd, logement = imputation_loyer(year = year)
-

@@ -96,8 +96,8 @@ class act_cpl(Variable):
         cohab = menage('cohab', period)
 
         return (
-            1 * (menage.personne_de_reference('activite', period) <= 1) +
-            1 * (menage.conjoint('activite', period) <= 1)
+            1 * (menage.personne_de_reference('activite', period) <= 1)
+            + 1 * (menage.conjoint('activite', period) <= 1)
             ) * cohab
 
 
@@ -150,8 +150,6 @@ class cplx(Variable):
         return menage.any(
             is_not_pref * is_demandeur + is_enfant_plus_25
             )
-
-
 
     # En fait on ne peut pas car on n'a les enfants qu'au sens des allocations familiales ...
     # return (typmen15 > 12)
@@ -212,22 +210,22 @@ class typmen15(Variable):
         act_enf = menage('act_enf', period)
 
         res = 0 + (cplx == 0) * (
-                1 * ((nbinde == 1) & (cohab == 0) & (act_cpl == 1)) +  # Personne seule active
-                2 * ((nbinde == 1) & (cohab == 0) & (act_cpl == 0)) +  # Personne seule inactive
-                3 * ((nbinde > 1) & (cohab == 0) & (act_cpl == 1)) +  # Familles monoparentales, parent actif
-                4 * ((nbinde > 1) & (cohab == 0) & (act_cpl == 0) & (act_enf >= 1)) +  # Familles monoparentales, parent inactif et au moins un enfant actif
-                5 * ((nbinde > 1) & (cohab == 0) & (act_cpl == 0) & (act_enf == 0)) +  # Familles monoparentales, tous inactifs
-                6 * ((nbinde == 2) & (cohab == 1) & (act_cpl == 1)) +  # Couples sans enfant, 1 actif
-                7 * ((nbinde == 2) & (cohab == 1) & (act_cpl == 2)) +  # Couples sans enfant, 2 actifs
-                8 * ((nbinde == 2) & (cohab == 1) & (act_cpl == 0)) +  # Couples sans enfant, tous inactifs
-                9 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 1)) +  # Couples avec enfant, 1 membre du couple actif
-                10 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 2)) +  # Couples avec enfant, 2 membres du couple actif
-                11 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 0) & (act_enf >= 1)) +  # Couples avec enfant, couple inactif et au moins un enfant actif
-                12 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 0) & (act_enf == 0))  # Couples avec enfant, tous inactifs
-                               ) + (cplx == 1) * (
-                13 * (((act_cpl + act_enf) == 1)) +  # Autres ménages, 1 actif
-                14 * (((act_cpl + act_enf) > 1)) +  # Autres ménages, 2 actifs ou plus
-                15 * (((act_cpl + act_enf) == 0)))  # Autres ménages, tous inactifs
+            1 * ((nbinde == 1) & (cohab == 0) & (act_cpl == 1))  # Personne seule active
+                + 2 * ((nbinde == 1) & (cohab == 0) & (act_cpl == 0))  # Personne seule inactive
+                + 3 * ((nbinde > 1) & (cohab == 0) & (act_cpl == 1))  # Familles monoparentales, parent actif
+                + 4 * ((nbinde > 1) & (cohab == 0) & (act_cpl == 0) & (act_enf >= 1))  # Familles monoparentales, parent inactif et au moins un enfant actif
+                + 5 * ((nbinde > 1) & (cohab == 0) & (act_cpl == 0) & (act_enf == 0))  # Familles monoparentales, tous inactifs
+                + 6 * ((nbinde == 2) & (cohab == 1) & (act_cpl == 1))  # Couples sans enfant, 1 actif
+                + 7 * ((nbinde == 2) & (cohab == 1) & (act_cpl == 2))  # Couples sans enfant, 2 actifs
+                + 8 * ((nbinde == 2) & (cohab == 1) & (act_cpl == 0))  # Couples sans enfant, tous inactifs
+                + 9 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 1))  # Couples avec enfant, 1 membre du couple actif
+                + 10 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 2))  # Couples avec enfant, 2 membres du couple actif
+                + 11 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 0) & (act_enf >= 1))  # Couples avec enfant, couple inactif et au moins un enfant actif
+            + 12 * ((nbinde > 2) & (cohab == 1) & (act_cpl == 0) & (act_enf == 0))  # Couples avec enfant, tous inactifs
+            ) + (cplx == 1) * (
+                13 * (((act_cpl + act_enf) == 1))  # Autres ménages, 1 actif
+                + 14 * (((act_cpl + act_enf) > 1))  # Autres ménages, 2 actifs ou plus
+            + 15 * (((act_cpl + act_enf) == 0)))  # Autres ménages, tous inactifs
 
         # ratio = (( (typmen15!=res)).sum())/((typmen15!=0).sum())
         # ratio  2.7 % d'erreurs enfant non nés et erreur d'enfants

@@ -102,7 +102,7 @@ def check_variable_nullity(data_frame, variable, categorie_salarie, categorie_sa
     if not (extraction[variable] < 1).all():
         print(
             "{} non nul categorie_salarie={} ({})".format(
-            variable, categorie_salarie_index, categorie_salarie)
+                variable, categorie_salarie_index, categorie_salarie)
             )
         print(
             extraction.loc[~(extraction[variable] < 1), variable].head()
@@ -274,7 +274,7 @@ if __name__ == '__main__':
     check_nullity_private_variables(data_frame)
     remove_some_variables_after_check(data_frame)
 
-    data_frame['absolute_error'] =  (data_frame.salaire - data_frame.salaire_pour_inversion).abs()
+    data_frame['absolute_error'] = (data_frame.salaire - data_frame.salaire_pour_inversion).abs()
     data_frame['relative_error'] = (
         (data_frame.salaire - data_frame.salaire_pour_inversion).abs()
         / (data_frame.salaire_pour_inversion + 1 * (data_frame.salaire_pour_inversion == 0))
@@ -288,14 +288,13 @@ if __name__ == '__main__':
     data_frame['relative_errored'] = data_frame['relative_error'] > relative_error_threshold
     nb = data_frame.groupby(dispatch)['contrat_de_travail'].count()
     nb_absolute = data_frame.groupby(dispatch)['absolute_errored'].sum().astype(int)
-    pct_absolute = data_frame.groupby(dispatch)['absolute_errored'].sum() /  data_frame.groupby(['categorie_salarie', 'contrat_de_travail'])['absolute_errored'].count()
+    pct_absolute = data_frame.groupby(dispatch)['absolute_errored'].sum() / data_frame.groupby(['categorie_salarie', 'contrat_de_travail'])['absolute_errored'].count()
     mean_absolute = data_frame.query('absolute_errored').groupby(dispatch)['absolute_error'].mean()
     max_aboslute = data_frame.groupby(dispatch)['absolute_error'].max()
 
-    pct_relative = data_frame.groupby(dispatch)['relative_errored'].sum() /  data_frame.groupby(dispatch)['relative_errored'].count()
+    pct_relative = data_frame.groupby(dispatch)['relative_errored'].sum() / data_frame.groupby(dispatch)['relative_errored'].count()
     mean_relative = data_frame.query('relative_errored').groupby(dispatch)['relative_error'].mean()
     max_relative = data_frame.groupby(dispatch)['relative_error'].max()
-
 
     max_aboslute
     pct_absolute

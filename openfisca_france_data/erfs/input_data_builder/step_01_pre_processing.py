@@ -210,7 +210,7 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
     enfants_a_naitre['year'] = year
     enfants_a_naitre.year = enfants_a_naitre.year.astype("float32")  # TODO: should be an integer but NaN are present
     enfants_a_naitre['agepf'] = enfants_a_naitre.year - enfants_a_naitre.naia
-    enfants_a_naitre.loc[enfants_a_naitre.naim >= 7,'agepf'] -= 1
+    enfants_a_naitre.loc[enfants_a_naitre.naim >= 7, 'agepf'] -= 1
     enfants_a_naitre['actrec'] = 9
     enfants_a_naitre['quelfic'] = 'ENF_NN'
     enfants_a_naitre['persfip'] = ""
@@ -229,6 +229,7 @@ def create_enfants_a_naitre(temporary_store = None, year = None):
         ].copy()
 
     temporary_store["enfants_a_naitre_{}".format(year)] = enfants_a_naitre
+
 
 if __name__ == '__main__':
     log.info('Entering 01_pre_proc')

@@ -13,7 +13,6 @@ from pandas import read_csv
 import os
 
 
-
 from openfisca_survey_manager.temporary import temporary_store_decorator
 from openfisca_france_data.utils import (
     check_structure,
@@ -236,10 +235,10 @@ def final(temporary_store = None, year = None, check = True):
     else:
         indices = (final2["tu99"] == tu) & (final2["pol99"] == pol) & (final2["tau99"] == tau) & (final2["reg"] == reg)
         selection = (
-            (apl_imp["TU99"] == tu) &
-            (apl_imp["POL99"] == pol) &
-            (apl_imp["TAU99"] == tau) &
-            (apl_imp["REG"] == reg)
+            (apl_imp["TU99"] == tu)
+            & (apl_imp["POL99"] == pol)
+            & (apl_imp["TAU99"] == tau)
+            & (apl_imp["REG"] == reg)
             )
 
     z = random.uniform(size=indices.sum())
@@ -296,7 +295,6 @@ def final(temporary_store = None, year = None, check = True):
     log.info('final2 avant le filtrage {}'.format(len(final2)))
     print_id(final2)
 
-
     liste_fam = final2.loc[final2['quifam'] == 0, 'idfam'].unique()
     log.info("Dropping {} famille".format((~final2.idfam.isin(liste_fam)).sum()))
     final2 = final2.loc[final2.idfam.isin(liste_fam)].copy()
@@ -309,7 +307,6 @@ def final(temporary_store = None, year = None, check = True):
     liste_foy = final2.loc[final2['quifoy'] == 0, 'idfoy'].unique()
     log.info("Dropping {} foyers".format((~final2.idfoy.isin(liste_foy)).sum()))
     final2 = final2.loc[final2.idfoy.isin(liste_foy)].copy()
-
 
     liste_men = final2.loc[final2['quimen'] == 0, 'idmen'].unique()
     log.info(u"Dropping {} ménages".format((~final2.idmen.isin(liste_men)).sum()))
@@ -332,7 +329,6 @@ def final(temporary_store = None, year = None, check = True):
     temporary_store['final3'] = data_frame
 
     assert not data_frame.duplicated(['idmen', 'quimen']).any(), 'bad ménages indexing'
-
 
     if year == 2006:  # Hack crade pur régler un problème rémanent
         data_frame = data_frame[data_frame.idfam != 602177906].copy()

@@ -87,7 +87,7 @@ Il y a {} ménages dans eec_menage
 """.format(
             len(fpr_menage.ident.unique()),
             len(eec_menage.ident.unique()),
-        ))
+            ))
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
         log.debug(u"""
 Les variables suivantes sont communes aux deux tables ménages:

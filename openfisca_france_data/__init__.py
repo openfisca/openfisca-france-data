@@ -17,7 +17,7 @@ import openfisca_france
 
 # Load input variables and output variables into entities
 from .model import common, survey_variables, id_variables  # noqa analysis:ignore
-from .model.base import * # noqa  analysis:ignore
+from .model.base import *  # noqa  analysis:ignore
 
 
 log = logging.getLogger(__name__)
@@ -100,7 +100,9 @@ openfisca_france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 # The existence of either CountryTaxBenefitSystem or country_tax_benefit_system is mandatory
 france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_benefit_system)
 
-CountryTaxBenefitSystem = lambda: france_data_tax_benefit_system  # noqa analysis:ignore
+
+def CountryTaxBenefitSystem(): return france_data_tax_benefit_system  # noqa analysis:ignore
+
 
 AGGREGATES_DEFAULT_VARS = [
     'cotisations_non_contributives',

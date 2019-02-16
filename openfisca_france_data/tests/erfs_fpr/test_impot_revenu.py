@@ -1,7 +1,7 @@
 #! /usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-#%%
+# %%
 
 
 from __future__ import division
@@ -19,7 +19,7 @@ if is_travis:
 
 survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
 
-#%%
+# %%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
     variables = [
         'irpp',
@@ -38,7 +38,7 @@ individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
 
-#%%
+# %%
 # statut_occupation
 statut_marital = individu.groupby('statut_marital')['weight_individus'].sum()
 assert 22e6 < statut_marital[1] < 25e6

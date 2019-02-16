@@ -19,20 +19,17 @@ def build_erf_aggregates(variables = None, year = 2006, unit = 1e6):
     erfs_survey_collection = SurveyCollection.load(collection = "erfs")
     erfs_survey = erfs_survey_collection.surveys["erfs_{}".format(year)]
 
-
     of2erf = get_of2erf()
     erf2of = get_erf2of()
 
     if set(variables) <= set(of2erf.keys()):
-        variables = [ of2erf[variable] for variable in variables]
+        variables = [of2erf[variable] for variable in variables]
 
     if variables is not None and "wprm" not in variables:
         variables.append("wprm")
     log.info("Fetching aggregates from erfs {} data".format(year))
 
-
     df = erfs_survey.get_values(variables = variables, table = "erf_menage")
-
 
     df.rename(columns = erf2of, inplace = True)
     wprm = df["wprm"]
@@ -44,11 +41,11 @@ def build_erf_aggregates(variables = None, year = 2006, unit = 1e6):
     df = df.mul(wprm, axis = 0)
     for col in list(set(df.columns) - set(['ident', 'wprm'])):
         try:
-            df[col] = df[col].sum()/1e6
+            df[col] = df[col].sum() / 1e6
         except:
             pass
 
-    return df.ix[0:1] # Aggregate so we only need 1 row
+    return df.ix[0:1]  # Aggregate so we only need 1 row
 
 
 if __name__ == '__main__':

@@ -331,7 +331,7 @@ class Aggregates(object):
             elif table_format == "csv":
                 df.to_csv(file_path, index = False, header = True)
         except Exception as e:
-                raise Exception("Aggregates: Error saving file", str(e))
+            raise Exception("Aggregates: Error saving file", str(e))
 
     def get_calibration_coeffcient(self, target = "reform"):
         df = self.compute_aggregates(
@@ -349,7 +349,7 @@ class Aggregates(object):
             formatting = True,
             relative = True,
             target = "reform",
-            ):
+                       ):
         assert target is None or target in ['reform', 'baseline']
 
         columns = self.labels.keys()
@@ -406,13 +406,13 @@ class Aggregates(object):
                 .reindex_axis(ordered_columns, axis = 1)
                 .dropna(axis = 1, how = 'all')
                 .rename(columns = self.labels)
-                )
+                  )
         else:
             df = (aggregates_data_frame[columns]
                 .reindex_axis(ordered_columns, axis = 1)
                 .dropna(axis = 1, how = 'all')
                 .rename(columns = self.labels)
-                )
+                  )
 
         if formatting:
             relative_columns = [column for column in df.columns if 'relative' in column]
@@ -425,8 +425,6 @@ class Aggregates(object):
                         .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
                         )
         return df
-
-
 
 
 # Helpers

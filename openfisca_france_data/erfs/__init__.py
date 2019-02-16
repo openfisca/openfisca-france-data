@@ -8,17 +8,17 @@ def get_of2erf(year=None):
     of2erf["crds"] = "crdsm"
     of2erf["irpp"] = "zimpom"
     of2erf["ppe"] = "m_ppem"
-    of2erf["af"] =  "m_afm"
-#af_base
-#af_majo
-#af_forf
+    of2erf["af"] = "m_afm"
+# af_base
+# af_majo
+# af_forf
     of2erf["cf"] = "m_cfm"
     of2erf["paje_base"] = "m_pajem"
     of2erf["paje_nais"] = "m_naism"
     of2erf["paje_clca"] = ""
     of2erf["paje_cmg"] = ""
     of2erf["ars"] = "m_arsm"
-    of2erf["aeeh"] = "m_aesm" # allocation d'éducation spéciale
+    of2erf["aeeh"] = "m_aesm"  # allocation d'éducation spéciale
     of2erf["asf"] = "m_asfm"
     of2erf["aspa"] = "m_minvm"
     of2erf["aah"] = "m_aahm"
@@ -37,5 +37,5 @@ def get_of2erf(year=None):
 
 def get_erf2of():
     of2erf = get_of2erf()
-    erf2of = dict((v,k) for k, v in of2erf.iteritems())
+    erf2of = dict((v, k) for k, v in of2erf.iteritems())
     return erf2of

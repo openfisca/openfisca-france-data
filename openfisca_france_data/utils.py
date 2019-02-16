@@ -310,6 +310,7 @@ NaN are present : {}
     if verbose:
         print(set(series_to_rectify).difference(rectified_series))
 
+
 def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name, person_id = None):
     if person_id is not None:
         dataframe.set_index(person_id, inplace = True, verify_integrity = True)

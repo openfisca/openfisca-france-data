@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-#%%
+# %%
 
 from __future__ import division
 
@@ -86,8 +86,7 @@ def get_survey_scenario(year = 2012, rebuild_input_data = False):
 survey_scenario = get_survey_scenario(rebuild_input_data = False)
 
 
-
-#%%
+# %%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
     variables = [
         'activite_famille_min',
@@ -114,14 +113,14 @@ famille = data_frame_by_entity['famille']
 individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
-#%%
+# %%
 famille.activite_famille_min.value_counts(dropna = False)
 
 famille.groupby(
     ['nb_parents', 'activite_famille_max', 'activite_famille_min']
     )['rsa'].sum()
 
-#%%
+# %%
 
 rsa_pivot_table = survey_scenario.compute_pivot_table(
     columns = ['nb_parents'],
@@ -137,7 +136,7 @@ count_pivot_table = survey_scenario.compute_pivot_table(
     aggfunc = 'count',
     period = 2012,
     )
-#%%
+# %%
 
 survey_scenario.summarize_variable('rsa', weighted = True, force_compute = True)
 
@@ -170,9 +169,6 @@ for revenu in types_revenus_non_pros:
     survey_scenario.summarize_variable(revenu, weighted = True)
 
 
-#%%
+# %%
 assert 9e9 < (famille.rsa_montant * famille.weight_familles).sum() / 1e9 < 10e9, \
     "Rsa = {} Mds €".format((famille.rsa_montant * famille.weight_familles).sum() / 1e9)
-
-
-
