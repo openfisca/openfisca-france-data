@@ -1,0 +1,52 @@
+version: 2
+jobs:
+  run_tests:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Create a virtualenv
+          command: |
+            mkdir -p /tmp/venv/openfisca-france-data
+            python -m venv /tmp/venv/openfisca-france-data
+            echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install dependencies
+          command: |
+            make install
+
+      - save_cache:
+          key: v1-py3-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca-france-data
+
+      - run:
+          name: Run tests
+          command: make test
+
+  check_version_and_changelog:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - run:
+          name: Check version number has been properly updated
+          command: |
+            git fetch
+            .circleci/is-version-number-acceptable.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - run_tests
+      - check_version_and_changelog
