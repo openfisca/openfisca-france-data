@@ -534,8 +534,8 @@ def imputation_loyer(temporary_store = None, year = None):
         logement_unique_values = set(logement[variable].unique())
         assert erf_unique_values <= logement_unique_values
 
-    classes = ['tu99_recoded', 'deci']
-    matchvars = list(set(allvars) - set(classes))
+    # classes = ['tu99_recoded', 'deci']
+    # matchvars = list(set(allvars) - set(classes))
 
     # Clean for unicode column names
     erf.rename(

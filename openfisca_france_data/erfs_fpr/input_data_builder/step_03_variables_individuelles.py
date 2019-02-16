@@ -1062,7 +1062,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    legislation = parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    legislation = tax_benefit_system.get_parameters_at_instant(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale

@@ -218,10 +218,10 @@ def final(temporary_store = None, year = None, check = True):
     apl_imp = read_csv(zone_apl_imputation_data_file_path)
 
     log.info("{}".format(apl_imp.head(10)))
-    if year == 2008:
-        zone_apl = final2.xs(["tu99", "pol99", "reg"], axis = 1)
-    else:
-        zone_apl = final2.xs(["tu99", "pol99", "tau99", "reg"], axis = 1)
+    # if year == 2008:
+    #     zone_apl = final2.xs(["tu99", "pol99", "reg"], axis = 1)
+    # else:
+    #     zone_apl = final2.xs(["tu99", "pol99", "tau99", "reg"], axis = 1)
 
     for i in range(len(apl_imp["TU99"])):
         tu = apl_imp["TU99"][i]

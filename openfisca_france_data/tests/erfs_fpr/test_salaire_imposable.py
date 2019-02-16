@@ -32,7 +32,7 @@ def test_inversion():
 
     # famille = data_frame_by_entity['famille']
     individu = data_frame_by_entity['individu']
-    menage = data_frame_by_entity['menage']
+    # menage = data_frame_by_entity['menage']
 
     individu.categorie_salarie.value_counts()
     prive = individu.query('categorie_salarie in [0, 1]')

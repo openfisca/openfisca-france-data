@@ -17,7 +17,7 @@ except(Exception):
     pass
 
 
-from openfisca_france.data.sources.config import DATA_DIR
+# from openfisca_france.data.sources.config import DATA_DIR
 
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
 CONFIG_DIR = os.path.join(openfisca_france_location)
@@ -68,10 +68,10 @@ class SurveyCollection(object):
 def build_erfs_survey_collection():
     # self.hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf.h5')
 
-    erfs_survey_collection = SurveyCollection()
+    # erfs_survey_collection = SurveyCollection()
     for year in range(2006, 2010):
 
-        surveys = erfs_survey_collection.surveys
+        # surveys = erfs_survey_collection.surveys
         yr = str(year)[2:]
         yr1 = str(year + 1)[2:]
 
@@ -155,25 +155,25 @@ def build_erfs_survey_collection():
         """
         """
 
-        year = self.year
+        # year = self.year
         # erf = SurveyDescription()
-        yr = str(year)[2:]
-        yr1 = str(year + 1)[2:]
-        erf_tables_to_process = {
-            "erf_menage": "menage" + yr,
-            "eec_menage": "mrf" + yr + "e" + yr + "t4",
-            "foyer": "foyer" + yr,
-            "erf_indivi": "indivi" + yr,
-            "eec_indivi": "irf" + yr + "e" + yr + "t4",
-            "eec_cmp_1": "icomprf" + yr + "e" + yr1 + "t1",
-            "eec_cmp_2": "icomprf" + yr + "e" + yr1 + "t2",
-            "eec_cmp_3": "icomprf" + yr + "e" + yr1 + "t3"
-            }
-        RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'erf')
+        # yr = str(year)[2:]
+        # yr1 = str(year + 1)[2:]
+        # erf_tables_to_process = {
+        #     "erf_menage": "menage" + yr,
+        #     "eec_menage": "mrf" + yr + "e" + yr + "t4",
+        #     "foyer": "foyer" + yr,
+        #     "erf_indivi": "indivi" + yr,
+        #     "eec_indivi": "irf" + yr + "e" + yr + "t4",
+        #     "eec_cmp_1": "icomprf" + yr + "e" + yr1 + "t1",
+        #     "eec_cmp_2": "icomprf" + yr + "e" + yr1 + "t2",
+        #     "eec_cmp_3": "icomprf" + yr + "e" + yr1 + "t3"
+        #     }
+        # RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'erf')
 
-        variables = ['noi', 'noindiv', 'ident', 'declar1', 'quelfic', 'persfip', 'declar2', 'persfipd', 'wprm',
-                     "zsali", "zchoi", "ztsai", "zreti", "zperi", "zrsti", "zalri", "zrtoi", "zragi", "zrici", "zrnci",
-                     "zsalo", "zchoo", "ztsao", "zreto", "zpero", "zrsto", "zalro", "zrtoo", "zrago", "zrico", "zrnco"]
+        # variables = ['noi', 'noindiv', 'ident', 'declar1', 'quelfic', 'persfip', 'declar2', 'persfipd', 'wprm',
+        #              "zsali", "zchoi", "ztsai", "zreti", "zperi", "zrsti", "zalri", "zrtoi", "zragi", "zrici", "zrnci",
+        #              "zsalo", "zchoo", "ztsao", "zreto", "zpero", "zrsto", "zalro", "zrtoo", "zrago", "zrico", "zrnco"]
 
         variables_eec = ['noi', 'noicon', 'noindiv', 'noiper', 'noimer', 'ident', 'naia', 'naim', 'lien',
                        'acteu', 'stc', 'contra', 'titc', 'mrec', 'forter', 'rstg', 'retrai', 'lpr', 'cohab', 'sexe',
@@ -187,30 +187,30 @@ def build_erfs_survey_collection():
 
         variables_eec += variables_eec_rsa + variables_eec_aah
 
-        erf_tables = {
-            "erf_menage": {"RData_filename": "menage" + yr,
-                           "variables": None},
-            "eec_menage": {"RData_filename": "mrf" + yr + "e" + yr + "t4",
-                           "variables": None},
-            "foyer": {"RData_filename": "foyer" + yr,
-                      "variables": None},
-            "erf_indivi": {"RData_filename": "indivi" + yr,
-                           "variables": variables},
-            "eec_indivi": {"RData_filename": "irf" + yr + "e" + yr + "t4",
-                           "variables": variables_eec},
-            "eec_cmp_1": {"RData_filename": "icomprf" + yr + "e" + yr1 + "t1",
-                          "variables": variables_eec},
-            "eec_cmp_2": {"RData_filename": "icomprf" + yr + "e" + yr1 + "t2",
-                          "variables": variables_eec},
-            "eec_cmp_3": {"RData_filename": "icomprf" + yr + "e" + yr1 + "t3",
-                          "variables": variables_eec}}
+        # erf_tables = {
+        #     "erf_menage": {"RData_filename": "menage" + yr,
+        #                    "variables": None},
+        #     "eec_menage": {"RData_filename": "mrf" + yr + "e" + yr + "t4",
+        #                    "variables": None},
+        #     "foyer": {"RData_filename": "foyer" + yr,
+        #               "variables": None},
+        #     "erf_indivi": {"RData_filename": "indivi" + yr,
+        #                    "variables": variables},
+        #     "eec_indivi": {"RData_filename": "irf" + yr + "e" + yr + "t4",
+        #                    "variables": variables_eec},
+        #     "eec_cmp_1": {"RData_filename": "icomprf" + yr + "e" + yr1 + "t1",
+        #                   "variables": variables_eec},
+        #     "eec_cmp_2": {"RData_filename": "icomprf" + yr + "e" + yr1 + "t2",
+        #                   "variables": variables_eec},
+        #     "eec_cmp_3": {"RData_filename": "icomprf" + yr + "e" + yr1 + "t3",
+        #                   "variables": variables_eec}}
 
-        RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'erf')
+        # RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'erf')
 
-        if tables is None:
-            erf_tables_to_process = erf_tables
-        else:
-            erf_tables_to_process = tables
+        # if tables is None:
+        #     erf_tables_to_process = erf_tables
+        # else:
+        #     erf_tables_to_process = tables
 
         # for name in erf_tables_to_process:
         #     erf.insert_table(name=name,
@@ -223,26 +223,26 @@ def build_erfs_survey_collection():
     def initialize_logement(self):
         """
         """
-        year = self.year
+        # year = self.year
         # lgt = SurveyDescription()
-        yr = str(year)[2:]
-        yr1 = str(year + 1)[2:]
+        # yr = str(year)[2:]
+        # yr1 = str(year + 1)[2:]
 
-        if yr == "03":
-            lgt_men = "menage"
-            lgt_logt = None
-            renameidlgt = dict(ident='ident')
+        # if yr == "03":
+        #     lgt_men = "menage"
+        #     lgt_logt = None
+        #     renameidlgt = dict(ident='ident')
 
-        elif yr in ["06", "07", "08", "09"]:
-            lgt_men = "menage1"
-            lgt_lgt = "logement"
-            renameidlgt = dict(idlog='ident')
+        # elif yr in ["06", "07", "08", "09"]:
+        #     lgt_men = "menage1"
+        #     lgt_lgt = "logement"
+        #     renameidlgt = dict(idlog='ident')
 
-        lgt_tables_to_process = {"adresse": "adresse",
-                                 "lgt_menage": lgt_men,
-                                 "lgt_logt": lgt_lgt}
+        # lgt_tables_to_process = {"adresse": "adresse",
+        #                          "lgt_menage": lgt_men,
+        #                          "lgt_logt": lgt_lgt}
 
-        RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'logement')
+        # RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'logement')
         # for name, RData_filename in lgt_tables_to_process.iteritems():
         #     lgt.insert_table(name=name,
         #                      RData_filename=RData_filename,
@@ -254,16 +254,16 @@ def build_erfs_survey_collection():
         """
         TODO:
         """
-        pat_tables_to_process = {"pat_individu": "individu",
-                                 "pat_menage": "meange",
-                                 "pat_produit": "produit",
-                                 "pat_transmission": "transm"}
+        # pat_tables_to_process = {"pat_individu": "individu",
+        #                          "pat_menage": "meange",
+        #                          "pat_produit": "produit",
+        #                          "pat_transmission": "transm"}
 
-        pat_data_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'patrimoine')
+        # pat_data_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'patrimoine')
 
-        pat = {"name": "patrimoine",
-               "data_dir": os.path.join(os.path.dirname(DATA_DIR), 'R', 'patrimoine'),
-               "tables_to_process": pat_tables_to_process}
+        # pat = {"name": "patrimoine",
+        #        "data_dir": os.path.join(os.path.dirname(DATA_DIR), 'R', 'patrimoine'),
+        #        "tables_to_process": pat_tables_to_process}
 
     def set_config(self, **kwargs):
         """
@@ -274,12 +274,12 @@ def build_erfs_survey_collection():
         year : int, default None
                year of the survey
         """
-        if self.year is not None:
-            year = self.year
-        else:
-            raise Exception("year should be defined")
+        # if self.year is not None:
+        #     year = self.year
+        # else:
+        #     raise Exception("year should be defined")
 
-        store = HDFStore(self.hdf5_filename)
+        # store = HDFStore(self.hdf5_filename)
         for survey_name, description in self.surveys.iteritems():
             for destination_table_name, tables in description.tables.iteritems():
                 data_dir = tables["RData_dir"]

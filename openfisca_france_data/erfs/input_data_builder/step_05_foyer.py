@@ -133,7 +133,7 @@ def sif(temporary_store = None, year = None, config_files_directory = None):
 
     duplicated_noindiv = sif.noindiv[sif.noindiv.duplicated()].copy()
     sif['duplicated_noindiv'] = sif.noindiv.isin(duplicated_noindiv)
-    x = sif.loc[sif.duplicated_noindiv, ['noindiv', 'declar']]
+    # x = sif.loc[sif.duplicated_noindiv, ['noindiv', 'declar']]
     sif['change'] = "NONE"
     sif.loc[sif.duplicated_noindiv, 'change'] = sif.loc[sif.duplicated_noindiv, 'declar'].str[27:28]
 

@@ -340,7 +340,7 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     assert survey is not None
     try:
         openfisca_survey_collection = SurveyCollection.load(collection = collection)
-    except Exception as e:
+    except(Exception):
         openfisca_survey_collection = SurveyCollection(name = collection)
 
     log.debug("In collection {} the following survey are present: {}".format(collection, openfisca_survey_collection.surveys))

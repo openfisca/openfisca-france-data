@@ -193,9 +193,9 @@ def prepare_erf_menage(temporary_store = None, year = None, kind = None):
             "tau10",
             "tu10",
             ]
-        nationalite_variables = [
-            "nfr"
-            ]
+        # nationalite_variables = [
+        #     "nfr"
+        #     ]
     else:
         revenus_variables = [
             "zperm",
@@ -211,9 +211,9 @@ def prepare_erf_menage(temporary_store = None, year = None, kind = None):
             "tau99",
             "tu99",
             ]
-        nationalite_variables = [
-            "nat28pr",
-            ]
+        # nationalite_variables = [
+        #     "nat28pr",
+        #     ]
 
     menage_variables = revenus_variables + localisation_variables + [
         "agpr",
@@ -468,31 +468,31 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
 
     # TODO: faire le lien avec men_vars,
     # il manque "pol99","reg","tau99" et ici on a en plus logt, 'nvpr','revtot','dip11','deci'
-    variables = [
-        'aai1',
-        'agpr',
-        'cstotpr',
-        'deci',
-        'dip11',
-        'ident',
-        'nat28pr',
-        'nb_uci',
-        'nbenfc',
-        'nbpiec',
-        'nvpr',
-        'revtot',
-        'spr',
-        'statut_occupation',
-        'tu99',
-        'typmen5',
-        'wprm',
-        'zperm',
-        'zracm',
-        'zragm',
-        'zricm',
-        'zrncm',
-        'ztsam',
-        ]
+    # variables = [
+    #     'aai1',
+    #     'agpr',
+    #     'cstotpr',
+    #     'deci',
+    #     'dip11',
+    #     'ident',
+    #     'nat28pr',
+    #     'nb_uci',
+    #     'nbenfc',
+    #     'nbpiec',
+    #     'nvpr',
+    #     'revtot',
+    #     'spr',
+    #     'statut_occupation',
+    #     'tu99',
+    #     'typmen5',
+    #     'wprm',
+    #     'zperm',
+    #     'zracm',
+    #     'zragm',
+    #     'zricm',
+    #     'zrncm',
+    #     'ztsam',
+    #     ]
 
     format_variable_magtr(erf)
     format_variable_mcs8(erf)

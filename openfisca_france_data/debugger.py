@@ -115,16 +115,16 @@ class Debugger(object):
                 return new_column_list
 
     def build_columns_to_fetch(self):
-        variables = self.variables
-#        parameters_column = self.get_all_parameters([variables.get(x) for x in [self.variable]])
-#        parameters = [x.name for x in parameters_column]
+        # variables = self.variables
+        # parameters_column = self.get_all_parameters([variables.get(x) for x in [self.variable]])
+        # parameters = [x.name for x in parameters_column]
         parameters = [self.variable]
         # We want to get all parameters and consumers that we're going to encounter
-#        consumers = []
-#        for variable in [self.variable]:
-#            column = variables.get(variable)
-#            consumers = list(set(consumers).union(set(column.consumers)))
-#        column_names = list(set(parameters).union(set(consumers)))
+        # consumers = []
+        # for variable in [self.variable]:
+        #     column = variables.get(variable)
+        #     consumers = list(set(consumers).union(set(column.consumers)))
+        # column_names = list(set(parameters).union(set(consumers)))
 
         # self.columns_to_fetch = column_names
         # self.variable_consumers = list(set(consumers))
@@ -332,7 +332,7 @@ class Debugger(object):
         of_menages_data_frame = self.data_frame_by_entity_key_plural['menages']
         of_individus_data_frame = self.data_frame_by_entity_key_plural['individus']
         erf_individus_data_frame = self.erf_data_frame_by_entity_key_plural['individus']
-        erf_menages_data_frame = self.erf_data_frame_by_entity_key_plural['menages']
+        # erf_menages_data_frame = self.erf_data_frame_by_entity_key_plural['menages']
         # return debug_data_frame
 
         kept_columns = set()
