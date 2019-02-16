@@ -4,6 +4,7 @@
 [![PyPi](https://img.shields.io/pypi/v/openfisca-france-data.svg?style=flat)](https://pypi.python.org/pypi/openfisca-france-data)
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-france-data.svg)](https://pypi.python.org/pypi/openfisca-france-data)
 [![CircleCI](https://img.shields.io/circleci/project/github/openfisca/openfisca-france-data/master.svg?style=flat)](https://circleci.com/gh/openfisca/openfisca-france-data)
+[![Coveralls](https://img.shields.io/coveralls/github/openfisca/openfisca-france-data/master.svg?style=flat)](https://coveralls.io/github/openfisca/openfisca-france-data?branch=master)
 
 ## Presentation
 
