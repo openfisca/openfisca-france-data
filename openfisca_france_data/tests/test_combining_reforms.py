@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data import france_data_tax_benefit_system
+from openfisca_france_data.reforms.inversion_directe_salaires import inversion_directe_salaires
+from openfisca_france_data.reforms.plf2016_ayrault_muet import ayrault_muet
 
 
 def test_reform_combination():
-    baseline_tax_benefit_system = base_survey.get_cached_reform(
-        reform_key = 'inversion_directe_salaires',
-        tax_benefit_system = base_survey.france_data_tax_benefit_system,
-        )
-    base_survey.get_cached_reform(
-        reform_key = 'ayrault_muet',
-        tax_benefit_system = baseline_tax_benefit_system,
-        )
+    baseline_tax_benefit_system = inversion_directe_salaires(france_data_tax_benefit_system)
+    reformed_tax_benefit_system = ayrault_muet(baseline_tax_benefit_system)
 
 
 if __name__ == '__main__':

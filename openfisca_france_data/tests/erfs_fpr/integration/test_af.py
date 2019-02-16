@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-#%%
+
+# %%
 
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
+from openfisca_france_data.reforms.inversion_directe_salaires import inversion_directe_salaires
 
-
-survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
+survey_scenario = get_survey_scenario(year = 2012, reform = inversion_directe_salaires)
 
 #%%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
@@ -29,8 +30,8 @@ famille = data_frame_by_entity['famille']
 individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
-#%%
-population_by_age = individu.groupby('age')[['weight_individus']].sum().reset_index()
+# %%
+population_by_age = individu.groupby('age')['weight_individus'].sum().reset_index()
 # Les 0-16 ans sont au moins 700 000 et au plus 850 000
 assert (population_by_age.query('age <= 16 & age >= 0')['weight_individus'] > 7e5).all(), \
     'Les 0-16 ans doivent être au moins 700 000'

@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 
 
+import itertools
 import numpy
 import os
 import pandas
 
+
 from openfisca_core.tools import assert_near
-from openfisca_france_data.tests import base
+from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_survey_manager.calibration import Calibration
 from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_france.reforms.plf2015 import plf2015
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -88,7 +91,7 @@ def test_fake_survey_simulation():
     assert input_data_frame.salaire_imposable.loc[1] == 10000
 
     survey_scenario = ErfsSurveyScenario.create(
-        tax_benefit_system = base.france_data_tax_benefit_system,
+        tax_benefit_system = france_data_tax_benefit_system,
         year = year,
         )
 
@@ -116,9 +119,11 @@ def test_fake_survey_simulation():
     sal_2006 = simulation.calculate_add('salaire_imposable', period = 2006)
 
     assert (sal_2003 == 0).all()
-    assert (sal_2004 == sal_2006).all()
+    assert (sal_2004 == sal_2006).all(), "{} != {}".format(
+        sal_2004[sal_2004 != sal_2006],
+        sal_2006[sal_2004 != sal_2006],
+        )
     assert (sal_2005 == sal_2006).all()
-    import itertools
 
     for year, month in itertools.product(range(2003, 2004), range(1, 13)):
         assert (simulation.calculate_add('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
@@ -159,7 +164,7 @@ def create_fake_calibration():
     year = 2006
     input_data_frame = get_fake_input_data_frame(year)
     survey_scenario = ErfsSurveyScenario.create(
-        tax_benefit_system = base.france_data_tax_benefit_system,
+        tax_benefit_system = france_data_tax_benefit_system,
         year = year,
         )
     survey_scenario.init_from_data(
@@ -235,14 +240,12 @@ def test_reform():
     input_data_frame.loc[1, 'salaire_imposable'] = 18000
     input_data_frame = input_data_frame.loc[0:1].copy()
 
-    reform = base.get_cached_reform(
-        reform_key = 'plf2015',
-        tax_benefit_system = base.france_data_tax_benefit_system,
-        )
+
+    reform = plf2015(france_data_tax_benefit_system)
     year = 2013
     survey_scenario = ErfsSurveyScenario.create(
         tax_benefit_system = reform,
-        baseline_tax_benefit_system = base.france_data_tax_benefit_system,
+        baseline_tax_benefit_system = france_data_tax_benefit_system,
         year = year,
         )
 

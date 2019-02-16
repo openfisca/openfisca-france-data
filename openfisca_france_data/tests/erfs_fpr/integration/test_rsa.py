@@ -8,14 +8,14 @@ import logging
 from openfisca_core.model_api import *
 from openfisca_france.entities import Famille, Individu
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data import france_data_tax_benefit_system
 
 
 log = logging.getLogger(__name__)
 
 
 def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
-    tax_benefit_system = base_survey.france_data_tax_benefit_system
+    tax_benefit_system = france_data_tax_benefit_system
 
     class rsa_origin(Variable):
         value_type = float
