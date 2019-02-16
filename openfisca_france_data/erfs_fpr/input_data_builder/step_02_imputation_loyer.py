@@ -549,7 +549,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     try:
         logement_menage = logement_survey.get_values(
             table = "menage", variables = logement_menage_variables)
-    except:
+    except(Exception):
         logement_menage = logement_survey.get_values(
             table = "menage1", variables = logement_menage_variables)
 
@@ -601,7 +601,7 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
         try:
             lgtlgt = logement_survey.get_values(
                 table = "lgt_logt", variables = logement_logement_variables)
-        except:
+        except(Exception):
             lgtlgt = logement_survey.get_values(
                 table = "logement", variables = logement_logement_variables)
 

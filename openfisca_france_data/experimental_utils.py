@@ -53,7 +53,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                         message += "Filling NA's with default values for %s... \n" % var
                         serie[serie.isnull()] = varcol.default
                         message += "Done \n"
-                    except:
+                    except(Exception):
                         message += " Cannot fill NA for column %s, maybe _.default doesn't exist \n" % var
 
             if not corrige:  # On ne modifie pas la série donc on peut l'amputer, elle n'est pas en return
@@ -71,7 +71,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                         # print(sorted(serie.unique()), "\n")
                         is_ok = False
 
-                except:
+                except(Exception):
                     is_ok = False
                     message += "Error : no _num attribute for EnumCol.enum %s \n" % var
                     # print(varcol.enum)
@@ -79,7 +79,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                 try:
                     varcol.enum._vars
 
-                except:
+                except(Exception):
                     is_ok = False
                     message += "Error : no _var attribute for EnumCol.enum %s \n" % var
                     # print(varcol.enum)
@@ -90,11 +90,11 @@ def check_consistency(table_simu, dataframe, corrige = True):
                     if n < len(set(serie.unique())):
                         message += "More types of enum than expected : %s ( expected : %s) \n" % (
                             str(set(serie.unique())), str(n))
-                except:
+                except(Exception):
                     message += "Error : no _count attribute for EnumCol.enum %s \n" % var
                 try:
                     varcol.enum
-                except:
+                except(Exception):
                     is_ok = False
                     message += "Error : not enum attribute for EnumCol %s ! \n" % var
                     # Never happening, enum attribute is initialized to None at least
@@ -114,7 +114,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                         try:
                             serie = serie.astype(varcol.dtype)
                             message += "Done \n"
-                        except:
+                        except(Exception):
                             message += "sorry, cannot force type.\n"
                 else:
                     message += "Values for %s are in range [%s,%s]\n" % (var, str(serie.min()), str(serie.max()))
@@ -129,7 +129,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                         try:
                             serie = serie.astype(varcol.dtype)
                             message += "Done \n"
-                        except:
+                        except(Exception):
                             message += "sorry, cannot force type.\n"
 
             # There isn't a specific type of variable for age anymore
@@ -158,7 +158,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
             #                 serie[~(serie.isin(range(-1, 156)))] = tmp.median()
             #                 message += "Done \n"
             #                 del tmp
-            #             except:
+            #             except(Exception):
             #                 message += "sorry, cannot fix outranges.\n"
 
             if varcol.value_type == float:
@@ -179,7 +179,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
                 dataframe[var] = serie
             count += 1
             del serie, varcol
-        except:
+        except(Exception):
             is_ok = False
             missing_variables.append(var)
             # message = "Oh no ! Something went wrong in the tests. You may have coded like a noob"

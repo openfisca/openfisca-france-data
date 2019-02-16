@@ -458,7 +458,7 @@ def load_actual_data(year = None):
             os.path.join(directory, 'assiette_csg_by_type.csv'),
             index_col = 0,
             ) / 1e6
-    except:
+    except(Exception):
         assiette_csg_by_type_amounts = None
         csg_by_type_amounts = None
         csg_crds_amounts = None

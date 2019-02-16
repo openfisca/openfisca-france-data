@@ -15,7 +15,7 @@ try:
     import pandas.rpy.common as com
     import rpy2.rpy_classic as rpy
     rpy.set_default_mode(rpy.NO_CONVERSION)
-except:
+except(Exception):
     pass
 
 
@@ -288,7 +288,7 @@ def build_erfs_survey_collection():
                 R_table_name = tables["RData_filename"]
                 try:
                     variables = tables["variables"]
-                except:
+                except(Exception):
                     variables = None
                 print(variables)
                 self.store_survey(survey_name, R_table_name, destination_table_name, data_dir, variables)

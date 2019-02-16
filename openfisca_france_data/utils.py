@@ -57,7 +57,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
     for var in std_list:
         try:
             assert var in dataframe.columns
-        except:
+        except(Exception):
             raise Exception('the dataframe does not contain the required column %s' % var)
 
     log.info('longueur de la data frame = {}'.format(len(dataframe.index)))
@@ -118,7 +118,7 @@ def id_formatter(dataframe, entity_id):
 def print_id(df):
     try:
         log.info("Individus with distinc noindiv: {} / {}".format(len(df.noindiv), len(df)))
-    except:
+    except(Exception):
         log.info("No noindiv")
 
     try:
@@ -129,7 +129,7 @@ def print_id(df):
             log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
         if df["quifoy"].isnull().any():
             log.info("NaN in quifoy : {}".format(df["quifoy"].isnull().sum()))
-    except:
+    except(Exception):
         log.info("No idfoy or quifoy")
 
     try:
@@ -140,7 +140,7 @@ def print_id(df):
             log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
         if df["quimen"].isnull().any():
             log.info("NaN in quimen : {} ".format(df["quimen"].isnull().sum()))
-    except:
+    except(Exception):
         print("No idmen or quimen")
 
     try:
@@ -151,7 +151,7 @@ def print_id(df):
             log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
         if df["quifam"].isnull().any():
             log.info("NaN in quifam : {} ".format(df["quifam"].isnull().sum()))
-    except:
+    except(Exception):
         log.info("No idfam or quifam")
     compute_masses(df)
 
