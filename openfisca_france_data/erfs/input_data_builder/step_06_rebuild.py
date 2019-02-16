@@ -451,8 +451,8 @@ vivant avec leurs parents qui ne sont pas traités""".format(
                     & (indivi.choi == 0)
                     & (indivi.alr == 0)
                     )
-                ) &
-            (indivi.lpr == 4)
+                )
+            & (indivi.lpr == 4)
             & (indivi.noiper == 0)
             & (indivi.noimer == 0)
             & (indivi.lpr == 4)
