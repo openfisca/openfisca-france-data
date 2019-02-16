@@ -58,7 +58,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     indivi_i.loc[indivi_i.quifoy == "", "quifoy"] = "vous"
     indivi_i.quelfic = "FIP_IMP"
 
-   # We merge them with the other individuals
+    # We merge them with the other individuals
     indivim.rename(
         columns = dict(
             ident = "idmen",

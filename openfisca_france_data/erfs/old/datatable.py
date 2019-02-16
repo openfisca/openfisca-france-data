@@ -68,7 +68,7 @@ class SurveyCollection(object):
 
 
 def build_erfs_survey_collection():
-        # self.hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf.h5')
+    # self.hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf.h5')
 
     erfs_survey_collection = SurveyCollection()
     for year in range(2006, 2010):
