@@ -17,7 +17,7 @@ except ImportError:
     Config = None
 
 
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS, DATA_DIR
+from openfisca_france_data import AGGREGATES_DEFAULT_VARS
 
 
 log = logging.getLogger(__name__)

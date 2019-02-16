@@ -2,10 +2,7 @@
 
 
 from __future__ import division
-from numpy import where, NaN, random
-from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
-from openfisca_france.data.erf.build_survey.utils import print_id, control, check_structure
-from pandas import read_csv, HDFStore
+from pandas import HDFStore
 from openfisca_france import DATA_SOURCES_DIR
 import os
 

@@ -3,14 +3,12 @@
 
 import os
 import pkg_resources
-import sys
 import gc
 
 from pandas import HDFStore
-from openfisca_france.utils import check_consistency
-#    Uses rpy2.
-#    On MS Windows, The environment variable R_HOME and R_USER should be set
 
+# Uses rpy2.
+# On MS Windows, The environment variable R_HOME and R_USER should be set
 try:
     import pandas.rpy.common as com
     import rpy2.rpy_classic as rpy

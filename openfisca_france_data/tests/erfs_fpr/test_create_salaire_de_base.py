@@ -11,8 +11,8 @@ from openfisca_france.model.base import TypesCategorieSalarie
 from openfisca_france_data.erfs_fpr.input_data_builder.step_03_variables_individuelles import (
     create_ages,
     create_date_naissance,
-    create_activite,
-    create_revenus,
+    # create_activite,
+    # create_revenus,
     create_contrat_de_travail,
     create_categorie_salarie,
     create_salaire_de_base,

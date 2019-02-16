@@ -3,8 +3,6 @@
 
 from __future__ import division
 
-from itertools import izip
-
 from numpy import arange, array, floor, where
 
 from .base import *  # noqa

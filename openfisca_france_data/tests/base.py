@@ -2,9 +2,6 @@
 
 from openfisca_core.reforms import Reform
 
-from openfisca_france.entities import Famille
-from openfisca_france_data import france_data_tax_benefit_system
-
 from openfisca_france.reforms import (
     allocations_familiales_imposables,
     cesthra_invalidee,

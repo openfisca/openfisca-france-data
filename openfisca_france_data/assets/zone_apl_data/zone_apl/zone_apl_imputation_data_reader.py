@@ -2,8 +2,7 @@
 
 
 from __future__ import division
-import pickle
-from pandas import read_csv, DataFrame
+from pandas import read_csv
 import numpy as np
 
 

@@ -8,7 +8,7 @@ import os
 
 from openfisca_france_data.erfs.input_data_builder import (  # analysis:ignore
     step_01_pre_processing as pre_processing,
-    step_02_imputation_loyer as imputation_loyer,
+    # step_02_imputation_loyer as imputation_loyer,
     step_03_fip as fip,
     step_04_famille as famille,
     step_05_foyer as foyer,

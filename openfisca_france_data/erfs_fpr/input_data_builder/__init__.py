@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import os
-
-from openfisca_survey_manager.survey_collections import SurveyCollection
-
 
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
-    step_02_imputation_loyer as imputation_loyer,
+    # step_02_imputation_loyer as imputation_loyer,
     step_03_variables_individuelles as variables_individuelles,
     step_04_famille as famille,
     step_05_final as final,

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
-
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 

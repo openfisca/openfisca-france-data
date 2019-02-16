@@ -2,9 +2,6 @@
 
 import logging
 import os
-from ConfigParser import \
-    NoOptionError  # Use "ConfigParser" and not "configparser" to use the same as OpenFisca packages.
-
 import numpy
 from pandas import Series
 
