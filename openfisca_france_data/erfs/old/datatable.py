@@ -17,7 +17,7 @@ except(Exception):
     pass
 
 
-# from openfisca_france.data.sources.config import DATA_DIR
+from openfisca_france.data.sources.config import DATA_DIR
 
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
 CONFIG_DIR = os.path.join(openfisca_france_location)
@@ -39,7 +39,7 @@ class Survey(object):
             self.label = self.name
         else:
             self.label = label
-        self.informations = kwarg
+        self.informations = kwargs
 
     def insert_table(self, name=None, **kwargs):
         """
@@ -143,20 +143,20 @@ def build_erfs_survey_collection():
         for table in erf_tables:
             table["RData_filename"] = os.path.join(os.path.dirname(data_directory), 'R', 'erf')
 
-    def initialize(self):
+    def initialize(self, tables = None):
         """
         Initialize survey data
         """
 
-        self.initialize_erf(tables=tables)
+        self.initialize_erf(tables = tables)
 #        self.initialize_logement()
 
-    def initialize_erf(self, tables=None):
+    def initialize_erf(self, tables = None):
         """
         """
 
         year = self.year
-        erf = SurveyDescription()
+        # erf = SurveyDescription()
         yr = str(year)[2:]
         yr1 = str(year + 1)[2:]
         erf_tables_to_process = {
@@ -212,19 +212,19 @@ def build_erfs_survey_collection():
         else:
             erf_tables_to_process = tables
 
-        for name in erf_tables_to_process:
-            erf.insert_table(name=name,
-                             RData_filename=RData_filename,
-                             RData_dir=RData_dir,
-                             variables=variables)
+        # for name in erf_tables_to_process:
+        #     erf.insert_table(name=name,
+        #                      RData_filename=RData_filename,
+        #                      RData_dir=RData_dir,
+        #                      variables=variables)
 
-        self.surveys["erf"] = erf
+        # self.surveys["erf"] = erf
 
     def initialize_logement(self):
         """
         """
         year = self.year
-        lgt = SurveyDescription()
+        # lgt = SurveyDescription()
         yr = str(year)[2:]
         yr1 = str(year + 1)[2:]
 
@@ -243,12 +243,12 @@ def build_erfs_survey_collection():
                                  "lgt_logt": lgt_lgt}
 
         RData_dir = os.path.join(os.path.dirname(DATA_DIR), 'R', 'logement')
-        for name, RData_filename in lgt_tables_to_process.iteritems():
-            lgt.insert_table(name=name,
-                             RData_filename=RData_filename,
-                             RData_dir=RData_dir)
+        # for name, RData_filename in lgt_tables_to_process.iteritems():
+        #     lgt.insert_table(name=name,
+        #                      RData_filename=RData_filename,
+        #                      RData_dir=RData_dir)
 
-        self.surveys["lgt"] = lgt
+        # self.surveys["lgt"] = lgt
 
     def initialize_patrimoine(self, year):
         """
@@ -521,7 +521,7 @@ def build_erfs_survey_collection():
 
 if __name__ == '__main__':
     #     test3()
-    test_init()
+    # test_init()
     # hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR), 'erf', 'erf.h5')
     # print(hdf5_filename)
     # store = HDFStore(hdf5_filename)

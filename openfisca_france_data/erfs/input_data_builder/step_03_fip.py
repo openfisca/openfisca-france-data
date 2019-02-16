@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = 'erfs')
-def create_fip(temporary_store = None, year = None):
+def create_fip(temporary_store = None, year = None, config_files_directory = None):
     assert temporary_store is not None
     assert year is not None
     # FIP : fichier d'imposition des personnes

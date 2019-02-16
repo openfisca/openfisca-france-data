@@ -25,7 +25,7 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 log = logging.getLogger(__name__)
 
 
-def run_all(year = None, check = False):
+def run_all(year = None, check = False, config_files_directory = None):
 
     assert year is not None
     pre_processing.create_indivim_menagem(year = year)

@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = 'erfs')
-def sif(temporary_store = None, year = None):
+def sif(temporary_store = None, year = None, config_files_directory = None):
     assert temporary_store is not None
     assert year is not None
     year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
@@ -148,7 +148,7 @@ def sif(temporary_store = None, year = None):
 
 
 @temporary_store_decorator(file_name = 'erfs')
-def foyer_all(temporary_store = None, year = None):
+def foyer_all(temporary_store = None, year = None, config_files_directory = None):
     year_specific_by_generic = year_specific_by_generic_data_frame_name(year)
 
     # On ajoute les cases de la déclaration

@@ -84,7 +84,7 @@ class Debugger(object):
         print([column.name for column in column_list])
         x = x + 1
         if x == 20:
-            boum
+            raise(ValueError("boum"))
         variables = self.variables
         tax_benefit_system = self.survey_scenario.simulation.tax_benefit_system
 
@@ -197,7 +197,7 @@ class Debugger(object):
         assert data_frame.notnull().all().all()
         return data_frame
 
-    def build_erf_data_frames(self):
+    def build_erf_data_frames(self, config_files_directory = None):
         # TODO: remove this
         self.columns_to_fetch = ['af']
         variables = self.columns_to_fetch
@@ -333,7 +333,7 @@ class Debugger(object):
         of_individus_data_frame = self.data_frame_by_entity_key_plural['individus']
         erf_individus_data_frame = self.erf_data_frame_by_entity_key_plural['individus']
         erf_menages_data_frame = self.erf_data_frame_by_entity_key_plural['menages']
-        return debug_data_frame
+        # return debug_data_frame
 
         kept_columns = set()
         if parameters:
@@ -342,7 +342,7 @@ class Debugger(object):
             kept_columns.update(set(self.variable_consumers))
         kept_columns = list(kept_columns)
         kept_columns = list(set(kept_columns).union(
-            set(['idmen', 'idfam', 'idfoy', 'quimen', 'quifam', 'quifoy'] + list(major_differences_data_frame.columns)))
+            set(['idmen', 'idfam', 'idfoy', 'quimen', 'quifam', 'quifoy'] + list(debug_data_frame.columns)))
             )
 
         if to_men:
@@ -435,7 +435,7 @@ if __name__ == '__main__':
     df = debugger.describe_discrepancies(descending = False)
     df = debugger.generate_test_case()
 
-    boum
+    raise(ValueError("boum"))
     entity_class_by_key_plural = debugger.survey_scenario.tax_benefit_system.entity_class_by_key_plural
     menages_entity = entity_class_by_key_plural['menages']
 

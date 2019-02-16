@@ -483,7 +483,8 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     return base, famille
 
 
-def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
+@temporary_store_decorator(file_name = 'erfs_fpr')
+def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None, temporary_store = None):
     assert base is not None
     assert famille is not None
     assert year is not None

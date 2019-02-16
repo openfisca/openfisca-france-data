@@ -92,7 +92,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erfindm = erfindm[['ident', 'dip11']][erfindm.lpr == 1].copy()
 
     log.info(u"Merging talbes menage et individus de l'ERF")
-    erf = erfmenm.merge(erfindm, on = 'ident', how = 'inner')
+    erf = erf_menages.merge(erfindm, on = 'ident', how = 'inner')
     erf = erf.drop_duplicates('ident')
 
     dec, values = mark_weighted_percentiles(

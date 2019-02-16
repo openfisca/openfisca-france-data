@@ -81,7 +81,7 @@ def manually_remove_noindiv_errors(indivim):
 
 
 @temporary_store_decorator(file_name = "erfs")
-def merge_tables(temporary_store = None, year = None):
+def merge_tables(temporary_store = None, year = None, config_files_directory = None):
     """
     Création des tables ménages et individus concaténée (merged)
     """
@@ -154,7 +154,7 @@ def merge_tables(temporary_store = None, year = None):
 
 
 @temporary_store_decorator(file_name = "erfs")
-def create_enfants_a_naitre(temporary_store = None, year = None):
+def create_enfants_a_naitre(temporary_store = None, year = None, config_files_directory = None):
     '''
     '''
     assert temporary_store is not None
