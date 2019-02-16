@@ -1,6 +1,6 @@
 # OpenFisca France Data
 
-[![Build Status via Travis CI](https://travis-ci.org/openfisca/openfisca-france-data.svg?branch=master)](https://travis-ci.org/openfisca/openfisca-france-data)
+[![CircleCI](https://img.shields.io/circleci/project/github/openfisca/openfisca-france-data/master.svg?style=flat)](https://circleci.com/gh/openfisca/openfisca-france-data)
 
 [OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
