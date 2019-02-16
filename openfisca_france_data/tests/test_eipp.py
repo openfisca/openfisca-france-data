@@ -28,7 +28,7 @@ def filter_input_data_frame(data_frame, filter_entity = None, filter_index = Non
     other_symbols = [entity.symbol for entity in simulation.entity_by_key_singular.values()]
     other_symbols = other_symbols.remove('ind')
     person_index = dict()
-    if symbol is 'ind':
+    if symbol == 'ind':
         selection = data_frame.index.isin(filter_index)
         person_index['ind'] = data_frame.index[selection].copy()
     else:
