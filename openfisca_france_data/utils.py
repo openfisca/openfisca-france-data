@@ -283,7 +283,7 @@ NaN are present : {}
                 dataframe[serie_name] = serie.astype('bool', copy = True)
                 rectified_series.append(serie_name)
             # Nombre 01-99
-            elif serie.dropna().str.match("\d\d$").all():
+            elif serie.dropna().str.match(r"\d\d$").all():
                 if serie.isnull().any():
                     serie = serie.fillna(0)
                 dataframe[serie_name] = serie.astype('int', copy = True)
