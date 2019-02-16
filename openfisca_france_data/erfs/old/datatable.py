@@ -19,12 +19,12 @@ except:
     pass
 
 
-#from openfisca_france.data.sources.config import DATA_DIR
+# from openfisca_france.data.sources.config import DATA_DIR
 
 openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
 CONFIG_DIR = os.path.join(openfisca_france_location)
 
-#ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data', 'erf')
+# ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data', 'erf')
 
 
 class Survey(object):
@@ -481,73 +481,53 @@ def build_erfs_survey_collection():
                 df.rename(columns = {var: erf2of[var]}, inplace=True)
         return df
 
-<<<<<<< HEAD
-## def test():
-##     '''
-##     Validate check_consistency
-##     '''
-##     #===========================================================================
-##     # from pandas import DataFrame
-##     #res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
-##     # print(res)
-##     #===========================================================================
-=======
 # def test():
-# '''
-# Validate check_consistency
-# '''
-# ===========================================================================
-# from pandas import DataFrame
-# res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
-# print res
-# ===========================================================================
->>>>>>> Apply autopep8
-
-##     store = HDFStore(os.path.join(os.path.dirname(os.path.join(SRC_PATH,'countries','france','data','erf')),'fichiertest.h5'))
-##     datatable = store.get('test12')
-##     test_simu = store.get('test_simu')
-##     print(check_consistency(test_simu, datatable))
+#     '''
+#     Validate check_consistency
+#     '''
+#     # ===========================================================================
+#     # from pandas import DataFrame
+#     # res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
+#     # print(res)
+#     # ===========================================================================
+#     store = HDFStore(os.path.join(os.path.dirname(os.path.join(SRC_PATH,'countries','france','data','erf')),'fichiertest.h5'))
+#     datatable = store.get('test12')
+#     test_simu = store.get('test_simu')
+#     print(check_consistency(test_simu, datatable))
 
 # def test3():
 # year=2006
-##     erf = SurveyCollection(year=year)
-##     df = erf.get_of_values(table = "eec_menage")
-##     from openfisca_core.simulations import SurveySimulation
-##     simulation = SurveySimulation()
+#     erf = SurveyCollection(year=year)
+#     df = erf.get_of_values(table = "eec_menage")
+#     from openfisca_core.simulations import SurveySimulation
+#     simulation = SurveySimulation()
 # simulation.set_config(year=year)
 # simulation.set_param()
 # simulation.compute() # TODO: this should not be mandatory
-##     check_consistency(simulation.input_table, df)
+#     check_consistency(simulation.input_table, df)
 
 # def test_init():
 
 # for year in range(2009,2010):
-##         data = SurveyCollection(year=year)
+#         data = SurveyCollection(year=year)
 # data.initialize(tables=["eec_indivi"])
 # data.set_config()
 
 # def test_reading_stata_tables():
 # from pandas.io.stata import StataReader, read_stata # TODO: wait for the next release ...
-## #
-<<<<<<< HEAD
-## #    filename = os.path.join(DATA_DIR,"erf","2006","Tables complémentaires","icomprf06e07t1.dta")
-## #    reader = StataReader(filename)
-## #    print(reader.data())
-
-=======
-# filename = os.path.join(DATA_DIR,"erf","2006","Tables complémentaires","icomprf06e07t1.dta")
+# #
+# filename = os.path.join(DATA_DIR, "erf", "2006", "Tables complémentaires", "icomprf06e07t1.dta")
 # reader = StataReader(filename)
-# print reader.data()
->>>>>>> Apply autopep8
+# print(reader.data())
 
 
 if __name__ == '__main__':
     #     test3()
     test_init()
-    ## hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf.h5')
-    ## print(hdf5_filename)
-    ## store = HDFStore(hdf5_filename)
-    ## print(store)
+    # hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR), 'erf', 'erf.h5')
+    # print(hdf5_filename)
+    # store = HDFStore(hdf5_filename)
+    # print(store)
 
     build_erfs_survey_collection()
 

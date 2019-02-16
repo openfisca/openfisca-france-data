@@ -85,16 +85,16 @@ erf$mtybd[erf$nbenfc ==1]          <- 4
 erf$mtybd[erf$nbenfc ==2]          <- 5
 erf$mtybd[erf$nbenfc >=3]          <- 6
 erf$mtybd <- as.factor(erf$mtybd)  # TODO il reste 41 NA's 2003
-  
+
 erf$hnph2[erf$hnph2 < 1] <- 1 # 3 logements ont 0 pi?ces !!
-erf$hnph2[erf$hnph2 >=6] <- 6  
+erf$hnph2[erf$hnph2 >=6] <- 6
 # table(erf$hnph2, useNA="ifany")
 # TODO: il reste un NA 2003
-#       il rest un NA en 2008    
+#       il rest un NA en 2008
 erf$hnph2 <- as.factor(erf$hnph2)
 tmp <- erf$mnatio
 tmp[erf$mnatio %in% c(10)] <- 1
-tmp[erf$mnatio %in% c(11,12,13,14,15,21,22,23,24,25,26,27,28,29,31,32,41,42,43,44,45,46,47,48,51,52,62,60)] <- 2  
+tmp[erf$mnatio %in% c(11,12,13,14,15,21,22,23,24,25,26,27,28,29,31,32,41,42,43,44,45,46,47,48,51,52,62,60)] <- 2
 erf$mnatio <- as.factor(tmp)
 
 tmp <- erf$iaat
@@ -108,7 +108,7 @@ tmp[erf$iaat %in% c(8)] <- 6
 # Il reste un NA en 2003
 #    reste un NA en 2008
 erf$iaat <- as.factor(tmp)
-table(erf$iaat, useNA="ifany")  
+table(erf$iaat, useNA="ifany")
 
 tmp <- erf$mdiplo
 tmp[erf$mdiplo %in% c(71,"") ]      <- 1
@@ -117,7 +117,7 @@ tmp[erf$mdiplo %in% c(41,42,31,33)] <- 3
 tmp[erf$mdiplo %in% c(10,11,30)]    <- 4
 erf$mdiplo <- as.factor(tmp)
 
-tmp <- erf$tu99   # erf$tu99 is coded from 0 to 8 
+tmp <- erf$tu99   # erf$tu99 is coded from 0 to 8
 tmp[erf$tu99 %in% c(0)] <- 1
 tmp[erf$tu99 %in% c(1,2,3)] <- 2
 tmp[erf$tu99 %in% c(4,5,6)] <- 3
@@ -126,7 +126,7 @@ tmp[erf$tu99 %in% c(8)] <- 5
 erf$tu99_recoded <- as.factor(tmp)
 
 tmp <- erf$mcs8
-tmp[erf$mcs8 %in% c(1)] <- 1  # TODO 0 ? rajouter 2003 ! 
+tmp[erf$mcs8 %in% c(1)] <- 1  # TODO 0 ? rajouter 2003 !
 tmp[erf$mcs8 %in% c(2)] <- 2
 tmp[erf$mcs8 %in% c(3)] <- 3
 tmp[erf$mcs8 %in% c(4,8)] <- 4
@@ -155,12 +155,12 @@ saveTmp(erf, file = "erf.Rdata")
 
 rm(erf)
 
-## Travail sur la base logement 
+## Travail sur la base logement
 ## ----------------------------
 
 ## Table menage
 
-# 
+#
 if (year=="2003"){
   year_lgt = "2003"}
 
@@ -181,19 +181,19 @@ lgtmen <- within(lgtmen,{
 })
 dec <- wtd.quantile(lgtmen$nvpr,weights=lgtmen$qex,probs=c(0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1))
 lgtmen <- within(lgtmen,{
-  deci <-  as.factor(1 + (nvpr>=dec[2]) 
+  deci <-  as.factor(1 + (nvpr>=dec[2])
               + (nvpr>=dec[3])
-              + (nvpr>=dec[4]) 
+              + (nvpr>=dec[4])
               + (nvpr>=dec[5])
-              + (nvpr>=dec[6]) 
+              + (nvpr>=dec[6])
               + (nvpr>=dec[7])
-              + (nvpr>=dec[8]) 
+              + (nvpr>=dec[8])
               + (nvpr>=dec[9])
               + (nvpr>=dec[10]))
 })
 
 
-##Table logement (pas en 2003 mais en 2006) 
+##Table logement (pas en 2003 mais en 2006)
 str(lgtmen)
 if (year_lgt=="2006"){
   message("preparing logement logement table")
@@ -230,7 +230,7 @@ data <- within(data,{
   mnatior <- mnatior[,drop = TRUE]
   sec1    <- as.factor(sec1)
   sec1    <- sec1[,drop = TRUE]
-  
+
   tmp <- as.character(sec1)
   tmp[sec1 %in% c(21,22,23)] <- 3
   tmp[sec1 %in% c(24)]           <- 4
@@ -261,7 +261,7 @@ logement <- merge(lgtmen, lgtadr, by = "ident")
 rm(lgtadr,lgtmen)
 saveTmp(logement,file="logement.Rdata")
 
-# Cr?ation de nouvelles variables par traitement 
+# Cr?ation de nouvelles variables par traitement
 loadTmp("logement.Rdata")
 logement <- within(logement,{
   hnph2[hnph2 >=6] <- 6
@@ -342,7 +342,7 @@ saveTmp(logement,file="logement.Rdata")
 rm(logement)
 
 
-## Imputation des loyers proprement dite 
+## Imputation des loyers proprement dite
 ## -------------------------------------
 
 message("Compute imputed rents")
@@ -361,13 +361,13 @@ erf <- subset(erf,select=c( logt , hnph2 , iaat , mdiplo , mtybd , tu99_recoded 
 
 # debug
 # derf  <- describe(erf, weights=as.numeric(erf$wprm))
-# dlogt <- describe(logt, weights=logt$wprm)   
-# 
+# dlogt <- describe(logt, weights=logt$wprm)
+#
 # for (var in as.list(names(derf))){
 #   print("erf")
-#   print(derf[[var]]) 
+#   print(derf[[var]])
 #   print("logt")
-#   print(dlogt[[var]]) 
+#   print(dlogt[[var]])
 #   print("================")
 # }
 # rm(var,dlogt,derf)
@@ -399,8 +399,8 @@ describe(logt$lmlm,weights=logt$wprm)
 erfCDF  <- wtd.Ecdf(fill.erf.nnd$lmlm,weights=fill.erf.nnd$wprm)
 logtCDF <- wtd.Ecdf(logt$lmlm,weights=logt$wprm)
 
-#plot(erfCDF$x,erfCDF$ecdf)
-#lines(logtCDF$x,logtCDF$ecdf,col=3)
+# plot(erfCDF$x,erfCDF$ecdf)
+# lines(logtCDF$x,logtCDF$ecdf,col=3)
 
 rm(logt,erf1)
 gc()

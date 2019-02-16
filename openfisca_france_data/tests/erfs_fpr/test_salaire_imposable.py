@@ -30,7 +30,7 @@ def test_inversion():
         )
     print(data_frame_by_entity)
 
-    #famille = data_frame_by_entity['famille']
+    # famille = data_frame_by_entity['famille']
     individu = data_frame_by_entity['individu']
     menage = data_frame_by_entity['menage']
 

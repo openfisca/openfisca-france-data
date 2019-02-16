@@ -4,14 +4,14 @@
 def get_of2erf(year=None):
     of2erf = dict()
     of2erf["csg"] = "csgim"  # imposable, et "csgdm", déductible
-#of2erf["csgd"] = "csgdm"
+    # of2erf["csgd"] = "csgdm"
     of2erf["crds"] = "crdsm"
     of2erf["irpp"] = "zimpom"
     of2erf["ppe"] = "m_ppem"
     of2erf["af"] = "m_afm"
-# af_base
-# af_majo
-# af_forf
+    # af_base
+    # af_majo
+    # af_forf
     of2erf["cf"] = "m_cfm"
     of2erf["paje_base"] = "m_pajem"
     of2erf["paje_nais"] = "m_naism"
@@ -23,7 +23,7 @@ def get_of2erf(year=None):
     of2erf["aspa"] = "m_minvm"
     of2erf["aah"] = "m_aahm"
     of2erf["caah"] = "m_caahm"
-#of2erf["rmi"] = "m_rmim"
+    # of2erf["rmi"] = "m_rmim"
     of2erf["rsa"] = "m_rsam"
     of2erf["rsa_act"] = ""
     of2erf["aefa"] = "m_crmim"
