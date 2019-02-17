@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.7.7 [145](https://github.com/openfisca/openfisca-france-data/pull/145)
+
+- Remove `__future__` imports
+  - They make sense no more as we've migrated to the Python 3 interpreter
+
 ### 0.7.6 [146](https://github.com/openfisca/openfisca-france-data/pull/146)
 
 - Limit code coverage to the `openfisca-france-data` package
