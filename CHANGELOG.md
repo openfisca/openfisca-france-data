@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.5 [144](https://github.com/openfisca/openfisca-france-data/pull/144)
+
+- Change `print arg` to `print(arg)` for Python 3 compatibility
+
 ### 0.7.4 [140](https://github.com/openfisca/openfisca-france-data/pull/140)
 
 - Add CircleCI
