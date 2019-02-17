@@ -1,5 +1,21 @@
 # Changelog
 
+### 0.7.4 [140](https://github.com/openfisca/openfisca-france-data/pull/140)
+
+- Add CircleCI
+
+### 0.7.3 [138](https://github.com/openfisca/openfisca-france-data/pull/138)
+
+- Remove licence from files
+
+### 0.7.2 [136](https://github.com/openfisca/openfisca-france-data/pull/136)
+
+- Remove already deprecated files
+
+### 0.7.1 [135](https://github.com/openfisca/openfisca-france-data/pull/135)
+
+- Update repo's instructions to help contirbutors get started
+
 ## 0.7
 
 - Improvement of inversion script (WIP)
