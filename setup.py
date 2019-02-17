@@ -39,6 +39,8 @@ setup(
     include_package_data = True,
     extras_require = {
         'test': [
+            'autopep8 >= 1.4.0, < 1.5.0',
+            'flake8 >= 3.7.0, < 3.8.0',
             'nose-exclude',
             ],
         },

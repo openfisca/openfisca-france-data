@@ -1,47 +1,47 @@
 # Changelog
 
+## 0.7
+
+- Improvement of inversion script (WIP)
+
 ## 0.6
 
-* Amélioration de script d'inversion (WIP)
+- Bump openfisca-core version to 23
 
-## 0.6
+### 0.5.10
 
-* Migration vers la version 23 d'openfisca-core
+- Bump openfisca-core version to 21
 
-## 0.5.10
+### 0.5.7
 
-* Migration vers la version 21 d'openfisca-core
+- Migration to the new syntax
+- Deprecation of `entity_key_plural`
 
+### 0.5.6
 
-## 0.5.7
+- Use of [RSA](https://www.legifrance.gouv.fr/affichCode.do?idArticle=LEGIARTI000031694448&idSectionTA=LEGISCTA000006178378&cidTexte=LEGITEXT000006074069&dateTexte=20190216)'s "âge limite" to constitute a family
 
-* Migration vers la nouvelle syntaxe (abandon des entity_key_plural)
+### 0.5.5
 
-## 0.5.6
+- Add missing before_deploy (tagging)
 
-* Utilisation de l'age limite du rsa pour former les familles
+### 0.5.4
 
-## 0.5.5
+- Activate deployment (tagging)
 
-* Add missing before_deploy (tagging)
+### 0.5.3
 
-## 0.5.4
+- Really add automatic version tagging (bump)
 
-* Activate deployment (tagging)
+### 0.5.2
 
-## 0.5.3
+- Add automatic version tagging
 
-* Really add automatic version tagging (bump)
+### 0.5.1
 
-## 0.5.2
-
-* Add automatic version tagging
-
-## 0.5.1
-
-* Improving Makefile checks
+- Improve Makefile checks
 
 ## 0.5
 
-* Create Changelog.md
-* Chexk version and changelog when pushing
+- Create CHANGELOG.md
+- Check version and changelog when pushing
