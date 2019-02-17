@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.2 [136](https://github.com/openfisca/openfisca-france-data/pull/136)
+
+- Remove already deprecated files
+
 ### 0.7.1 [135](https://github.com/openfisca/openfisca-france-data/pull/135)
 
 - Update repo's instructions to help contirbutors get started
