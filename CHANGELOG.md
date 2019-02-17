@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.3 [138](https://github.com/openfisca/openfisca-france-data/pull/138)
+
+- Remove licence from files
+
 ### 0.7.2 [136](https://github.com/openfisca/openfisca-france-data/pull/136)
 
 - Remove already deprecated files
