@@ -27,7 +27,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
     count = 0
 
     from .data.erf.build_survey.utilitaries import control
-    print 'Controlling simulation input_table'
+    print('Controlling simulation input_table')
     control(table_simu.table, verbose = True)
 
     # First : study of the datatable / the specification of columns given by table_simu
@@ -67,24 +67,24 @@ def check_consistency(table_simu, dataframe, corrige = True):
                     if set(serie.unique()) > set(sorted(varcol.possible_values._nums.values())):
                         message += "Some variables out of range for Enum variable %s : \n" % var
                         message += str(set(serie.unique()) - set(sorted(varcol.possible_values._nums.values()))) + "\n"
-                        # print varcol.enum._nums
-                        # print sorted(serie.unique()), "\n"
+                        # print(varcol.enum._nums)
+                        # print(sorted(serie.unique()), "\n")
                         is_ok = False
 
                 except:
                     is_ok = False
                     message += "Error : no _num attribute for EnumCol.enum %s \n" % var
-                    # print varcol.enum
-                    # print sorted(serie.unique()), "\n"
+                    # print(varcol.enum)
+                    # print(sorted(serie.unique()), "\n")
                 try:
                     varcol.enum._vars
 
                 except:
                     is_ok = False
                     message += "Error : no _var attribute for EnumCol.enum %s \n" % var
-                    # print varcol.enum
-                    # print sorted(serie.unique())
-                    # print "\n"
+                    # print(varcol.enum)
+                    # print(sorted(serie.unique()))
+                    # print("\n")
                 try:
                     n = varcol.enum._count
                     if n < len(set(serie.unique())):
@@ -102,7 +102,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
             if varcol.value_type == int:
                 if serie.dtype not in ('int', 'int16', 'int32', 'int64'):
                     is_ok = False
-                    # print serie[serie.notnull()]
+                    # print(serie[serie.notnull()])
                     message += "Some values in column %s are not integer as wanted: %s \n" % (var, serie.dtype)
                     stash = []
                     for v in serie:
@@ -122,7 +122,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
             if varcol.value_type == bool:
                 if serie.dtype != 'bool':
                     is_ok = False
-                    # print serie[serie.notnull()]
+                    # print(serie[serie.notnull()])
                     message += "Some values in column %s are not boolean as wanted \n" % var
                     if corrige:
                         message += "Warning, forcing type boolean for %s..." % var
@@ -145,7 +145,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
 
             #     if not serie.isin(range(-1, 156)).all():  # Pas plus vieux que 100 ans ?
             #         is_ok = False
-            #         # print serie[serie.notnull()]
+            #         # print(serie[serie.notnull()])
             #         message += "Age variable %s not in wanted range: \n" % var
             #         stash = list(set(serie.unique()) - set(range(-1, 156)))
             #         message += str(stash) + "\n"
@@ -172,7 +172,7 @@ def check_consistency(table_simu, dataframe, corrige = True):
             if varcol.value_type == date:
                 if serie.dtype != 'np.datetime64':
                     is_ok = False
-                    # print serie[serie.notnull()]
+                    # print(serie[serie.notnull()])
                     message += "Some values in column %s are not of type date as wanted \n" % var
 
             if corrige:
@@ -194,9 +194,9 @@ def check_consistency(table_simu, dataframe, corrige = True):
         message += "All variables were present in the datatable and were handled without error \n"
 
     if is_ok:
-        print "All is well. Sleep mode activated."
+        print("All is well. Sleep mode activated.")
     else:
-        print message
+        print(message)
 
     if corrige:
         return dataframe
@@ -214,7 +214,7 @@ def dump_simulation_results_data_frame(survey_scenario, collection = None):
     output_data_directory = openfisca_survey_collection.config.get('data', 'output_directory')
     survey_name = "openfisca_data_{}".format(year)
     for entity, data_frame in data_frame_by_entity.iteritems():
-        print entity
+        print(entity)
         table = entity
         hdf5_file_path = os.path.join(
             os.path.dirname(output_data_directory),
@@ -351,4 +351,4 @@ if __name__ == '__main__':
 #    dump_simulation_results_data_frame(survey_scenario, collection = "openfisca")
 
     df = get_data_frame(["af"], survey_scenario, load_first = True, collection = "openfisca")
-    print df
+    print(df)

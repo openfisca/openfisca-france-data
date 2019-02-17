@@ -139,7 +139,7 @@ def build_erfs_survey_collection():
         config_local_ini = os.path.join(CONFIG_DIR, 'config_local.ini')
         config_ini = os.path.join(CONFIG_DIR, 'config.ini')
         found = parser.read(config_local_ini, config_ini)
-        print found
+        print(found)
 
         data_directory = parser.get('data', 'input_directory')
         for table in erf_tables:
@@ -299,7 +299,7 @@ def build_erfs_survey_collection():
                     variables = tables["variables"]
                 except:
                     variables = None
-                print variables
+                print(variables)
                 self.store_survey(survey_name, R_table_name, destination_table_name, data_dir, variables)
 
     def store_survey(self, survey_name, R_table_name, destination_table_name, data_dir, variables=None, force_recreation=True):
@@ -334,10 +334,10 @@ def build_erfs_survey_collection():
             else:
                 return year
 
-        print "creating %s" %(destination_table_name)
+        print("creating %s" %(destination_table_name))
         table_Rdata = R_table_name + ".Rdata"
         filename = os.path.join(data_dir, str(get_survey_year(survey_name, year)), table_Rdata)
-        print filename
+        print(filename)
         if not os.path.isfile(filename):
             raise Exception("filename do  not exists")
 
@@ -348,17 +348,17 @@ def build_erfs_survey_collection():
 
         if store_path in store:
             if force_recreation is not True:
-                print store_path + "already exists, do not re-create and exit"
+                print(store_path + "already exists, do not re-create and exit")
                 store.close()
                 return
 
         if variables is not None:
 
-            print store
-            print store_path
-            print variables
+            print(store)
+            print(store_path)
+            print(variables)
             variables_stored = list(set(variables).intersection(set(stored_table.columns)))
-            print list(set(variables).difference((set(stored_table.columns))))
+            print(list(set(variables).difference((set(stored_table.columns)))))
             store[store_path] = stored_table[variables_stored]
         else:
             store[store_path] = stored_table
@@ -474,11 +474,11 @@ def build_erfs_survey_collection():
 #            for test_table in self.tables.keys:
 #                if set(variables) < set(self.tables[test_table].columns):
 #                    table = test_table
-#                    print "using guessed table :", table
+#                    print("using guessed table :", table)
 #                    break
 #
 #        if table is None:
-#            print "varname not found in any tables"
+#            print("varname not found in any tables")
 #            df = None
 #        else:
 
@@ -500,13 +500,13 @@ def build_erfs_survey_collection():
 ##     #===========================================================================
 ##     # from pandas import DataFrame
 ##     #res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
-##     # print res
+##     # print(res)
 ##     #===========================================================================
 
 ##     store = HDFStore(os.path.join(os.path.dirname(os.path.join(SRC_PATH,'countries','france','data','erf')),'fichiertest.h5'))
 ##     datatable = store.get('test12')
 ##     test_simu = store.get('test_simu')
-##     print check_consistency(test_simu, datatable)
+##     print(check_consistency(test_simu, datatable))
 
 ## def test3():
 ##     year=2006
@@ -531,7 +531,7 @@ def build_erfs_survey_collection():
 ## #
 ## #    filename = os.path.join(DATA_DIR,"erf","2006","Tables complémentaires","icomprf06e07t1.dta")
 ## #    reader = StataReader(filename)
-## #    print reader.data()
+## #    print(reader.data())
 
 
 
@@ -539,14 +539,14 @@ if __name__ == '__main__':
 #     test3()
     test_init()
     ## hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf.h5')
-    ## print hdf5_filename
+    ## print(hdf5_filename)
     ## store = HDFStore(hdf5_filename)
-    ## print store
+    ## print(store)
 
     build_erfs_survey_collection()
 
 #
 #     hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf_old.h5')
-#     print hdf5_filename
+#     print(hdf5_filename)
 #     store = HDFStore(hdf5_filename)
-#     print store
+#     print(store)

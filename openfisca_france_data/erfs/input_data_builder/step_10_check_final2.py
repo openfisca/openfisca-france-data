@@ -18,7 +18,7 @@ def final_check(year=2006):
     survey = HDFStore(survey_filename)
 
     final2 = store.get('survey_2006')
-    print survey
+    print(survey)
     finalT = survey.get('survey_2006')
 
     varlist = [
@@ -58,11 +58,12 @@ def final_check(year=2006):
     columns = final2.columns
     columns = set(columns)
 
-    print varlist.difference(columns)
-    print final2.loc[
+    print(varlist.difference(columns))
+    print(final2.loc[
         final2.idfoy == 603018901,
         ['idfoy', 'quifoy', 'idfam', 'quifam', 'idmen', 'quimen', 'noi']
         ].to_string()
+        )
 
     return
 

@@ -79,8 +79,8 @@ def test_survey_simulation():
             )
         simulation_debug.calculate(column_name)
 
-    print revenu_disponible.info()
-    print 'finished'
+    print(revenu_disponible.info())
+    print('finished')
 
 
 if __name__ == '__main__':

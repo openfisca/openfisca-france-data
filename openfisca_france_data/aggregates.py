@@ -163,8 +163,8 @@ class Aggregates(object):
         column = variables.get(variable)
 
         if column is None:
-            print use_baseline
-            print variable
+            print(use_baseline)
+            print(variable)
             return pd.DataFrame(
                 data = {
                     'label': variable,

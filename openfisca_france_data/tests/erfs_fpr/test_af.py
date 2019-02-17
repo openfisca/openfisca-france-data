@@ -57,7 +57,7 @@ assert famille.weight_familles.sum() > 29e6
     ) > 8e6
 
 #%%
-print (famille.af_base * famille.weight_familles).sum()
+print((famille.af_base * famille.weight_familles).sum())
 
 
 #%%

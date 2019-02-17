@@ -108,16 +108,17 @@ def imputation_loyer(temporary_store = None, year = None):
         erf_unique_values = set(erf[variable].unique())
         logement_unique_values = set(logement[variable].unique())
         if not erf_unique_values <= logement_unique_values:
-            print '''
-{} span wrong
-erf: {},
-logement: {}
-concerns {} observations
-'''.format(
-                variable,
-                erf_unique_values,
-                logement_unique_values,
-                erf[variable].isin(erf_unique_values - logement_unique_values).sum()
+            print('''
+                {} span wrong
+                erf: {},
+                logement: {}
+                concerns {} observations
+                '''.format(
+                    variable,
+                    erf_unique_values,
+                    logement_unique_values,
+                    erf[variable].isin(erf_unique_values - logement_unique_values).sum()
+                    )
                 )
 
     if kind == 'erfs_fpr':

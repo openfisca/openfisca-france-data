@@ -136,7 +136,7 @@ def invalide(temporary_store = None, year = None):
     # # invalides[!(invalides$quifoy %in% c("vous","conj")),c("noindiv","invalide","alt")] <- foy_inv_pac
     log.info(u"    1.3 : enfants invalides et en garde alternée (variables inv et alt)")
     pacIndiv = temporary_store['pacIndiv_{}'.format(year)]
-    # print pacIndiv.type_pac.value_counts()
+    # print(pacIndiv.type_pac.value_counts())
     log.info(pacIndiv.type_pac.value_counts())
 
     foy_inv_pac = invalides[['noindiv', 'invalide']][~(invalides.quifoy.isin([0, 1]))].copy()

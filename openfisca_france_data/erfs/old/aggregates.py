@@ -53,4 +53,4 @@ def build_erf_aggregates(variables = None, year = 2006, unit = 1e6):
 
 if __name__ == '__main__':
     df = build_erf_aggregates(variables = ["af"])
-    print df.to_string()
+    print(df.to_string())
