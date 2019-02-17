@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.4 [140](https://github.com/openfisca/openfisca-france-data/pull/140)
+
+- Add CircleCI
+
 ### 0.7.3 [138](https://github.com/openfisca/openfisca-france-data/pull/138)
 
 - Remove licence from files
