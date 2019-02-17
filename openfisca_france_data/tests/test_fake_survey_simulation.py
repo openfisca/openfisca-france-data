@@ -170,7 +170,7 @@ def create_fake_calibration():
     survey_scenario.init_from_data(
         data = dict(input_data_frame = input_data_frame),
         )
-    calibration = Calibration(survey_scenario = survey_scenario)
+    calibration = Calibration(survey_scenario = survey_scenario, period = year)
     calibration.set_parameters('invlo', 3)
     calibration.set_parameters('up', 3)
     calibration.set_parameters('method', 'logit')
