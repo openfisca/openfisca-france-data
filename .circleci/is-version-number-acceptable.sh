@@ -1,5 +1,12 @@
 #! /usr/bin/env bash
 
+# TODO: remove once release/1.0.0 is integrated in master
+if [[ $CIRCLE_BRANCH == release/1.0.0 ]]
+then
+    echo "No need for a version check on release/1.0.0."
+    exit 0
+fi
+
 if [[ $CIRCLE_BRANCH == master ]]
 then
     echo "No need for a version check on master."
