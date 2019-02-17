@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.6 [146](https://github.com/openfisca/openfisca-france-data/pull/146)
+
+- Limit code coverage to the `openfisca-france-data` package
+
 ### 0.7.5 [144](https://github.com/openfisca/openfisca-france-data/pull/144)
 
 - Change `print arg` to `print(arg)` for Python 3 compatibility
