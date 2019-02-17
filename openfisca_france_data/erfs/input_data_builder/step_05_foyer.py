@@ -7,9 +7,6 @@
 # Creates sif and foyer_aggr
 
 
-from __future__ import division
-
-
 import gc
 import logging
 

@@ -8,9 +8,6 @@
 # (the version on python website is not compatible, working correctly for the debian's testing version)
 
 
-from __future__ import division
-
-
 import gc
 import logging
 import numpy

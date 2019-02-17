@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
 import pickle
 from pandas import read_csv, DataFrame
 import numpy as np

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
-
 from openfisca_france_data.tests import base as base_survey
 
 
