@@ -36,7 +36,7 @@ jobs:
           name: Run tests
           command: make test
 
-  check_version_and_changelog:
+  check_version:
     docker:
       - image: python:3.7
 
@@ -54,4 +54,4 @@ workflows:
   build:
     jobs:
       - run_tests
-      - check_version_and_changelog
+      - check_version
