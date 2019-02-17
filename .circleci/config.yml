@@ -59,20 +59,20 @@ jobs:
             git fetch
             .circleci/is-version-number-acceptable.sh
 
-deploy:
-    docker:
-      - image: python:3.7
+  deploy:
+      docker:
+        - image: python:3.7
 
-    steps:
-      - checkout
+      steps:
+        - checkout
 
-      - run:
-          name: Check for functional changes
-          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+        - run:
+            name: Check for functional changes
+            command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
 
-      - run:
-          name: Publish a git tag
-          command: .circleci/publish-git-tag.sh
+        - run:
+            name: Publish a git tag
+            command: .circleci/publish-git-tag.sh
 
 workflows:
   version: 2
