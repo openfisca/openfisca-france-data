@@ -136,9 +136,9 @@ if __name__ == '__main__':
     start = time.time()
     year = 2012
     survey_scenario, data_frame_by_entity = test_erfs_fpr_survey_simulation(year = year)
-    print survey_scenario.calculate_variable('salaire_imposable_pour_inversion', period = year)
+    print(survey_scenario.calculate_variable('salaire_imposable_pour_inversion', period = year))
 
-    # print survey_scenario.simulation.calculate('salaire_de_base')
+    # print(survey_scenario.simulation.calculate('salaire_de_base'))
 
     data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         variables = [

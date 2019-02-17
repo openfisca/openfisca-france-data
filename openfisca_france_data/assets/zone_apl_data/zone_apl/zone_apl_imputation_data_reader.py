@@ -33,20 +33,20 @@ if __name__ == '__main__':
     res['zone1'] = 0
     res['zone2'] = 0
     res['zone3'] = 0
-    print res
+    print(res)
 
-    print pop.Pop_mun_2006[pop['Zone']==1]
+    print(pop.Pop_mun_2006[pop['Zone']==1])
 
     res['zone1'] = res['zone1'] + pop.Pop_mun_2006[pop['Zone']==1]
     res['zone2'] = res['zone2'] + pop.Pop_mun_2006[pop['Zone']==2]
     res['zone3'] = res['zone3'] + pop.Pop_mun_2006[pop['Zone']==3]
 
-    print res.to_string()
+    print(res.to_string())
 
     for col in ('zone1','zone2','zone3'):
         res[col][np.isnan(res[col])] = 0
 
-    print res.to_string()
+    print(res.to_string())
     res2 = res.groupby(['TU99','TAU99', 'REG','POL99'])
 
     final = res2.agg({'zone1': np.sum,
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
     final = final.reset_index()
 
-    print final
+    print(final)
 
     # Sanity check
     # s = final['p1'] + final['p2'] + final['p3']

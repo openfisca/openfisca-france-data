@@ -266,7 +266,7 @@ def final(temporary_store = None, year = None, check = True):
 #     for col in final2.columns:
 #         if final2[final2['idfoy'].notnull()][col].isnull().any() and not final2[col].isnull().all():
 #             columns_w_nan.append(col)
-#     print columns_w_nan
+#     print(columns_w_nan)
     log.info('check doublons : {}'.format(len(final2[final2.duplicated(['noindiv'])])))
     log.info("{}".format(final2.age.isnull().sum()))
 

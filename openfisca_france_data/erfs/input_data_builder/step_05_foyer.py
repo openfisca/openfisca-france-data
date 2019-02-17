@@ -113,7 +113,7 @@ def sif(temporary_store = None, year = None):
     sif["causeXYZ"] = sif.sif.str[60 + d: 61 + d]
 
     # TODO: convert dateXYZ to appropriate date in pandas
-    # print sif["dateY"].unique()
+    # print(sif["dateY"].unique())
 
     sif["nbptr"] = sif.nbptr.values / 100
     sif["rfr_n_2"] = sif.mnrvka.values

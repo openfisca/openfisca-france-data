@@ -513,19 +513,20 @@ def imputation_loyer(temporary_store = None, year = None):
         erf_unique_values = set(erf[variable].unique())
         logement_unique_values = set(logement[variable].unique())
         if not erf_unique_values <= logement_unique_values:
-            print '''
-{} span wrong
-erf: {},
-logement: {}
-concerns {} observations
-'''.format(
-        variable,
-        erf_unique_values,
-        logement_unique_values,
-        erf[variable].isin(erf_unique_values - logement_unique_values).sum()
-        )
+            print('''
+                {} span wrong
+                erf: {},
+                logement: {}
+                concerns {} observations
+                '''.format(
+                    variable,
+                    erf_unique_values,
+                    logement_unique_values,
+                    erf[variable].isin(erf_unique_values - logement_unique_values).sum()
+                    )
+                )
 
-    # print "dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0')))
+    # print("dropping {} erf observations".format(len(erf.query('iaat_bis == 0 | mtybd == 0 | mcs8 == 0'))))
     erf = erf.query('iaat_bis != 0 & mtybd != 0 & mcs8 != 0').copy()
 
     for variable in allvars:
@@ -550,7 +551,7 @@ concerns {} observations
     os.path.abspath
     imputation_loyer_R = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'imputation_loyer.R')
     temporary_store_directory = os.path.dirname(temporary_store.filename)
-    print imputation_loyer_R
+    print(imputation_loyer_R)
     try:
         subprocess.check_call(['/usr/bin/Rscript', imputation_loyer_R, temporary_store_directory])
     except WindowsError:

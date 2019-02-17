@@ -126,9 +126,9 @@ def test_fake_survey_simulation():
         assert (simulation.calculate_add('salaire_imposable', period = "{}-{}".format(year, month)) == 0).all()
 
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):
-        # print "{}-{}".format(year, month)
-        # print simulation.calculate_add_divide('salaire_imposable', period = "{}-{}".format(year, month))
-        # print sal_2006 / 12
+        # print("{}-{}".format(year, month))
+        # print(simulation.calculate_add_divide('salaire_imposable', period = "{}-{}".format(year, month)))
+        # print(sal_2006 / 12)
         assert (simulation.calculate('salaire_imposable', period = "{}-{}".format(year, month)) == sal_2006 / 12).all()
 
     data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
