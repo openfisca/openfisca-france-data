@@ -11,6 +11,12 @@ jobs:
           key: v1-py3-deps-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
+          name: Install HDF5
+          command: |
+            apt-get update
+            apt-get -y install libhdf5-serial-dev
+
+      - run:
           name: Create a virtualenv
           command: |
             mkdir -p /tmp/venv/openfisca-france-data
