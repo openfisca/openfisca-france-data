@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.1 [135](https://github.com/openfisca/openfisca-france-data/pull/135)
+
+- Update repo's instructions to help contirbutors get started
+
 ## 0.7
 
 - Improvement of inversion script (WIP)
