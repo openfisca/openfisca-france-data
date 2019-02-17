@@ -34,7 +34,9 @@ jobs:
 
       - run:
           name: Run tests
-          command: make test
+          command: |
+            make test
+            coveralls
 
   check_version:
     docker:
