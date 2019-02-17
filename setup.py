@@ -16,6 +16,7 @@ Development Status :: 2 - Pre-Alpha
 License :: OSI Approved :: GNU Affero General Public License v3
 Operating System :: POSIX
 Programming Language :: Python
+Programming Language :: Python :: 3.7
 Topic :: Scientific/Engineering :: Information Analysis
 """
 
@@ -40,6 +41,8 @@ setup(
     extras_require = {
         'test': [
             'autopep8 >= 1.4.0, < 1.5.0',
+            'coverage >= 4.5.0, < 4.6.0',
+            'coveralls >= 1.5.0, < 1.6.0',
             'flake8 >= 3.7.0, < 3.8.0',
             'nose-exclude',
             ],
