@@ -5,7 +5,6 @@ uninstall:
 
 install:
 	pip install --upgrade pip
-	pip install --editable . --upgrade
 	pip install --editable .[test] --upgrade
 
 clean:
