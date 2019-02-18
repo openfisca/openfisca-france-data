@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 from itertools import izip
 
 from numpy import arange, array, floor, where

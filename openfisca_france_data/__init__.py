@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 import inspect
 import logging
 import os

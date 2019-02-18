@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 #%%
 
-from __future__ import division
-
-
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 
 

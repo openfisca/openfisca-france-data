@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 import numpy
 import os
 import pandas
