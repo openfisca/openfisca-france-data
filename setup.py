@@ -41,10 +41,10 @@ setup(
     extras_require = {
         'test': [
             'autopep8 >= 1.4.0, < 1.5.0',
-            'coverage >= 4.5.0, < 4.6.0',
             'coveralls >= 1.5.0, < 1.6.0',
             'flake8 >= 3.7.0, < 3.8.0',
-            'nose-exclude',
+            'pytest >= 4.0.0, < 5.0.0',
+            'pytest-cov >= 2.0.0, < 3.0.0',
             ],
         },
     install_requires = [
