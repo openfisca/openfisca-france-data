@@ -22,11 +22,16 @@ def build_merged_dataframes(temporary_store = None, year = None):
     log.debug("Chargement des tables des enquêtes")
     erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
     yr = str(year)[-2:]  # 12 for 2012
+    add_suffix_retropole_years = [2012]
     survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
-    fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
     eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
     eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
-    fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
+    if year in add_suffix_retropole_years:
+        fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
+        fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
+    else:
+        fpr_individu = survey.get_values(table = 'fpr_indiv_{}'.format(year))
+        fpr_menage = survey.get_values(table = 'fpr_menage_{}'.format(year))
 
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
     temporary_store['menages_{}'.format(year)] = menages
@@ -51,27 +56,32 @@ Il y a {} individus dans eec_individu
 
     individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
     check_naia_naim(individus, year)
-
+    agepr = 'agepr' if year < 2013 else "ageprm"
+    cohab = 'cohab' if year < 2013 else "coured"
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
+    retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
+    txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
     var_list = ([
         'acteu',
-        'agepr',
-        'cohab',
+        agepr,
+        cohab,
         'contra',
         'encadr',
         'forter',
-        'lien',
+        lien,
         'mrec',
         'naia',
         'noicon',
         'noimer',
         'noiper',
-        'prosa',
-        'retrai',
+        prosa,
+        retrai,
         'rstg',
         'statut',
         'stc',
         'titc',
-        'txtppb',
+        txtppb,
         ])
 
     for var in var_list:
@@ -159,6 +169,16 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
 
 
 def check_naia_naim(individus, year):
+    valid_naim = individus.naim.isin(range(1, 13))
+    if not valid_naim.all():
+        log.debug("There are wrong naim values:\n{}".format(
+            individus.naim.value_counts(dropna = False))
+            )
+        individus.loc[
+            individus.naim == 99,
+            'naim'
+            ] = 1  # np.random.randint(1, 13, sum(~valid_naim))
+
     assert individus.naim.isin(range(1, 13)).all()
     good = ((year >= individus.naia) & (individus.naia > 1890))
     assertion = good.all()
