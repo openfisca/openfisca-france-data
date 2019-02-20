@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.8 [151](https://github.com/openfisca/openfisca-france-data/pull/151)
+
+- Bump openfisca-france version to 34
+
 ### 0.7.7 [145](https://github.com/openfisca/openfisca-france-data/pull/145)
 
 - Remove `__future__` imports

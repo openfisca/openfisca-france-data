@@ -25,7 +25,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.7.7',
+    version = '0.7.8',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -48,8 +48,8 @@ setup(
             ],
         },
     install_requires = [
-        'OpenFisca-France >= 24.0.0, < 25.0',
-        'OpenFisca-Survey-Manager[calmar] >= 0.11',
+        'OpenFisca-France >= 34.0.0, < 35.0.0',
+        'OpenFisca-Survey-Manager[calmar] >= 0.11.0',
         'pandas >= 0.20.3',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles
