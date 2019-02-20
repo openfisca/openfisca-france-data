@@ -49,7 +49,7 @@ setup(
         },
     install_requires = [
         'OpenFisca-France >= 34.3.0, < 35.0.0',
-        'OpenFisca-Survey-Manager[calmar] >= 0.11',
+        'OpenFisca-Survey-Manager[calmar] >= 0.18.2',
         'pandas >= 0.20.3',
         'tables',  # Needed by pandas.HDFStore
         'wquantiles >= 0.3'  # To compute weighted quantiles

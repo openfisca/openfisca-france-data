@@ -3,7 +3,7 @@
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.reforms.inversion_directe_salaires import inversion_directe_salaires
-from openfisca_france_data.reforms.plf2016_ayrault_muet import ayrault_muet
+from openfisca_france.reforms.plf2016_ayrault_muet import ayrault_muet
 
 
 def test_reform_combination():

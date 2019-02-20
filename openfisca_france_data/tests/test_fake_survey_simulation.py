@@ -184,9 +184,9 @@ def test_fake_calibration_float():
 
     revenu_disponible_target = 7e6
     calibration.set_target_margin('revenu_disponible', revenu_disponible_target)
-
     calibration.calibrate()
     calibration.set_calibrated_weights()
+
     simulation = calibration.survey_scenario.simulation
     assert_near(
         simulation.calculate("wprm", period = year).sum(),
@@ -209,9 +209,9 @@ def test_fake_calibration_age():
     survey_scenario = calibration.survey_scenario
     calibration.total_population = calibration.initial_total_population * 1.123
     calibration.set_target_margin('age', [95, 130])
-
     calibration.calibrate()
     calibration.set_calibrated_weights()
+
     simulation = survey_scenario.simulation
     assert_near(
         simulation.calculate("wprm").sum(),
@@ -257,3 +257,7 @@ def test_reform():
     assert_near(survey_scenario.calculate_variable('irpp', use_baseline = True, period = year), [-10124, -869], error_margin)
     assert_near(survey_scenario.calculate_variable('irpp', period = year), [-10118, -911.4 + (1135 - 911.4)], error_margin)
     # -911.4 + (1135 - 911.4) = -686.8
+
+
+if __name__ == '__main__':
+    calibration = test_fake_calibration_age()
