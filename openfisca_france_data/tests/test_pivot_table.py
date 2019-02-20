@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
 
+import pytest
+
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario as erfs_fpr_get_survey_scenario
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_france_data.tests import base as base_survey
 
 
+@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_1d_mean():
     year = 2012
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
@@ -17,6 +20,7 @@ def test_pivot_table_1d_mean():
     return pivot_table
 
 
+@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_1d_sum():
     year = 2012
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
@@ -29,6 +33,7 @@ def test_pivot_table_1d_sum():
     return pivot_table
 
 
+@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_1d_count():
     year = 2012
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
@@ -41,6 +46,7 @@ def test_pivot_table_1d_count():
     return pivot_table
 
 
+@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_2d_2values():
     year = 2012
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
@@ -62,16 +68,3 @@ def get_survey_scenario(kind = 'erfs_fpr', year = None):
         SurveyScenario = ErfsSurveyScenario
 
     return SurveyScenario.create(year = year)
-
-
-if __name__ == '__main__':
-    import logging
-    import time
-    log = logging.getLogger(__name__)
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    start = time.time()
-    print(test_pivot_table_1d_sum())
-    print(test_pivot_table_1d_mean())
-    print(test_pivot_table_2d_2values())
-    print(time.time() - start)

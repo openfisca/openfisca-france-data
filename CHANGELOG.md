@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.9 [150](https://github.com/openfisca/openfisca-france-data/pull/150)
+
+- Replace `nosetests` (unmaintained) with `pytest`.
+
 ## 0.7.8 [151](https://github.com/openfisca/openfisca-france-data/pull/151)
 
 - Bump openfisca-france version to 34
