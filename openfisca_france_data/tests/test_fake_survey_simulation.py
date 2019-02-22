@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Callable
+
 import pytest
 
 import numpy
@@ -241,7 +243,7 @@ def test_fake_calibration_age():
     return calibration
 
 
-def test_reform(fake_input_data: pandas.DataFrame):
+def test_calculate_irpp_before_and_after_plf2015(fake_input_data: Callable[[int], pandas.DataFrame], error_margin: int = 1):
     input_data = fake_input_data(2014)
 
     # On ne garde que les deux parents
@@ -249,7 +251,10 @@ def test_reform(fake_input_data: pandas.DataFrame):
     input_data.loc[1, 'salaire_imposable'] = 18000
     input_data = input_data.loc[0:1].copy()
 
+    # On charge le PLF 2015
     reform = plf2015(tax_benefit_system)
+
+    # On calcule l'IRPP à partir des données du N - 1 (2013)
     year = 2013
 
     survey_scenario = ErfsSurveyScenario.create(
@@ -262,7 +267,9 @@ def test_reform(fake_input_data: pandas.DataFrame):
         data = dict(input_data_frame = input_data),
         )
 
-    error_margin = 1
+    # IRPP avant la réforme
     assert_near(survey_scenario.calculate_variable('irpp', use_baseline = True, period = year), [-10124, -869], error_margin)
-    assert_near(survey_scenario.calculate_variable('irpp', period = year), [-10118, -911.4 + (1135 - 911.4)], error_margin)
+
+    # IRPP après la réforme
     # -911.4 + (1135 - 911.4) = -686.8
+    assert_near(survey_scenario.calculate_variable('irpp', period = year), [-10118, -911.4 + (1135 - 911.4)], error_margin)
