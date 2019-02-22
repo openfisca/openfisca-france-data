@@ -55,32 +55,35 @@ def build_csv_from_hdf(year):
     output.to_csv(csv_file_realpath)
 
 
-def get_fake_input_data_frame(year = None):
-    assert year is not None
-    try:
-        input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
-    except Exception:
-        input_data_frame = pandas.read_csv(csv_file_realpath)
-    input_data_frame.rename(
-        columns = dict(sali = 'salaire_imposable', choi = 'chomage_imposable', rsti = 'retraite_imposable'),
-        inplace = True,
-        )
-    input_data_frame.loc[0, 'salaire_imposable'] = 20000
-    input_data_frame.loc[1, 'salaire_imposable'] = 10000
-    for idx in [2, 6]:
-        input_data_frame.loc[idx] = input_data_frame.loc[1].copy()
-        input_data_frame.loc[idx, 'salaire_imposable'] = 0
-        input_data_frame.loc[idx, 'quifam'] = idx
-        input_data_frame.loc[idx, 'quifoy'] = idx
-        input_data_frame.loc[idx, 'quimen'] = idx
-        if idx < 4:
-            input_data_frame.loc[idx, 'age'] = 10
-        else:
-            input_data_frame.loc[idx, 'age'] = 24
-            input_data_frame.loc[idx, 'age'] = 24
+@pytest.fixture
+def fake_input_data_frame():
+    def _fake_input_data_frame(year: int) -> pandas.DataFrame:
+        try:
+            input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
+        except Exception:
+            input_data_frame = pandas.read_csv(csv_file_realpath)
+        input_data_frame.rename(
+            columns = dict(sali = 'salaire_imposable', choi = 'chomage_imposable', rsti = 'retraite_imposable'),
+            inplace = True,
+            )
+        input_data_frame.loc[0, 'salaire_imposable'] = 20000
+        input_data_frame.loc[1, 'salaire_imposable'] = 10000
+        for idx in [2, 6]:
+            input_data_frame.loc[idx] = input_data_frame.loc[1].copy()
+            input_data_frame.loc[idx, 'salaire_imposable'] = 0
+            input_data_frame.loc[idx, 'quifam'] = idx
+            input_data_frame.loc[idx, 'quifoy'] = idx
+            input_data_frame.loc[idx, 'quimen'] = idx
+            if idx < 4:
+                input_data_frame.loc[idx, 'age'] = 10
+            else:
+                input_data_frame.loc[idx, 'age'] = 24
+                input_data_frame.loc[idx, 'age'] = 24
 
-    input_data_frame.reset_index(inplace = True)
-    return input_data_frame
+        input_data_frame.reset_index(inplace = True)
+        return input_data_frame
+
+    return _fake_input_data_frame
 
 
 @pytest.mark.skip(reason = "some cryptic numpy error")
@@ -232,9 +235,10 @@ def test_fake_calibration_age():
     return calibration
 
 
-def test_reform():
+def test_reform(fake_input_data_frame):
     year = 2014
-    input_data_frame = get_fake_input_data_frame(year)
+    input_data_frame = fake_input_data_frame(year)
+
     # On ne garde que les deux parents
     input_data_frame.loc[0, 'salaire_imposable'] = 20000
     input_data_frame.loc[1, 'salaire_imposable'] = 18000
