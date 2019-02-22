@@ -13,8 +13,8 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-hdf5_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.h5')
-csv_file_realpath = os.path.join(current_dir, 'data_files', 'fake_openfisca_input_data.csv')
+hdf5_file_realpath = os.path.join(current_dir, 'fixtures', 'erfs', 'fake_openfisca_input_data.h5')
+csv_file_realpath = os.path.join(current_dir, 'fixtures', 'erfs', 'fake_openfisca_input_data.csv')
 
 
 def get_input_data_frame(year):
