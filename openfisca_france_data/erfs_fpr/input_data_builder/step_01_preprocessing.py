@@ -14,7 +14,7 @@ from openfisca_survey_manager.survey_collections import SurveyCollection
 
 log = logging.getLogger(__name__)
 
-
+import pandas as pd
 @temporary_store_decorator(file_name = "erfs_fpr")
 def build_merged_dataframes(temporary_store = None, year = None):
     assert temporary_store is not None
@@ -22,11 +22,17 @@ def build_merged_dataframes(temporary_store = None, year = None):
     log.debug("Chargement des tables des enquêtes")
     erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
     yr = str(year)[-2:]  # 12 for 2012
+    print(erfs_fpr_survey_collection)
     survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
-    fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
-    eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
-    eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
-    fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
+    ## fpr_menage = survey.get_values(table = 'fpr_menage_{}'.format(year)) #_retropole
+    ## eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
+    ## eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
+    ## fpr_individu = survey.get_values(table = 'fpr_indiv_{}'.format(year)) #_retropole
+    prepath='C:\\EIG\\Donnees\\FakeEFPRS\\csv-20190220T092100Z-001\\csv\\'
+    fpr_menage=pd.read_stata(prepath+'fpr_menage_{}'.format(year)+".dta")
+    eec_menage = pd.read_stata(prepath+'fpr_mrf{}e{}t4'.format(yr, yr)+".dta")
+    eec_individu=pd.read_stata(prepath+'fpr_indiv_{}'.format(year)+".dta")
+    fpr_individu=pd.read_stata(prepath+'fpr_irf{}e{}t4'.format(yr, yr)+".dta")
 
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
     temporary_store['menages_{}'.format(year)] = menages
@@ -48,9 +54,32 @@ Il y a {} individus dans eec_individu
         ))
 
     # Fusion enquête emploi et source fiscale
+    try:
+        individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident14', 'noi'], how = "inner")
+    except:
+        print(list(fpr_individu.columns))
+        raise
+    #correction of naim : unspecified month of birth becomes january
 
-    individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
+    log.debug(u"""
+    Correction des dates de naissance pourries :
+    {} mois de 99 changés en 1
+    """.format(
+        len(individus[individus["naim"]==99])
+    ))
+    individus.loc[individus["naim"]==99,"naim"]=1
     check_naia_naim(individus, year)
+    #correction of empty acteu ?
+    log.debug(u"""
+        Correction des acteu vides : remplaces par 0
+        Traite plus tard (reconnus comme enfants seuls 99% sont des enfants)
+        """.format(
+        len(individus[individus.acteu.isnull()])
+    ))
+    individus.loc[individus.acteu.isnull(), "acteu"] = 0
+    individus["acteu"] = individus.acteu.astype(int)
+    #errindivs.to_csv("C:\\EIG\\Donnees\\FakeEFPRS\\dump\\errors.csv")
+    #print(len(individus),len(errindivs))
 
     var_list = ([
         'acteu',
@@ -74,6 +103,7 @@ Il y a {} individus dans eec_individu
         'txtppb',
         ])
 
+    print(individus.dtypes)
     for var in var_list:
         assert np.issubdtype(individus[var].dtype, np.integer), \
             "Variable {} dtype is {} and should be an integer".format(
@@ -159,10 +189,18 @@ def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
 
 
 def check_naia_naim(individus, year):
-    assert individus.naim.isin(range(1, 13)).all()
+
+    try:
+        assert individus.naim.isin(range(1, 13)).all()
+    except:
+        print()
+        errindivs=individus[~individus.naim.isin(range(1,13))]
+        #errindivs.to_csv("C:\\EIG\\Donnees\\FakeEFPRS\\dump\\errors.csv")
+        print(len(individus),len(errindivs))
+        raise
     good = ((year >= individus.naia) & (individus.naia > 1890))
     assertion = good.all()
-    bad_idents = individus.loc[~good, 'ident'].unique()
+    bad_idents = individus.loc[~good, 'ident14'].unique()
     try:
         assert assertion, "Error: \n {}".format(
             individus.loc[
@@ -216,7 +254,7 @@ if __name__ == '__main__':
     start = time.time()
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     # logging.basicConfig(level = logging.DEBUG, filename = 'run_all.log', filemode = 'w')
-    year = 2012
+    year = 2014
     build_merged_dataframes(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
