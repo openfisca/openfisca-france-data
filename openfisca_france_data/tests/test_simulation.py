@@ -77,7 +77,7 @@ def loose_check(data_frame_by_entity):
                     variable, entity)
 
 
-@pytest.mark.skip(reason = "NameError: name 'reduce' is not defined")
+@pytest.mark.skip(reason = 'AssertionError: {} is not a valid path')
 def test_erfs_fpr_survey_simulation(year = 2012, rebuild_input_data = False):
     tax_benefit_system = base_survey.get_cached_reform(
         reform_key = 'inversion_directe_salaires',
@@ -97,7 +97,7 @@ def test_erfs_fpr_survey_simulation(year = 2012, rebuild_input_data = False):
     return survey_scenario, data_frame_by_entity
 
 
-@pytest.mark.skip(reason = "NameError: name 'reduce' is not defined")
+@pytest.mark.skip(reason = 'AssertionError: {} is not a valid path')
 def test_erfs_survey_simulation(year = 2009):
     tax_benefit_system = base_survey.get_cached_reform(
         reform_key = 'inversion_directe_salaires',
@@ -129,7 +129,7 @@ def test_weights_building():
     return survey_scenario.simulation
 
 
-@pytest.mark.skip(reason = "NameError: name 'reduce' is not defined")
+@pytest.mark.skip(reason = 'AssertionError: {} is not a valid path')
 def test_something():
     start = time.time()
     year = 2012
