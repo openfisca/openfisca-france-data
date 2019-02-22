@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+
+from functools import reduce
+
 from openfisca_core.reforms import Reform
 
 from openfisca_france.entities import Famille
