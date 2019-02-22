@@ -8,10 +8,11 @@ import os
 import pandas
 
 from openfisca_core.tools import assert_near
-from openfisca_france_data.tests import base
+from openfisca_france_data import france_data_tax_benefit_system as tax_benefit_system
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_survey_manager.calibration import Calibration
 from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_france.reforms.plf2015 import plf2015
 
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -56,7 +57,7 @@ def build_csv_from_hdf(year):
 
 
 @pytest.fixture
-def fake_input_data_frame():
+def fake_input_data():
     def _fake_input_data_frame(year: int) -> pandas.DataFrame:
         try:
             input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
@@ -85,6 +86,11 @@ def fake_input_data_frame():
 
     return _fake_input_data_frame
 
+
+@pytest.fixture
+def reform():
+    def _reform(name: str):
+        getattr(reforms, name)
 
 @pytest.mark.skip(reason = "some cryptic numpy error")
 def test_fake_survey_simulation():
@@ -235,28 +241,25 @@ def test_fake_calibration_age():
     return calibration
 
 
-def test_reform(fake_input_data_frame):
-    year = 2014
-    input_data_frame = fake_input_data_frame(year)
+def test_reform(fake_input_data: pandas.DataFrame):
+    input_data = fake_input_data(2014)
 
     # On ne garde que les deux parents
-    input_data_frame.loc[0, 'salaire_imposable'] = 20000
-    input_data_frame.loc[1, 'salaire_imposable'] = 18000
-    input_data_frame = input_data_frame.loc[0:1].copy()
+    input_data.loc[0, 'salaire_imposable'] = 20000
+    input_data.loc[1, 'salaire_imposable'] = 18000
+    input_data = input_data.loc[0:1].copy()
 
-    reform = base.get_cached_reform(
-        reform_key = 'plf2015',
-        tax_benefit_system = base.france_data_tax_benefit_system,
-        )
+    reform = plf2015(tax_benefit_system)
     year = 2013
+
     survey_scenario = ErfsSurveyScenario.create(
         tax_benefit_system = reform,
-        baseline_tax_benefit_system = base.france_data_tax_benefit_system,
+        baseline_tax_benefit_system = tax_benefit_system,
         year = year,
         )
 
     survey_scenario.init_from_data(
-        data = dict(input_data_frame = input_data_frame),
+        data = dict(input_data_frame = input_data),
         )
 
     error_margin = 1
