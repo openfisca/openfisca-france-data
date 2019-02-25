@@ -14,6 +14,11 @@ log = logging.getLogger(__name__)
 
 
 class AbstractErfsSurveyScenario(AbstractSurveyScenario):
+    '''
+    Parties communes entre ERFS et ERFS PFR
+
+    Note : beaucoup de mix entre milléssime, à nettoyer à un moment donnée
+    '''
     id_variable_by_entity_key = dict(
         famille = 'idfam',
         foyer_fiscal = 'idfoy',

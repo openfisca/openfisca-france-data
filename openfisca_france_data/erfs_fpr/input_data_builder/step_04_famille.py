@@ -34,6 +34,7 @@ def build_famille(temporary_store = None, year = None):
     log.info('    1.1 : récupération de indivi')
     indivi = temporary_store['individus_{}'.format(year)]
 
+    # si on pense qu'on ne peut pas le faire
     if skip_enfants_a_naitre:
         log.info(u"    1.2 : On ne récupère pas d'enfants à naître")
         enfants_a_naitre = None
@@ -96,6 +97,14 @@ def build_famille(temporary_store = None, year = None):
 
 def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_naitre = None,
         skip_enfants_a_naitre = True):
+    '''
+    On essaie de repèrer une type de famille.
+    À chaque fois, et le réliquat on le mets où on peut.
+    ça vient dasn une doc que dasdas , la retrouver
+
+    TODO : jeter un oeil à comment INES l'a fait
+    '''
+
     assert indivi is not None
     assert year is not None
     assert (enfants_a_naitre is not None) or skip_enfants_a_naitre

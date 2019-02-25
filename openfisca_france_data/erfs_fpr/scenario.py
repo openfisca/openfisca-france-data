@@ -6,6 +6,8 @@ from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 
 class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     collection = 'openfisca_erfs_fpr'
+
+    # Les variables OpenFisca qu'on va utiliser avec les données en entrée (input)
     used_as_input_variables = [
         'activite',
         'autonomie_financiere',
@@ -35,10 +37,14 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'zone_apl',
         ]
     # Might be used: hsup
+    # Pour forcer que;ques defaults spécifiques
     default_value_by_variable = dict(
         cotisation_sociale_mode_recouvrement = 2,
         # taux_incapacite = .50,
         )
+    # Si les données contiennent les variables, on les garde.
+    # Si non, on les neutralise à sa veleur par default, pour ne pas garder des vecteurs de variables qu\on ne veut pas calculer
+    # Ici on déclare les variables qu'on ne veut pas neutraliser
     non_neutralizable_variables = [
         'menage_ordinaire',
         'idfam_original',
@@ -55,6 +61,9 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
 
     @classmethod
     def build_input_data(cls, year = None):
+        '''
+        Voilà, TODO : nettoyer
+        '''
         assert year is not None
         from openfisca_france_data.erfs_fpr.input_data_builder import build
         build(year = year)
