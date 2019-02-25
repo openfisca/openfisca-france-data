@@ -54,7 +54,8 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         tax_benefit_system = self.tax_benefit_system
 
         simulation = (
-            tax_benefit_system.new_scenario()
+            tax_benefit_system
+            .new_scenario()
             .init_single_entity(**test_case_scenario)
             .new_simulation()
             )

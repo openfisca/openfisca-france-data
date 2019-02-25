@@ -102,7 +102,6 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
 
     TODO : jeter un oeil à comment INES l'a fait
     """
-
     assert indivi is not None
     assert year is not None
     assert (enfants_a_naitre is not None) or skip_enfants_a_naitre

@@ -46,9 +46,16 @@ def get_survey_scenario(
 
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
+        input_data_table_by_entity = dict(
+            individu = 'individu_2014',
+            menage = 'menage_2014',
+            )
+        input_data_table_by_entity_by_period = dict()
+        input_data_table_by_entity_by_period[year] = input_data_table_by_entity
+
         data = dict(
-            input_data_table = dict(),
-            input_data_survey_prefix = "openfisca_erfs_fpr_data",
+            input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
+            input_data_survey_prefix = 'openfisca_erfs_fpr_data',
             )
 
     # Les données peuvent venir en différents formats :

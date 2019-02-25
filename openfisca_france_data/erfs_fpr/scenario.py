@@ -7,6 +7,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     """Survey scenario spécialisé pour l'ERFS-FPR."""
 
     collection = "openfisca_erfs_fpr"
+
     # Les variables OpenFisca qu'on va utiliser avec les données en entrée.
     used_as_input_variables = [
         "activite",
@@ -67,4 +68,4 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         # TODO: fix import, otherwise it is untestable.
         from openfisca_france_data.erfs_fpr.input_data_builder import build
 
-        build(year=year)
+        build(year = year)

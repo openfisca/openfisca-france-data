@@ -323,7 +323,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 7,
             7: 8,
             8: 9,
-            9: 5, # On met les non renseignés en catégorie B
+            9: 5,  # On met les non renseignés en catégorie B
             }
         individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
     else:
@@ -415,10 +415,11 @@ def create_categorie_salarie(individus, period, survey_year = None):
             individus.categorie_salarie.value_counts(dropna = False))
     log.debug(u"Répartition des catégories de salariés: \n{}".format(
         individus
-            .groupby(['contrat_de_travail'])['categorie_salarie']
-            .value_counts(dropna = False)
-            .sort_index()
+        .groupby(['contrat_de_travail'])['categorie_salarie']
+        .value_counts(dropna = False)
+        .sort_index()
         ))
+
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     """
@@ -458,9 +459,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     assert salaire_type in ['net', 'imposable']
 
     individus.loc[individus.hhc == 0, 'hhc'] = np.nan
-    assert (
-            (individus.hhc > 0) | individus.hhc.isnull()
-        ).all()
+    assert ((individus.hhc > 0) | individus.hhc.isnull()).all()
     # assert individus.tppred.dtype is integer
 
     assert individus.tppred.isin(range(3)).all(), \

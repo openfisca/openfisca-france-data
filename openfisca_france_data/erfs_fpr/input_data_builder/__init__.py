@@ -19,7 +19,7 @@ from openfisca_survey_manager.temporary import get_store  # type: ignore
 log = logging.getLogger(__name__)
 
 
-@dispatch(int)  # noqa: F811
+@dispatch(int)
 def build(year: int) -> None:
     """
     Ici on va nettoyer et formatter les donnés ERFS-FPR, pour les rendre OpenFisca-like
