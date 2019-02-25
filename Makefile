@@ -26,7 +26,7 @@ format-style:
 	autopep8 `git ls-files | grep "\.py$$"`
 
 test: clean check-syntax-errors
-	pytest --ignore=openfisca_france_data/tests/erfs_fpr
+	pytest --ignore=openfisca_france_data/tests/erfs_fpr/integration
 
 test-local: clean check-syntax-errors
 	pytest
