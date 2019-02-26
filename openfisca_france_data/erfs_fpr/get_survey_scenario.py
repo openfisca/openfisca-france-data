@@ -13,7 +13,7 @@ from openfisca_france_data import france_data_tax_benefit_system
 
 
 def get_survey_scenario(
-        year: int = 2012,
+        year: int = 2014,
         rebuild_input_data: bool = False,
         tax_benefit_system: Optional[TaxBenefitSystem] = None,
         baseline_tax_benefit_system: Optional[TaxBenefitSystem] = None,
@@ -47,15 +47,16 @@ def get_survey_scenario(
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
         input_data_table_by_entity = dict(
-            individu = 'individu_2014',
-            menage = 'menage_2014',
+            individu = f"individu_{year}",
+            menage = f"menage_{year}",
             )
+
         input_data_table_by_entity_by_period = dict()
         input_data_table_by_entity_by_period[year] = input_data_table_by_entity
 
         data = dict(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
-            input_data_survey_prefix = 'openfisca_erfs_fpr_data',
+            input_data_survey_prefix = "openfisca_erfs_fpr_data",
             )
 
     # Les données peuvent venir en différents formats :
@@ -72,7 +73,6 @@ def get_survey_scenario(
         )
 
     return survey_scenario
-
 
 # Appelé quand *tax_benefit_system* est un :class:`TaxBenefitSystem`
 @dispatch(TaxBenefitSystem, object)  # noqa: F811
