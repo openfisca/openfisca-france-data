@@ -16,7 +16,7 @@ def word() -> str:
     return 'openfisca'
 
 
-def test_create_scenario_with_year(year: int):
+def test_create_scenario(year: int):
     assert ErfsFprSurveyScenario(year)
 
 
@@ -25,6 +25,6 @@ def test_create_scenario_with_word(word: str):
         ErfsFprSurveyScenario(word)  # type: ignore
 
 
-def test_create_scenario_without_arguments():
+def test_create_scenario_without_year():
     with pytest.raises(TypeError):
         ErfsFprSurveyScenario()
