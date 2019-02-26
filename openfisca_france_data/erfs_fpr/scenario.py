@@ -55,8 +55,10 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'wprm_init',
         ]
 
-    def __init__(self, year = None):
-        assert year is not None
+    def __init__(self, year: int):
+        if not isinstance(year, int):
+            raise(TypeError(f"'year' doit être du type 'int'"))
+
         self.year = year
 
     @classmethod
