@@ -5,9 +5,11 @@ from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 
 
 class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
+    '''Survey scenario spécialisé pour l'ERFS-FPR.'''
+
     collection = 'openfisca_erfs_fpr'
 
-    # Les variables OpenFisca qu'on va utiliser avec les données en entrée (input)
+    # Les variables OpenFisca qu'on va utiliser avec les données en entrée.
     used_as_input_variables = [
         'activite',
         'autonomie_financiere',
@@ -36,15 +38,20 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         'traitement_indiciaire_brut',
         'zone_apl',
         ]
+
     # Might be used: hsup
-    # Pour forcer que;ques defaults spécifiques
+    # Pour forcer quelques valeurs par défaut spécifiques.
     default_value_by_variable = dict(
         cotisation_sociale_mode_recouvrement = 2,
         # taux_incapacite = .50,
         )
-    # Si les données contiennent les variables, on les garde.
-    # Si non, on les neutralise à sa veleur par default, pour ne pas garder des vecteurs de variables qu\on ne veut pas calculer
-    # Ici on déclare les variables qu'on ne veut pas neutraliser
+
+    # En général, si les données contiennent les variables dont on a besoin, on les garde.
+    #
+    # Le cas échéant, on les neutralise à leur valeur par défaut, pour ne pas garder des
+    # vecteurs des variables qu'on ne veut pas calculer.
+    #
+    # Ici c'est une exception : on déclare les variables qu'on ne veut pas neutraliser.
     non_neutralizable_variables = [
         'menage_ordinaire',
         'idfam_original',
