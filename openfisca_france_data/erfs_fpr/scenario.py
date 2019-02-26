@@ -63,7 +63,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
 
     def __init__(self, year: int):
         if not isinstance(year, int):
-            raise(TypeError(f"'year' doit être du type 'int'"))
+            raise(TypeError("'year' doit être du type 'int'"))
 
         self.year = year
 
