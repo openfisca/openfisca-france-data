@@ -41,13 +41,15 @@ setup(
     extras_require = {
         'test': [
             'autopep8 >= 1.4.0, < 1.5.0',
-            'coveralls >= 1.5.0, < 1.6.0',
+            'coveralls >= 1.6.0, < 2.0.0',
             'flake8 >= 3.7.0, < 3.8.0',
-            'pytest >= 4.0.0, < 5.0.0',
-            'pytest-cov >= 2.0.0, < 3.0.0',
+            'mypy >= 0.670, < 1.0.0',
+            'pytest >= 4.3.0, < 5.0.0',
+            'pytest-cov >= 2.6.0, < 3.0.0',
             ],
         },
     install_requires = [
+        'multipledispatch >= 0.6.0, < 1.0.0',
         'OpenFisca-France >= 34.3.0, < 35.0.0',
         'OpenFisca-Survey-Manager[calmar] >= 0.18.2',
         'pandas >= 0.20.3',
