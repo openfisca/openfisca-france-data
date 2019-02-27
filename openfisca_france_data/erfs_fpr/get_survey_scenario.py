@@ -74,6 +74,7 @@ def get_survey_scenario(
 
     return survey_scenario
 
+
 # Appelé quand *tax_benefit_system* est un :class:`TaxBenefitSystem`
 @dispatch(TaxBenefitSystem, object)  # noqa: F811
 def get_tax_benefit_system(
