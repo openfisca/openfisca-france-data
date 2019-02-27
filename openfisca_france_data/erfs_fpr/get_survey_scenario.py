@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Any, Optional
+
 from multipledispatch import dispatch  # type: ignore
 
 from openfisca_core.reforms import Reform  # type: ignore
@@ -11,12 +13,12 @@ from openfisca_france_data import france_data_tax_benefit_system
 
 
 def get_survey_scenario(
-        year = 2012,
-        rebuild_input_data = False,
-        tax_benefit_system = None,
-        baseline_tax_benefit_system = None,
-        data = None,
-        reform = None
+        year: int = 2012,
+        rebuild_input_data: bool = False,
+        tax_benefit_system: Optional[TaxBenefitSystem] = None,
+        baseline_tax_benefit_system: Optional[TaxBenefitSystem] = None,
+        data: Any = None,  # Plusiers formats possibles.
+        reform: Optional[Reform] = None
         ):
     '''Helper pour créer un :class:`ErfsFprSurveyScenario`.
 
@@ -27,8 +29,8 @@ def get_survey_scenario(
     :param data:                        Les données de l'enquête.
     :param reform:                      Une réforme à appliquer à *france_data_tax_benefit_system*.
     '''
-    tax_benefit_system: TaxBenefitSystem = get_tax_benefit_system(tax_benefit_system, reform)
-    baseline_tax_benefit_system: TaxBenefitSystem = get_baseline_tax_benefit_system(baseline_tax_benefit_system)
+    tax_benefit_system = get_tax_benefit_system(tax_benefit_system, reform)
+    baseline_tax_benefit_system = get_baseline_tax_benefit_system(baseline_tax_benefit_system)
 
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
@@ -58,31 +60,31 @@ def get_survey_scenario(
     return survey_scenario
 
 
-@dispatch(TaxBenefitSystem, Reform)  # type: ignore
-def get_tax_benefit_system(tax_benefit_system: TaxBenefitSystem, reform: Reform) -> TaxBenefitSystem:
+# Appelé quand *tax_benefit_system* est un :class:`TaxBenefitSystem`
+@dispatch(TaxBenefitSystem, object)  # noqa: F811
+def get_tax_benefit_system(tax_benefit_system: TaxBenefitSystem, reform: Optional[None]) -> TaxBenefitSystem:
     return tax_benefit_system
 
 
-@dispatch(TaxBenefitSystem, object)  # type: ignore
-def get_tax_benefit_system(tax_benefit_system: TaxBenefitSystem, reform: None) -> TaxBenefitSystem:
-    return tax_benefit_system
-
-
-@dispatch(object, Reform)  # type: ignore
+# Appelé quand *tax_benefit_system* est `None`, mais *reform* est une :class:`Reform`
+@dispatch(object, Reform)  # noqa: F811
 def get_tax_benefit_system(tax_benefit_system: None, reform: Reform) -> TaxBenefitSystem:
     return reform(france_data_tax_benefit_system)
 
 
-@dispatch(object, object)  # type: ignore
+# Appelé quand *tax_benefit_system* et *reform* sont `None`
+@dispatch(object, object)  # noqa: F811
 def get_tax_benefit_system(tax_benefit_system: None, reform: None) -> TaxBenefitSystem:
     return france_data_tax_benefit_system
 
 
-@dispatch(TaxBenefitSystem)  # type: ignore
+# Appelé quand *tax_benefit_system* est un :class:`TaxBenefitSystem`
+@dispatch(TaxBenefitSystem)  # noqa: F811
 def get_baseline_tax_benefit_system(tax_benefit_system: TaxBenefitSystem) -> TaxBenefitSystem:
     return tax_benefit_system
 
 
-@dispatch(object)  # type: ignore
+# Appelé quand *tax_benefit_system* est `None`
+@dispatch(object)  # noqa: F811
 def get_baseline_tax_benefit_system(tax_benefit_system: None) -> TaxBenefitSystem:
     return france_data_tax_benefit_system
