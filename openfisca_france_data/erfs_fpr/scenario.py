@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from typing import Any
 
 from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 
@@ -62,13 +63,10 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         ]
 
     def __init__(self, year: int):
-        if not isinstance(year, int):
-            raise(TypeError("'year' doit être du type 'int'"))
-
         self.year = year
 
     @classmethod
-    def build_input_data(cls, year = None):
-        assert year is not None
+    def build_input_data(cls, year: int) -> Any:
+        # TODO: fix import, otherwise it is untestable.
         from openfisca_france_data.erfs_fpr.input_data_builder import build
         build(year = year)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Union
+from multipledispatch import dispatch  # type: ignore
 
 from openfisca_core.reforms import Reform  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
@@ -27,16 +27,8 @@ def get_survey_scenario(
     :param data:                        Les données de l'enquête.
     :param reform:                      Une réforme à appliquer à *france_data_tax_benefit_system*.
     '''
-    tax_benefit_system: TaxBenefitSystem = get_tax_benefit_system(
-        default_tax_benefit_system = france_data_tax_benefit_system,
-        tax_benefit_system = tax_benefit_system,
-        reform = reform,
-        )
-
-    baseline_tax_benefit_system: TaxBenefitSystem = get_baseline_tax_benefit_system(
-        default_tax_benefit_system = tax_benefit_system,
-        tax_benefit_system = baseline_tax_benefit_system,
-        )
+    tax_benefit_system: TaxBenefitSystem = get_tax_benefit_system(tax_benefit_system, reform)
+    baseline_tax_benefit_system: TaxBenefitSystem = get_baseline_tax_benefit_system(baseline_tax_benefit_system)
 
     survey_scenario = ErfsFprSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
@@ -66,32 +58,31 @@ def get_survey_scenario(
     return survey_scenario
 
 
-def get_tax_benefit_system(
-        default_tax_benefit_system: TaxBenefitSystem,
-        tax_benefit_system: Union[TaxBenefitSystem, None],
-        reform: Union[Reform, None],
-        ) -> TaxBenefitSystem:
-
-    if isinstance(tax_benefit_system, TaxBenefitSystem):
-        return tax_benefit_system
-
-    if not isinstance(default_tax_benefit_system, TaxBenefitSystem):
-        raise(TypeError("'default_tax_benefit_system' doit être du type 'TaxBenefitSystem"))
-
-    if isinstance(reform, Reform):
-        return reform(default_tax_benefit_system)
-
-    return default_tax_benefit_system
+@dispatch(TaxBenefitSystem, Reform)  # type: ignore
+def get_tax_benefit_system(tax_benefit_system: TaxBenefitSystem, reform: Reform) -> TaxBenefitSystem:
+    return tax_benefit_system
 
 
-def get_baseline_tax_benefit_system(
-        default_tax_benefit_system: Union[TaxBenefitSystem, None],
-        tax_benefit_system: Union[TaxBenefitSystem, None],
-        ) -> TaxBenefitSystem:
-    if isinstance(tax_benefit_system, TaxBenefitSystem):
-        return tax_benefit_system
+@dispatch(TaxBenefitSystem, object)  # type: ignore
+def get_tax_benefit_system(tax_benefit_system: TaxBenefitSystem, reform: None) -> TaxBenefitSystem:
+    return tax_benefit_system
 
-    if not isinstance(default_tax_benefit_system, TaxBenefitSystem):
-        raise(TypeError("'default_tax_benefit_system' doit être du type 'TaxBenefitSystem"))
 
-    return default_tax_benefit_system
+@dispatch(object, Reform)  # type: ignore
+def get_tax_benefit_system(tax_benefit_system: None, reform: Reform) -> TaxBenefitSystem:
+    return reform(france_data_tax_benefit_system)
+
+
+@dispatch(object, object)  # type: ignore
+def get_tax_benefit_system(tax_benefit_system: None, reform: None) -> TaxBenefitSystem:
+    return france_data_tax_benefit_system
+
+
+@dispatch(TaxBenefitSystem)  # type: ignore
+def get_baseline_tax_benefit_system(tax_benefit_system: TaxBenefitSystem) -> TaxBenefitSystem:
+    return tax_benefit_system
+
+
+@dispatch(object)  # type: ignore
+def get_baseline_tax_benefit_system(tax_benefit_system: None) -> TaxBenefitSystem:
+    return france_data_tax_benefit_system
