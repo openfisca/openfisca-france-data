@@ -1,15 +1,22 @@
 # Changelog
 
-## 0.7.10 [153](https://github.com/openfisca/openfisca-france-data/pull/153)
+### 0.7.11 [158](https://github.com/openfisca/openfisca-france-data/pull/158)
+
+- Split unit and integration tests
+- Add doc to `scenario.py` and `get_survey_scenario.py`
+- Add tests to `get_survey_scenario.py`
+- Use `multipledispatch` to reduce code complexity
+
+### 0.7.10 [153](https://github.com/openfisca/openfisca-france-data/pull/153)
 
 - Import `reduce` from `functools`
   - It has been moved there in Python 3
 
-## 0.7.9 [150](https://github.com/openfisca/openfisca-france-data/pull/150)
+### 0.7.9 [150](https://github.com/openfisca/openfisca-france-data/pull/150)
 
 - Replace `nosetests` (unmaintained) with `pytest`
 
-## 0.7.8 [151](https://github.com/openfisca/openfisca-france-data/pull/151)
+### 0.7.8 [151](https://github.com/openfisca/openfisca-france-data/pull/151)
 
 - Bump openfisca-france version to 34
 
