@@ -116,9 +116,16 @@ Après renommage seules les variables suivantes sont communes aux deux tables m�
 """.format(common_variables))
         menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
         create_variable_locataire(menages)
-        menages = menages.merge(
-            individus.loc[individus.lpr == 1, ['ident', 'ddipl']].copy()
-            )
+        lprm="lpr" if year<2013 else "lprm"
+        print(year,lprm)
+        try:
+            menages = menages.merge(
+                individus.loc[individus[lprm] == 1, ['ident', 'ddipl']].copy() #lpr (ou lprm) == 1 ==> C'est la Personne
+                #de référence
+                )
+        except:
+            print(individus.dtypes)
+            raise
         log.debug(u"""
 Il y a {} ménages dans la base ménage fusionnée
 """.format(len(menages.ident.unique())))
@@ -184,26 +191,30 @@ def check_naia_naim(individus, year):
     assertion = good.all()
     bad_idents = individus.loc[~good, 'ident'].unique()
     try:
+        lprm="lpr" if year<2013 else "lprm"
+        lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+        prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
+        retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
         assert assertion, "Error: \n {}".format(
             individus.loc[
-                individus.ident.isin(bad_idents),
+                individus.ident.isin(bad_idents),  # WTF is this table supposed to be? I changed the 'lien' in lien
+                #and so on for other variables
                 [
                     'ag',
                     'ident',
-                    'lien',
+                    lien,
                     'naia',
                     'naim',
                     'noi',
                     'noicon',
                     'noimer',
                     'noiper',
-                    'prosa',
-                    'retrai',
+                    prosa,
+                    retrai,
                     'rstg',
                     'statut',
                     'sexe',
-                    'lien',
-                    'lpr',
+                    lpr,
                     'chomage_i',
                     'pens_alim_recue_i',
                     'rag_i',
@@ -236,7 +247,7 @@ if __name__ == '__main__':
     start = time.time()
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     # logging.basicConfig(level = logging.DEBUG, filename = 'run_all.log', filemode = 'w')
-    year = 2012
+    year = 2014
     build_merged_dataframes(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))

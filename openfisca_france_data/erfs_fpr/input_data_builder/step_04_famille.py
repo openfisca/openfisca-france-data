@@ -39,19 +39,27 @@ def build_famille(temporary_store = None, year = None):
         log.info(u"    1.2 : On ne récupère pas d'enfants à naître")
         enfants_a_naitre = None
     else:
+        if year < 2013:
+            lpr = "lpr"
+        else:
+            lpr = "lprm"
+        lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
         log.info(u"    1.2 : récupération des enfants à naître")
+        cohab = 'cohab' if year < 2013 else "coured"
+        agepr = 'agepr' if year < 2013 else "ageprm"
+        retrai = 'retrai' if year < 2013 else "ret"
         individual_variables = [
             'acteu',
             'actrec',
             'agepf',
-            'agepr',
-            'cohab',
+            agepr,
+            cohab,
             'contra',
             'declar1',
             'forter',
             'ident',
-            'lien',
-            'lpr',
+            lien,
+            lpr,
             'mrec',
             'naia',
             'naim',
@@ -63,7 +71,7 @@ def build_famille(temporary_store = None, year = None):
             'noiper',
             'persfip',
             'quelfic',
-            'retrai',
+            retrai,
             'rga',
             'rstg',
             'sexe',
@@ -80,7 +88,7 @@ def build_famille(temporary_store = None, year = None):
     Il y a {} enfants à naitre avant de retirer ceux qui ne sont pas enfants
     de la personne de référence
     """.format(len(enfants_a_naitre.index)))
-        enfants_a_naitre = enfants_a_naitre.loc[enfants_a_naitre.lpr == 3].copy()
+        enfants_a_naitre = enfants_a_naitre.loc[enfants_a_naitre[lpr] == 3].copy()
         enfants_a_naitre = enfants_a_naitre.loc[~(enfants_a_naitre.noindiv.isin(indivi.noindiv.values))].copy()
         log.info(u""""
         Il y a {} enfants à naitre après avoir retiré ceux qui ne sont pas enfants
@@ -158,7 +166,15 @@ def complete_indivi(indivi, year):
         )
 
     # Enfant en nourrice exclus
-    selection_enfant_en_nourrice = (indivi.lien == 6) & (indivi.agepf < 16)
+    #before 2013, lien ==6 inclut enfants en nourrice sans lien de parenté
+    # en 2014 lienprm == 6 inclut tous les "sans lien de parenté". On va dire que c'est équivalent
+
+    try:
+        selection_enfant_en_nourrice = (indivi.lien == 6) & (indivi.agepf < 16)
+    except:
+        selection_enfant_en_nourrice = (indivi.lienprm == 6) & (indivi.agepf < 16)
+
+
     nb_enfants_en_nourrice = selection_enfant_en_nourrice.sum()
     if nb_enfants_en_nourrice > 0:
         indivi = indivi[~(selection_enfant_en_nourrice)].copy()
@@ -202,7 +218,11 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
     base['kid'] = False
     for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(base[series_name], "bool")
-    assert_dtype(base.famille, "int")
+    try:
+        assert_dtype(base.famille, "int")
+    except:
+        assert_dtype(base.famille, "int64")
+
     # TODO: remove or clean from NA assert_dtype(base.ztsai, "int")
     return base
 
@@ -210,24 +230,34 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
 def famille_2(base, year = None):
     assert year is not None
     log.info(u"Etape 2 : On cherche les enfants ayant père et/ou mère comme personne de référence et conjoint")
-    personne_de_reference = base.loc[base.lpr == 1, ['ident', 'noi']].copy()
+
+    if year<2013:
+        lpr="lpr"
+    else:
+        lpr="lprm"
+
+    personne_de_reference = base.loc[base[lpr] == 1, ['ident', 'noi']].copy()
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
     log.info(u"length personne_de_reference : {}".format(len(personne_de_reference.index)))
     nof01 = base.loc[
-        base.lpr.isin([1, 2]) |
-        ((base.lpr == 3) & (base.moins_de_15_ans_inclus)) |
-        ((base.lpr == 3) & base.jeune_non_eligible_rsa & (~base.smic55))
+        base[lpr].isin([1, 2]) |
+        ((base[lpr] == 3) & (base.moins_de_15_ans_inclus)) |
+        ((base[lpr] == 3) & base.jeune_non_eligible_rsa & (~base.smic55))
         ].copy()
     log.info('longueur de nof01 avant merge: {}'.format(len(nof01.index)))
     nof01 = nof01.merge(personne_de_reference, on = 'ident', how = 'outer')
     nof01['famille'] = 10
     nof01['kid'] = (
-        ((nof01.lpr == 3) & (nof01.moins_de_15_ans_inclus)) |
-        ((nof01.lpr == 3) & (nof01.jeune_non_eligible_rsa) & ~(nof01.smic55))
+        ((nof01[lpr] == 3) & (nof01.moins_de_15_ans_inclus)) |
+        ((nof01[lpr] == 3) & (nof01.jeune_non_eligible_rsa) & ~(nof01.smic55))
         )
     for series_name in ['famille', 'noifam']:
-        assert_dtype(nof01[series_name], "int")
+        try:
+            assert_dtype(nof01[series_name], "int")
+        except:
+            assert_dtype(nof01[series_name], "int64")
+
     assert_dtype(nof01.kid, "bool")
     famille = nof01.copy()
     del nof01
@@ -236,7 +266,8 @@ def famille_2(base, year = None):
     log.info(u"    2.1 : Identification des couples non personne de référence ou conjoint de celle-ci")
     # On adopte une approche non genrée
     couple = subset_base(base, famille)
-    couple = couple[(couple.cohab == 1) & (couple.lpr >= 3)].copy()
+    cohab = 'cohab' if year < 2013 else "coured"
+    couple = couple[(couple[cohab] == 1) & (couple[lpr] >= 3)].copy()
     # l'identifiant famille est lié au noi de le plus bas
     couple['noifam'] = np.minimum(
         (100 * couple.ident + couple.noi).astype(int),
@@ -247,7 +278,7 @@ def famille_2(base, year = None):
     noindiv_conjoint = (100 * base.ident + base.noicon).astype(int)
     conjoints = base.loc[
         base.noindiv.isin(noindiv_conjoint),
-        ['noindiv', 'ident', 'noi', 'lpr', 'noicon']
+        ['noindiv', 'ident', 'noi', lpr, 'noicon']
         ]
     if conjoints.noindiv.duplicated().sum() > 0:
         log.info(u"Nombre de personnes polyandres/polygames: {}".format(
@@ -257,7 +288,10 @@ def famille_2(base, year = None):
 
     couple['famille'] = 20
     for series_name in ['famille', 'noifam']:
-        assert_dtype(couple[series_name], "int")
+        try:
+            assert_dtype(couple[series_name], "int")
+        except:
+            assert_dtype(couple[series_name], "int64")
 
     log.info(u"""Nombre de personnes vivant en couple sans être personne de référence ou conjoint:
     {} dont {} sans conjoints dans la base
@@ -275,14 +309,22 @@ def famille_2(base, year = None):
 
 
 def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
+
+    if year<2013:
+        lpr="lpr"
+    else:
+        lpr="lprm"
+
     assert base is not None
     assert famille is not None
     assert year is not None
     log.info(u"Etape 3: Récupération des personnes seules")
     log.info(u"    3.1 : personnes seules de catégorie 1")
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
+    cohab = 'cohab' if year < 2013 else "coured"
+
     seul1 = seul1[
-        (seul1.lpr.isin([3, 4])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1.cohab == 1) &
+        (seul1[lpr].isin([3, 4,5,6])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1[cohab] == 1) &
         (seul1.sexe == 2)].copy()
     log.info(u"Il y a {} personnes seules de catégorie 1".format(
         len(seul1.index)))
@@ -296,7 +338,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     log.info(u"    3.1 personnes seules de catégorie 2")
     seul2 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    seul2 = seul2[(seul2.lpr.isin([3, 4])) & seul2.jeune_non_eligible_rsa & seul2.smic55 & (seul2.cohab != 1)].copy()
+    seul2 = seul2[(seul2[lpr].isin([3, 4,5,6])) & seul2.jeune_non_eligible_rsa & seul2.smic55 & (seul2[cohab] != 1)].copy()
     log.info(u"Il y a {} personnes seules de catégorie 2".format(
         len(seul2.index)))
     if len(seul2.index) > 0:
@@ -304,13 +346,16 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         seul2['famille'] = 32
 
         for series_name in ['famille', 'noifam']:
-            assert_dtype(seul2[series_name], "int")
+            try:
+                assert_dtype(seul2[series_name], "int")
+            except:
+                assert_dtype(seul2[series_name], "int64")
         famille = pd.concat([famille, seul2])
         control_04(famille, base)
 
     log.info(u"    3.3 personnes seules de catégorie 3")
     seul3 = subset_base(base, famille)
-    seul3 = seul3[(seul3.lpr.isin([3, 4])) & seul3.jeune_eligible_rsa & (seul3.cohab != 1)].copy()
+    seul3 = seul3[(seul3[lpr].isin([3, 4,5,6])) & seul3.jeune_eligible_rsa & (seul3[cohab] != 1)].copy()
     # TODO: CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement
     log.info(u"Il y a {} personnes seules de catégorie 3".format(
         len(seul3.index)))
@@ -318,7 +363,10 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         seul3['noifam'] = (100 * seul3.ident + seul3.noi).astype(int)
         seul3['famille'] = 33
         for series_name in ['famille', 'noifam']:
-            assert_dtype(seul3[series_name], "int")
+            try:
+                assert_dtype(seul3[series_name], "int")
+            except:
+                assert_dtype(seul3[series_name], "int64")
         famille = pd.concat([famille, seul3])
         control_04(famille, base)
 
@@ -327,7 +375,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert seul4.noimer.notnull().all()
     if kind == 'erfs_fpr':
         seul4 = seul4[
-            (seul4.lpr == 4) &
+            (seul4[lpr].isin([4,5,6])) &
             seul4.jeune_non_eligible_rsa &
             (~(seul4.smic55)) &
             # (seul4.noiper == 0) &
@@ -335,7 +383,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
             ].copy()
     else:
         seul4 = seul4[
-            (seul4.lpr == 4) &
+            (seul4[lpr].isin([4,5,6])) &
             seul4.jeune_non_eligible_rsa &
             (~(seul4.smic55)) &
             # (seul4.noiper == 0) &
@@ -350,26 +398,34 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         seul4['famille'] = 34
         famille = pd.concat([famille, seul4])
         for series_name in ['famille', 'noifam']:
-            assert_dtype(seul4[series_name], "int")
+            try:
+                assert_dtype(seul4[series_name], "int")
+            except:
+                assert_dtype(seul4[series_name], "int64")
+
     control_04(famille, base)
 
     log.info(u"Etape 4 : traitement des enfants")
     log.info(u"    4.1 : enfant avec mère")
     avec_mere = subset_base(base, famille)
     avec_mere = avec_mere[
-        (avec_mere.lpr == 4) &
+        (avec_mere[lpr].isin([4,5,6])) &
         (avec_mere.jeune_non_eligible_rsa | avec_mere.moins_de_15_ans_inclus) &
         (avec_mere.noimer > 0)
         ].copy()
     log.info(u"Il y a {} enfants rattachés à leur mère".format(
         len(avec_mere.index)))
 
+    avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
+    avec_mere['famille'] = 41
+    avec_mere['kid'] = True
     if len(avec_mere.index) > 0:
-        avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
-        avec_mere['famille'] = 41
-        avec_mere['kid'] = True
         for series_name in ['famille', 'noifam']:
-            assert_dtype(avec_mere[series_name], "int")
+            try:
+                assert_dtype(avec_mere[series_name], "int")
+            except:
+                assert_dtype(avec_mere[series_name], "int64")
+
 
     # On récupère les mères des enfants (elles peuvent avoir plusieurs enfants et il faut unicité de l'identifiant)
     mere = (pd.DataFrame(avec_mere['noifam'].copy())
@@ -382,7 +438,11 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     mere['noifam'] = (100 * mere.ident + mere.noi).astype(int)
     mere['famille'] = 42
     for series_name in ['famille', 'noifam']:
-        assert_dtype(mere[series_name], "int")
+        try:
+            assert_dtype(mere[series_name], "int")
+        except:
+            assert_dtype(mere[series_name], "int64")
+
     avec_mere = avec_mere[avec_mere.noifam.isin(mere.noindiv)].copy()
     famille = famille[~(famille.noindiv.isin(mere.noindiv.values))].copy()  # Avoid duplication in famille
 
@@ -397,7 +457,11 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         )
     conjoint_mere['famille'] = 43
     for series_name in ['famille', 'noifam']:
-        assert_dtype(conjoint_mere[series_name], "int")
+        try:
+            assert_dtype(conjoint_mere[series_name], "int")
+        except:
+            assert_dtype(conjoint_mere[series_name], "int64")
+
 
     famille = famille[~(famille.noindiv.isin(conjoint_mere.noindiv.values))].copy()  # Avoid duplication in famille
     famille = pd.concat([famille, avec_mere, mere, conjoint_mere], sort = True)
@@ -408,7 +472,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     avec_pere = subset_base(base, famille)
     assert avec_pere.noiper.notnull().all()
     avec_pere = avec_pere[
-        (avec_pere.lpr == 4) &
+        (avec_pere[lpr].isin([4,5,6])) &
         (avec_pere.jeune_non_eligible_rsa | avec_pere.moins_de_15_ans_inclus) &
         (avec_pere.noiper > 0)
         ].copy()
@@ -419,7 +483,11 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     avec_pere['kid'] = True
     assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
     for series_name in ['famille', 'noifam']:
-        assert_dtype(avec_pere[series_name], "int")
+        try:
+            assert_dtype(avec_pere[series_name], "int")
+        except:
+            assert_dtype(avec_pere[series_name], "int64")
+
     assert_dtype(avec_pere.kid, "bool")
 
     pere = (pd.DataFrame(avec_pere['noifam'])
@@ -444,7 +512,11 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
             )
         conjoint_pere['famille'] = 46
         for series_name in ['famille', 'noifam']:
-            assert_dtype(conjoint_pere[series_name], "int")
+            try:
+                assert_dtype(conjoint_pere[series_name], "int")
+            except:
+                assert_dtype(conjoint_pere[series_name], "int64")
+
 
         famille = famille[~(famille.noindiv.isin(conjoint_pere.noindiv.values))].copy()  # Avoid duplication in famille
         famille = pd.concat([famille, avec_pere, pere, conjoint_pere])
@@ -464,7 +536,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         avec_dec = subset_base(base, famille)
         avec_dec = avec_dec[
             (avec_dec.persfip == "pac") &
-            (avec_dec.lpr == 4) &
+            (avec_dec[lpr].isin([4,5,6])) &
             (
                 (avec_dec.jeune_non_eligible_rsa & ~(avec_dec.smic55)) | (avec_dec.moins_de_15_ans_inclus == 1)
                 )
@@ -473,7 +545,10 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         avec_dec['famille'] = 47
         avec_dec['kid'] = True
         for series_name in ['famille', 'noifam']:
-            assert_dtype(avec_dec[series_name], "int")
+            try:
+                assert_dtype(avec_dec[series_name], "int")
+            except:
+                assert_dtype(avec_dec[series_name], "int64")
         assert_dtype(avec_dec.kid, "bool")
         control_04(avec_dec, base)
         # on récupère les déclarants pour leur attribuer une famille propre
@@ -483,7 +558,10 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         dec['noifam'] = (100 * dec.ident + dec.noi).astype(int)
         dec['famille'] = 48
         for series_name in ['famille', 'noifam']:
-            assert_dtype(dec[series_name], "int")
+            try:
+                assert_dtype(dec[series_name], "int")
+            except:
+                assert_dtype(dec[series_name], "int64")
         famille = famille[~(famille.noindiv.isin(dec.noindiv.values))].copy()
         famille = pd.concat([famille, avec_dec, dec])
         del dec, declarant_id, avec_dec
@@ -497,6 +575,11 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert famille is not None
     assert year is not None
     smic = get_smic(year)
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    lpr = 'lpr' if year < 2013 else 'lprm'
+    cohab = 'cohab' if year < 2013 else "coured"
+    agepr = 'agepr' if year < 2013 else "ageprm"
+    retrai = 'retrai' if year < 2013 else "ret"
     if kind == 'erfs_fpr':
         log.info(u"Etape 5 : Récupération des enfants fip (ignorée dans erfs_fpr)")
         pass
@@ -507,14 +590,14 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
             'acteu',
             'actrec',
             'agepf',
-            'agepr',
-            'cohab',
+            agepr,
+            cohab,
             'contra',
             'declar1',
             'forter',
             'ident',
-            'lien',
-            'lpr',
+            lien,
+            lpr,
             'mrec',
             'naia',
             'naim',
@@ -526,7 +609,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
             'noiper',
             'persfip',
             'quelfic',
-            'retrai',
+            retrai,
             'rga',
             'rstg',
             'sexe',
@@ -548,7 +631,10 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
             assert_dtype(fip[series_name], "bool")
         for series_name in ['famille']:
-            assert_dtype(fip[series_name], "int")
+            try:
+                assert_dtype(fip[series_name], "int")
+            except:
+                assert_dtype(fip[series_name], "int64")
 
         log.info(u"    5.2 : extension de base avec les fip")
         base_ = pd.concat([base, fip])
@@ -565,7 +651,10 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         enfant_fip['ident'] = None  # TODO: should we really do this ?
         assert_dtype(enfant_fip.kid, "bool")
         for series_name in ['famille', 'noifam']:
-            assert_dtype(enfant_fip[series_name], "int")
+            try:
+                assert_dtype(enfant_fip[series_name], "int")
+            except:
+                assert_dtype(enfant_fip[series_name], "int64")
         control_04(enfant_fip, base)
         famille = pd.concat([famille, enfant_fip])
         base = pd.concat([base, enfant_fip])
@@ -583,7 +672,11 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         del enfant_fip, fip, parent_fip
 
     assert not famille.duplicated().any()
-    assert not famille.noindiv.duplicated().any()
+    try:
+        assert not famille.noindiv.duplicated().any()
+    except:
+        famille.to_csv("kamchatka.csv")
+        raise
     control_04(famille, base)
     return base, famille
 
@@ -596,13 +689,16 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
     log.info(u"Etape 6 : gestion des non attribués")
     log.info(u"    6.1 : non attribués type 1")
     non_attribue1 = subset_base(base, famille)
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    subsetlienfamilial = list(range(1,5)) if year<2013 else list(range(6))
+    agepr = 'agepr' if year < 2013 else "ageprm"
     if kind == 'erfs_fpr':
         non_attribue1 = non_attribue1[
             non_attribue1.moins_de_15_ans_inclus |
             (
                 non_attribue1.jeune_non_eligible_rsa &
-                (non_attribue1.lien.isin(range(1, 5))) &
-                (non_attribue1.agepr >= 35)
+                (non_attribue1[lien].isin(subsetlienfamilial)) &
+                (non_attribue1[agepr] >= 35)
                 )
             ].copy()
 
@@ -613,8 +709,8 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
                 non_attribue1.moins_de_15_ans_inclus |
                 (
                     non_attribue1.jeune_non_eligible_rsa &
-                    (non_attribue1.lien.isin(range(1, 5))) &
-                    (non_attribue1.agepr >= 35)
+                    (non_attribue1[lien].isin(subsetlienfamilial)) &
+                    (non_attribue1[agepr]>= 35)
                     )
                 )
             ].copy()
@@ -627,7 +723,10 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         non_attribue1['famille'] = 61 * non_attribue1.moins_de_15_ans_inclus + 62 * ~(non_attribue1.moins_de_15_ans_inclus)
         non_attribue1['kid'] = True
         assert_dtype(non_attribue1.kid, "bool")
-        assert_dtype(non_attribue1.famille, "int")
+        try:
+            assert_dtype(non_attribue1.famille, "int")
+        except:
+            assert_dtype(non_attribue1.famille, "int64")
         famille = pd.concat([famille, non_attribue1], sort = True)
         control_04(famille, base)
         del personne_de_reference, non_attribue1
@@ -646,7 +745,10 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         non_attribue2['famille'] = 63
         assert_dtype(non_attribue2.kid, "bool")
         for series_name in ['famille', 'noifam']:
-            assert_dtype(non_attribue2[series_name], "int")
+            try:
+                assert_dtype(non_attribue2[series_name], "int")
+            except:
+                assert_dtype(non_attribue2[series_name], "int64")
         famille = pd.concat([famille, non_attribue2])
         control_04(famille, base)
         del non_attribue2
@@ -662,6 +764,9 @@ def control_04(dataframe, base):
     if any(dataframe.duplicated(subset = 'noindiv')):
         log.info(u"contrôle des doublons : il y a {} individus en double".format(
             dataframe.duplicated(subset = 'noindiv').sum()))
+        dataframe[dataframe.noindiv.duplicated()].to_csv("laoslasiecoule.csv")
+        lllt=dataframe[dataframe.noindiv.duplicated()]["noindiv"]
+        dataframe[dataframe.noindiv.isin(lllt)].to_csv("bronskibeat.csv")
     # log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
     log.info(u"Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
     assert not dataframe.noifam.isnull().any(), u"{} noifam are NaN".format(dataframe.noifam.isnull().sum())
@@ -765,6 +870,8 @@ def get_smic(year):
         smic = 1337
     elif year == 2012:
         smic = int(1398.37)
+    elif year == 2014:
+        smic = int(1445.38)
     else:
         log.info("smic non défini")
         return None

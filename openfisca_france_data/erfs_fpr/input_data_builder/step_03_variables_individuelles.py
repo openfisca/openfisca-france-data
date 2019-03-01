@@ -120,8 +120,8 @@ def create_variables_individuelles(individus, year, survey_year = None):
     revenu_type = 'net'
     period = periods.period(year)
     # create_revenus(individus, revenu_type = revenu_type)
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type, survey_year = survey_year)
-    create_categorie_salarie(individus, period = period, suvrey_year = survey_year)
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)#, survey_year = survey_year)
+    create_categorie_salarie(individus, period = period, survey_year = survey_year)
 
     # Il faut que la base d'input se fasse au millésime des données
     # On fait ça car aussi bine le baseline et le baseline réformé peuvewnt ´tre de réformes
@@ -187,7 +187,11 @@ def create_actrec(individus):
     filter5 = (individus.acteu == 3) & ((individus.forter == 2) | (individus.rstg == 1))
     individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
-    filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+    try:
+        filter7 = (individus.acteu == 3) & ((individus.ret == 1)) #cas >= 2014, evite de ramener l'année dans la fonction
+    except:
+        filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+
     individus.loc[filter7, 'actrec'] = 7
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
     individus.loc[individus.acteu == 0, 'actrec'] = 9
@@ -302,7 +306,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
         survey_year = period.start.year
 
     if survey_year >= 2013:
-        log.debug('Using qprcent to infer prosa for year {}'.format(year))
+        log.debug('Using qprcent to infer prosa for year {}'.format(survey_year))
         chpub_replacement = {
             0: 0,
             3: 1,
@@ -326,7 +330,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             8: 9,
             9: 5, # On met les non renseignés en catégorie B
             }
-        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
+        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa) #Actually prosa is there I don't need to change it further
     else:
         pass
 
@@ -458,7 +462,9 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
 
     assert salaire_type in ['net', 'imposable']
 
-    individus.loc[individus.hhc == 0, 'hhc'] = np.nan
+    individus.loc[individus.hhc == '', 'hhc'] = np.nan
+    individus.hhc=individus.hhc.astype(float)
+    individus.loc[individus.hhc <=0.01 , 'hhc'] = np.nan
     assert (
             (individus.hhc > 0) | individus.hhc.isnull()
         ).all()
@@ -767,7 +773,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
         survey_year = period.start.year
 
     if survey_year >= 2013:
-        assert individus.nbsala.isin(range(0, 13) + [99]).all(), \
+        assert individus.nbsala.isin(list(range(0, 13)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
@@ -1265,11 +1271,13 @@ def create_statut_matrimonial(individus):
 
 
 def todo_create(individus):
+    txtppb = "txtppb" if "txtppb" in individus.columns else "txtppred"
     log.debug(u"    6.3 : variable txtppb")
-    individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
+    individus.loc[individus.txtppb.isnull(), txtppb] = 0
+    individus.loc[individus[txtppb] == 9, txtppb] = 0
     assert individus.txtppb.notnull().all()
     log.debug("Valeurs prises par la variable txtppb \n {}".format(
-        individus['txtppb'].value_counts(dropna = False)))
+        individus[txtppb].value_counts(dropna = False)))
 
 
 if __name__ == '__main__':
