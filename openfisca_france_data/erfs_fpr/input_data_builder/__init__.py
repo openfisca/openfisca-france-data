@@ -77,8 +77,8 @@ if __name__ == '__main__':
     import time
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    year = 2012
-    # build(year = year)
+    year = 2014
+    build(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
