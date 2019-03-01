@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from .base import * # noqa  analysis:ignore
+from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 
 class menage_ordinaire(Variable):

@@ -56,12 +56,15 @@ def build(year: int) -> None:
     #
     # TODO : on devrait avoir un df par entité, même par période
     final.create_input_data_frame(year = year)
-    temporary_store = get_store(file_name = "erfs_fpr")
-    data_frame = temporary_store[f"input_{year}"]
 
-    # Save the data_frame in a collection
-    store_input_data_frame(
-        data_frame = data_frame,
-        collection = "openfisca_erfs_fpr",
-        survey = f"openfisca_erfs_fpr_data_{year}",
-        )
+
+if __name__ == '__main__':
+    import sys
+    import time
+    start = time.time()
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    year = 2014
+    build(year = year)
+    # TODO: create_enfants_a_naitre(year = year)
+    log.info("Script finished after {}".format(time.time() - start))
+    print(time.time() - start)

@@ -149,23 +149,28 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             "salaire_de_base",
             ]
 
+        simulation_period = periods.period(self.year)
+
         for offset in [-1, -2]:
             for variable in three_year_span_variables:
                 assert variable in self.used_as_input_variables, \
                     f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
-                holder = simulation.get_holder(variable)
-
                 try:
-                    holder.set_input(
-                        simulation.period.offset(offset),
-                        simulation.calculate_add(variable, period = self.year),
+                    simulation.set_input(
+                        variable,
+                        simulation_period.offset(offset),
+                        simulation.calculate_add(
+                            variable,
+                            period = self.year,
+                            ),
                         )
 
                 # TODO: should explicitly test about Enums, enums sum is forbidden
                 except TypeError:
-                    holder.set_input(
-                        simulation.period.offset(offset),
+                    simulation.set_input(
+                        variable,
+                        simulation_period.offset(offset),
                         simulation.calculate(
                             variable,
                             period = periods.period(self.year).first_month,
@@ -176,10 +181,24 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         if "loyer" in input_data_frame:
             input_data_frame["loyer"] = 12 * input_data_frame.loyer
 
-        input_data_frame.loc[
-            input_data_frame.categorie_salarie.isin(range(2, 7)),
-            "categorie_salarie",
-            ] = 1
+        if 'categorie_salarie' in input_data_frame:
+            input_data_frame.loc[
+                input_data_frame.categorie_salarie.isin(range(2, 7)),
+                'categorie_salarie'
+                ] = 1
 
         for variable in ["quifam", "quifoy", "quimen"]:
-            log.debug(input_data_frame[variable].value_counts(dropna = False))
+            if variable in input_data_frame:
+                log.debug(input_data_frame[variable].value_counts(dropna = False))
+
+    def input_variable_by_entity(self):
+        input_variable_by_entity = dict()
+
+        for variable in self.used_as_input_variables_by_entity:
+            entity = self.baseline_tax_benefit_system.variables[variable].entity
+            if entity.name in input_variable_by_entity:
+                input_variable_by_entity[entity.name].append(variable)
+            else:
+                input_variable_by_entity[entity.name] = [variable]
+
+            return input_variable_by_entity

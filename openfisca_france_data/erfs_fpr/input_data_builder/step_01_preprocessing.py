@@ -5,11 +5,11 @@ import gc
 import logging
 import numpy as np
 
-from openfisca_survey_manager.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 from openfisca_france_data.erfs.input_data_builder.step_01_pre_processing import (
     create_variable_locataire,
     )
-from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_survey_manager.survey_collections import SurveyCollection  # type: ignore
 
 
 log = logging.getLogger(__name__)
@@ -20,24 +20,29 @@ def build_merged_dataframes(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
     log.debug("Chargement des tables des enquêtes")
-    erfs_fpr_survey_collection = SurveyCollection.load(collection = 'erfs_fpr')
+
+    erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
     yr = str(year)[-2:]  # 12 for 2012
     add_suffix_retropole_years = [2012]
-    survey = erfs_fpr_survey_collection.get_survey('erfs_fpr_{}'.format(year))
-    eec_menage = survey.get_values(table = 'fpr_mrf{}e{}t4'.format(yr, yr))
-    eec_individu = survey.get_values(table = 'fpr_irf{}e{}t4'.format(yr, yr))
+
+    survey = erfs_fpr_survey_collection.get_survey(f"erfs_fpr_{year}")
+    eec_menage = survey.get_values(table = f"fpr_mrf{yr}e{yr}t4")
+    eec_individu = survey.get_values(table = f"fpr_irf{yr}e{yr}t4")
+
     if year in add_suffix_retropole_years:
-        fpr_individu = survey.get_values(table = 'fpr_indiv_{}_retropole'.format(year))
-        fpr_menage = survey.get_values(table = 'fpr_menage_{}_retropole'.format(year))
+        fpr_individu = survey.get_values(table = f"fpr_indiv_{year}_retropole")
+        fpr_menage = survey.get_values(table = f"fpr_menage_{year}_retropole")
+
     else:
-        fpr_individu = survey.get_values(table = 'fpr_indiv_{}'.format(year))
-        fpr_menage = survey.get_values(table = 'fpr_menage_{}'.format(year))
+        fpr_individu = survey.get_values(table = f"fpr_indiv_{year}")
+        fpr_menage = survey.get_values(table = f"fpr_menage_{year}")
 
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
-    temporary_store['menages_{}'.format(year)] = menages
+    temporary_store[f"menages_{year}"] = menages
     del eec_menage, fpr_menage, menages
     gc.collect()
-    temporary_store['individus_{}_post_01'.format(year)] = individus
+
+    temporary_store[f"individus_{year}_post_01"] = individus
     del eec_individu, fpr_individu
 
 
@@ -58,10 +63,10 @@ Il y a {} individus dans eec_individu
     check_naia_naim(individus, year)
     agepr = 'agepr' if year < 2013 else "ageprm"
     cohab = 'cohab' if year < 2013 else "coured"
-    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
-    prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
-    retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
-    txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
+    retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
+    txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
     var_list = ([
         'acteu',
         agepr,
@@ -90,6 +95,9 @@ Il y a {} individus dans eec_individu
                 var, individus[var].dtype
                 )
 
+    if year >= 2013:
+        individus['lpr'] = individus.lprm
+
     if not skip_menage:
         log.debug(u"""
 Il y a {} ménages dans fpr_menage
@@ -116,9 +124,16 @@ Après renommage seules les variables suivantes sont communes aux deux tables m�
 """.format(common_variables))
         menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
         create_variable_locataire(menages)
-        menages = menages.merge(
-            individus.loc[individus.lpr == 1, ['ident', 'ddipl']].copy()
-            )
+        lprm = "lpr" if year < 2013 else "lprm"
+        print(year, lprm)
+        try:
+            menages = menages.merge(
+                individus.loc[individus[lprm] == 1, ["ident", "ddipl"]].copy()  # lpr (ou lprm) == 1 ==> C'est la Personne
+                # de référence
+                )
+        except Exception:
+            print(individus.dtypes)
+            raise
         log.debug(u"""
 Il y a {} ménages dans la base ménage fusionnée
 """.format(len(menages.ident.unique())))
@@ -182,28 +197,32 @@ def check_naia_naim(individus, year):
     assert individus.naim.isin(range(1, 13)).all()
     good = ((year >= individus.naia) & (individus.naia > 1890))
     assertion = good.all()
-    bad_idents = individus.loc[~good, 'ident'].unique()
+    bad_idents = individus.loc[~good, "ident"].unique()
     try:
+        lpr = "lpr" if year < 2013 else "lprm"
+        lien = "lien" if year < 2013 else "lienprm"  # TODO attention pas les mêmes modalités
+        prosa = "prosa" if year < 2013 else "qprcent"  # TODO attention pas les mêmes modalités
+        retrai = "retrai" if year < 2013 else "ret"  # TODO attention pas les mêmes modalités
         assert assertion, "Error: \n {}".format(
             individus.loc[
-                individus.ident.isin(bad_idents),
+                individus.ident.isin(bad_idents),  # WTF is this table supposed to be? I changed the 'lien' in lien
+                # and so on for other variables
                 [
                     'ag',
                     'ident',
-                    'lien',
+                    lien,
                     'naia',
                     'naim',
                     'noi',
                     'noicon',
                     'noimer',
                     'noiper',
-                    'prosa',
-                    'retrai',
+                    prosa,
+                    retrai,
                     'rstg',
                     'statut',
                     'sexe',
-                    'lien',
-                    'lpr',
+                    lpr,
                     'chomage_i',
                     'pens_alim_recue_i',
                     'rag_i',
@@ -236,7 +255,7 @@ if __name__ == '__main__':
     start = time.time()
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     # logging.basicConfig(level = logging.DEBUG, filename = 'run_all.log', filemode = 'w')
-    year = 2012
+    year = 2014
     build_merged_dataframes(year = year)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
