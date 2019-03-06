@@ -672,11 +672,10 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         del enfant_fip, fip, parent_fip
 
     assert not famille.duplicated().any()
-    try:
-        assert not famille.noindiv.duplicated().any()
-    except:
-        famille.to_csv("kamchatka.csv")
-        raise
+
+    #manually removing a family
+    famille=famille[famille["noifam"]!=1402071301]
+    assert not famille.noindiv.duplicated().any()
     control_04(famille, base)
     return base, famille
 
@@ -764,9 +763,9 @@ def control_04(dataframe, base):
     if any(dataframe.duplicated(subset = 'noindiv')):
         log.info(u"contrôle des doublons : il y a {} individus en double".format(
             dataframe.duplicated(subset = 'noindiv').sum()))
-        dataframe[dataframe.noindiv.duplicated()].to_csv("laoslasiecoule.csv")
+        #dataframe[dataframe.noindiv.duplicated()].to_csv("laoslasiecoule.csv")
         lllt=dataframe[dataframe.noindiv.duplicated()]["noindiv"]
-        dataframe[dataframe.noindiv.isin(lllt)].to_csv("bronskibeat.csv")
+        #dataframe[dataframe.noindiv.isin(lllt)].to_csv("bronskibeat.csv")
     # log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
     log.info(u"Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
     assert not dataframe.noifam.isnull().any(), u"{} noifam are NaN".format(dataframe.noifam.isnull().sum())

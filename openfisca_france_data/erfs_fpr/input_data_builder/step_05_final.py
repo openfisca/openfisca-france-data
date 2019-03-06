@@ -50,20 +50,34 @@ def create_input_data_frame(temporary_store = None, year = None):
         'salaire_de_base',
         'taux_csg_remplacement',
         ]
-
+    #TODO : Assert if these values can be somehow gotten
+    missingvariables=['taux_csg_remplacement', 'rnc', 'chomage_imposable', 'chomage_brut', 'ric', 'retraite_imposable', 'rag', 'retraite_brute']
+    for k in missingvariables:
+        individus[k]=0 if k!="taux_csg_remplacement" else "taux plein"
     individus = create_ids_and_roles(individus)[variables].copy()
     gc.collect()
-    #
+    #This looks like it could have a sizeable impact
+    missingvariablesmenages=["taxe_habitation"]
+    for k in missingvariablesmenages:
+        menages[k]=0
+    #Again artificially putting missing variables in their default state
+    menages["loyer"]=0
+    menages["zone_apl"]="zone_2"
+    menages["statut_occupation_logement"]="non_renseigne"
+
     menages = extract_menages_variables(menages)
+   # individus.to_csv("indivs.csv")
+   #menages.to_csv("menages.csv")
     individus = create_collectives_foyer_variables(individus, menages)
-    #
     data_frame = individus.merge(
         menages[
             ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
             ],
         on = 'idmen'
         )
+    #data_frame.to_csv("indivjoinmen.csv")
     del individus, menages
+
     #
     data_frame = format_ids_and_roles(data_frame)
     assert 'f4ba' in data_frame.columns
@@ -74,6 +88,8 @@ def create_input_data_frame(temporary_store = None, year = None):
 def create_collectives_foyer_variables(individus, menages):
     menages_revenus_fonciers = menages[['idmen', 'rev_fonciers_bruts']].copy()
     idmens = menages_revenus_fonciers.query('(rev_fonciers_bruts > 0)')['idmen'].tolist()
+    #I'm not proud
+    idmens=[_ for _ in idmens if _!=14024264]
     menages_multi_foyers = (individus
         .query('idmen in @idmens')[['idmen', 'idfoy', 'age']]  # On ne garde que les ménages avec des revenus fonciers
         .groupby('idmen')
@@ -119,8 +135,12 @@ def create_ids_and_roles(individus):
         inplace = True,
         )
     individus['quimen'] = 9
-    individus.loc[individus.lpr == 1, 'quimen'] = 0
-    individus.loc[individus.lpr == 2, 'quimen'] = 1
+    #checking that only one of "lpr" "lprm" exists, otherwise my
+    #great hack wont work
+    assert(("lpr" in individus.columns)!=("lprm" in individus.columns))
+    lpr="lpr" if "lpr" in individus.columns else "lprm"
+    individus.loc[individus[lpr] == 1, 'quimen'] = 0
+    individus.loc[individus[lpr] == 2, 'quimen'] = 1
     individus['idfoy'] = individus['idfam'].copy()
     individus['quifoy'] = individus['quifam'].copy()
     return individus
@@ -131,8 +151,8 @@ def format_ids_and_roles(data_frame):
         log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
     data_frame.reset_index(drop = True, inplace = True)
-    data_frame = normalizes_roles_in_entity(data_frame, 'foy')
-    data_frame = normalizes_roles_in_entity(data_frame, 'men')
+    data_frame = normalizes_roles_in_entity(data_frame, 'foy','quifoy')
+    data_frame = normalizes_roles_in_entity(data_frame, 'men','quimen')
     print_id(data_frame)
     return data_frame
 
