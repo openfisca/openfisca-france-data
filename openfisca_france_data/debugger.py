@@ -307,7 +307,7 @@ class Debugger(object):
                 )
             log.info(sorted(values)[90:])
             del dec, values
-        except:
+        except Exception:
             log.info('Weighted percentile method did not work for {}'.format(variable + "_rel_diff"))
             pass
         table.sort(columns = variable + "_rel_diff", ascending = False, inplace = True)

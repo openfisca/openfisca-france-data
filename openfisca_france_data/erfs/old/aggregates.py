@@ -39,13 +39,13 @@ def build_erf_aggregates(variables = None, year = 2006, unit = 1e6):
     for col in df.columns:
         try:
             df[col] = df[col].astype(np.float64)
-        except:
+        except Exception:
             pass
     df = df.mul(wprm, axis = 0)
     for col in list(set(df.columns) - set(['ident', 'wprm'])):
         try:
             df[col] = df[col].sum()/1e6
-        except:
+        except Exception:
             pass
 
     return df.ix[0:1] # Aggregate so we only need 1 row

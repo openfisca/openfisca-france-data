@@ -345,7 +345,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(seul2[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(seul2[series_name], "int64")
         famille = pd.concat([famille, seul2])
         control_04(famille, base)
@@ -362,7 +362,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(seul3[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(seul3[series_name], "int64")
         famille = pd.concat([famille, seul3])
         control_04(famille, base)
@@ -397,7 +397,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(seul4[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(seul4[series_name], "int64")
 
     control_04(famille, base)
@@ -420,12 +420,12 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(avec_mere[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(avec_mere[series_name], "int64")
 
-
     # On récupère les mères des enfants (elles peuvent avoir plusieurs enfants et il faut unicité de l'identifiant)
-    mere = (pd.DataFrame(avec_mere['noifam'].copy())
+    mere = (
+        pd.DataFrame(avec_mere['noifam'].copy())
         .rename(columns = {'noifam': 'noindiv'})
         .drop_duplicates()
         .merge(base)
@@ -437,7 +437,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     for series_name in ['famille', 'noifam']:
         try:
             assert_dtype(mere[series_name], "int")
-        except:
+        except Exception:
             assert_dtype(mere[series_name], "int64")
 
     avec_mere = avec_mere[avec_mere.noifam.isin(mere.noindiv)].copy()
@@ -456,9 +456,8 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     for series_name in ['famille', 'noifam']:
         try:
             assert_dtype(conjoint_mere[series_name], "int")
-        except:
+        except Exception:
             assert_dtype(conjoint_mere[series_name], "int64")
-
 
     famille = famille[~(famille.noindiv.isin(conjoint_mere.noindiv.values))].copy()  # Avoid duplication in famille
     famille = pd.concat([famille, avec_mere, mere, conjoint_mere], sort = True)
@@ -482,12 +481,13 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     for series_name in ['famille', 'noifam']:
         try:
             assert_dtype(avec_pere[series_name], "int")
-        except:
+        except Exception:
             assert_dtype(avec_pere[series_name], "int64")
 
     assert_dtype(avec_pere.kid, "bool")
 
-    pere = (pd.DataFrame(avec_pere['noifam'])
+    pere = (
+        pd.DataFrame(avec_pere['noifam'])
         .rename(columns = {'noifam': 'noindiv'})
         .drop_duplicates()
         .merge(base)
@@ -511,9 +511,8 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(conjoint_pere[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(conjoint_pere[series_name], "int64")
-
 
         famille = famille[~(famille.noindiv.isin(conjoint_pere.noindiv.values))].copy()  # Avoid duplication in famille
         famille = pd.concat([famille, avec_pere, pere, conjoint_pere])
@@ -544,7 +543,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(avec_dec[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(avec_dec[series_name], "int64")
         assert_dtype(avec_dec.kid, "bool")
         control_04(avec_dec, base)
@@ -557,7 +556,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(dec[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(dec[series_name], "int64")
         famille = famille[~(famille.noindiv.isin(dec.noindiv.values))].copy()
         famille = pd.concat([famille, avec_dec, dec])
@@ -572,7 +571,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert famille is not None
     assert year is not None
     smic = get_smic(year)
-    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
     lpr = 'lpr' if year < 2013 else 'lprm'
     cohab = 'cohab' if year < 2013 else "coured"
     agepr = 'agepr' if year < 2013 else "ageprm"
@@ -615,6 +614,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
             'year',
             'ztsai',
             ]
+        # TODO: temporary_store is not defined here
         fip = temporary_store['fipDat_{}'.format(year)][individual_variables_fip].copy()
         # Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
         # WARNING les noindiv des fip sont construits sur les ident des déclarants
@@ -630,7 +630,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille']:
             try:
                 assert_dtype(fip[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(fip[series_name], "int64")
 
         log.info(u"    5.2 : extension de base avec les fip")
@@ -650,7 +650,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(enfant_fip[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(enfant_fip[series_name], "int64")
         control_04(enfant_fip, base)
         famille = pd.concat([famille, enfant_fip])
@@ -685,7 +685,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
     log.info(u"Etape 6 : gestion des non attribués")
     log.info(u"    6.1 : non attribués type 1")
     non_attribue1 = subset_base(base, famille)
-    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
     subsetlienfamilial = list(range(1,5)) if year<2013 else list(range(6))
     agepr = 'agepr' if year < 2013 else "ageprm"
     if kind == 'erfs_fpr':
@@ -721,7 +721,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         assert_dtype(non_attribue1.kid, "bool")
         try:
             assert_dtype(non_attribue1.famille, "int")
-        except:
+        except Exception:
             assert_dtype(non_attribue1.famille, "int64")
         famille = pd.concat([famille, non_attribue1], sort = True)
         control_04(famille, base)
@@ -743,7 +743,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         for series_name in ['famille', 'noifam']:
             try:
                 assert_dtype(non_attribue2[series_name], "int")
-            except:
+            except Exception:
                 assert_dtype(non_attribue2[series_name], "int64")
         famille = pd.concat([famille, non_attribue2])
         control_04(famille, base)
@@ -760,9 +760,9 @@ def control_04(dataframe, base):
     if any(dataframe.duplicated(subset = 'noindiv')):
         log.info(u"contrôle des doublons : il y a {} individus en double".format(
             dataframe.duplicated(subset = 'noindiv').sum()))
-        #dataframe[dataframe.noindiv.duplicated()].to_csv("laoslasiecoule.csv")
-        lllt = dataframe[dataframe.noindiv.duplicated()]["noindiv"]
-        #dataframe[dataframe.noindiv.isin(lllt)].to_csv("bronskibeat.csv")
+        # dataframe[dataframe.noindiv.duplicated()].to_csv("laoslasiecoule.csv")
+        # lllt = dataframe[dataframe.noindiv.duplicated()]["noindiv"]
+        # dataframe[dataframe.noindiv.isin(lllt)].to_csv("bronskibeat.csv")
     # log.info(u"contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
     log.info(u"Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
     assert not dataframe.noifam.isnull().any(), u"{} noifam are NaN".format(dataframe.noifam.isnull().sum())
