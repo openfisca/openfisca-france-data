@@ -114,9 +114,11 @@ Les variables suivantes sont communes aux deux tables ménages:
         if 'th' in common_variables:
             fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
             log.debug(u"La variable th de la table fpr_menage est renommée taxe_habitation")
+
         if 'tur5' in common_variables:
             fpr_menage.drop('tur5', axis = 1, inplace = True)
             log.debug(u"La variable tur5 redondante est retirée de la table fpr_menage")
+
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
         log.debug(u"""
 Après renommage seules les variables suivantes sont communes aux deux tables ménages:
