@@ -7,6 +7,7 @@
 import os
 
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
+from openfisca_france_data.reforms.inversion_directe_salaires import inversion_directe_salaires
 
 
 is_travis = 'TRAVIS' in os.environ
@@ -14,7 +15,7 @@ is_travis = 'TRAVIS' in os.environ
 if is_travis:
     exit()
 
-survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
+survey_scenario = get_survey_scenario(year = 2012, reform = inversion_directe_salaires)
 
 #%%
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(

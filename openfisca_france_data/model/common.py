@@ -14,7 +14,7 @@ try:
 except ImportError:
     mark_weighted_percentiles = None
 
-from .base import *  # noqa analysis:ignore
+from openfisca_france_data.model.base import *  # noqa analysis:ignore
 
 
 class assiette_csg_salaire(Variable):
