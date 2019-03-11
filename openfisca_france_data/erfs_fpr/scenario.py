@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from typing import Any
 
 from openfisca_france_data.surveys import AbstractErfsSurveyScenario
 

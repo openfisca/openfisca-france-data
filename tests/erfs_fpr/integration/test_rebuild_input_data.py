@@ -26,8 +26,6 @@ def test_rebuild_input_data(year = 2014):
     return survey_scenario
 
 
-
-
 if __name__ == '__main__':
     import logging
     log = logging.getLogger(__name__)

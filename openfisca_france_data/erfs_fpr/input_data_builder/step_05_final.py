@@ -3,8 +3,7 @@
 
 import gc
 import logging
-import pandas as pd
-
+import pandas
 
 from openfisca_france_data.utils import (
     id_formatter, print_id, normalizes_roles_in_entity,
@@ -101,8 +100,7 @@ def create_input_data_frame(temporary_store = None, year = None):
         individus,
         entity = "individu",
         period = year,
-        collection =
-        "openfisca_erfs_fpr",
+        collection = "openfisca_erfs_fpr",
         survey_name = 'input',
         )
 
@@ -133,7 +131,7 @@ def create_collectives_foyer_variables(individus, menages):
         .reset_index(drop = True)
         )
     assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
-    menages_foyers_correspondance = pd.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
+    menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
     del menages_multi_foyers, menages_simple_foyer
     foyers_revenus_fonciers = menages_foyers_correspondance.merge(
         menages_revenus_fonciers,
@@ -156,11 +154,12 @@ def create_ids_and_roles(individus):
         columns = {'ident': 'idmen'},
         inplace = True,
         )
-    individus['quimen'] = 9
+    individus['quimen'] = 2
 
     # checking that only one of "lpr" "lprm" exists, otherwise my
     # great hack wont work
     assert(("lpr" in individus.columns) or ("lprm" in individus.columns))
+
     lpr = "lpr" if "lpr" in individus.columns else "lprm"
     individus.loc[individus[lpr] == 1, 'quimen'] = 0
     individus.loc[individus[lpr] == 2, 'quimen'] = 1
@@ -176,6 +175,7 @@ def format_ids_and_roles(data_frame):
     data_frame.reset_index(drop = True, inplace = True)
     normalizes_roles_in_entity(data_frame, 'idfoy', 'quifoy')
     normalizes_roles_in_entity(data_frame, 'idmen', 'quimen')
+    normalizes_roles_in_entity(data_frame, 'idfam', 'quifam')
     print_id(data_frame)
     return data_frame
 
@@ -206,7 +206,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2014
     data_frame = create_input_data_frame(year = year)
-
     print('ok')
 
 # TODO

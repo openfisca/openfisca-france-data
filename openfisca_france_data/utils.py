@@ -108,8 +108,10 @@ def count_NA(name, table):
 def id_formatter(dataframe, entity_id):
     dataframe[entity_id + "_original"] = dataframe[entity_id].copy()
     id_unique = dataframe[entity_id].unique()
-    new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
-    dataframe[entity_id].replace(to_replace = new_id_by_old_id, inplace = True)
+    new_id_by_old_id = dict(zip(
+        id_unique, range(len(id_unique)))
+        )
+    dataframe[entity_id] = dataframe[entity_id].map(new_id_by_old_id)
     return dataframe
 
 
@@ -314,20 +316,10 @@ NaN are present : {}
         print(set(series_to_rectify).difference(rectified_series))
 
 
-def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name, person_id = None):
-    if person_id is not None:
-        dataframe.set_index(person_id, inplace = True, verify_integrity = True)
-    test1 = dataframe.loc[dataframe[entity_role_name] >= 2, [entity_id_name, entity_role_name]].copy()
-    test1.loc[:, entity_role_name] = 2
-    j = 2
-    while any(test1.duplicated([entity_id_name, entity_role_name])):
-        test1.loc[test1.duplicated([entity_id_name, entity_role_name]), entity_role_name] = j + 1
-        j += 1
-    dataframe.update(test1)
-    dataframe.reset_index(inplace = True)
+def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name):
+    last_roles = (dataframe[entity_role_name] >= 2).copy()
+    dataframe.loc[last_roles, entity_role_name] = 2
     dataframe[entity_role_name] = dataframe[entity_role_name].astype('int')
-    assert_dtype(dataframe[entity_role_name], 'int')
-    return dataframe.copy()
 
 
 def set_variables_default_value(dataframe, year):

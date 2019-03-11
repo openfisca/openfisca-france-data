@@ -1,22 +1,21 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 
 import logging
 import numpy as np
 import pandas as pd
 
-from openfisca_core import periods
-from openfisca_core.formula_helpers import switch
-from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
-from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
+from openfisca_core import periods  # type: ignore
+from openfisca_core.formula_helpers import switch  # type: ignore
+from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales  # type: ignore
+from openfisca_france import FranceTaxBenefitSystem  # type: ignore
+from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME  # type: ignore
 from openfisca_france_data.utils import (
     assert_dtype,
     )
-from openfisca_survey_manager.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 
 log = logging.getLogger(__name__)
-
 
 smic_horaire_brut = {  # smic horaire brut moyen sur l'année
     2017: 9.76,
@@ -567,7 +566,8 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
             temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
             'hhc'
             ]
-    axes = (individus
+    axes = (
+        individus
         .loc[temps_partiel]
         .query('(contrat_de_travail == 1) & (salaire > 0)')
         .heures_remunerees_volume
@@ -861,12 +861,12 @@ def create_revenus(individus, revenu_type = 'imposable'):
                     negatives_values,
                     )
                 )
-        #
-        # csg des revenus de replacement
-        # 0 - Non renseigné/non pertinent
-        # 1 - Exonéré
-        # 2 - Taux réduit
-        # 3 - Taux plein
+
+    # csg des revenus de replacement
+    # 0 - Non renseigné/non pertinent
+    # 1 - Exonéré
+    # 2 - Taux réduit
+    # 3 - Taux plein
     taux = pd.concat(
         [
             individus.csgrstd_i / individus.retraite_brute,
@@ -874,6 +874,7 @@ def create_revenus(individus, revenu_type = 'imposable'):
             ],
         axis = 1
         ).max(axis = 1)
+
     # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
     individus['taux_csg_remplacement'] = np.select(
         [

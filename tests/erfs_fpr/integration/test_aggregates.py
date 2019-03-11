@@ -53,7 +53,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
-        year = 2014, rebuild_input_data = False)
+        year = 2014, rebuild_input_data = True)
     survey_scenario._set_used_as_input_variables_by_entity()
     print(survey_scenario.used_as_input_variables_by_entity)
     df = aggregates.compute_aggregates(use_baseline = True, actual = False)
