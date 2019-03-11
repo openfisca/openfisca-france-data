@@ -56,5 +56,6 @@ if __name__ == '__main__':
     survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
         year = 2014, rebuild_input_data = False)
     survey_scenario._set_used_as_input_variables_by_entity()
-    df = aggregates.compute_aggregates(use_baseline = True, actual = False)
+    print(survey_scenario.used_as_input_variables_by_entity)
+    df = aggregates.compute_aggregates(use_baseline=True, actual = False)
     # aggregates, base_data_frame, difference_data_frame = test_erfs_fpr_aggregates_reform()
