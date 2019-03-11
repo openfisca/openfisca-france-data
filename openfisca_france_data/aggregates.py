@@ -86,7 +86,7 @@ class Aggregates(object):
 
         for simulation_type in simulation_types:
             if simulation_type == 'actual':
-                data_frame_by_simulation_type['actual'] = self.totals_df.copy()
+                data_frame_by_simulation_type['actual'] = self.totals_df.copy() if self.totals_df is not None else None
             else:
                 use_baseline = False if simulation_type == 'reform' else True
                 data_frame = pd.DataFrame()
@@ -432,7 +432,12 @@ class Aggregates(object):
 
 def load_actual_data(year = None):
     assert year is not None
+    if Config is None:
+        log.info("No actual data available")
+        return
+
     parser = Config()
+
     # Cotisations CSG -CRDS
     try:
         directory = os.path.join(
