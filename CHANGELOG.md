@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.7.12 [159](https://github.com/openfisca/openfisca-france-data/pull/159)
+
+- Document ERFS-FPR data processing
+
 ### 0.7.11 [158](https://github.com/openfisca/openfisca-france-data/pull/158)
 
 - Split unit and integration tests

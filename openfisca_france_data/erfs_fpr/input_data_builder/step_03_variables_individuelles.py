@@ -110,6 +110,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
 # helpers
 
 def create_variables_individuelles(individus, year, survey_year = None):
+    """C'est là les vraies étapes"""
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -119,9 +120,20 @@ def create_variables_individuelles(individus, year, survey_year = None):
     # create_revenus(individus, revenu_type = revenu_type)
     create_contrat_de_travail(individus, period = period, salaire_type = revenu_type, survey_year = survey_year)
     create_categorie_salarie(individus, period = period, suvrey_year = survey_year)
+
+    # Il faut que la base d'input se fasse au millésime des données
+    # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
+    # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
+    # je besoin d'un droit courantcomme même du droit currant pour l'année des données
     tax_benefit_system = FranceTaxBenefitSystem()
+
+    # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'invertir
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
+
+    # Pour les cotisations patronales qui varient avec la taille de la boîte
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
+
+    # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus)
 
 
