@@ -2,11 +2,13 @@
 
 IGNORE_DIFF_ON="README.md CONTRIBUTING.md Makefile .gitignore LICENSE* .circleci/* .github/* openfisca_france_data/tests/*"
 
-last_tagged_commit=`git describe --tags --abbrev=0 --first-parent`  # --first-parent ensures we don't follow tags not published in master through an unlikely intermediary merge commit
+# --first-parent ensures we don't follow tags not published in master through an unlikely intermediary merge commit
+last_tagged_commit="$(git describe --tags --abbrev=0 --first-parent)"
 
-if git diff-index --name-only --exit-code $last_tagged_commit -- . `echo " $IGNORE_DIFF_ON" | sed 's/ / :(exclude)/g'`  # Check if any file that has not be listed in IGNORE_DIFF_ON has changed since the last tag was published.
+# Check if any file that has not be listed in IGNORE_DIFF_ON has changed since the last tag was published.
+if git diff-index --name-only --exit-code "$last_tagged_commit" -- . "$(echo " $IGNORE_DIFF_ON" | sed 's/ / :(exclude)/g')"
 then
-  echo "No functional changes detected."
-  exit 1
+    echo "No functional changes detected."
+    exit 1
 else echo "The functional files above were changed."
 fi
