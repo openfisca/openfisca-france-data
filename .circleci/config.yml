@@ -78,7 +78,7 @@ jobs:
       - run:
           name: Submit coverage to Coveralls
           command: |
-            source /tmp/venv/openfisca_core/bin/activate
+            source /tmp/venv/openfisca-france-data/bin/activate
             pip install coveralls
             coveralls
 
