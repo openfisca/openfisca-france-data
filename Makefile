@@ -9,8 +9,9 @@ install:
 
 clean:
 	rm -rf build dist
-	find . -name '*.mo' -exec rm \{\} \;
-	find . -name '*.pyc' -exec rm \{\} \;
+	find . -name '*.mo' | xargs rm -rf
+	find . -name '*.pyc' | xargs rm -rf
+	find . -name '__pycache__' | xargs rm -rf
 
 check-syntax-errors:
 	python -m compileall -q .
@@ -31,7 +32,7 @@ format-style:
 	autopep8 `git ls-files | grep "\.py$$"`
 
 test: clean check-syntax-errors
-	pytest --ignore=openfisca_france_data/tests/erfs_fpr/integration
+	pytest --ignore=tests/erfs_fpr/integration
 
 test-local: clean check-syntax-errors
 	pytest

@@ -24,7 +24,10 @@ jobs:
           command: |
             mkdir -p /tmp/venv/openfisca-france-data
             python -m venv /tmp/venv/openfisca-france-data
-            echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
 
       - run:
           name: Install dependencies
@@ -76,10 +79,13 @@ jobs:
           key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
+
+      - run:
           name: Submit coverage to Coveralls
           command: |
-            source /tmp/venv/openfisca-france-data/bin/activate
-            pip install coveralls
+            pip install --upgrade coveralls
             coveralls
 
       - save_cache:
@@ -102,33 +108,34 @@ jobs:
           key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
 
       - run:
-          name: Check for functional changes
-          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
 
       - run:
-          name: Upload a Python package to Pypi
-          command: |
-            source /tmp/venv/openfisca-france-data/bin/activate
-            .circleci/publish-python-package.sh
+          name: Check for functional changes
+          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
 
       - run:
           name: Publish a git tag
           command: .circleci/publish-git-tag.sh
 
+      - run:
+          name: Upload a Python package to Pypi
+          command: .circleci/publish-python-package.sh
+
 workflows:
   version: 2
   build:
     jobs:
-      - run_tests
       - check_version
+      - run_tests
       - submit_coverage:
           requires:
             - run_tests
       - deploy:
           requires:
-            # TODO: comment out once tests pass
-            # - run_tests
             - check_version
+            - run_tests
           filters:
             branches:
               # TODO: change once release/1.0.0 is integrated in master

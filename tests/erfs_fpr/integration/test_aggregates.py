@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data import base_survey
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.aggregates import Aggregates
 

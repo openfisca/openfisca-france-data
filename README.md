@@ -10,7 +10,7 @@
 
 [OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
-This package contains the France-Data module, allows you to work with French survey data (ERFS, ERFS-FPR, etc.) and [OpenFisca-France](https://github.com/openfisca/openfisca-france).
+OpenFisca-France-Data is an [OpenFisca-France](https://github.com/openfisca/openfisca-france) module to work with French survey data (ERFS and ERFS-FPR).
 
 ## Environment
 

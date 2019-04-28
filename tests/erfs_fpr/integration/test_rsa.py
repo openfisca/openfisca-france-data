@@ -9,7 +9,7 @@ import logging
 from openfisca_core.model_api import *
 from openfisca_france.entities import Famille, Individu
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data import base_survey
 
 
 log = logging.getLogger(__name__)
