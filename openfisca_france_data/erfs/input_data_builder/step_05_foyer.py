@@ -61,7 +61,7 @@ def sif(temporary_store = None, year = None):
 
     # Converting marital status
     statmarit_dict = {"M": 1, "C": 2, "D": 3, "V": 4, "O": 5}
-    for key, val in statmarit_dict.iteritems():
+    for key, val in statmarit_dict.items():
         sif.statmarit.loc[sif.stamar == key] = val
 
     sif["birthvous"] = sif.sif.str[5:9]
@@ -278,7 +278,7 @@ def foyer_all(temporary_store = None, year = None):
     #    err_vars = {}
 
     foy_ind = DataFrame()
-    for individual_var, foyer_vars in var_dict.iteritems():
+    for individual_var, foyer_vars in var_dict.items():
         try:
             selection = foyer[foyer_vars + ["noindiv"]].copy()
         except KeyError:

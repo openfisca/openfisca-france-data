@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.8.2 [166](https://github.com/openfisca/openfisca-france-data/pull/166)
+
+- Replace `.iteritems()` with `.items()`
+  - For Python 3 compatibility
+
 ### 0.8.1 [163](https://github.com/openfisca/openfisca-france-data/pull/163)
 
 - Deploy to PyPi
