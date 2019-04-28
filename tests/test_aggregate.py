@@ -17,13 +17,19 @@ def tax_benefit_system() -> TaxBenefitSystem:
     return france_data_tax_benefit_system
 
 
-@pytest.mark.skip(reason = "assert survey_scenario.simulation is not None")
-def test_erfs_survey_simulation(tax_benefit_system, year: int = 2009):
-    survey_scenario = ErfsSurveyScenario.create(
+@pytest.fixture
+def survey_scenario(
+        tax_benefit_system: TaxBenefitSystem,
+        year: int = 2009,
+        ) -> ErfsSurveyScenario:
+    return ErfsSurveyScenario.create(
         tax_benefit_system = tax_benefit_system,
         year = year,
         )
 
+
+@pytest.mark.skip(reason = "assert survey_scenario.simulation is not None")
+def test_erfs_survey_simulation(survey_scenario):
     aggregates = Aggregates(survey_scenario = survey_scenario)
     aggregates.compute_aggregates()
     return aggregates.base_data_frame
