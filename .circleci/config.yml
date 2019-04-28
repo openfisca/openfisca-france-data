@@ -42,9 +42,12 @@ jobs:
 
       - run:
           name: Run tests
-          command: |
-            make test
-            coveralls
+          command: env PYTEST_ADDOPTS="--exitfirst --cov=openfisca_france_data --no-cov-on-fail" make test
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .coverage
 
   check_version:
     docker:
@@ -58,6 +61,31 @@ jobs:
           command: |
             git fetch
             .circleci/is-version-number-acceptable.sh
+
+  submit_coverage:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: .
+
+      - restore_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Submit coverage to Coveralls
+          command: |
+            source /tmp/venv/openfisca_core/bin/activate
+            pip install coveralls
+            coveralls
+
+      - save_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca-france-data
 
   deploy:
       docker:
@@ -80,6 +108,9 @@ workflows:
     jobs:
       - run_tests
       - check_version
+      - submit_coverage:
+          requires:
+            - run_tests
       - deploy:
           requires:
             # TODO: comment out once tests pass
