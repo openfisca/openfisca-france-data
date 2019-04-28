@@ -71,3 +71,6 @@ setup.cfg
 # ctags file
 /tags
 .noseids
+
+# MyPy junk
+.mypy_cache/
