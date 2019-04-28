@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0 [162](https://github.com/openfisca/openfisca-france-data/pull/162)
+
+- Deprecate experimental tools.
+
 ### 0.7.12 [159](https://github.com/openfisca/openfisca-france-data/pull/159)
 
 - Document ERFS-FPR data processing
