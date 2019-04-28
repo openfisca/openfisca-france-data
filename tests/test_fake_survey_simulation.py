@@ -11,7 +11,7 @@ from openfisca_core.tools import assert_near  # type: ignore
 from openfisca_core import periods  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import france_data_tax_benefit_system  # type: ignore
-from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
+from openfisca_france_data.erfs.scenario import ErfsSurveyScenario  # type: ignore
 from openfisca_survey_manager.calibration import Calibration  # type: ignore
 from openfisca_france.reforms.plf2015 import plf2015  # type: ignore
 
@@ -89,7 +89,8 @@ def fake_calibration():
         input_data_frame = fake_input_data(year)
 
         survey_scenario = ErfsSurveyScenario.create(
-            tax_benefit_system = tax_benefit_system, year = year
+            tax_benefit_system = tax_benefit_system,
+            year = year,
             )
 
         survey_scenario.init_from_data(data = dict(input_data_frame = input_data_frame))
