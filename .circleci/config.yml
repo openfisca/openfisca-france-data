@@ -95,16 +95,15 @@ jobs:
       PYPI_USERNAME: openfisca-bot
       # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
 
-
-      steps:
-        - checkout
+    steps:
+      - checkout
 
       - restore_cache:
           key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
 
-        - run:
-            name: Check for functional changes
-            command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+      - run:
+          name: Check for functional changes
+          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
 
       - run:
           name: Upload a Python package to Pypi
@@ -112,9 +111,9 @@ jobs:
             source /tmp/venv/openfisca-france-data/bin/activate
             .circleci/publish-python-package.sh
 
-        - run:
-            name: Publish a git tag
-            command: .circleci/publish-git-tag.sh
+      - run:
+          name: Publish a git tag
+          command: .circleci/publish-git-tag.sh
 
 workflows:
   version: 2
