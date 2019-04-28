@@ -4,7 +4,7 @@ uninstall:
 	pip freeze | grep -v "^-e" | xargs pip uninstall -y
 
 install:
-	pip install --upgrade pip
+	pip install --upgrade pip setuptools twine wheel
 	pip install --editable .[test] --upgrade
 
 clean:
