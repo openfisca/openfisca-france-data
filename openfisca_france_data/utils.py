@@ -2,15 +2,13 @@
 
 import logging
 import os
-from ConfigParser import \
-    NoOptionError  # Use "ConfigParser" and not "configparser" to use the same as OpenFisca packages.
 
 import numpy
 from pandas import Series
 
-import openfisca_france
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
+import openfisca_france  # type: ignore
+from openfisca_survey_manager.survey_collections import SurveyCollection  # type: ignore
+from openfisca_survey_manager.surveys import Survey  # type: ignore
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +55,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
     for var in std_list:
         try:
             assert var in dataframe.columns
-        except:
+        except Exception:
             raise Exception('the dataframe does not contain the required column %s' % var)
 
     log.info('longueur de la data frame = {}'.format(len(dataframe.index)))
@@ -118,7 +116,7 @@ def id_formatter(dataframe, entity_id):
 def print_id(df):
     try:
         log.info("Individus with distinc noindiv: {} / {}".format(len(df.noindiv), len(df)))
-    except:
+    except Exception:
         log.info("No noindiv")
 
     try:
@@ -129,7 +127,7 @@ def print_id(df):
             log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
         if df["quifoy"].isnull().any():
             log.info("NaN in quifoy : {}".format(df["quifoy"].isnull().sum()))
-    except:
+    except Exception:
         log.info("No idfoy or quifoy")
 
     try:
@@ -140,7 +138,7 @@ def print_id(df):
             log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
         if df["quimen"].isnull().any():
             log.info("NaN in quimen : {} ".format(df["quimen"].isnull().sum()))
-    except:
+    except Exception:
         print("No idmen or quimen")
 
     try:
@@ -151,7 +149,7 @@ def print_id(df):
             log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
         if df["quifam"].isnull().any():
             log.info("NaN in quifam : {} ".format(df["quifam"].isnull().sum()))
-    except:
+    except Exception:
         log.info("No idfam or quifam")
     compute_masses(df)
 
@@ -234,16 +232,21 @@ def check_structure(dataframe):
 def build_cerfa_fields_by_column_name(year, sections_cerfa):
     tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
     cerfa_fields_by_column_name = dict()
+
     for name, column in tax_benefit_system.variables.items():
         for section_cerfa in sections_cerfa:
-            if name.startswith('f{}'.format(section_cerfa)):
+            if name.startswith(f"f{section_cerfa}"):
                 end = column.end or None
+
                 if end is None or end.year >= year:
-                    if column.entity.key == 'individu':
-                        cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
-                    elif column.entity.key == 'foyer_fiscal':
-                        cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
-                    cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
+                    if column.entity.key == "individu":
+                        cerfa_field = ['f' + x.lower() for x in column.cerfa_field.values()]
+
+                    elif column.entity.key == "foyer_fiscal":
+                        cerfa_field = ['f' + column.cerfa_field.lower()]
+
+                    cerfa_fields_by_column_name[name.encode("ascii", "ignore")] = cerfa_field
+
     return cerfa_fields_by_column_name
 
 
@@ -309,6 +312,7 @@ NaN are present : {}
 
     if verbose:
         print(set(series_to_rectify).difference(rectified_series))
+
 
 def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name, person_id = None):
     if person_id is not None:
