@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from openfisca_core import periods, simulations  # type: ignore
-from openfisca_france_data.tests import base  # type: ignore
+from openfisca_france_data import base_survey as base  # type: ignore
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario  # type: ignore
 
 log = logging.getLogger(__name__)

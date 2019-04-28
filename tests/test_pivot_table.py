@@ -5,7 +5,7 @@ import pytest
 
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario as erfs_fpr_get_survey_scenario
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data import base_survey
 
 
 @pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")

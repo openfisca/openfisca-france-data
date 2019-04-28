@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_france_data.tests import base as base_survey
+from openfisca_france_data import base_survey
 
 
 def test_reform_combination():
