@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
 
 
-from openfisca_france_data import base_survey
+from toolz.functoolz import pipe  # type: ignore
+
+from openfisca_france.reforms.plfr2014 import plfr2014  # type: ignore
+from openfisca_france.reforms.plf2015 import plf2015  # type: ignore
+from openfisca_france.reforms.plf2016 import plf2016  # type: ignore
+from openfisca_france.reforms.plf2016_ayrault_muet import ayrault_muet  # type: ignore
+from openfisca_france_data import france_data_tax_benefit_system  # type: ignore
 
 
 def test_reform_combination():
-    baseline_tax_benefit_system = base_survey.get_cached_reform(
-        reform_key = 'inversion_directe_salaires',
-        tax_benefit_system = base_survey.france_data_tax_benefit_system,
+    assert pipe(
+        france_data_tax_benefit_system,
+        plfr2014,
+        plf2015,
+        plf2016,
+        ayrault_muet,
         )
-    base_survey.get_cached_reform(
-        reform_key = 'ayrault_muet',
-        tax_benefit_system = baseline_tax_benefit_system,
-        )
-
-
-if __name__ == '__main__':
-    import logging
-    log = logging.getLogger(__name__)
-    import sys
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    test_reform_combination()
