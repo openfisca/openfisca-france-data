@@ -1,12 +1,14 @@
 #! /usr/bin/env bash
 
-IGNORE_DIFF_ON="README.md CONTRIBUTING.md Makefile .gitignore LICENSE* .circleci/* .github/* openfisca_france_data/tests/*"
+IGNORE_FILES="README.md CONTRIBUTING.md Makefile .gitignore LICENSE* .circleci/* .github/* tests/*"
+EXCLUDE_DIFF=$(echo " $IGNORE_FILES" | sed 's/ / :(exclude)/g')
 
 # --first-parent ensures we don't follow tags not published in master through an unlikely intermediary merge commit
-last_tagged_commit="$(git describe --tags --abbrev=0 --first-parent)"
+LAST_TAGGED_COMMIT=$(git describe --tags --abbrev=0 --first-parent)
 
 # Check if any file that has not be listed in IGNORE_DIFF_ON has changed since the last tag was published.
-if git diff-index --name-only --exit-code "$last_tagged_commit" -- . "$(echo " $IGNORE_DIFF_ON" | sed 's/ / :(exclude)/g')"
+# shellcheck disable=SC2086
+if git diff-index --name-only --exit-code "$LAST_TAGGED_COMMIT" -- . $EXCLUDE_DIFF
 then
     echo "No functional changes detected."
     exit 1
