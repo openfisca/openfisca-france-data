@@ -1,8 +1,12 @@
 # Changelog
 
+### 0.8.1 [163](https://github.com/openfisca/openfisca-france-data/pull/163)
+
+- Deploy to PyPi
+
 ## 0.8.0 [162](https://github.com/openfisca/openfisca-france-data/pull/162)
 
-- Deprecate experimental tools.
+- Deprecate experimental tools
 
 ### 0.7.12 [159](https://github.com/openfisca/openfisca-france-data/pull/159)
 

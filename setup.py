@@ -25,7 +25,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-France-Data',
-    version = '0.8.0',
+    version = '0.8.1',
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
     classifiers = [classifier for classifier in classifiers.split('\n') if classifier],
@@ -41,7 +41,6 @@ setup(
     extras_require = {
         'test': [
             'autopep8 >= 1.4.0, < 1.5.0',
-            'coveralls >= 1.6.0, < 2.0.0',
             'flake8 >= 3.7.0, < 3.8.0',
             'mypy >= 0.670, < 1.0.0',
             'pytest >= 4.3.0, < 5.0.0',

@@ -42,9 +42,12 @@ jobs:
 
       - run:
           name: Run tests
-          command: |
-            make test
-            coveralls
+          command: env PYTEST_ADDOPTS="--exitfirst --cov=openfisca_france_data --no-cov-on-fail" make test
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .coverage
 
   check_version:
     docker:
@@ -59,20 +62,58 @@ jobs:
             git fetch
             .circleci/is-version-number-acceptable.sh
 
+  submit_coverage:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: .
+
+      - restore_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Submit coverage to Coveralls
+          command: |
+            source /tmp/venv/openfisca_core/bin/activate
+            pip install coveralls
+            coveralls
+
+      - save_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca-france-data
+
   deploy:
-      docker:
-        - image: python:3.7
+    docker:
+      - image: python:3.7
 
-      steps:
-        - checkout
+    environment:
+      PYPI_USERNAME: openfisca-bot
+      # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
 
-        - run:
-            name: Check for functional changes
-            command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+    steps:
+      - checkout
 
-        - run:
-            name: Publish a git tag
-            command: .circleci/publish-git-tag.sh
+      - restore_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Check for functional changes
+          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+
+      - run:
+          name: Upload a Python package to Pypi
+          command: |
+            source /tmp/venv/openfisca-france-data/bin/activate
+            .circleci/publish-python-package.sh
+
+      - run:
+          name: Publish a git tag
+          command: .circleci/publish-git-tag.sh
 
 workflows:
   version: 2
@@ -80,6 +121,9 @@ workflows:
     jobs:
       - run_tests
       - check_version
+      - submit_coverage:
+          requires:
+            - run_tests
       - deploy:
           requires:
             # TODO: comment out once tests pass

@@ -15,6 +15,11 @@ clean:
 check-syntax-errors:
 	python -m compileall -q .
 
+check-scripts:
+	@# Do not analyse .gitignored files.
+	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
+	shellcheck `git ls-files | grep "\.sh$$"`
+
 check-style:
 	@# Do not analyse .gitignored files.
 	@# `make` needs `$$` to output `$`. Ref: http://stackoverflow.com/questions/2382764.
