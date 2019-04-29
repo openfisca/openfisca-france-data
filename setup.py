@@ -11,8 +11,8 @@ with open('LICENSE') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.8.3",
-    description = "OpenFisca-France module to work with French survey data (ERFS and ERFS-FPR)",
+    version = "0.8.4",
+    description = "OpenFisca-France module to work with French survey data",
     long_description = long_description,
     author = "OpenFisca Team",
     author_email = "contact@openfisca.fr",
@@ -46,6 +46,7 @@ setup(
             "mypy >= 0.670, < 1.0.0",
             "pytest >= 4.3.0, < 5.0.0",
             "pytest-cov >= 2.6.0, < 3.0.0",
+            "toolz >= 0.9.0, < 1.0.0",
             ],
         },
     packages = find_packages(exclude = ("docs", "tests")),

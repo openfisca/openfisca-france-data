@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.8.4 [1679](https://github.com/openfisca/openfisca-france-data/pull/169)
+
+- Cleanup tests
+
 ### 0.8.3 [167](https://github.com/openfisca/openfisca-france-data/pull/167)
 
 - Fix `test_build_cerfa_fields_by_column_name`

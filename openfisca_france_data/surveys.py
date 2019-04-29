@@ -2,10 +2,13 @@
 
 
 import logging
-import numpy as np
-import pandas as pd
+import pandas
+import numpy
+
+from typing import Optional
 
 from openfisca_core import periods, simulations  # type: ignore
+from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import base_survey as base  # type: ignore
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario  # type: ignore
 
@@ -69,7 +72,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         for ident in ["idmen", "idfoy", "idfam"]:
             array_by_variable[ident] = range(axe["count"])
 
-        input_data_frame = pd.DataFrame(array_by_variable)
+        input_data_frame = pandas.DataFrame(array_by_variable)
 
         for qui in ["quimen", "quifoy", "quifam"]:
             input_data_frame[qui] = 0
@@ -79,12 +82,12 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     @classmethod
     def create(
             cls,
+            tax_benefit_system: Optional[TaxBenefitSystem] = None,
+            baseline_tax_benefit_system: Optional[TaxBenefitSystem] = None,
             input_data_type = None,
-            baseline_tax_benefit_system = None,
             reform = None,
             reform_key = None,
-            tax_benefit_system = None,
-            year = None,
+            year: int = None,
             ):
 
         assert year is not None
@@ -204,11 +207,11 @@ def new_simulation_from_array_dict(
 
     for role_var in ["quifam", "quifoy", "quimen"]:
         if role_var not in array_dict:
-            array_dict[role_var] = np.zeros(global_count, dtype = int)
+            array_dict[role_var] = numpy.zeros(global_count, dtype = int)
 
     for id_var in ["idfam", "idfoy", "idmen"]:
         if id_var not in array_dict:
-            array_dict[id_var] = np.arange(global_count, dtype = int)
+            array_dict[id_var] = numpy.arange(global_count, dtype = int)
 
     column_by_name = tax_benefit_system.variables
 
@@ -250,6 +253,6 @@ def new_simulation_from_array_dict(
         assert array.size == entity.count, \
             f"Bad size for {column_name}: {array.size} instead of {entity.count}"
 
-        holder.array = np.array(array, dtype = holder.variable.dtype)
+        holder.array = numpy.array(array, dtype = holder.variable.dtype)
 
     return simulation
