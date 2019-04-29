@@ -3,11 +3,10 @@
 
 import logging
 import pandas
-import numpy
 
 from typing import Optional
 
-from openfisca_core import periods, simulations  # type: ignore
+from openfisca_core import periods  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import base_survey as base  # type: ignore
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario  # type: ignore
@@ -95,7 +94,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
         reform_is_provided = (reform is not None) or (reform_key is not None)
         # With booleans != is xor
-        # See https://stackoverflow.com/questions/432842/how-do-you-get-the-logical-xor-of-two-variables-in-python
+        # See https://stackoverflow.com/questions/432842/how-do-you-get-the-logical-xor-of-two-variables-in-python # noqa: E501
         assert reform_is_provided != (tax_benefit_system is not None)
 
         if reform_is_provided:
@@ -152,7 +151,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         for offset in [-1, -2]:
             for variable in three_year_span_variables:
                 assert variable in self.used_as_input_variables, \
-                    f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"
+                    f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
                 holder = simulation.get_holder(variable)
 
@@ -162,7 +161,8 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                         simulation.calculate_add(variable, period = self.year),
                         )
 
-                except TypeError:  # TODO Should explicitly test about Enums, avoid enums sum which is forbidden
+                # TODO: should explicitly test about Enums, enums sum is forbidden
+                except TypeError:
                     holder.set_input(
                         simulation.period.offset(offset),
                         simulation.calculate(
@@ -172,8 +172,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                         )
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
-        # input_data_frame['salaire_imposable_pour_inversion'] = input_data_frame.salaire_imposable
-
         if "loyer" in input_data_frame:
             input_data_frame["loyer"] = 12 * input_data_frame.loyer
 
@@ -184,75 +182,3 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
         for variable in ["quifam", "quifoy", "quimen"]:
             log.debug(input_data_frame[variable].value_counts(dropna = False))
-
-
-def new_simulation_from_array_dict(
-        array_dict = None,
-        debug = False,
-        tax_benefit_system = None,
-        trace = False,
-        year = None,
-        ):
-    simulation = simulations.Simulation(
-        debug = debug,
-        period = periods.period(year),
-        tax_benefit_system = tax_benefit_system,
-        trace = trace,
-        )
-
-    assert (len(set(len(x) for x in array_dict.itervalues() if len(x) != 1)) == 1), \
-        "Arrays do not have the same size"
-
-    global_count = len(array_dict.values()[0])
-
-    for role_var in ["quifam", "quifoy", "quimen"]:
-        if role_var not in array_dict:
-            array_dict[role_var] = numpy.zeros(global_count, dtype = int)
-
-    for id_var in ["idfam", "idfoy", "idmen"]:
-        if id_var not in array_dict:
-            array_dict[id_var] = numpy.arange(global_count, dtype = int)
-
-    column_by_name = tax_benefit_system.variables
-
-    for column_name, array in array_dict.items():
-        assert column_name in column_by_name, column_name
-
-    entity_by_key_plural = simulation.entity_by_key_plural
-
-    familles = entity_by_key_plural[u"familles"]
-    familles.count = familles.step_size = (array_dict["quifam"] == 0).sum()
-    foyers_fiscaux = entity_by_key_plural[u"foyers_fiscaux"]
-    foyers_fiscaux.count = foyers_fiscaux.step_size = (array_dict["quifoy"] == 0).sum()
-    individus = entity_by_key_plural[u"individus"]
-    individus.count = individus.step_size = global_count
-    menages = entity_by_key_plural[u"menages"]
-    menages.count = menages.step_size = (array_dict["quimen"] == 0).sum()
-
-    assert "idfam" in array_dict.keys()
-    assert "idfoy" in array_dict.keys()
-    assert "idmen" in array_dict.keys()
-    assert "quifam" in array_dict.keys()
-    assert "quifoy" in array_dict.keys()
-    assert "quimen" in array_dict.keys()
-
-    familles.roles_count = array_dict["quifam"].max() + 1
-    menages.roles_count = array_dict["quimen"].max() + 1
-    foyers_fiscaux.roles_count = array_dict["quifoy"].max() + 1
-
-    for column_name, column_array in array_dict.items():
-        holder = simulation.get_holder(column_name)
-        entity = holder.entity
-
-        if entity.is_persons_entity:
-            array = column_array
-
-        else:
-            array = column_array[array_dict["qui" + entity.symbol].values == 0]
-
-        assert array.size == entity.count, \
-            f"Bad size for {column_name}: {array.size} instead of {entity.count}"
-
-        holder.array = numpy.array(array, dtype = holder.variable.dtype)
-
-    return simulation

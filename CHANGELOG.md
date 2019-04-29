@@ -1,6 +1,11 @@
 # Changelog
 
-### 0.8.4 [1679](https://github.com/openfisca/openfisca-france-data/pull/169)
+## 0.9.0 [170](https://github.com/openfisca/openfisca-france-data/pull/170)
+
+- Further cleanup
+  - Deprecation of `new_simulation_from_array_dict`
+
+### 0.8.4 [169](https://github.com/openfisca/openfisca-france-data/pull/169)
 
 - Cleanup tests
 

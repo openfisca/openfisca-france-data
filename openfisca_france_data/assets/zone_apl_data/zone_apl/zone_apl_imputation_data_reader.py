@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-import pickle
-from pandas import read_csv, DataFrame
+from pandas import read_csv
 import numpy as np
 
 
@@ -20,7 +19,6 @@ if __name__ == '__main__':
     #% TU99       0 à  8
     #% zone
     #
-
     grouped_5 =  Z.groupby(['TU99','TAU99','REG','POL99','Zone'], as_index=False)
     pop   = grouped_5['Pop_mun_2006'].aggregate(np.sum)
 
@@ -33,8 +31,7 @@ if __name__ == '__main__':
     res['zone2'] = 0
     res['zone3'] = 0
     print(res)
-
-    print(pop.Pop_mun_2006[pop['Zone']==1])
+    print(pop.Pop_mun_2006[pop['Zone'] == 1])
 
     res['zone1'] = res['zone1'] + pop.Pop_mun_2006[pop['Zone']==1]
     res['zone2'] = res['zone2'] + pop.Pop_mun_2006[pop['Zone']==2]
@@ -42,15 +39,17 @@ if __name__ == '__main__':
 
     print(res.to_string())
 
-    for col in ('zone1','zone2','zone3'):
+    for col in ('zone1', 'zone2', 'zone3'):
         res[col][np.isnan(res[col])] = 0
 
     print(res.to_string())
-    res2 = res.groupby(['TU99','TAU99', 'REG','POL99'])
+    res2 = res.groupby(['TU99', 'TAU99', 'REG', 'POL99'])
 
-    final = res2.agg({'zone1': np.sum,
-                   'zone2': np.sum,
-                   'zone3': np.sum})
+    final = res2.agg({
+        'zone1': np.sum,
+        'zone2': np.sum,
+        'zone3': np.sum
+        })
     final['total'] = final['zone1'] + final['zone2'] + final['zone3']
     final['proba_zone1'] = final['zone1']/final['total']
     final['proba_zone2'] = final['zone2']/final['total']

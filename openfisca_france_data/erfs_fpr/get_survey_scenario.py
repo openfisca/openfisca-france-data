@@ -29,9 +29,13 @@ def get_survey_scenario(
     :param data:                        Les données de l'enquête.
     :param reform:                      Une réforme à appliquer à *france_data_tax_benefit_system*.
     """
-    tax_benefit_system = get_tax_benefit_system(tax_benefit_system, reform)
+    tax_benefit_system = get_tax_benefit_system(
+        tax_benefit_system,
+        reform,
+        )
+
     baseline_tax_benefit_system = get_baseline_tax_benefit_system(
-        baseline_tax_benefit_system
+        baseline_tax_benefit_system,
         )
 
     survey_scenario = ErfsFprSurveyScenario.create(

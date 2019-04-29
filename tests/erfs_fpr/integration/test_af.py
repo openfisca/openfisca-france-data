@@ -28,8 +28,8 @@ famille = data_frame_by_entity['famille']
 individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
-#%%
-population_by_age = individu.groupby('age')[['weight_individus']].sum().reset_index()
+# %%
+population_by_age = individu.groupby('age')['weight_individus'].sum().reset_index()
 # Les 0-16 ans sont au moins 700 000 et au plus 850 000
 assert (population_by_age.query('age <= 16 & age >= 0')['weight_individus'] > 7e5).all(), \
     'Les 0-16 ans doivent être au moins 700 000'
