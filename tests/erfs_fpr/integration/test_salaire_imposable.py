@@ -1,13 +1,13 @@
-#! /usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-#%%
 
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
+from openfisca_france_data.reforms.inversion_directe_salaires import inversion_directe_salaires
+
+survey_scenario = get_survey_scenario(year = 2012, reform = inversion_directe_salaires)
 
 
 def test_inversion():
-    survey_scenario = get_survey_scenario(year = 2012, reform_key = 'inversion_directe_salaires')
     survey_scenario.summarize_variable('salaire_de_base', force_compute = True)
 
     survey_scenario.summarize_variable('salaire_imposable', force_compute = True)

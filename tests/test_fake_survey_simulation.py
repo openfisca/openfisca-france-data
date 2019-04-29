@@ -3,89 +3,19 @@
 
 import itertools
 import numpy
-import os
 import pandas
 import pytest
 
 from openfisca_core import periods  # type: ignore
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_core.tools import assert_near  # type: ignore
-from openfisca_france_data import france_data_tax_benefit_system  # type: ignore
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario  # type: ignore
 from openfisca_survey_manager.calibration import Calibration  # type: ignore
 from openfisca_france.reforms.plf2015 import plf2015  # type: ignore
 
-current_dir = os.path.dirname(os.path.realpath(__file__))
-
-hdf5_file_realpath = os.path.join(
-    current_dir,
-    "fixtures",
-    "erfs",
-    "fake_openfisca_input_data.h5",
-    )
-
-csv_file_realpath = os.path.join(
-    current_dir,
-    "fixtures",
-    "erfs",
-    "fake_openfisca_input_data.csv",
-    )
-
 
 @pytest.fixture
-def tax_benefit_system() -> TaxBenefitSystem:
-    return france_data_tax_benefit_system
-
-
-@pytest.fixture
-def fake_input_data():
-    def _fake_input_data_frame(year: int) -> pandas.DataFrame:
-        try:
-            input_data_frame = pandas.read_hdf(hdf5_file_realpath, key = str(year))
-
-        except Exception:
-            input_data_frame = pandas.read_csv(csv_file_realpath)
-
-        input_data_frame.rename(
-            columns = dict(
-                sali = "salaire_imposable",
-                choi = "chomage_imposable",
-                rsti = "retraite_imposable",
-                ),
-            inplace = True,
-            )
-
-        input_data_frame.loc[0, "salaire_imposable"] = 20000
-        input_data_frame.loc[1, "salaire_imposable"] = 10000
-
-        for idx in [2, 6]:
-            input_data_frame.loc[idx] = input_data_frame.loc[1].copy()
-            input_data_frame.loc[idx, "salaire_imposable"] = 0
-            input_data_frame.loc[idx, "quifam"] = idx
-            input_data_frame.loc[idx, "quifoy"] = idx
-            input_data_frame.loc[idx, "quimen"] = idx
-
-            if idx < 4:
-                input_data_frame.loc[idx, "age"] = 10
-
-            else:
-                input_data_frame.loc[idx, "age"] = 24
-                input_data_frame.loc[idx, "age"] = 24
-
-        input_data_frame.reset_index(inplace = True)
-
-        return input_data_frame
-
-    return _fake_input_data_frame
-
-
-@pytest.fixture
-def fake_calibration():
-    def _fake_calibration(
-            tax_benefit_system: TaxBenefitSystem,
-            fake_input_data: pandas.DataFrame,
-            year: int,
-            ) -> Calibration:
+def fake_calibration(tax_benefit_system):
+    def _fake_calibration(fake_input_data: pandas.DataFrame, year: int) -> Calibration:
         input_data_frame = fake_input_data(year)
 
         survey_scenario = ErfsSurveyScenario.create(
@@ -106,7 +36,7 @@ def fake_calibration():
 
 
 @pytest.mark.skip(reason = "AssertionError: [0. 0.] != [20000. 10000.]")
-def test_fake_survey_simulation(fake_input_data, year: int = 2006):
+def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int = 2006):
     input_data_frame = fake_input_data(year)
     assert input_data_frame.salaire_imposable.loc[0] == 20000
     assert input_data_frame.salaire_imposable.loc[1] == 10000
@@ -220,8 +150,8 @@ def test_fake_calibration_float(fake_calibration, year: int = 2006):
 @pytest.mark.skip(
     reason = "ValueError: Length of values does not match length of index",
     )
-def test_fake_calibration_age(fake_calibration, year: int = 2006):
-    calibration = fake_calibration(year)
+def test_fake_calibration_age(fake_calibration, fake_input_data, year: int = 2006):
+    calibration = fake_calibration(fake_input_data, year)
     survey_scenario = calibration.survey_scenario
     calibration.total_population = calibration.initial_total_population * 1.123
     calibration.set_target_margin("age", [95, 130])

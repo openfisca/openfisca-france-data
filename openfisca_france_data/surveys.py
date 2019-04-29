@@ -82,11 +82,11 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     @classmethod
     def create(
             cls,
+            tax_benefit_system: Optional[TaxBenefitSystem] = None,
+            baseline_tax_benefit_system: Optional[TaxBenefitSystem] = None,
             input_data_type = None,
-            baseline_tax_benefit_system = None,
             reform = None,
             reform_key = None,
-            tax_benefit_system: Optional[TaxBenefitSystem] = None,
             year: int = None,
             ):
 

@@ -3,35 +3,26 @@
 
 import pytest
 
-from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
-from openfisca_france_data import france_data_tax_benefit_system  # type: ignore
 from openfisca_france_data.aggregates import Aggregates  # type: ignore
-from openfisca_france_data.erfs.scenario import ErfsSurveyScenario  # type: ignore
 from openfisca_france_data.erfs_fpr.scenario import (  # type: ignore
     ErfsFprSurveyScenario,
     )
 
 
-@pytest.fixture
-def tax_benefit_system() -> TaxBenefitSystem:
-    return france_data_tax_benefit_system
+@pytest.mark.skip(reason = "ValueError: NumPy boolean array indexing assignment...")
+def test_erfs_survey_simulation(survey_scenario, fake_input_data, year: int = 2009):
+    # On ititialise le survey scenario
+    survey_scenario = survey_scenario(year)
 
+    # On charge les données
+    input_data = fake_input_data(year)
 
-@pytest.fixture
-def survey_scenario(
-        tax_benefit_system: TaxBenefitSystem,
-        year: int = 2009,
-        ) -> ErfsSurveyScenario:
-    return ErfsSurveyScenario.create(
-        tax_benefit_system = tax_benefit_system,
-        year = year,
-        )
+    # On initialise le survey scenario
+    survey_scenario.init_from_data(data = dict(input_data_frame = input_data))
 
-
-@pytest.mark.skip(reason = "assert survey_scenario.simulation is not None")
-def test_erfs_survey_simulation(survey_scenario):
+    # On calcule les agrégats
     aggregates = Aggregates(survey_scenario = survey_scenario)
-    aggregates.compute_aggregates()
+    aggregates.compute_aggregates(use_baseline = False)
     return aggregates.base_data_frame
 
 

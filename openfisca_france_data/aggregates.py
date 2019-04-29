@@ -432,7 +432,13 @@ class Aggregates(object):
 
 def load_actual_data(year = None):
     assert year is not None
+
+    if not Config:
+        log.info("No actual data available")
+        return
+
     parser = Config()
+
     # Cotisations CSG -CRDS
     try:
         directory = os.path.join(
