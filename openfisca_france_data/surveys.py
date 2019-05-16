@@ -40,7 +40,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         menage = "quimen",
         )
 
-    weight_column_name_by_entity = dict(
+    weight_variable_by_entity = dict(
         menage = "wprm",
         famille = "weight_familles",
         foyer_fiscal = "weight_foyers",
