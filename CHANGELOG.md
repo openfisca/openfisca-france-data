@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0 [XX](https://github.com/openfisca/openfisca-france-data/pull/XX)
+
+- Adapt to new version of openfisca-survey-manager (v0.21)
+
 ## 0.10.0 [161](https://github.com/openfisca/openfisca-france-data/pull/161)
 
 - Adapt to new version of openfisca-survey-manager (v0.20) and openfisca-core (v34)

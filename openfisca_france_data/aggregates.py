@@ -63,7 +63,7 @@ class Aggregates(object):
         else:
             self.baseline_simulation = None
 
-        self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
+        self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
         self.aggregate_variables = AGGREGATES_DEFAULT_VARS
 
     def compute_aggregates(self, use_baseline = True, reform = True, actual = True):
@@ -174,7 +174,7 @@ class Aggregates(object):
                     },
                 index = [variable],
                 )
-        weight = self.weight_column_name_by_entity[column.entity.key]
+        weight = self.weight_variable_by_entity[column.entity.key]
         assert weight in variables, "{} not a variable of the tax_benefit_system".format(weight)
 
         weight_array = simulation.calculate(weight, period = self.year).astype('float')
