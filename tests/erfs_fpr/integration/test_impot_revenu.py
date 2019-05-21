@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import os
-
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.reforms.inversion_directe_salaires import inversion_directe_salaires
 
@@ -20,13 +18,12 @@ data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
         'weight_individus',
         ],
     )
+
 famille = data_frame_by_entity['famille']
 foyer_fiscal = data_frame_by_entity['foyer_fiscal']
 individu = data_frame_by_entity['individu']
 menage = data_frame_by_entity['menage']
 
-
-#%%
 # statut_occupation
 statut_marital = individu.groupby('statut_marital')['weight_individus'].sum()
 assert 22e6 < statut_marital[1] < 25e6

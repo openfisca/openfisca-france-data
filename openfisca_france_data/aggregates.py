@@ -10,12 +10,12 @@ import numpy as np
 import pandas as pd
 
 try:
-    from ipp_macro_series_parser.config import Config
+    from ipp_macro_series_parser.config import Config  # type: ignore
 except ImportError:
     Config = None
 
 
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS, DATA_DIR
+from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
 
 
 log = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ class Aggregates(object):
 
         for simulation_type in simulation_types:
             if simulation_type == 'actual':
-                data_frame_by_simulation_type['actual'] = self.totals_df.copy()
+                data_frame_by_simulation_type['actual'] = self.totals_df.copy() if self.totals_df is not None else None
             else:
                 use_baseline = False if simulation_type == 'reform' else True
                 data_frame = pd.DataFrame()
@@ -161,8 +161,10 @@ class Aggregates(object):
         column = variables.get(variable)
 
         if column is None:
-            print(use_baseline)
-            print(variable)
+            msg = "Variable {} is not available".format(variable)
+            if use_baseline:
+                msg += " in baseline simulation"
+            log.info(msg)
             return pd.DataFrame(
                 data = {
                     'label': variable,
@@ -339,7 +341,8 @@ class Aggregates(object):
             )
         return df['{}_amount'.format(target)] / df['actual_amount']
 
-    def get_data_frame(self,
+    def get_data_frame(
+            self,
             absolute = True,
             amount = True,
             beneficiaries = True,
@@ -399,14 +402,16 @@ class Aggregates(object):
             'beneficiaries_relative_difference'
             ]
         if difference_data_frame is not None:
-            df = (aggregates_data_frame
+            df = (
+                aggregates_data_frame
                 .merge(difference_data_frame, how = 'left')[columns]
                 .reindex_axis(ordered_columns, axis = 1)
                 .dropna(axis = 1, how = 'all')
                 .rename(columns = self.labels)
                 )
         else:
-            df = (aggregates_data_frame[columns]
+            df = (
+                aggregates_data_frame[columns]
                 .reindex_axis(ordered_columns, axis = 1)
                 .dropna(axis = 1, how = 'all')
                 .rename(columns = self.labels)
@@ -423,8 +428,6 @@ class Aggregates(object):
                         .apply(lambda x: "{:d}".format(int(round(x))) if str(x) != 'nan' else 'nan')
                         )
         return df
-
-
 
 
 # Helpers
@@ -464,7 +467,7 @@ def load_actual_data(year = None):
             os.path.join(directory, 'assiette_csg_by_type.csv'),
             index_col = 0,
             ) / 1e6
-    except:
+    except Exception:
         assiette_csg_by_type_amounts = None
         csg_by_type_amounts = None
         csg_crds_amounts = None

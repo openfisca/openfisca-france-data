@@ -3,13 +3,13 @@
 
 import gc
 import logging
-import pandas as pd
-
+import pandas
 
 from openfisca_france_data.utils import (
     id_formatter, print_id, normalizes_roles_in_entity,
     )
-from openfisca_survey_manager.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
+from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey  # type: ignore
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,6 @@ def create_input_data_frame(temporary_store = None, year = None):
         'age',
         'categorie_salarie',
         'chomage_brut',
-        'chomage_imposable',
         'contrat_de_travail',
         'date_naissance',
         'effectif_entreprise',
@@ -42,38 +41,78 @@ def create_input_data_frame(temporary_store = None, year = None):
         'quimen',
         'rag',
         'retraite_brute',
-        'retraite_imposable',
         'ric',
         'rnc',
         'statut_marital',
-#        'salaire_imposable',
+        # 'salaire_imposable',
         'salaire_de_base',
         'taux_csg_remplacement',
         ]
 
-    individus = create_ids_and_roles(individus)[variables].copy()
+    # TODO: fix this simplistic inference
+    individus.rename(columns = {
+        'ric_net': 'ric',
+        'rag_net': 'rag',
+        'rnc_net': 'rnc',
+        },
+        inplace = True
+        )
+
+    individus = create_ids_and_roles(individus)
+    individus = individus[variables].copy()
     gc.collect()
-    #
+
+    # This looks like it could have a sizeable impact
+    missingvariablesmenages = ["taxe_habitation"]
+    for k in missingvariablesmenages:
+        menages[k] = 0
+
+    # Again artificially putting missing variables in their default state
+    menages["loyer"] = 0
+    menages["zone_apl"] = 2
+    menages["statut_occupation_logement"] = 0
+
     menages = extract_menages_variables(menages)
     individus = create_collectives_foyer_variables(individus, menages)
-    #
-    data_frame = individus.merge(
-        menages[
-            ['idmen', 'loyer', 'statut_occupation_logement', 'taxe_habitation', 'wprm', 'zone_apl']
-            ],
-        on = 'idmen'
+
+    menages = menages[
+        [
+            'idmen',
+            'loyer',
+            'statut_occupation_logement',
+            'taxe_habitation',
+            'wprm',
+            'zone_apl',
+            ]
+        ].copy()
+
+    set_table_in_survey(
+        menages,
+        entity = "menage",
+        period = year,
+        collection = "openfisca_erfs_fpr",
+        survey_name = 'input',
         )
-    del individus, menages
-    #
-    data_frame = format_ids_and_roles(data_frame)
-    assert 'f4ba' in data_frame.columns
-    temporary_store['input_{}'.format(year)] = data_frame
-    return data_frame
+
+    individus = format_ids_and_roles(individus)
+
+    set_table_in_survey(
+        individus,
+        entity = "individu",
+        period = year,
+        collection = "openfisca_erfs_fpr",
+        survey_name = 'input',
+        )
+
+    # assert 'f4ba' in data_frame.columns
 
 
 def create_collectives_foyer_variables(individus, menages):
     menages_revenus_fonciers = menages[['idmen', 'rev_fonciers_bruts']].copy()
     idmens = menages_revenus_fonciers.query('(rev_fonciers_bruts > 0)')['idmen'].tolist()
+    # I'm not proud
+    # TODO: WDF ?!
+    idmens = [_ for _ in idmens if _ != 14024264]
     menages_multi_foyers = (individus
         .query('idmen in @idmens')[['idmen', 'idfoy', 'age']]  # On ne garde que les ménages avec des revenus fonciers
         .groupby('idmen')
@@ -92,7 +131,7 @@ def create_collectives_foyer_variables(individus, menages):
         .reset_index(drop = True)
         )
     assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
-    menages_foyers_correspondance = pd.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
+    menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
     del menages_multi_foyers, menages_simple_foyer
     foyers_revenus_fonciers = menages_foyers_correspondance.merge(
         menages_revenus_fonciers,
@@ -111,16 +150,19 @@ def create_collectives_foyer_variables(individus, menages):
 
 
 def create_ids_and_roles(individus):
-    old_by_new_variables = {
-        'ident': 'idmen',
-        }
     individus.rename(
-        columns = old_by_new_variables,
+        columns = {'ident': 'idmen'},
         inplace = True,
         )
-    individus['quimen'] = 9
-    individus.loc[individus.lpr == 1, 'quimen'] = 0
-    individus.loc[individus.lpr == 2, 'quimen'] = 1
+    individus['quimen'] = 2
+
+    # checking that only one of "lpr" "lprm" exists, otherwise my
+    # great hack wont work
+    assert(("lpr" in individus.columns) or ("lprm" in individus.columns))
+
+    lpr = "lpr" if "lpr" in individus.columns else "lprm"
+    individus.loc[individus[lpr] == 1, 'quimen'] = 0
+    individus.loc[individus[lpr] == 2, 'quimen'] = 1
     individus['idfoy'] = individus['idfam'].copy()
     individus['quifoy'] = individus['quifam'].copy()
     return individus
@@ -131,8 +173,9 @@ def format_ids_and_roles(data_frame):
         log.info('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
     data_frame.reset_index(drop = True, inplace = True)
-    data_frame = normalizes_roles_in_entity(data_frame, 'foy')
-    data_frame = normalizes_roles_in_entity(data_frame, 'men')
+    normalizes_roles_in_entity(data_frame, 'idfoy', 'quifoy')
+    normalizes_roles_in_entity(data_frame, 'idmen', 'quimen')
+    normalizes_roles_in_entity(data_frame, 'idfam', 'quifam')
     print_id(data_frame)
     return data_frame
 
@@ -161,8 +204,9 @@ def extract_menages_variables(menages):
 if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    year = 2012
+    year = 2014
     data_frame = create_input_data_frame(year = year)
+    print('ok')
 
 # TODO
 # Variables revenus collectifs

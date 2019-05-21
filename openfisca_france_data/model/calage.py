@@ -5,7 +5,7 @@ from itertools import izip
 
 from numpy import arange, array, floor, where
 
-from .base import *  # noqa
+from openfisca_france_data.model.base import *  # noqa
 
 
 class nbinde(Variable):

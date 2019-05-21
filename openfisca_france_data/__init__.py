@@ -5,13 +5,11 @@ import inspect
 import logging
 import os
 import pkg_resources
+import pandas
 
-import pandas as pd
+from openfisca_core import reforms  # type: ignore
 
-from openfisca_core import reforms
-# from openfisca_core.formulas import set_input_divide_by_period
-
-import openfisca_france
+import openfisca_france  # type: ignore
 
 # Load input variables and output variables into entities
 from openfisca_france_data.model import common, survey_variables, id_variables  # noqa analysis:ignore
@@ -49,7 +47,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
     elif target_probability == 1:
         return eligible * True
 
-    data = pd.DataFrame({
+    data = pandas.DataFrame({
         'eligible': eligible,
         'weights': weights,
         'deja_recourant': recourant_last_period,

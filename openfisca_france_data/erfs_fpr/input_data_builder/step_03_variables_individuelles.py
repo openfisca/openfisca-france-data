@@ -1,22 +1,21 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 
 import logging
 import numpy as np
 import pandas as pd
 
-from openfisca_core import periods
-from openfisca_core.formula_helpers import switch
-from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
-from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
+from openfisca_core import periods  # type: ignore
+from openfisca_core.formula_helpers import switch  # type: ignore
+from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales  # type: ignore
+from openfisca_france import FranceTaxBenefitSystem  # type: ignore
+from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME  # type: ignore
 from openfisca_france_data.utils import (
     assert_dtype,
     )
-from openfisca_survey_manager.temporary import temporary_store_decorator
+from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 
 log = logging.getLogger(__name__)
-
 
 smic_horaire_brut = {  # smic horaire brut moyen sur l'année
     2017: 9.76,
@@ -84,7 +83,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
     individus = temporary_store['individus_{}_post_01'.format(year)]
 
-    old_by_new_variables = {
+    erfs_by_openfisca_variables = {
         'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
         'rag_i': 'rag_net',
@@ -94,11 +93,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
         'salaires_i': 'salaire_net',
         }
 
-    for variable in old_by_new_variables.keys():
+    for variable in erfs_by_openfisca_variables.keys():
         assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
 
     individus.rename(
-        columns = old_by_new_variables,
+        columns = erfs_by_openfisca_variables,
         inplace = True,
         )
     create_variables_individuelles(individus, year)
@@ -117,9 +116,9 @@ def create_variables_individuelles(individus, year, survey_year = None):
     create_activite(individus)
     revenu_type = 'net'
     period = periods.period(year)
-    # create_revenus(individus, revenu_type = revenu_type)
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type, survey_year = survey_year)
-    create_categorie_salarie(individus, period = period, suvrey_year = survey_year)
+    create_revenus(individus, revenu_type = revenu_type)
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)  # , survey_year = survey_year)
+    create_categorie_salarie(individus, period = period, survey_year = survey_year)
 
     # Il faut que la base d'input se fasse au millésime des données
     # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
@@ -186,7 +185,11 @@ def create_actrec(individus):
     filter5 = (individus.acteu == 3) & ((individus.forter == 2) | (individus.rstg == 1))
     individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
-    filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+    try:
+        filter7 = (individus.acteu == 3) & ((individus.ret == 1))  # cas >= 2014, evite de ramener l'année dans la fonction
+    except Exception:
+        filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+
     individus.loc[filter7, 'actrec'] = 7
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
     individus.loc[individus.acteu == 0, 'actrec'] = 9
@@ -301,7 +304,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
         survey_year = period.start.year
 
     if survey_year >= 2013:
-        log.debug('Using qprcent to infer prosa for year {}'.format(year))
+        log.debug(f"Using qprcent to infer prosa for year {survey_year}")
         chpub_replacement = {
             0: 0,
             3: 1,
@@ -323,9 +326,9 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 7,
             7: 8,
             8: 9,
-            9: 5, # On met les non renseignés en catégorie B
+            9: 5,  # On met les non renseignés en catégorie B
             }
-        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
+        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)  # Actually prosa is there I don't need to change it further
     else:
         pass
 
@@ -415,10 +418,11 @@ def create_categorie_salarie(individus, period, survey_year = None):
             individus.categorie_salarie.value_counts(dropna = False))
     log.debug(u"Répartition des catégories de salariés: \n{}".format(
         individus
-            .groupby(['contrat_de_travail'])['categorie_salarie']
-            .value_counts(dropna = False)
-            .sort_index()
+        .groupby(['contrat_de_travail'])['categorie_salarie']
+        .value_counts(dropna = False)
+        .sort_index()
         ))
+
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     """
@@ -457,14 +461,15 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
 
     assert salaire_type in ['net', 'imposable']
 
-    individus.loc[individus.hhc == 0, 'hhc'] = np.nan
-    assert (
-            (individus.hhc > 0) | individus.hhc.isnull()
-        ).all()
-    # assert individus.tppred.dtype is integer
+    individus.loc[individus.hhc == "", "hhc"] = np.nan
+    individus.hhc = individus.hhc.astype(float)
+    individus.loc[individus.hhc <= 0.01 , "hhc"] = np.nan
+
+    assert ((individus.hhc > 0) | individus.hhc.isnull()).all()
 
     assert individus.tppred.isin(range(3)).all(), \
         'tppred values {} should be in [0, 1, 2]'.format(individus.tppred.unique())
+
     assert (
         individus.duhab.isin(range(10)) & (individus.duhab != 8)
         ).all(), 'duhab values {} should be in [0, 1, 2, 3, 4, 5, 6, 7, 9]'.format(individus.duhab.unique())
@@ -561,7 +566,8 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
             temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
             'hhc'
             ]
-    axes = (individus
+    axes = (
+        individus
         .loc[temps_partiel]
         .query('(contrat_de_travail == 1) & (salaire > 0)')
         .heures_remunerees_volume
@@ -766,7 +772,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
         survey_year = period.start.year
 
     if survey_year >= 2013:
-        assert individus.nbsala.isin(range(0, 13) + [99]).all(), \
+        assert individus.nbsala.isin(list(range(0, 13)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
@@ -833,6 +839,9 @@ def create_revenus(individus, revenu_type = 'imposable'):
         salaire_imposable,
     """
 
+    individus['chomage_brut'] = individus.csgchod_i + individus.chomage_net
+    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_nette
+
     if revenu_type == 'imposable':
         variables = [
             # 'pension_alimentaires_percues',
@@ -852,33 +861,34 @@ def create_revenus(individus, revenu_type = 'imposable'):
                     negatives_values,
                     )
                 )
-        #
-        # csg des revenus de replacement
-        # 0 - Non renseigné/non pertinent
-        # 1 - Exonéré
-        # 2 - Taux réduit
-        # 3 - Taux plein
-        taux = pd.concat(
-            [
-                individus.csgrstd_i / individus.retraite_brute,
-                individus.csgchod_i / individus.chomage_brut,
+
+    # csg des revenus de replacement
+    # 0 - Non renseigné/non pertinent
+    # 1 - Exonéré
+    # 2 - Taux réduit
+    # 3 - Taux plein
+    taux = pd.concat(
+        [
+            individus.csgrstd_i / individus.retraite_brute,
+            individus.csgchod_i / individus.chomage_brut,
             ],
-            axis=1
-            ).max(axis = 1)
-        # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
-        individus['taux_csg_remplacement'] = np.select(
-            [
-                taux.isnull(),
-                taux.notnull() & (taux < 0.021),
-                taux.notnull() & (taux > 0.021) & (taux < 0.0407),
-                taux.notnull() & (taux > 0.0407)
-                ],
-            [0, 1, 2, 3]
-            )
-        for value in [0, 1, 2, 3]:
-            assert (individus.taux_csg_remplacement == value).any(), \
-                "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
-        assert individus.taux_csg_remplacement.isin(range(4)).all()
+        axis = 1
+        ).max(axis = 1)
+
+    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
+    individus['taux_csg_remplacement'] = np.select(
+        [
+            taux.isnull(),
+            taux.notnull() & (taux < 0.021),
+            taux.notnull() & (taux > 0.021) & (taux < 0.0407),
+            taux.notnull() & (taux > 0.0407)
+            ],
+        [0, 1, 2, 3]
+        )
+    for value in [0, 1, 2, 3]:
+        assert (individus.taux_csg_remplacement == value).any(), \
+            "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
+    assert individus.taux_csg_remplacement.isin(range(4)).all()
 
 
 def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
@@ -1264,11 +1274,13 @@ def create_statut_matrimonial(individus):
 
 
 def todo_create(individus):
+    txtppb = "txtppb" if "txtppb" in individus.columns else "txtppred"
     log.debug(u"    6.3 : variable txtppb")
-    individus.loc[individus.txtppb.isnull(), 'txtppb'] = 0
+    individus.loc[individus.txtppb.isnull(), txtppb] = 0
+    individus.loc[individus[txtppb] == 9, txtppb] = 0
     assert individus.txtppb.notnull().all()
     log.debug("Valeurs prises par la variable txtppb \n {}".format(
-        individus['txtppb'].value_counts(dropna = False)))
+        individus[txtppb].value_counts(dropna = False)))
 
 
 if __name__ == '__main__':
@@ -1276,7 +1288,7 @@ if __name__ == '__main__':
     import sys
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     # logging.basicConfig(level = logging.INFO,  filename = 'step_03.log', filemode = 'w')
-    year = 2012
+    year = 2014
 
     #    from openfisca_france_data.erfs_fpr.input_data_builder import step_01_preprocessing
     #    step_01_preprocessing.build_merged_dataframes(year = year)

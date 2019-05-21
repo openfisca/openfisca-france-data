@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-
 import logging
 
+
 from multipledispatch import dispatch  # type: ignore
+
 
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
@@ -12,14 +13,11 @@ from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_04_famille as famille,
     step_05_final as final,
     )
-from openfisca_france_data.utils import store_input_data_frame
-from openfisca_survey_manager.temporary import get_store  # type: ignore
-
 
 log = logging.getLogger(__name__)
 
 
-@dispatch(int)  # noqa: F811
+#@dispatch(int)
 def build(year: int) -> None:
     """
     Ici on va nettoyer et formatter les donnés ERFS-FPR, pour les rendre OpenFisca-like
@@ -54,14 +52,18 @@ def build(year: int) -> None:
     # Affreux ! On injectait tout dans un même DataFrame !!!
     # C'est très moche !
     #
-    # TODO : on devrait avoir un df par entité, même par période
+    # On crée une df par entité par période.
+    # Elles sont stockées dans un fichier h5
     final.create_input_data_frame(year = year)
-    temporary_store = get_store(file_name = "erfs_fpr")
-    data_frame = temporary_store[f"input_{year}"]
 
-    # Save the data_frame in a collection
-    store_input_data_frame(
-        data_frame = data_frame,
-        collection = "openfisca_erfs_fpr",
-        survey = f"openfisca_erfs_fpr_data_{year}",
-        )
+
+if __name__ == '__main__':
+    import sys
+    import time
+    start = time.time()
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    year = 2014
+    build(year = year)
+    # TODO: create_enfants_a_naitre(year = year)
+    log.info("Script finished after {}".format(time.time() - start))
+    print(time.time() - start)
