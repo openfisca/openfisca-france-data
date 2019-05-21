@@ -159,7 +159,7 @@ def create_variables_individuelles(individus, year, survey_year = None):
 
 
 def create_individu_variables_brutes(individus, revenu_type = None, period = None, tax_benefit_system = None,
-         mass_by_categorie_salarie = None):
+         mass_by_categorie_salarie = None, calibration_eec = False):
     """
     Crée les variables brutes de revenus:
       - salaire_de_base
@@ -187,7 +187,7 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
     created_variables.append('categorie_non_salarie')
 
     # FIXME: categorie_non_salarie modifie aussi categorie_salarie  !!
-    if mass_by_categorie_salarie is not None:
+    if (mass_by_categorie_salarie is not None) & (calibration_eec is True):
         calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = mass_by_categorie_salarie)
 
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
@@ -1162,10 +1162,10 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
     log.debug(
         "Distribution of taux_csg_remplacement:\n",
         distribution)
-    log.info(
-        "Target of taux_csg_remplacement (in thousands):\n",
-        distribution[[(2, 1), (3 , 2)]].sum()
-        )
+#    log.info(
+#        "Target of taux_csg_remplacement (in thousands):\n",
+#        distribution[[(2, 1), (3 , 2)]].sum()
+#        )
     assert individus['taux_csg_remplacement_n_1'].isin(range(4)).all()
     assert individus['taux_csg_remplacement'].isin(range(4)).all()
 
