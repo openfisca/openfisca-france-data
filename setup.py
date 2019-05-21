@@ -11,7 +11,7 @@ with open('LICENSE') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.11.0",
+    version = "0.11.1",
     description = "OpenFisca-France module to work with French survey data",
     long_description = long_description,
     author = "OpenFisca Team",
@@ -33,6 +33,7 @@ setup(
         "openfisca-core >= 34.0.0, < 35.0.0",
         "openFisca-france >= 42.1.0, < 43.0.0",
         "openFisca-survey-manager >= 0.21, < 1.0.0",
+        "numpy >= 1.11,<1.16",  # openfisca-survey-manager deps and https://github.com/openfisca/openfisca-survey-manager/pull/79
         "numexpr == 2.6.8",
         "pandas >= 0.20.3, < 1.0.0",
         "tables >= 3.0.0, < 4.0.0",  # Needed by pandas.HDFStore
