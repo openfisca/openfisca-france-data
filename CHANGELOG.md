@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.11.0 [XX](https://github.com/openfisca/openfisca-france-data/pull/XX)
+## 0.11.1 [172](https://github.com/openfisca/openfisca-france-data/pull/172
+
+- Fix numpy dependency to deal with openfisca-survey-manager deps (see https://github.com/openfisca/openfisca-survey-manager/pull/79).
+
+## 0.11.0 [171](https://github.com/openfisca/openfisca-france-data/pull/171)
 
 - Adapt to new version of openfisca-survey-manager (v0.21)
 
