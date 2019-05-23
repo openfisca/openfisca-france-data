@@ -133,7 +133,7 @@ def build_erfs_survey_collection():
         }
 
         # Build absolute path for RData_filename
-        from ConfigParser import SafeConfigParser
+        from configparser import SafeConfigParser
 
         parser = SafeConfigParser()
         config_local_ini = os.path.join(CONFIG_DIR, 'config_local.ini')
@@ -481,7 +481,7 @@ def build_erfs_survey_collection():
 
         # rename variables according to their name in openfisca
         erf2of = get_erf2of()
-        to_be_renamed_variables = set(erf2of.values()).intersection(variables)
+        to_be_renamed_variables = set(list(erf2of.values())).intersection(variables)
         if to_be_renamed_variables:
             for var in to_be_renamed_variables:
                 df.rename(columns = {var: erf2of[var]}, inplace=True)

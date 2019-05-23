@@ -181,6 +181,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             input_data_frame["loyer"] = 12 * input_data_frame.loyer
 
         if "categorie_salarie" in input_data_frame:
+            log.debug("Setting categorie_salarie to 0 and 1 only")
             input_data_frame.loc[
                 input_data_frame.categorie_salarie.isin(range(2, 7)),
                 "categorie_salarie",

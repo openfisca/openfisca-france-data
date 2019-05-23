@@ -234,21 +234,17 @@ def check_structure(dataframe):
 def build_cerfa_fields_by_column_name(year, sections_cerfa):
     tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
     cerfa_fields_by_column_name = dict()
-
     for name, column in tax_benefit_system.variables.items():
         for section_cerfa in sections_cerfa:
             if name.startswith(f"f{section_cerfa}"):
                 end = column.end or None
 
                 if end is None or end.year >= year:
-                    if column.entity.key == "individu":
-                        cerfa_field = ["f" + x.lower() for x in column.cerfa_field.values()]
-
-                    elif column.entity.key == "foyer_fiscal":
-                        cerfa_field = ["f" + column.cerfa_field.lower()]
-
+                    if column.entity.key == 'individu':
+                        cerfa_field = ['f' + x.lower() for x in list(column.cerfa_field.values())]
+                    elif column.entity.key == 'foyer_fiscal':
+                        cerfa_field = ['f' + column.cerfa_field.lower()]
                     cerfa_fields_by_column_name[name] = cerfa_field
-
     return cerfa_fields_by_column_name
 
 
@@ -263,10 +259,10 @@ def build_cerfa_fields_by_variable(year):
         end = variable.end or None
         if end is None or end.year >= year:
             if variable.entity.key == 'individu':
-                cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in variable.cerfa_field.values()]
+                cerfa_field = ['f' + x.lower() for x in list(variable.cerfa_field.values())]
             elif variable.entity.key == 'foyer_fiscal':
-                cerfa_field = ['f' + variable.cerfa_field.lower().encode('ascii', 'ignore')]
-            cerfa_fields_by_variable[name.encode('ascii', 'ignore')] = cerfa_field
+                cerfa_field = ['f' + variable.cerfa_field.lower()]
+            cerfa_fields_by_variable[name] = cerfa_field
     return cerfa_fields_by_variable
 
 
