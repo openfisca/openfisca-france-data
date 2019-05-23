@@ -404,9 +404,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             8: 9,
             9: 5,  # On met les non renseignés en catégorie B
             }
-        individus['prosa'] = individus.qprcent.map(qprcent_to_prosa)
         individus['prosa'] = individus.qprcent.map(qprc_to_prosa)
-        # TODO should be qprc instaed of qprcent
         # Actually prosa is there I don't need to change it further
     else:
         pass
