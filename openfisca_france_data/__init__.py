@@ -101,7 +101,7 @@ def select_to_match_target(target_probability = None, target_mass = None, eligib
     elif target_probability == 1:
         return eligible * True
 
-    data = pd.DataFrame({
+    data = pandas.DataFrame({
         'eligible': eligible,
         'weights': weights,
         'take': take,
