@@ -661,9 +661,10 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         period = periods.period(period)
 
     assert salaire_type in ['net', 'imposable']
-
-    individus.loc[individus.hhc == "", "hhc"] = np.nan
-    individus.hhc = individus.hhc.astype(float)
+    
+    if individus.hhc.dtype != 'float':
+        individus.loc[individus.hhc == "", "hhc"] = np.nan
+        individus.hhc = individus.hhc.astype(float)
     individus.loc[individus.hhc <= 0.01 , "hhc"] = np.nan
 
     assert ((individus.hhc > 0) | individus.hhc.isnull()).all()
