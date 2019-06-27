@@ -22,6 +22,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     log.info('step_05_create_input_data_frame: Etape finale ')
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
+
     variables = [
         'activite',
         'age',
@@ -74,8 +75,9 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     menages = extract_menages_variables(menages)
     individus = create_collectives_foyer_variables(individus, menages)
-
-    menages = menages[
+    idmens = individus.idmen.unique()
+    menages = menages.loc[
+        menages.idmen.isin(idmens),
         [
             'idmen',
             'loyer',

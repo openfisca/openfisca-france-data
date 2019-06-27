@@ -54,7 +54,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
     survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
         year = 2014,
-        rebuild_input_data = True,
+        rebuild_input_data = False,
         )
     survey_scenario._set_used_as_input_variables_by_entity()
     print(survey_scenario.used_as_input_variables_by_entity)
