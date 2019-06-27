@@ -831,6 +831,8 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
         log.info(u'Il y a {} ménages contenant des familles sans chefs. on les retire'.format(
             len(idents)))
         famille = famille.loc[~famille.ident.isin(idents)].copy()
+        indivi = indivi.loc[~indivi.ident.isin(idents)].copy()
+
         control_04(famille, base)
 
     log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts().sort_index()))
