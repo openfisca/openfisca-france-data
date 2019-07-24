@@ -13,6 +13,7 @@ from openfisca_france_data.common import (
     create_traitement_indiciaire_brut,
     create_revenus_remplacement_bruts,
     )
+from openfisca_france_data import openfisca_france_tax_benefit_system    
 from openfisca_france_data.utils import assert_dtype
 from openfisca_survey_manager.temporary import temporary_store_decorator
 
@@ -32,7 +33,7 @@ log = logging.getLogger(__name__)
 smic_horaire_brut = dict()
 for year in range(2010, 2020):
     try:
-        smic_horaire_brut[year] = FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
+        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
     except:
         continue
 
@@ -80,7 +81,7 @@ smic_annuel_imposbale_by_year = dict([
 
 
 smic_horaire_brut_by_year = dict([
-    (year, FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
+    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
     for year in range(2005, 2020)
     ])
 
@@ -146,7 +147,7 @@ def create_variables_individuelles(individus, year, survey_year = None):
     # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
     # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
     # je besoin d'un droit courantcomme même du droit currant pour l'année des données
-    tax_benefit_system = FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
 
     # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'invertir
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
@@ -621,8 +622,6 @@ def create_categorie_non_salarie(individus):
             ),
         'categorie_salarie'
         ] = 2
-
-
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
