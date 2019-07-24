@@ -10,6 +10,9 @@ import openfisca_france  # type: ignore
 from openfisca_survey_manager.survey_collections import SurveyCollection  # type: ignore
 from openfisca_survey_manager.surveys import Survey  # type: ignore
 
+from openfisca_france_data import openfisca_france_tax_benefit_system    
+
+
 log = logging.getLogger(__name__)
 
 
@@ -232,7 +235,7 @@ def check_structure(dataframe):
 
 
 def build_cerfa_fields_by_column_name(year, sections_cerfa):
-    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
     cerfa_fields_by_column_name = dict()
     for name, column in tax_benefit_system.variables.items():
         for section_cerfa in sections_cerfa:
@@ -249,7 +252,7 @@ def build_cerfa_fields_by_column_name(year, sections_cerfa):
 
 
 def build_cerfa_fields_by_variable(year):
-    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
     cerfa_fields_by_variable = dict()
     for name, variable in sorted(tax_benefit_system.variables.items()):
         if variable.cerfa_field is None:
@@ -319,8 +322,7 @@ def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name):
 
 
 def set_variables_default_value(dataframe, year):
-    import openfisca_france
-    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
 
     for column_name, column in tax_benefit_system.variables.items():
         if column_name in dataframe.columns:

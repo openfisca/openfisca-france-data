@@ -7,7 +7,9 @@ from openfisca_core import periods
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_core.formula_helpers import switch
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
-from openfisca_france import FranceTaxBenefitSystem
+from openfisca_france_data import openfisca_france_tax_benefit_system    
+
+
 
 log = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ log = logging.getLogger(__name__)
 smic_horaire_brut = dict()
 for year in range(2010,2020):
     try:
-        smic_horaire_brut[year] = FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
+        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
     except:
         continue
 
