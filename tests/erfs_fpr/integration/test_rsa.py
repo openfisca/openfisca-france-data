@@ -17,31 +17,31 @@ def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
     class rsa_origin(Variable):
         value_type = float
         entity = Famille
-        label = u"RSA de l'ENA"
+        label = "RSA de l'ENA"
         definition_period = MONTH
 
     class aah_origin(Variable):
         value_type = float
         entity = Famille
-        label = u"RSA de l'ENA"
+        label = "RSA de l'ENA"
         definition_period = MONTH
 
     class paje_clca_origin(Variable):
         value_type = float
         entity = Famille
-        label = u"RSA de l'ENA"
+        label = "RSA de l'ENA"
         definition_period = MONTH
 
     class hors_match(Variable):
         value_type = bool
         entity = Individu
-        label = u"hors match"
+        label = "hors match"
         definition_period = MONTH
 
     class activite_famille_max(Variable):
         value_type = int
         entity = Famille
-        label = u"activite_famille"
+        label = "activite_famille"
         definition_period = MONTH
 
         def formula(famille, period):
@@ -51,7 +51,7 @@ def get_custom_survey_scenario(year = 2012, rebuild_input_data = False):
     class activite_famille_min(Variable):
         value_type = int
         entity = Famille
-        label = u"activite_famille"
+        label = "activite_famille"
         definition_period = MONTH
 
         def formula(famille, period):
