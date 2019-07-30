@@ -20,7 +20,7 @@ from openfisca_france_data.model.base import *  # noqa analysis:ignore
 class assiette_csg_salaire(Variable):
     value_type = float
     entity = Individu
-    label = u"Assiette CSG salaires"
+    label = "Assiette CSG salaires"
     definition_period = MONTH
 
     def formula(individu, period, parameters):
@@ -39,7 +39,7 @@ class assiette_csg_salaire(Variable):
 class assiette_csg_retraite(Variable):
     value_type = float
     entity = Individu
-    label = u"Assiette CSG retraite"
+    label = "Assiette CSG retraite"
     definition_period = MONTH
 
     def formula(individu, period, parameters):
@@ -51,7 +51,7 @@ class assiette_csg_retraite(Variable):
 class assiette_csg_chomage(Variable):
     value_type = float
     entity = Individu
-    label = u"Assiette CSG chomage"
+    label = "Assiette CSG chomage"
     definition_period = MONTH
 
     def formula(individu, period, parameters):
@@ -65,7 +65,7 @@ class decile(Variable):
     possible_values = Deciles
     default_value = Deciles.hors_champs
     entity = Menage
-    label = u"Décile de niveau de vie disponible"
+    label = "Décile de niveau de vie disponible"
     definition_period = YEAR
 
     def formula(menage, period):
@@ -87,7 +87,7 @@ class centile(Variable):
     possible_values = Deciles
     default_value = Deciles.hors_champs
     entity = Menage
-    label = u"Centile de niveau de vie disponible"
+    label = "Centile de niveau de vie disponible"
     definition_period = YEAR
 
     def formula(menage, period):
@@ -109,7 +109,7 @@ class decile_rfr(Variable):
     possible_values = Deciles
     default_value = Deciles.hors_champs
     entity = FoyerFiscal
-    label = u"Décile de revenu fiscal de référence"
+    label = "Décile de revenu fiscal de référence"
     definition_period = YEAR
 
     def formula(foyer_fiscal, period):
@@ -129,7 +129,7 @@ class centile_rfr(Variable):
     possible_values = Deciles
     default_value = Deciles.hors_champs
     entity = FoyerFiscal
-    label = u"Centile de revenu fiscal de référence"
+    label = "Centile de revenu fiscal de référence"
     definition_period = YEAR
 
     def formula(foyer_fiscal, period):
@@ -146,7 +146,7 @@ class decile_rfr_par_part(Variable):
     possible_values = Deciles
     default_value = Deciles.hors_champs
     entity = FoyerFiscal
-    label = u"Décile de revenu fiscal de référence par part fiscale"
+    label = "Décile de revenu fiscal de référence par part fiscale"
     definition_period = YEAR
 
     def formula(foyer_fiscal, period):
@@ -168,7 +168,7 @@ class centile_rfr_par_part(Variable):
     possible_values = Deciles
     default_value = Deciles.hors_champs
     entity = FoyerFiscal
-    label = u"Centile de revenu fiscal de référence par part fiscale"
+    label = "Centile de revenu fiscal de référence par part fiscale"
     definition_period = YEAR
 
     def formula(foyer_fiscal, period):
@@ -185,7 +185,7 @@ class centile_rfr_par_part(Variable):
 class pauvre40(Variable):
     value_type = bool
     entity = Menage
-    label = u"Ménage en dessous du seuil de pauvreté à 40%"
+    label = "Ménage en dessous du seuil de pauvreté à 40%"
     definition_period = YEAR
 
     def formula(menage, period):
@@ -204,7 +204,7 @@ class pauvre40(Variable):
 class pauvre50(Variable):
     value_type = bool
     entity = Menage
-    label = u"Ménage en dessous du seuil de pauvreté à 50%"
+    label = "Ménage en dessous du seuil de pauvreté à 50%"
     definition_period = YEAR
 
 
@@ -225,7 +225,7 @@ class pauvre50(Variable):
 class pauvre60(Variable):
     value_type = bool
     entity = Menage
-    label = u"Ménage en dessous du seuil de pauvreté à 60%"
+    label = "Ménage en dessous du seuil de pauvreté à 60%"
     definition_period = YEAR
 
     def formula(menage, period):
@@ -240,4 +240,3 @@ class pauvre60(Variable):
         percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         threshold = .6 * values[1]
         return (nivvie <= threshold) * menage_ordinaire
-
