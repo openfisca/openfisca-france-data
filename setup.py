@@ -33,8 +33,8 @@ setup(
         "openfisca-core >= 34.2.2, < 35.0.0",
         "openFisca-france >= 42.1.0, < 43.0.0",
         "openFisca-survey-manager >= 0.24, < 1.0.0",
-        "numpy >= 1.11,<1.16",  # openfisca-survey-manager deps and https://github.com/openfisca/openfisca-survey-manager/pull/79
-        "numexpr == 2.6.8",
+        "numpy >= 1.11, < 1.16",  # openfisca-survey-manager deps and https://github.com/openfisca/openfisca-survey-manager/pull/79
+        "numexpr >= 2.6.8, < 2.8.0",
         "pandas >= 0.20.3, < 1.0.0",
         "tables >= 3.0.0, < 4.0.0",  # Needed by pandas.HDFStore
         "wquantiles >= 0.3.0, < 1.0.0"  # To compute weighted quantiles
