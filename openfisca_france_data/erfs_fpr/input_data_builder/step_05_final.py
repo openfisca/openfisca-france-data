@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
-def create_input_data_frame(temporary_store = None, year = None,export_flattened_df=False):
+def create_input_data_frame(temporary_store = None, year = None, export_flattened_df=False):
     assert temporary_store is not None
     assert year is not None
 
@@ -96,9 +96,13 @@ def create_input_data_frame(temporary_store = None, year = None,export_flattened
 
     individus = format_ids_and_roles(individus)
     if export_flattened_df:
-        supermerge=individus.merge(menages,right_index=True,left_on="idmen",suffixes=("","_x"))
+        supermerge=individus.merge(
+            menages,
+            right_index = True,
+            left_on = "idmen",
+            suffixes = ("","_x"))
         print(len(individus),len(supermerge))
-        supermerge.to_hdf("dummy_data.h5",key="input")
+        supermerge.to_hdf("dummy_data.h5", key = "input")
     # Enters the individual table into the openfisca_erfs_fpr collection
     set_table_in_survey(
         individus,
