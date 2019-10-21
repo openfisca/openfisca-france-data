@@ -100,8 +100,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             menages,
             right_index = True,
             left_on = "idmen",
-            suffixes = ("","_x"))
-        print(len(individus),len(supermerge))
+            suffixes = ("", "_x"))
         supermerge.to_hdf("dummy_data.h5", key = "input")
     # Enters the individual table into the openfisca_erfs_fpr collection
     set_table_in_survey(
@@ -215,7 +214,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2014
     data_frame = create_input_data_frame(year = year)
-    print('ok')
+    log.info('Ok')
 
 # TODO
 # Variables revenus collectifs
