@@ -54,7 +54,7 @@ def build(year: int) -> None:
     #
     # On crée une df par entité par période.
     # Elles sont stockées dans un fichier h5
-    final.create_input_data_frame(year = year, export_flattened_df="./dummy_data.h5")
+    final.create_input_data_frame(year = year, export_flattened_df_filepath="./dummy_data.h5")
 
 
 if __name__ == '__main__':
