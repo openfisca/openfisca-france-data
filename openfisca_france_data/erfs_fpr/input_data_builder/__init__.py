@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 #@dispatch(int)
-def build(year: int) -> None:
+def build(year: int, export_flattened_df_filepath: str = None) -> None:
     """
     Ici on va nettoyer et formatter les donnés ERFS-FPR, pour les rendre OpenFisca-like
     """
@@ -54,7 +54,7 @@ def build(year: int) -> None:
     #
     # On crée une df par entité par période.
     # Elles sont stockées dans un fichier h5
-    final.create_input_data_frame(year = year, export_flattened_df_filepath="./dummy_data.h5")
+    final.create_input_data_frame(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
 
 if __name__ == '__main__':
@@ -62,8 +62,11 @@ if __name__ == '__main__':
     import time
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+
     year = 2014
-    build(year = year)
+    export_flattened_df_filepath = "./dummy_data.h5"  # Could be disabled with None
+    build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
     # TODO: create_enfants_a_naitre(year = year)
+
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
