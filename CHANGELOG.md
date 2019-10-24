@@ -1,10 +1,16 @@
 # Changelog
 
-## 0.12.0 [173](https://github.com/openfisca/openfisca-france-data/pull/173
+## 0.13.0 [177](https://github.com/openfisca/openfisca-france-data/pull/177)
+
+- Introduce a file export that contains only one flattened table (`dummy_data.h5`) instead of exporting a file with several tables.
+  - Adds `export_flattened_df` argument in `create_input_data_frame function`.
+- Bump `numexpr` top version.
+
+## 0.12.0 [173](https://github.com/openfisca/openfisca-france-data/pull/173)
 
 - Get some cleaner stuff from IPP modifs from CASD.
 
-### 0.11.1 [172](https://github.com/openfisca/openfisca-france-data/pull/172
+### 0.11.1 [172](https://github.com/openfisca/openfisca-france-data/pull/172)
 
 - Fix numpy dependency to deal with openfisca-survey-manager deps (see https://github.com/openfisca/openfisca-survey-manager/pull/79).
 

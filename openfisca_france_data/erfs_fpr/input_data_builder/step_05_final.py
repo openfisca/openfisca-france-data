@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
-def create_input_data_frame(temporary_store = None, year = None):
+def create_input_data_frame(temporary_store = None, year = None, export_flattened_df_filepath = None):
     assert temporary_store is not None
     assert year is not None
 
@@ -95,7 +95,14 @@ def create_input_data_frame(temporary_store = None, year = None):
         )
 
     individus = format_ids_and_roles(individus)
-
+    if export_flattened_df_filepath:
+        supermerge = individus.merge(
+            menages,
+            right_index = True,
+            left_on = "idmen",
+            suffixes = ("", "_x"))
+        supermerge.to_hdf(export_flattened_df_filepath, key = "input")
+    # Enters the individual table into the openfisca_erfs_fpr collection
     set_table_in_survey(
         individus,
         entity = "individu",
@@ -103,6 +110,7 @@ def create_input_data_frame(temporary_store = None, year = None):
         collection = "openfisca_erfs_fpr",
         survey_name = 'input',
         )
+
 
     # assert 'f4ba' in data_frame.columns
 
@@ -206,7 +214,7 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2014
     data_frame = create_input_data_frame(year = year)
-    print('ok')
+    log.info('Ok')
 
 # TODO
 # Variables revenus collectifs
