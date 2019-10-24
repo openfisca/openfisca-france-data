@@ -26,7 +26,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
     add_suffix_retropole_years = [2012]
 
     survey = erfs_fpr_survey_collection.get_survey(f"erfs_fpr_{year}")
-    eec_menage = survey.get_values(table = f"fpr_mrf{yr}e{yr}t4")
+    eec_menage = survey.get_values(table = f"fpr_mrf{yr}e{yr}t4") if year<2015 else survey.get_values(table = f"fpr_mrt{yr}e{yr}t4")
     eec_individu = survey.get_values(table = f"fpr_irf{yr}e{yr}t4")
 
     if year in add_suffix_retropole_years:
@@ -37,6 +37,8 @@ def build_merged_dataframes(temporary_store = None, year = None):
         fpr_individu = survey.get_values(table = f"fpr_indiv_{year}")
         fpr_menage = survey.get_values(table = f"fpr_menage_{year}")
 
+    for table in (fpr_menage, eec_menage, eec_individu, fpr_individu):
+        table.columns = [k.lower() for k in table.columns]
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
     temporary_store[f"menages_{year}"] = menages
     del eec_menage, fpr_menage, menages
@@ -79,7 +81,6 @@ Il y a {} individus dans eec_individu
         'naia',
         'noicon',
         'noimer',
-        'noiper',
         prosa,
         retrai,
         'rstg',
@@ -87,7 +88,8 @@ Il y a {} individus dans eec_individu
         'stc',
         'titc',
         txtppb,
-        ])
+        ]
+         + (["noiper"] if "noiper" in individus.loc else []))
 
     for var in var_list:
         assert np.issubdtype(individus[var].dtype, np.integer), \
@@ -195,6 +197,10 @@ def check_naia_naim(individus, year):
             individus.naim == 99,
             'naim'
             ] = 1  # np.random.randint(1, 13, sum(~valid_naim))
+        individus.loc[
+            individus.naim == 0,
+            'naim'
+            ] = 1
 
     assert individus.naim.isin(range(1, 13)).all()
     good = ((year >= individus.naia) & (individus.naia > 1890))
@@ -218,7 +224,6 @@ def check_naia_naim(individus, year):
                     'noi',
                     'noicon',
                     'noimer',
-                    'noiper',
                     prosa,
                     retrai,
                     'rstg',
@@ -233,6 +238,7 @@ def check_naia_naim(individus, year):
                     'rnc_i',
                     'salaires_i',
                     ]
+                    + (["noiper"] if "noiper" in individus.loc else [])
                 ]
             )
     except AssertionError:

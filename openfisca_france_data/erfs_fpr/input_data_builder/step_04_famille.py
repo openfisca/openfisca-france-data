@@ -69,7 +69,6 @@ def build_famille(temporary_store = None, year = None):
             'noidec',
             'noimer',
             'noindiv',
-            'noiper',
             'persfip',
             'quelfic',
             retrai,
@@ -81,7 +80,7 @@ def build_famille(temporary_store = None, year = None):
             'year',
             'ztsai',
             'wprm',
-            ]
+            ] + (["noiper"] if "noiper" in indivi.columns else [])
 
         enfants_a_naitre = temporary_store['enfants_a_naitre_{}'.format(year)][individual_variables].copy()
         enfants_a_naitre.drop_duplicates('noindiv', inplace = True)
@@ -468,64 +467,63 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     log.info(u"    4.2 : enfants avec père")
     avec_pere = subset_base(base, famille)
-    assert avec_pere.noiper.notnull().all()
-    avec_pere = avec_pere[
-        (avec_pere[lpr].isin([4,5,6])) &
-        (avec_pere.jeune_non_eligible_rsa | avec_pere.moins_de_15_ans_inclus) &
-        (avec_pere.noiper > 0)
-        ].copy()
-    log.info(u"Il y a {} enfants rattachés à leur père".format(
-        len(avec_pere.index)))
-    avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
-    avec_pere['famille'] = 44
-    avec_pere['kid'] = True
-    assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
-    for series_name in ['famille', 'noifam']:
-        try:
-            assert_dtype(avec_pere[series_name], "int")
-        except Exception:
-            assert_dtype(avec_pere[series_name], "int64")
-
-    assert_dtype(avec_pere.kid, "bool")
-
-    pere = (
-        pd.DataFrame(avec_pere['noifam'])
-        .rename(columns = {'noifam': 'noindiv'})
-        .drop_duplicates()
-        .merge(base)
-        )
-    pere['noifam'] = (100 * pere.ident + pere.noi).astype(int)
-    pere['famille'] = 45
-    famille = famille[~(famille.noindiv.isin(pere.noindiv.values))].copy()  # Avoid duplication in famille
-
-    # On récupère les conjoints des pères
-    assert pere.noicon.notnull().all()
-    conjoint_pere_id = pere.loc[pere.noicon > 0, ['ident', 'noicon', 'noifam']].copy()
-    log.info(u"et dont les conjoints sont au nombre de {}".format(
-        len(conjoint_pere_id)))
-
-    if len(conjoint_pere_id.index) > 0:
-        conjoint_pere_id['noindiv'] = (100 * conjoint_pere_id.ident + conjoint_pere_id.noicon).astype(int)
-        conjoint_pere = (conjoint_pere_id[['noindiv', 'noifam']].copy()
-            .merge(base)
-            )
-        conjoint_pere['famille'] = 46
+    if "noiper" in base.columns:
+        assert avec_pere.noiper.notnull().all()
+        avec_pere = avec_pere[
+            (avec_pere[lpr].isin([4,5,6])) &
+            (avec_pere.jeune_non_eligible_rsa | avec_pere.moins_de_15_ans_inclus) &
+            (avec_pere.noiper > 0)
+            ].copy()
+        log.info(u"Il y a {} enfants rattachés à leur père".format(
+            len(avec_pere.index)))
+        avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
+        avec_pere['famille'] = 44
+        avec_pere['kid'] = True
+        assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
         for series_name in ['famille', 'noifam']:
             try:
-                assert_dtype(conjoint_pere[series_name], "int")
+                assert_dtype(avec_pere[series_name], "int")
             except Exception:
-                assert_dtype(conjoint_pere[series_name], "int64")
+                assert_dtype(avec_pere[series_name], "int64")
 
-        famille = famille[~(famille.noindiv.isin(conjoint_pere.noindiv.values))].copy()  # Avoid duplication in famille
-        famille = pd.concat([famille, avec_pere, pere, conjoint_pere])
-    else:
-        conjoint_pere = None
-        famille = pd.concat([famille, avec_pere, pere], sort = True)
+        assert_dtype(avec_pere.kid, "bool")
 
-    control_04(famille, base)
+        pere = (
+            pd.DataFrame(avec_pere['noifam'])
+            .rename(columns = {'noifam': 'noindiv'})
+            .drop_duplicates()
+            .merge(base)
+            )
+        pere['noifam'] = (100 * pere.ident + pere.noi).astype(int)
+        pere['famille'] = 45
+        famille = famille[~(famille.noindiv.isin(pere.noindiv.values))].copy()  # Avoid duplication in famille
 
-    del avec_pere, pere, conjoint_pere, conjoint_pere_id
+        # On récupère les conjoints des pères
+        assert pere.noicon.notnull().all()
+        conjoint_pere_id = pere.loc[pere.noicon > 0, ['ident', 'noicon', 'noifam']].copy()
+        log.info(u"et dont les conjoints sont au nombre de {}".format(
+            len(conjoint_pere_id)))
 
+        if len(conjoint_pere_id.index) > 0:
+            conjoint_pere_id['noindiv'] = (100 * conjoint_pere_id.ident + conjoint_pere_id.noicon).astype(int)
+            conjoint_pere = (conjoint_pere_id[['noindiv', 'noifam']].copy()
+                .merge(base)
+                )
+            conjoint_pere['famille'] = 46
+            for series_name in ['famille', 'noifam']:
+                try:
+                    assert_dtype(conjoint_pere[series_name], "int")
+                except Exception:
+                    assert_dtype(conjoint_pere[series_name], "int64")
+
+            famille = famille[~(famille.noindiv.isin(conjoint_pere.noindiv.values))].copy()  # Avoid duplication in famille
+            famille = pd.concat([famille, avec_pere, pere, conjoint_pere])
+        else:
+            conjoint_pere = None
+            famille = pd.concat([famille, avec_pere, pere], sort = True)
+        control_04(famille, base)
+
+        del avec_pere, pere, conjoint_pere, conjoint_pere_id
     if kind == 'erfs_fpr':
         log.info(u"    4.3 : enfants avec déclarant (ignorée dans erfs_fpr)")
         pass
@@ -604,7 +602,6 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
             'noidec',
             'noimer',
             'noindiv',
-            'noiper',
             'persfip',
             'quelfic',
             retrai,
@@ -615,7 +612,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
             'titc',
             'year',
             'ztsai',
-            ]
+            ] + (["noiper"] if "noiper" in base.columns else [])
         # TODO: temporary_store is not defined here
         fip = temporary_store['fipDat_{}'.format(year)][individual_variables_fip].copy()
         # Variables auxilaires présentes dans base qu'il faut rajouter aux fip'
