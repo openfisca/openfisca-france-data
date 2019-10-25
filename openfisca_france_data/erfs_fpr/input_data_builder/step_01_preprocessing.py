@@ -89,7 +89,7 @@ Il y a {} individus dans eec_individu
         'titc',
         txtppb,
         ]
-         + (["noiper"] if "noiper" in individus.loc else []))
+         + (["noiper"] if "noiper" in individus.columns else []))
 
     for var in var_list:
         assert np.issubdtype(individus[var].dtype, np.integer), \
@@ -238,7 +238,7 @@ def check_naia_naim(individus, year):
                     'rnc_i',
                     'salaires_i',
                     ]
-                    + (["noiper"] if "noiper" in individus.loc else [])
+                    + (["noiper"] if "noiper" in individus.columns else [])
                 ]
             )
     except AssertionError:
