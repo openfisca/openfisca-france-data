@@ -8,9 +8,22 @@
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-france-data.svg)](https://pypi.python.org/pypi/openfisca-france-data)
 [![PyPi](https://img.shields.io/pypi/v/openfisca-france-data.svg?style=flat)](https://pypi.python.org/pypi/openfisca-france-data)
 
-[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
-OpenFisca-France-Data is an [OpenFisca-France](https://github.com/openfisca/openfisca-france) module to work with French survey data (ERFS and ERFS-FPR).
+## [EN] Introduction
+
+[OpenFisca](https://openfisca.org) is a versatile microsimulation free software. You can check the [online documentation](https://openfisca.org/doc/) for more details.
+
+This repository contains the OpenFisca-France-Data module, to work with [OpenFisca-France](https://github.com/openfisca/openfisca-france) and French survey data ([ERFS](https://www.insee.fr/en/metadonnees/source/serie/s1231) and ERFS-FPR).
+
+> To transform your survey data into OpenFisca-France-Data formatted data you need to start with  [openfisca-survey-manager](https://github.com/openfisca/openfisca-survey-manager) repository.
+
+## [FR] Introduction
+
+[OpenFisca](https://openfisca.org) est un logiciel libre de micro-simulation. Pour plus d'information, vous pouvez consulter la [documentation officielle](https://openfisca.org/doc/).
+
+Ce dépôt contient le module OpenFisca-France-Data. Il permet d'associer l'usage d'[OpenFisca-France](https://github.com/openfisca/openfisca-france) à des données d'enquête sur la France ([ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231) et ERFS-FPR).
+
+> Afin de transformer vos données d'enquête en des données au format OpenFisca-France-Data, vous aurez à débuter par le dépôt [openfisca-survey-manager](https://github.com/openfisca/openfisca-survey-manager).
 
 ## Environment
 
