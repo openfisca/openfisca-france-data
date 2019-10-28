@@ -27,9 +27,10 @@ Ce dépôt contient le module OpenFisca-France-Data. Il permet d'associer l'usag
 
 ## Environment
 
-OpenFisca-France-Data runs on Python 2.7, but it is being migrated to 3.7.
+OpenFisca-France-Data runs runs on Python 3.7.
+More recent versions should work, but are not tested.
 
-Backward compatibility with Python 2.7 won't be kept.
+> Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Installation
 
