@@ -13,7 +13,14 @@
 
 [OpenFisca](https://openfisca.org) is a versatile microsimulation free software. You can check the [online documentation](https://openfisca.org/doc/) for more details.
 
-This repository contains the OpenFisca-France-Data module, to work with [OpenFisca-France](https://github.com/openfisca/openfisca-france) and French survey data ([ERFS](https://www.insee.fr/en/metadonnees/source/serie/s1231) and ERFS-FPR).
+This repository contains the OpenFisca-France-Data module, to work with [OpenFisca-France](https://github.com/openfisca/openfisca-france) and French survey or population data ([ERFS](https://www.insee.fr/en/metadonnees/source/serie/s1231) and ERFS-FPR).
+
+Here is the list of the managed data:
+
+* [DADS](https://www.insee.fr/en/metadonnees/source/serie/s1163), annual declaration of social data ;
+* [ERFS](https://www.insee.fr/en/metadonnees/source/serie/s1231), tax and social incomes survey ;
+* ERFS-FPR, ERFS production and research files ;
+* [FELIN](https://www.casd.eu/en/source/sampled-file-of-the-income-tax/), sampled file of the income tax.
 
 > To transform your survey data into OpenFisca-France-Data formatted data you need to start with  [openfisca-survey-manager](https://github.com/openfisca/openfisca-survey-manager) repository.
 
@@ -21,7 +28,14 @@ This repository contains the OpenFisca-France-Data module, to work with [OpenFis
 
 [OpenFisca](https://openfisca.org) est un logiciel libre de micro-simulation. Pour plus d'information, vous pouvez consulter la [documentation officielle](https://openfisca.org/doc/).
 
-Ce dépôt contient le module OpenFisca-France-Data. Il permet d'associer l'usage d'[OpenFisca-France](https://github.com/openfisca/openfisca-france) à des données d'enquête sur la France ([ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231) et ERFS-FPR).
+Ce dépôt contient le module OpenFisca-France-Data. Il permet d'associer l'usage d'[OpenFisca-France](https://github.com/openfisca/openfisca-france) à des données d'enquête ou de population sur la France.
+
+Ceci est la liste les données traitées :
+
+* [DADS](https://www.insee.fr/fr/metadonnees/source/serie/s1163), Déclaration Annuelle des Données Sociales ;
+* [ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231), Enquête Revenus Fiscaux et Sociaux ;
+* ERFS-FPR, ERFS fichiers de Production et de Recherche ;
+* [FELIN](https://www.casd.eu/source/fichier-echantillonne-de-limpot-sur-le-revenu/), fichier échantillonné de l'impôt sur le revenu.
 
 > Afin de transformer vos données d'enquête en des données au format OpenFisca-France-Data, vous aurez à débuter par le dépôt [openfisca-survey-manager](https://github.com/openfisca/openfisca-survey-manager).
 
@@ -34,6 +48,7 @@ More recent versions should work, but are not tested.
 
 ## Installation
 
+To run OpenFisca-France-Data preferred script
 If you want to contribute to OpenFisca-France-Data, please be welcomed! To install it locally in development mode:
 
 ```bash
