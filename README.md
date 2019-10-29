@@ -48,20 +48,33 @@ More recent versions should work, but are not tested.
 
 ## Installation
 
-To run OpenFisca-France-Data preferred script
-If you want to contribute to OpenFisca-France-Data, please be welcomed! To install it locally in development mode:
+You can follow this installation if you want to:
+* run one of OpenFisca-France-Data scripts,
+* develop and contribute to OpenFisca-France-Data source code. Please be welcomed! :)
 
-```bash
+You will need to download and install the module locally:
+
+```shell
 git clone https://github.com/openfisca/openfisca-france-data.git
 cd openfisca-france-data
 make install
+```
+
+This should not display any error and end with:
+
+`Successfully installed OpenFisca-France-Data...`
+
+## Execution
+
+```shell
+python openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
 ```
 
 ## Testing
 
 To run the entire test suite:
 
-```sh
+```shell
 make test
 ```
 
@@ -71,19 +84,19 @@ This repository adheres to a certain coding style, and we invite you to follow i
 
 To run the style checker:
 
-```sh
+```shell
 make check-style
 ```
 
 To automatically style-format your code changes:
 
-```sh
+```shell
 make format-style
 ```
 
 To automatically style-format your code changes each time you commit:
 
-```sh
+```shell
 touch .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 
