@@ -37,7 +37,8 @@ setup(
         "numexpr >= 2.6.8, < 2.8.0",
         "pandas >= 0.20.3, < 1.0.0",
         "tables >= 3.0.0, < 4.0.0",  # Needed by pandas.HDFStore
-        "wquantiles >= 0.3.0, < 1.0.0"  # To compute weighted quantiles
+        "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
+        "matplotlib >= 3.1.1, < 4.0.0"
         ],
     extras_require = {
         "test": [
