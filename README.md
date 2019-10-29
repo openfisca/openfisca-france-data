@@ -66,9 +66,41 @@ This should not display any error and end with:
 
 ## Execution
 
-```shell
-python openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
-```
+Let's say that you would like to format `ERFS-FPR` survey data into OpenFisca formatted data.
+
+💡If you have other data managed by `openfisca-france-data` (like `FELIN`), change `erfs_fpr` by your data name in the next steps description.
+
+You have already used `openfisca-survey-manager`. So, you have a `config.ini` file configured for this survey and a HDF5 file generated in the directory that you defined under `output_directory` in your `config.ini`.
+
+> For more information, you can see the configuration steps of `openfisca-survey-manager` [README](https://github.com/openfisca/openfisca-survey-manager/blob/master/README.md). 
+
+To run `openfisca_france_data` on `ERFS-FPR` survey data:
+
+1. In the survey directory `openfisca_france_data/erfs_fpr`, open the main script: `openfisca_france_data/erfs_fpr/input_data_builder/__init__.py`
+   
+2. At the end of the script, check `if __name__ == '__main__'` bloc and update its configured variables (like `year`) to match your needs.
+   
+3. Run the script with this command:
+   
+    ```shell
+    python openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
+    ```
+
+    The script should end without error and display these lines:
+    ```shell
+    INFO:__main__:Script finished after...
+    Closing remaining open files...
+    ```
+
+4. Check the script results:
+
+   * `openfisca_erfs_fpr.json` file generated in the directory you configured in your `config.ini` under `collections_directory` key.
+   * `input.h5` file generated in the directory you configured in your `config.ini` under `output_directory` key. This HDF5 file contains a group with two items:
+     * an item with your data organised by OpenFisca-France `Individu` entity,
+     * an item with your data organised by OpenFisca-France `Menage` entity.
+   * _Specific to `ERFS-FPR` script_: `dummy_data.h5` if you kept `export_flattened_df_filepath` option's value in `openfisca_france_data/erfs_fpr/input_data_builder/__init__.py`.
+
+    > The script also adds a `openfisca_erfs_fpr` key to your `config.ini`.
 
 ## Testing
 
