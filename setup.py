@@ -12,7 +12,7 @@ with open('LICENSE') as file:
 setup(
     name = "OpenFisca-France-Data",
     version = "0.13.0",
-    description = "OpenFisca-France module to work with French survey data",
+    description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     author = "OpenFisca Team",
     author_email = "contact@openfisca.fr",
