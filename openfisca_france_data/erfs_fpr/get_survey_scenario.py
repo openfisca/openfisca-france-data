@@ -23,12 +23,12 @@ def get_survey_scenario(
         variation_factor: float = 0.03,
         varying_variable: str = None,
         ) -> ErfsFprSurveyScenario:
-    """Helper pour créer un :class:`ErfsFprSurveyScenario`.
+    """Helper pour créer un `ErfsFprSurveyScenario`.
 
     :param year:                        L'année des données de l'enquête.
     :param rebuild_input_data:          Si l'on doit formatter les données (raw) ou pas.
-    :param tax_benefit_system:          Le :class:`TaxBenefitSystem` déjà réformé.
-    :param baseline_tax_benefit_system: Le :class:`TaxBenefitSystem` au droit courant.
+    :param tax_benefit_system:          Le `TaxBenefitSystem` déjà réformé.
+    :param baseline_tax_benefit_system: Le `TaxBenefitSystem` au droit courant.
     :param data:                        Les données de l'enquête.
     :param reform:                      Une réforme à appliquer à *france_data_tax_benefit_system*.
     """
