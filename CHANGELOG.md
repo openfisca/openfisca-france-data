@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.13.1 [#179](https://github.com/openfisca/openfisca-france-data/pull/179)
+
+* Technical changes
+  - Add `matplotlib` library to default requirements.
+* Add documentation for users discovering, installing and running the module for the first time.
+
 ## 0.13.0 [177](https://github.com/openfisca/openfisca-france-data/pull/177)
 
 - Introduce a file export that contains only one flattened table (`dummy_data.h5`) instead of exporting a file with several tables.
