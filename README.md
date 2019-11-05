@@ -8,31 +8,105 @@
 [![Python](https://img.shields.io/pypi/pyversions/openfisca-france-data.svg)](https://pypi.python.org/pypi/openfisca-france-data)
 [![PyPi](https://img.shields.io/pypi/v/openfisca-france-data.svg?style=flat)](https://pypi.python.org/pypi/openfisca-france-data)
 
-[OpenFisca](https://openfisca.org/doc/) is a versatile microsimulation libre software. Check the [online documentation](https://openfisca.org/doc/) for more details.
 
-OpenFisca-France-Data is an [OpenFisca-France](https://github.com/openfisca/openfisca-france) module to work with French survey data (ERFS and ERFS-FPR).
+## [EN] Introduction
+
+[OpenFisca](https://openfisca.org) is a versatile microsimulation free software. You can check the [online documentation](https://openfisca.org/doc/) for more details.
+
+This repository contains the OpenFisca-France-Data module, to work with [OpenFisca-France](https://github.com/openfisca/openfisca-france) and French survey or population data ([ERFS](https://www.insee.fr/en/metadonnees/source/serie/s1231) and ERFS-FPR).
+
+Here is the list of the managed data:
+
+* [DADS](https://www.insee.fr/en/metadonnees/source/serie/s1163), annual declaration of social data ;
+* [ERFS](https://www.insee.fr/en/metadonnees/source/serie/s1231), tax and social incomes survey ;
+* ERFS-FPR, ERFS production and research files ;
+* [FELIN](https://www.casd.eu/en/source/sampled-file-of-the-income-tax/), sampled file of the income tax.
+
+> To transform your survey data into OpenFisca-France-Data formatted data you need to start with  [openfisca-survey-manager](https://github.com/openfisca/openfisca-survey-manager) repository.
+
+## [FR] Introduction
+
+[OpenFisca](https://openfisca.org) est un logiciel libre de micro-simulation. Pour plus d'information, vous pouvez consulter la [documentation officielle](https://openfisca.org/doc/).
+
+Ce dépôt contient le module OpenFisca-France-Data. Il permet d'associer l'usage d'[OpenFisca-France](https://github.com/openfisca/openfisca-france) à des données d'enquête ou de population sur la France.
+
+Ceci est la liste les données traitées :
+
+* [DADS](https://www.insee.fr/fr/metadonnees/source/serie/s1163), Déclaration Annuelle des Données Sociales ;
+* [ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231), Enquête Revenus Fiscaux et Sociaux ;
+* ERFS-FPR, ERFS fichiers de Production et de Recherche ;
+* [FELIN](https://www.casd.eu/source/fichier-echantillonne-de-limpot-sur-le-revenu/), fichier échantillonné de l'impôt sur le revenu.
+
+> Afin de transformer vos données d'enquête en des données au format OpenFisca-France-Data, vous aurez à débuter par le dépôt [openfisca-survey-manager](https://github.com/openfisca/openfisca-survey-manager).
 
 ## Environment
 
-OpenFisca-France-Data runs on Python 2.7, but it is being migrated to 3.7.
+OpenFisca-France-Data runs runs on Python 3.7.
+More recent versions should work, but are not tested.
 
-Backward compatibility with Python 2.7 won't be kept.
+> Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Installation
 
-If you want to contribute to OpenFisca-France-Data, please be welcomed! To install it locally in development mode:
+You can follow this installation if you want to:
+* run one of OpenFisca-France-Data scripts,
+* develop and contribute to OpenFisca-France-Data source code. Please be welcomed! :)
 
-```bash
+You will need to download and install the module locally:
+
+```shell
 git clone https://github.com/openfisca/openfisca-france-data.git
 cd openfisca-france-data
 make install
 ```
 
+This should not display any error and end with:
+
+`Successfully installed OpenFisca-France-Data...`
+
+## Execution
+
+Let's say that you would like to format `ERFS-FPR` survey data into OpenFisca formatted data.
+
+💡If you have other data managed by `openfisca-france-data` (like `FELIN`), change `erfs_fpr` by your data name in the next steps description.
+
+You have already used `openfisca-survey-manager`. So, you have a `config.ini` file configured for this survey and a HDF5 file generated in the directory that you defined under `output_directory` in your `config.ini`.
+
+> For more information, you can see the configuration steps of `openfisca-survey-manager` [README](https://github.com/openfisca/openfisca-survey-manager/blob/master/README.md). 
+
+To run `openfisca_france_data` on `ERFS-FPR` survey data:
+
+1. In the survey directory `openfisca_france_data/erfs_fpr`, open the main script: `openfisca_france_data/erfs_fpr/input_data_builder/__init__.py`
+   
+2. At the end of the script, check `if __name__ == '__main__'` bloc and update its configured variables (like `year`) to match your needs.
+   
+3. Run the script with this command:
+   
+    ```shell
+    python openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
+    ```
+
+    The script should end without error and display these lines:
+    ```shell
+    INFO:__main__:Script finished after...
+    Closing remaining open files...
+    ```
+
+4. Check the script results:
+
+   * `openfisca_erfs_fpr.json` file generated in the directory you configured in your `config.ini` under `collections_directory` key.
+   * `input.h5` file generated in the directory you configured in your `config.ini` under `output_directory` key. This HDF5 file contains a group with two items:
+     * an item with your data organised by OpenFisca-France `Individu` entity,
+     * an item with your data organised by OpenFisca-France `Menage` entity.
+   * _Specific to `ERFS-FPR` script_: `dummy_data.h5` if you kept `export_flattened_df_filepath` option's value in `openfisca_france_data/erfs_fpr/input_data_builder/__init__.py`.
+
+    > The script also adds a `openfisca_erfs_fpr` key to your `config.ini`.
+
 ## Testing
 
 To run the entire test suite:
 
-```sh
+```shell
 make test
 ```
 
@@ -42,19 +116,19 @@ This repository adheres to a certain coding style, and we invite you to follow i
 
 To run the style checker:
 
-```sh
+```shell
 make check-style
 ```
 
 To automatically style-format your code changes:
 
-```sh
+```shell
 make format-style
 ```
 
 To automatically style-format your code changes each time you commit:
 
-```sh
+```shell
 touch .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 
