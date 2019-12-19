@@ -999,7 +999,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.effectif_entreprise.value_counts(dropna = False))
 
     else:
-        assert individus.nbsala.isin(range(0, 10) + [99]).all(), \
+        assert individus.nbsala.isin(list(range(0, 10)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(

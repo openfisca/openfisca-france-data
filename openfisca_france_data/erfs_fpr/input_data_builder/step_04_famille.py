@@ -670,8 +670,13 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     assert not famille.duplicated().any()
 
-    # manually removing a family
+    # manually removing a family (which year?)
     famille = famille[famille["noifam"] != 1402071301]
+    if year == 2013:
+        famille = famille[famille["noindiv"] != 1300584605] 
+        famille = famille[famille["noindiv"] != 1302648201] 
+    else :
+        pass # no such issue detected on other years
     assert not famille.noindiv.duplicated().any()
     control_04(famille, base)
     return base, famille
@@ -868,6 +873,8 @@ def get_smic(year):
         smic = 1337
     elif year == 2012:
         smic = int(1398.37)
+    elif year == 2013:
+        smic = int(1430.22)
     elif year == 2014:
         smic = int(1445.38)
     else:
