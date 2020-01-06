@@ -572,7 +572,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert base is not None
     assert famille is not None
     assert year is not None
-    smic = smic_horaire_burt[year]
+    smic = smic_horaire_brut[year]
     lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
     lpr = 'lpr' if year < 2013 else 'lprm'
     cohab = 'cohab' if year < 2013 else "coured"
