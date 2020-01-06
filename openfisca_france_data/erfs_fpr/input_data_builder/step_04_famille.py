@@ -8,6 +8,8 @@ import pandas as pd
 
 from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 from openfisca_france_data.utils import assert_dtype
+from openfisca_france_data.common import smic_horaire_brut
+
 
 log = logging.getLogger(__name__)
 
@@ -189,7 +191,7 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
     assert (enfants_a_naitre is not None) or (skip_enfants_a_naitre)
     assert year is not None
     # TODO check if we can remove acteu forter etc since dealt with in 01_pre_proc
-    smic = get_smic(year)
+    smic = smic_horaire_brut[year]
 
     # PB with vars "agepf"  "noidec" "year"  NOTE: quels problèmes ? JS
     log.info(u"    1.3 : création de la base complète")
@@ -570,7 +572,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert base is not None
     assert famille is not None
     assert year is not None
-    smic = get_smic(year)
+    smic = smic_horaire_burt[year]
     lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
     lpr = 'lpr' if year < 2013 else 'lprm'
     cohab = 'cohab' if year < 2013 else "coured"
@@ -673,8 +675,8 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     # manually removing a family (which year?)
     famille = famille[famille["noifam"] != 1402071301]
     if year == 2013:
-        famille = famille[famille["noindiv"] != 1300584605] 
-        famille = famille[famille["noindiv"] != 1302648201] 
+        famille = famille[famille["noindiv"] != 1300584605]
+        famille = famille[famille["noindiv"] != 1302648201]
     else :
         pass # no such issue detected on other years
     assert not famille.noindiv.duplicated().any()
@@ -859,28 +861,6 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
         del indivi, enfants_a_naitre, base
     gc.collect()
     return individus
-
-
-def get_smic(year):
-    # TODO: extraire ces valeurs d'un fichier de paramètres de législation et les stocker
-    if year == 2006:
-        smic = 1254
-    elif year == 2007:
-        smic = 1280
-    elif year == 2008:
-        smic = 1308
-    elif year == 2009:
-        smic = 1337
-    elif year == 2012:
-        smic = int(1398.37)
-    elif year == 2013:
-        smic = int(1430.22)
-    elif year == 2014:
-        smic = int(1445.38)
-    else:
-        log.info("smic non défini")
-        return None
-    return smic
 
 
 def subset_base(base, famille):
