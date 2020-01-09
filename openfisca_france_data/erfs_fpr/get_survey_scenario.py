@@ -41,7 +41,7 @@ def get_survey_scenario(
         baseline_tax_benefit_system,
         )
 
-    if use_marginal_tax_rate == False:
+    if not use_marginal_tax_rate:
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
