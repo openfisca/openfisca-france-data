@@ -7,6 +7,7 @@ import pandas
 from typing import Optional
 
 from openfisca_core import periods  # type: ignore
+from openfisca_core.model_api import Enum  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import base_survey as base  # type: ignore
 from openfisca_survey_manager.scenarios import AbstractSurveyScenario  # type: ignore
@@ -156,23 +157,22 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 assert variable in self.used_as_input_variables, \
                     f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
-                try:
-                    simulation.set_input(
-                        variable,
-                        simulation_period.offset(offset),
-                        simulation.calculate_add(
-                            variable,
-                            period = self.year,
-                            ),
-                        )
-                # TODO: should explicitly test about Enums, enums sum is forbidden
-                except TypeError:
+                if self.baseline_tax_benefit_system.variables[variable].value_type == Enum:
                     simulation.set_input(
                         variable,
                         simulation_period.offset(offset),
                         simulation.calculate(
                             variable,
                             period = periods.period(self.year).first_month,
+                            )
+                        )
+                else:
+                    simulation.set_input(
+                        variable,
+                        simulation_period.offset(offset),
+                        simulation.calculate_add(
+                            variable,
+                            period = self.year,
                             ),
                         )
 
