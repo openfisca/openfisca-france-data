@@ -190,15 +190,3 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         for variable in ["quifam", "quifoy", "quimen"]:
             if variable in input_data_frame:
                 log.debug(input_data_frame[variable].value_counts(dropna = False))
-
-    def input_variable_by_entity(self):
-        input_variable_by_entity = dict()
-
-        for variable in self.used_as_input_variables_by_entity:
-            entity = self.baseline_tax_benefit_system.variables[variable].entity
-            if entity.name in input_variable_by_entity:
-                input_variable_by_entity[entity.name].append(variable)
-            else:
-                input_variable_by_entity[entity.name] = [variable]
-
-            return input_variable_by_entity
