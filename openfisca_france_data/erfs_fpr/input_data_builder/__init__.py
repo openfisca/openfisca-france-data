@@ -3,7 +3,7 @@
 import logging
 
 
-from multipledispatch import dispatch  # type: ignore
+#from multipledispatch import dispatch  # type: ignore
 
 
 from openfisca_france_data.erfs_fpr.input_data_builder import (

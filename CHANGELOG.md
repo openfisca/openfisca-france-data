@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.13.2 [#186](https://github.com/openfisca/openfisca-france-data/pull/186)
+
+* Technical changes
+- Various cleaning
+- Introduction of MTR calculation
+
 ### 0.13.1 [#179](https://github.com/openfisca/openfisca-france-data/pull/179)
 
 * Technical changes

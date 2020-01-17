@@ -11,7 +11,7 @@ with open('LICENSE') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.13.1",
+    version = "0.13.2",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     author = "OpenFisca Team",
@@ -32,9 +32,9 @@ setup(
         "multipledispatch >= 0.6.0, < 1.0.0",
         "openfisca-core >= 34.2.2, < 35.0.0",
         "openFisca-france >= 42.1.0, < 43.0.0",
-        "openFisca-survey-manager >= 0.24, < 1.0.0",
-        "numpy >= 1.11, < 1.16",  # openfisca-survey-manager deps and https://github.com/openfisca/openfisca-survey-manager/pull/79
-        "numexpr >= 2.6.8, < 2.8.0",
+        "openFisca-survey-manager >= 0.30, < 1.0.0",
+        "numpy >= 1.11, <2.0",
+        "numexpr >= 2.7.0, <3.0",
         "pandas >= 0.20.3, < 1.0.0",
         "tables >= 3.0.0, < 4.0.0",  # Needed by pandas.HDFStore
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles

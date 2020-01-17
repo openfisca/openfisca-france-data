@@ -142,7 +142,7 @@ def imputation_loyer(temporary_store = None, year = None):
         receiver = erf,
         donor = logement,
         matching_variables = matchvars,
-        z_variables = u"lmlm",
+        z_variables = "lmlm",
         donor_classes = classes,
         )
 

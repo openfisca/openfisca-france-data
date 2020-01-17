@@ -6,13 +6,13 @@ import pandas as pd
 
 
 from openfisca_core import periods
-from openfisca_france import FranceTaxBenefitSystem
 from openfisca_france_data import select_to_match_target
 from openfisca_france_data.common import (
     create_salaire_de_base,
     create_traitement_indiciaire_brut,
     create_revenus_remplacement_bruts,
     )
+from openfisca_france_data import openfisca_france_tax_benefit_system
 from openfisca_france_data.utils import assert_dtype
 from openfisca_survey_manager.temporary import temporary_store_decorator
 
@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 smic_horaire_brut = dict()
 for year in range(2010, 2020):
     try:
-        smic_horaire_brut[year] = FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
+        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
     except:
         continue
 
@@ -80,7 +80,12 @@ smic_annuel_imposbale_by_year = dict([
 
 
 smic_horaire_brut_by_year = dict([
-    (year, FranceTaxBenefitSystem().get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
+    (
+        year,
+        openfisca_france_tax_benefit_system.get_parameters_at_instant(
+            instant = periods.period(year
+            ).start).cotsoc.gen.smic_h_b
+            )
     for year in range(2005, 2020)
     ])
 
@@ -88,7 +93,6 @@ smic_annuel_brut_by_year = dict([
     (year, value * 35 * 52)
     for year, value in smic_horaire_brut_by_year.items()
     ])
-
 
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
@@ -139,17 +143,22 @@ def create_variables_individuelles(individus, year, survey_year = None):
     revenu_type = 'net'
     period = periods.period(year)
     create_revenus(individus, revenu_type = revenu_type)
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)  # , survey_year = survey_year)
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
 
     # Il faut que la base d'input se fasse au millésime des données
     # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
     # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
     # je besoin d'un droit courantcomme même du droit currant pour l'année des données
-    tax_benefit_system = FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
 
-    # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'invertir
-    create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
+    # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'inverser
+    create_salaire_de_base(
+        individus,
+        period = period,
+        revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system
+        )
 
     # Pour les cotisations patronales qui varient avec la taille de la boîte
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
@@ -158,8 +167,9 @@ def create_variables_individuelles(individus, year, survey_year = None):
     create_statut_matrimonial(individus)
 
 
-def create_individu_variables_brutes(individus, revenu_type = None, period = None, tax_benefit_system = None,
-         mass_by_categorie_salarie = None):
+def create_individu_variables_brutes(individus, revenu_type = None, period = None,
+        tax_benefit_system = None, mass_by_categorie_salarie = None,
+        calibration_eec = False):
     """
     Crée les variables brutes de revenus:
       - salaire_de_base
@@ -187,7 +197,7 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
     created_variables.append('categorie_non_salarie')
 
     # FIXME: categorie_non_salarie modifie aussi categorie_salarie  !!
-    if mass_by_categorie_salarie is not None:
+    if (mass_by_categorie_salarie is not None) & (calibration_eec is True):
         calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = mass_by_categorie_salarie)
 
     create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
@@ -623,8 +633,6 @@ def create_categorie_non_salarie(individus):
         ] = 2
 
 
-
-
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     """
     Création de la variable contrat_de_travail et heure_remunerees_volume
@@ -662,8 +670,9 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
 
     assert salaire_type in ['net', 'imposable']
 
-    individus.loc[individus.hhc == "", "hhc"] = np.nan
-    individus.hhc = individus.hhc.astype(float)
+    if ((individus.hhc.dtype != 'float') & (individus.hhc.dtype != 'float32')):
+        individus.loc[individus.hhc == "", "hhc"] = np.nan
+        individus.hhc = individus.hhc.astype(float)
     individus.loc[individus.hhc <= 0.01 , "hhc"] = np.nan
 
     assert ((individus.hhc > 0) | individus.hhc.isnull()).all()
@@ -999,7 +1008,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
                 individus.effectif_entreprise.value_counts(dropna = False))
 
     else:
-        assert individus.nbsala.isin(range(0, 10) + [99]).all(), \
+        assert individus.nbsala.isin(list(range(0, 10)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
         individus['effectif_entreprise'] = np.select(
@@ -1159,12 +1168,8 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
 
     distribution = individus.groupby(['taux_csg_remplacement', 'taux_csg_remplacement_n_1'])['ponderation'].sum() / 1000
     log.debug(
-        "Distribution of taux_csg_remplacement:\n",
+        "Distribution of taux_csg_remplacement (in thousands):\n",
         distribution)
-    log.info(
-        "Target of taux_csg_remplacement (in thousands):\n",
-        distribution[[(2, 1), (3 , 2)]].sum()
-        )
     assert individus['taux_csg_remplacement_n_1'].isin(range(4)).all()
     assert individus['taux_csg_remplacement'].isin(range(4)).all()
 

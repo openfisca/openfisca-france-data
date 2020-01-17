@@ -11,7 +11,7 @@ from openfisca_france_data.model.base import *  # noqa
 class nbinde(Variable):
     value_type = int
     entity = Menage
-    label = u"Nombre d'individus dans le ménage. La valeur varie entre 1 et 6 pour 6 membres et plus."
+    label = "Nombre d'individus dans le ménage. La valeur varie entre 1 et 6 pour 6 membres et plus."
     definition_period = YEAR
 
     def formula(menage, period, parameters):
@@ -67,7 +67,7 @@ def _nb_ageq0(self, age_en_mois_holder):
 class cohab(Variable):
     value_type = bool
     entity = Menage
-    label = u"Vie en couple"
+    label = "Vie en couple"
     definition_period = YEAR
 
     def formula(menage, period, parameters):
@@ -83,7 +83,7 @@ class act_cpl(Variable):
     is_period_size_independent = True
     value_type = int
     entity = Menage
-    label = u"Nombre d'actifs parmi la personne de référence du méange et son conjoint"
+    label = "Nombre d'actifs parmi la personne de référence du méange et son conjoint"
     definition_period = YEAR
 
     def formula(menage, period, parameters):
@@ -103,7 +103,7 @@ class act_enf(Variable):
     is_period_size_independent = True
     value_type = int
     entity = Menage
-    label = u"Nombre d'enfants actifs"
+    label = "Nombre d'enfants actifs"
     definition_period = YEAR
 
     def formula(menage, period, parameters):
@@ -128,7 +128,7 @@ def _nb_act(act_cpl, act_enf):
 class cplx(Variable):
     value_type = bool
     entity = Menage
-    label = u"Indicatrice de ménage complexe. Un ménage est complexe si les personnes autres que la personne de référence ou son conjoint ne sont pas enfants."
+    label = "Indicatrice de ménage complexe. Un ménage est complexe si les personnes autres que la personne de référence ou son conjoint ne sont pas enfants."
     definition_period = YEAR
 
     def formula(menage, period, parameters):
@@ -157,22 +157,22 @@ class cplx(Variable):
 
 class TypesMenage15(Enum):
     __order__ = 'inconnu personne_seule_active personne_seule_inactive famille_monoparentale_parent_actif famille_monoparentale_parent_inactif_enfant_actif famille_monoparentale_inactifs couple_sans_enfants_1_actif couple_sans_enfants_2_actifs couple_sans_enfants_inactifs couple_avec_enfants_1_actif couple_avec_enfants_2_actifs couple_avec_enfants_parents_inactifs_enfant_actif couple_avec_enfants_inactifs autres_1_actif autres_2_actifs autres_inactifs'  # Needed to preserve the order in Python 2
-    inconnu = u""
-    personne_seule_active = u"Personne seule active"
-    personne_seule_inactive = u"Personne seule inactive"
-    famille_monoparentale_parent_actif = u"Familles monoparentales, parent actif"
-    famille_monoparentale_parent_inactif_enfant_actif = u"Familles monoparentales, parent inactif et au moins un enfant actif"
-    famille_monoparentale_inactifs = u"Familles monoparentales, tous inactifs"
-    couple_sans_enfants_1_actif = u"Couples sans enfant, 1 actif"
-    couple_sans_enfants_2_actifs = u"Couples sans enfant, 2 actifs"
-    couple_sans_enfants_inactifs = u"Couples sans enfant, tous inactifs"
-    couple_avec_enfants_1_actif = u"Couples avec enfant, 1 membre du couple actif"
-    couple_avec_enfants_2_actifs = u"Couples avec enfant, 2 membres du couple actif"
-    couple_avec_enfants_parents_inactifs_enfant_actif = u"Couples avec enfant, couple inactif et au moins un enfant actif"
-    couple_avec_enfants_inactifs = u"Couples avec enfant, tous inactifs"
-    autres_1_actif = u"Autres ménages, 1 actif"
-    autres_2_actifs = u"Autres ménages, 2 actifs ou plus"
-    autres_inactifs = u"Autres ménages, tous inactifs"
+    inconnu = ""
+    personne_seule_active = "Personne seule active"
+    personne_seule_inactive = "Personne seule inactive"
+    famille_monoparentale_parent_actif = "Familles monoparentales, parent actif"
+    famille_monoparentale_parent_inactif_enfant_actif = "Familles monoparentales, parent inactif et au moins un enfant actif"
+    famille_monoparentale_inactifs = "Familles monoparentales, tous inactifs"
+    couple_sans_enfants_1_actif = "Couples sans enfant, 1 actif"
+    couple_sans_enfants_2_actifs = "Couples sans enfant, 2 actifs"
+    couple_sans_enfants_inactifs = "Couples sans enfant, tous inactifs"
+    couple_avec_enfants_1_actif = "Couples avec enfant, 1 membre du couple actif"
+    couple_avec_enfants_2_actifs = "Couples avec enfant, 2 membres du couple actif"
+    couple_avec_enfants_parents_inactifs_enfant_actif = "Couples avec enfant, couple inactif et au moins un enfant actif"
+    couple_avec_enfants_inactifs = "Couples avec enfant, tous inactifs"
+    autres_1_actif = "Autres ménages, 1 actif"
+    autres_2_actifs = "Autres ménages, 2 actifs ou plus"
+    autres_inactifs = "Autres ménages, tous inactifs"
 
 
 class typmen15(Variable):
@@ -180,7 +180,7 @@ class typmen15(Variable):
     possible_values = TypesMenage15
     default_value = TypesMenage15.inconnu
     entity = Menage
-    label = u"Type de ménage"
+    label = "Type de ménage"
     definition_period = YEAR
 
     def formula(menage, period, parameters):
