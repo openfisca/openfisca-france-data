@@ -30,11 +30,10 @@ setup(
     python_requires = ">= 3.7",
     install_requires = [
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openfisca-core >= 34.2.2, < 35.0.0",
+        "openfisca-core >= 34.6.7, < 35.0.0",
         "openFisca-france >= 42.1.0, < 43.0.0",
-        "openFisca-survey-manager >= 0.30, < 1.0.0",
+        "openFisca-survey-manager >= 0.38.2, < 1.0.0",
         "numpy >= 1.11, <2.0",
-        "numexpr >= 2.7.0, <3.0",
         "pandas >= 0.20.3, < 1.0.0",
         "tables >= 3.0.0, < 4.0.0",  # Needed by pandas.HDFStore
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
