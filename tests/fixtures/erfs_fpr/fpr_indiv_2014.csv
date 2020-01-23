@@ -1,0 +1,7 @@
+noindiv,ident14,noi,csgsald_i,csgchod_i,csgrstd_i,csgpid_i,csgragd_i,csgricd_i,csgrncd_i,wprm,salaires_i,chomage_i,retraites_i,pens_invalidite_i,pens_alim_recue_i,rag_i,ric_i,rnc_i,csg_nd_crds_sal_i,csg_nd_crds_ret_i,csg_nd_crds_inv_i,csg_nd_crds_cho_i,csg_nd_crds_rag_i,csg_nd_crds_ric_i,csg_nd_crds_rnc_i,champ_calcul
+1000000101,10000001,01,1320,0,0,0,0,0,0,1383.891172703578,20950,0,0,0,0,0,0,0,760,0,0,0,0,0,0,1
+1000000102,10000001,02,190,30,0,0,0,0,0,1383.891172703578,3040,8370,0,0,0,0,0,0,110,0,0,30,0,0,0,1
+1000000103,10000001,03,0,0,0,0,0,0,0,1383.891172703578,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+1000000104,10000001,04,0,0,0,0,0,0,0,1383.891172703578,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+1000000201,10000002,01,4380,0,0,0,0,0,0,570.4382719695151,69540,0,0,0,0,0,0,0,2480,0,0,0,0,0,0,1
+

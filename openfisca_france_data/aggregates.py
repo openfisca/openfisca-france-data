@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 import collections
 from datetime import datetime
 import logging
@@ -12,12 +10,12 @@ import numpy as np
 import pandas as pd
 
 try:
-    from ipp_macro_series_parser.config import Config
+    from ipp_macro_series_parser.config import Config  # type: ignore
 except ImportError:
     Config = None
 
 
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS, DATA_DIR
+from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
 
 
 log = logging.getLogger(__name__)
@@ -65,7 +63,7 @@ class Aggregates(object):
         else:
             self.baseline_simulation = None
 
-        self.weight_column_name_by_entity = survey_scenario.weight_column_name_by_entity
+        self.weight_variable_by_entity = survey_scenario.weight_variable_by_entity
         self.aggregate_variables = AGGREGATES_DEFAULT_VARS
 
     def compute_aggregates(self, use_baseline = True, reform = True, actual = True):
@@ -88,7 +86,7 @@ class Aggregates(object):
 
         for simulation_type in simulation_types:
             if simulation_type == 'actual':
-                data_frame_by_simulation_type['actual'] = self.totals_df.copy()
+                data_frame_by_simulation_type['actual'] = self.totals_df.copy() if self.totals_df is not None else None
             else:
                 use_baseline = False if simulation_type == 'reform' else True
                 data_frame = pd.DataFrame()
@@ -110,7 +108,7 @@ class Aggregates(object):
             del data_frame_by_simulation_type['reform']['label']
 
         self.base_data_frame = pd.concat(
-            data_frame_by_simulation_type.values(),
+            list(data_frame_by_simulation_type.values()),
             axis = 1,
             sort = True,
             ).loc[self.aggregate_variables]
@@ -163,8 +161,10 @@ class Aggregates(object):
         column = variables.get(variable)
 
         if column is None:
-            print use_baseline
-            print variable
+            msg = "Variable {} is not available".format(variable)
+            if use_baseline:
+                msg += " in baseline simulation"
+            log.info(msg)
             return pd.DataFrame(
                 data = {
                     'label': variable,
@@ -174,7 +174,7 @@ class Aggregates(object):
                     },
                 index = [variable],
                 )
-        weight = self.weight_column_name_by_entity[column.entity.key]
+        weight = self.weight_variable_by_entity[column.entity.key]
         assert weight in variables, "{} not a variable of the tax_benefit_system".format(weight)
 
         weight_array = simulation.calculate(weight, period = self.year).astype('float')
@@ -341,7 +341,8 @@ class Aggregates(object):
             )
         return df['{}_amount'.format(target)] / df['actual_amount']
 
-    def get_data_frame(self,
+    def get_data_frame(
+            self,
             absolute = True,
             amount = True,
             beneficiaries = True,
@@ -401,14 +402,16 @@ class Aggregates(object):
             'beneficiaries_relative_difference'
             ]
         if difference_data_frame is not None:
-            df = (aggregates_data_frame
+            df = (
+                aggregates_data_frame
                 .merge(difference_data_frame, how = 'left')[columns]
                 .reindex_axis(ordered_columns, axis = 1)
                 .dropna(axis = 1, how = 'all')
                 .rename(columns = self.labels)
                 )
         else:
-            df = (aggregates_data_frame[columns]
+            df = (
+                aggregates_data_frame[columns]
                 .reindex_axis(ordered_columns, axis = 1)
                 .dropna(axis = 1, how = 'all')
                 .rename(columns = self.labels)
@@ -427,14 +430,18 @@ class Aggregates(object):
         return df
 
 
-
-
 # Helpers
 
 
 def load_actual_data(year = None):
     assert year is not None
+
+    if not Config:
+        log.info("No actual data available")
+        return
+
     parser = Config()
+
     # Cotisations CSG -CRDS
     try:
         directory = os.path.join(
@@ -460,7 +467,7 @@ def load_actual_data(year = None):
             os.path.join(directory, 'assiette_csg_by_type.csv'),
             index_col = 0,
             ) / 1e6
-    except:
+    except Exception:
         assiette_csg_by_type_amounts = None
         csg_by_type_amounts = None
         csg_crds_amounts = None

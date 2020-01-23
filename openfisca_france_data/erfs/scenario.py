@@ -42,6 +42,5 @@ class ErfsSurveyScenario(AbstractErfsSurveyScenario):
         'zone_apl',
         ]
 
-    def __init__(self, year = None):
-        assert year is not None
+    def __init__(self, year: int) -> None:
         self.year = year

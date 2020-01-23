@@ -1,7 +1,6 @@
 ## -*- coding: utf-8 -*-
 
 
-from __future__ import division
 from numpy import where, NaN, random
 from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
 from openfisca_france.data.erf.build_survey.utils import print_id, control, check_structure
@@ -18,7 +17,6 @@ def final_check(year=2006):
     survey = HDFStore(survey_filename)
 
     final2 = store.get('survey_2006')
-    print survey
     finalT = survey.get('survey_2006')
 
     varlist = [
@@ -58,11 +56,12 @@ def final_check(year=2006):
     columns = final2.columns
     columns = set(columns)
 
-    print varlist.difference(columns)
-    print final2.loc[
+    print(varlist.difference(columns))
+    print(final2.loc[
         final2.idfoy == 603018901,
         ['idfoy', 'quifoy', 'idfam', 'quifam', 'idmen', 'quimen', 'noi']
         ].to_string()
+        )
 
     return
 

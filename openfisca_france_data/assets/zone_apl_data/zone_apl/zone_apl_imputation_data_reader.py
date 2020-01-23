@@ -1,31 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014, 2015 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-from __future__ import division
-import pickle
-from pandas import read_csv, DataFrame
+from pandas import read_csv
 import numpy as np
 
 
@@ -43,7 +19,6 @@ if __name__ == '__main__':
     #% TU99       0 à  8
     #% zone
     #
-
     grouped_5 =  Z.groupby(['TU99','TAU99','REG','POL99','Zone'], as_index=False)
     pop   = grouped_5['Pop_mun_2006'].aggregate(np.sum)
 
@@ -55,25 +30,26 @@ if __name__ == '__main__':
     res['zone1'] = 0
     res['zone2'] = 0
     res['zone3'] = 0
-    print res
-
-    print pop.Pop_mun_2006[pop['Zone']==1]
+    print(res)
+    print(pop.Pop_mun_2006[pop['Zone'] == 1])
 
     res['zone1'] = res['zone1'] + pop.Pop_mun_2006[pop['Zone']==1]
     res['zone2'] = res['zone2'] + pop.Pop_mun_2006[pop['Zone']==2]
     res['zone3'] = res['zone3'] + pop.Pop_mun_2006[pop['Zone']==3]
 
-    print res.to_string()
+    print(res.to_string())
 
-    for col in ('zone1','zone2','zone3'):
+    for col in ('zone1', 'zone2', 'zone3'):
         res[col][np.isnan(res[col])] = 0
 
-    print res.to_string()
-    res2 = res.groupby(['TU99','TAU99', 'REG','POL99'])
+    print(res.to_string())
+    res2 = res.groupby(['TU99', 'TAU99', 'REG', 'POL99'])
 
-    final = res2.agg({'zone1': np.sum,
-                   'zone2': np.sum,
-                   'zone3': np.sum})
+    final = res2.agg({
+        'zone1': np.sum,
+        'zone2': np.sum,
+        'zone3': np.sum
+        })
     final['total'] = final['zone1'] + final['zone2'] + final['zone3']
     final['proba_zone1'] = final['zone1']/final['total']
     final['proba_zone2'] = final['zone2']/final['total']
@@ -86,7 +62,7 @@ if __name__ == '__main__':
 
     final = final.reset_index()
 
-    print final
+    print(final)
 
     # Sanity check
     # s = final['p1'] + final['p2'] + final['p3']

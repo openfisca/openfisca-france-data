@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from .base import * # noqa  analysis:ignore
+from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 
 class menage_ordinaire(Variable):
@@ -15,7 +15,7 @@ class menage_ordinaire_individus(Variable):
     value_type = int
     is_period_size_independent = True
     entity = Individu
-    label = u"L'individu est dans un ménage du champ ménage"
+    label = "L'individu est dans un ménage du champ ménage"
     definition_period = YEAR
 
     def formula(individu, period):
@@ -26,7 +26,7 @@ class menage_ordinaire_familles(Variable):
     value_type = int
     is_period_size_independent = True
     entity = Famille
-    label = u"Le premier parent de la famille est dans un ménage du champ ménage"
+    label = "Le premier parent de la famille est dans un ménage du champ ménage"
     definition_period = YEAR
 
     def formula(famille, period):
@@ -37,7 +37,7 @@ class menage_ordinaire_foyers_fiscaux(Variable):
     value_type = int
     is_period_size_independent = True
     entity = FoyerFiscal
-    label = u"Le premier déclarant du foyer est dans un ménage du champ ménage"
+    label = "Le premier déclarant du foyer est dans un ménage du champ ménage"
     definition_period = YEAR
 
     def formula(foyer_fiscal, period):
@@ -48,7 +48,7 @@ class weight_familles(Variable):
     is_period_size_independent = True
     value_type = float
     entity = Famille
-    label = u"Poids de la famille"
+    label = "Poids de la famille"
     definition_period = YEAR
 
     def formula(famille, period):
@@ -59,7 +59,7 @@ class weight_foyers(Variable):
     is_period_size_independent = True
     value_type = float
     entity = FoyerFiscal
-    label = u"Poids du foyer fiscal"
+    label = "Poids du foyer fiscal"
     definition_period = YEAR
 
     def formula(foyer_fiscal, period):
@@ -71,7 +71,7 @@ class wprm(Variable):
     is_period_size_independent = True
     value_type = float
     entity = Menage
-    label = u"Effectifs"
+    label = "Effectifs"
     definition_period = YEAR
 
 
@@ -79,7 +79,7 @@ class wprm_init(Variable):
     is_period_size_independent = True
     value_type = float
     entity = Menage
-    label = u"Effectifs"
+    label = "Effectifs"
     definition_period = YEAR
 
 
@@ -87,9 +87,8 @@ class weight_individus(Variable):
     is_period_size_independent = True
     value_type = float
     entity = Individu
-    label = u"Poids de l'individu"
+    label = "Poids de l'individu"
     definition_period = YEAR
 
     def formula(individu, period):
         return individu.menage('wprm', period)
-

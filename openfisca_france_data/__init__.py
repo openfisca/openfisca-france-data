@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-
 
 
-from __future__ import division
-
 import inspect
 import logging
 import os
 import pkg_resources
+import pandas
 
-import pandas as pd
+from openfisca_core import reforms  # type: ignore
 
-from openfisca_core import reforms
-# from openfisca_core.formulas import set_input_divide_by_period
-
-import openfisca_france
+import openfisca_france  # type: ignore
 
 # Load input variables and output variables into entities
-from .model import common, survey_variables, id_variables  # noqa analysis:ignore
-from .model.base import * # noqa  analysis:ignore
+from openfisca_france_data.model import common, survey_variables, id_variables  # noqa analysis:ignore
+from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 
 log = logging.getLogger(__name__)
@@ -51,7 +47,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
     elif target_probability == 1:
         return eligible * True
 
-    data = pd.DataFrame({
+    data = pandas.DataFrame({
         'eligible': eligible,
         'weights': weights,
         'deja_recourant': recourant_last_period,
@@ -59,6 +55,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
 
     eligibles = data.loc[data.eligible == 1].copy()
     eligibles['recourant'] = eligibles.deja_recourant
+    assert len(eligibles) > 0, u"Aucun eligibles : impossible d'imputer le non recours"
     taux_recours_provisoire = eligibles.loc[eligibles.recourant].weights.sum() / eligibles.weights.sum()
 
     if target_probability > taux_recours_provisoire:
@@ -79,6 +76,61 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
         data.loc[data.index.isin(eligibles_non_recourant_indices), 'recourant'] = False
 
     return data.recourant.values
+
+
+def select_to_match_target(target_probability = None, target_mass = None, eligible = None, weights = None, take = None, seed = None):
+    """
+    Compute a vector of boolean for take_up according a target probability accross eligble population.
+    If there is no eligible population, it returns False for the whole population.
+    """
+    if not(eligible.any()):
+        print("No eligible observations : none of the observations will be selected. The target probability is not matched.")
+        return eligible
+    assert (target_probability is not None) or (target_mass is not None)
+    if take is None:
+        take = False
+    if target_mass is not None:
+        assert target_mass <= (eligible * weights).sum(), "target too high {}, {}".format(
+            target_mass, (eligible * weights).sum())
+        target_probability = target_mass / (eligible * weights).sum()
+
+    assert (target_probability >= 0) and (target_probability <= 1)
+
+    if target_probability == 0:
+        return eligible * False
+    elif target_probability == 1:
+        return eligible * True
+
+    data = pandas.DataFrame({
+        'eligible': eligible,
+        'weights': weights,
+        'take': take,
+        }).copy()
+
+    eligibles = data.loc[data.eligible].copy()
+    eligibles['selected'] = eligibles['take'].copy()
+    initial_probability = eligibles.loc[eligibles['take'], 'weights'].sum() / eligibles.weights.sum()
+
+    if target_probability > initial_probability:
+        adjusted_target_probability = (target_probability - initial_probability) / (1 - initial_probability)
+        s_data = eligibles.loc[~eligibles.selected].copy()
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
+        eligibles.loc[eligibles.index.isin(s_data.index), 'selected'] = True
+        eligibles_selected_indices = eligibles.query('eligible & selected').index
+        data['selected'] = False
+        data.loc[data.index.isin(eligibles_selected_indices), 'selected'] = True
+
+    elif target_probability <= initial_probability:
+        print("The target probability set ({}) is too low compared to the number of eligibles to take. Some individuals with take == True will be unselected to match the target probability.".format(target_probability))
+        adjusted_target_probability = 1 - target_probability / initial_probability
+        s_data = eligibles.loc[eligibles.selected].copy()
+        s_data = s_data.sample(frac = adjusted_target_probability, replace = False, axis = 0, random_state = seed)
+        eligibles_unselected_indices = s_data.index
+        data['selected'] = data['take'] & data.eligible
+        data.loc[data.index.isin(eligibles_unselected_indices), 'selected'] = False
+
+    return data.selected.values
+
 
 
 variables = get_variables_from_modules([common, survey_variables])

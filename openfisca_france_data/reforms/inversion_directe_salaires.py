@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 import numpy as np
 
 from openfisca_france.model.base import *  # noqa analysis:ignore
@@ -67,7 +65,7 @@ class salaire_de_base(Variable):
         for categorie in ['prive_non_cadre', 'prive_cadre']:
             baremes_collection = salarie[categorie]
             baremes_to_remove = list()
-            for name, bareme in baremes_collection.iteritems():
+            for name, bareme in baremes_collection.items():
                 if name.endswith('alsace_moselle'):
                     baremes_to_remove.append(name)
             for name in baremes_to_remove:
@@ -75,7 +73,7 @@ class salaire_de_base(Variable):
 
         for categorie in ['prive_non_cadre', 'prive_cadre']:
             test = set(
-                name for name, bareme in salarie[categorie].iteritems()
+                name for name, bareme in salarie[categorie].items()
                 if isinstance(bareme, MarginalRateTaxScale)
                 )
             assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)

@@ -1,0 +1,141 @@
+version: 2
+jobs:
+  run_tests:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-py3-apt-{{ checksum "setup.py" }}
+
+      - restore_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Install HDF5
+          command: |
+            apt-get update
+            apt-get -y install libhdf5-serial-dev
+
+      - run:
+          name: Create a virtualenv
+          command: |
+            mkdir -p /tmp/venv/openfisca-france-data
+            python -m venv /tmp/venv/openfisca-france-data
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Install dependencies
+          command: make install
+
+      - save_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca-france-data
+
+      - save_cache:
+          key: v1-py3-apt-{{ checksum "setup.py" }}
+          paths:
+            - /var/cache/apt/archives
+
+      - run:
+          name: Run tests
+          command: env PYTEST_ADDOPTS="--exitfirst --cov=openfisca_france_data --no-cov-on-fail" make test
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .coverage
+
+  check_version:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - run:
+          name: Check version number has been properly updated
+          command: |
+            git fetch
+            .circleci/is-version-number-acceptable.sh
+
+  submit_coverage:
+    docker:
+      - image: python:3.7
+
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: .
+
+      - restore_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Submit coverage to Coveralls
+          command: |
+            pip install --upgrade coveralls
+            coveralls
+
+      - save_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+          paths:
+            - /tmp/venv/openfisca-france-data
+
+  deploy:
+    docker:
+      - image: python:3.7
+
+    environment:
+      PYPI_USERNAME: openfisca-bot
+      # PYPI_PASSWORD: this value is set in CircleCI's web interface; do not set it here, it is a secret!
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: v1-py3-venv-{{ .Branch }}-{{ checksum "setup.py" }}
+
+      - run:
+          name: Activate virtualenv
+          command: echo "source /tmp/venv/openfisca-france-data/bin/activate" >> $BASH_ENV
+
+      - run:
+          name: Check for functional changes
+          command: if ! .circleci/has-functional-changes.sh ; then circleci step halt ; fi
+
+      - run:
+          name: Publish a git tag
+          command: .circleci/publish-git-tag.sh
+
+      - run:
+          name: Upload a Python package to Pypi
+          command: .circleci/publish-python-package.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - check_version
+      - run_tests
+      - submit_coverage:
+          requires:
+            - run_tests
+      - deploy:
+          requires:
+            - check_version
+            - run_tests
+          filters:
+            branches:
+              only: master

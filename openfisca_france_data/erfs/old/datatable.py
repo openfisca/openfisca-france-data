@@ -15,7 +15,7 @@ try:
     import pandas.rpy.common as com
     import rpy2.rpy_classic as rpy
     rpy.set_default_mode(rpy.NO_CONVERSION)
-except:
+except Exception:
     pass
 
 
@@ -50,7 +50,7 @@ class Survey(object):
         if name not in self.tables.keys():
             self.tables[name] = dict()
 
-        for key, val in kwargs.iteritems():
+        for key, val in kwargs.items():
             if key in ["RData_dir", "RData_filename", "variables"]:
                     self.tables[name][key] = val
 
@@ -133,21 +133,15 @@ def build_erfs_survey_collection():
         }
 
         # Build absolute path for RData_filename
-        from ConfigParser import SafeConfigParser
+        from configparser import SafeConfigParser
 
         parser = SafeConfigParser()
         config_local_ini = os.path.join(CONFIG_DIR, 'config_local.ini')
         config_ini = os.path.join(CONFIG_DIR, 'config.ini')
         found = parser.read(config_local_ini, config_ini)
-        print found
-
         data_directory = parser.get('data', 'input_directory')
         for table in erf_tables:
             table["RData_filename"] = os.path.join(os.path.dirname(data_directory),'R','erf')
-
-
-
-
 
     def initialize(self):
         """
@@ -251,7 +245,7 @@ def build_erfs_survey_collection():
                                  "lgt_logt" : lgt_lgt}
 
         RData_dir = os.path.join(os.path.dirname(DATA_DIR),'R','logement')
-        for name, RData_filename in lgt_tables_to_process.iteritems():
+        for name, RData_filename in lgt_tables_to_process.items():
             lgt.insert_table(name=name,
                              RData_filename=RData_filename,
                              RData_dir=RData_dir)
@@ -291,15 +285,15 @@ def build_erfs_survey_collection():
             raise Exception("year should be defined")
 
         store = HDFStore(self.hdf5_filename)
-        for survey_name, description in self.surveys.iteritems():
-            for destination_table_name, tables in description.tables.iteritems():
+        for survey_name, description in self.surveys.items():
+            for destination_table_name, tables in description.tables.items():
                 data_dir = tables["RData_dir"]
                 R_table_name = tables["RData_filename"]
                 try:
                     variables = tables["variables"]
-                except:
+                except Exception:
                     variables = None
-                print variables
+                print(variables)
                 self.store_survey(survey_name, R_table_name, destination_table_name, data_dir, variables)
 
     def store_survey(self, survey_name, R_table_name, destination_table_name, data_dir, variables=None, force_recreation=True):
@@ -334,10 +328,10 @@ def build_erfs_survey_collection():
             else:
                 return year
 
-        print "creating %s" %(destination_table_name)
+        print("creating %s" %(destination_table_name))
         table_Rdata = R_table_name + ".Rdata"
         filename = os.path.join(data_dir, str(get_survey_year(survey_name, year)), table_Rdata)
-        print filename
+        print(filename)
         if not os.path.isfile(filename):
             raise Exception("filename do  not exists")
 
@@ -348,17 +342,17 @@ def build_erfs_survey_collection():
 
         if store_path in store:
             if force_recreation is not True:
-                print store_path + "already exists, do not re-create and exit"
+                print(store_path + "already exists, do not re-create and exit")
                 store.close()
                 return
 
         if variables is not None:
 
-            print store
-            print store_path
-            print variables
+            print(store)
+            print(store_path)
+            print(variables)
             variables_stored = list(set(variables).intersection(set(stored_table.columns)))
-            print list(set(variables).difference((set(stored_table.columns))))
+            print(list(set(variables).difference((set(stored_table.columns)))))
             store[store_path] = stored_table[variables_stored]
         else:
             store[store_path] = stored_table
@@ -474,11 +468,11 @@ def build_erfs_survey_collection():
 #            for test_table in self.tables.keys:
 #                if set(variables) < set(self.tables[test_table].columns):
 #                    table = test_table
-#                    print "using guessed table :", table
+#                    print("using guessed table :", table)
 #                    break
 #
 #        if table is None:
-#            print "varname not found in any tables"
+#            print("varname not found in any tables")
 #            df = None
 #        else:
 
@@ -487,7 +481,7 @@ def build_erfs_survey_collection():
 
         # rename variables according to their name in openfisca
         erf2of = get_erf2of()
-        to_be_renamed_variables = set(erf2of.values()).intersection(variables)
+        to_be_renamed_variables = set(list(erf2of.values())).intersection(variables)
         if to_be_renamed_variables:
             for var in to_be_renamed_variables:
                 df.rename(columns = {var: erf2of[var]}, inplace=True)
@@ -500,13 +494,13 @@ def build_erfs_survey_collection():
 ##     #===========================================================================
 ##     # from pandas import DataFrame
 ##     #res = DataFrame({af_col.name: simulation.output_table.get_value(af_col.name, af_col.entity)})
-##     # print res
+##     # print(res)
 ##     #===========================================================================
 
 ##     store = HDFStore(os.path.join(os.path.dirname(os.path.join(SRC_PATH,'countries','france','data','erf')),'fichiertest.h5'))
 ##     datatable = store.get('test12')
 ##     test_simu = store.get('test_simu')
-##     print check_consistency(test_simu, datatable)
+##     print(check_consistency(test_simu, datatable))
 
 ## def test3():
 ##     year=2006
@@ -531,7 +525,7 @@ def build_erfs_survey_collection():
 ## #
 ## #    filename = os.path.join(DATA_DIR,"erf","2006","Tables complémentaires","icomprf06e07t1.dta")
 ## #    reader = StataReader(filename)
-## #    print reader.data()
+## #    print(reader.data())
 
 
 
@@ -539,14 +533,14 @@ if __name__ == '__main__':
 #     test3()
     test_init()
     ## hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf.h5')
-    ## print hdf5_filename
+    ## print(hdf5_filename)
     ## store = HDFStore(hdf5_filename)
-    ## print store
+    ## print(store)
 
     build_erfs_survey_collection()
 
 #
 #     hdf5_filename = os.path.join(os.path.dirname(ERF_HDF5_DATA_DIR),'erf','erf_old.h5')
-#     print hdf5_filename
+#     print(hdf5_filename)
 #     store = HDFStore(hdf5_filename)
-#     print store
+#     print(store)

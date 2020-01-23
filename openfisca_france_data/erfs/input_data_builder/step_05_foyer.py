@@ -7,9 +7,6 @@
 # Creates sif and foyer_aggr
 
 
-from __future__ import division
-
-
 import gc
 import logging
 
@@ -64,7 +61,7 @@ def sif(temporary_store = None, year = None):
 
     # Converting marital status
     statmarit_dict = {"M": 1, "C": 2, "D": 3, "V": 4, "O": 5}
-    for key, val in statmarit_dict.iteritems():
+    for key, val in statmarit_dict.items():
         sif.statmarit.loc[sif.stamar == key] = val
 
     sif["birthvous"] = sif.sif.str[5:9]
@@ -113,7 +110,7 @@ def sif(temporary_store = None, year = None):
     sif["causeXYZ"] = sif.sif.str[60 + d: 61 + d]
 
     # TODO: convert dateXYZ to appropriate date in pandas
-    # print sif["dateY"].unique()
+    # print(sif["dateY"].unique())
 
     sif["nbptr"] = sif.nbptr.values / 100
     sif["rfr_n_2"] = sif.mnrvka.values
@@ -266,7 +263,7 @@ def foyer_all(temporary_store = None, year = None):
         }
     cases_f6_f7_f8 = build_cerfa_fields_by_column_name(year = year, sections_cerfa = [6, 7, 8])
     var_dict.update(cases_f6_f7_f8)
-    vars_sets = [set(var_list) for var_list in var_dict.values()]
+    vars_sets = [set(var_list) for var_list in list(var_dict.values())]
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))
 
     log.info(
@@ -281,7 +278,7 @@ def foyer_all(temporary_store = None, year = None):
     #    err_vars = {}
 
     foy_ind = DataFrame()
-    for individual_var, foyer_vars in var_dict.iteritems():
+    for individual_var, foyer_vars in var_dict.items():
         try:
             selection = foyer[foyer_vars + ["noindiv"]].copy()
         except KeyError:

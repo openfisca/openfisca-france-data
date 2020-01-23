@@ -2,15 +2,16 @@
 
 import logging
 import os
-from ConfigParser import \
-    NoOptionError  # Use "ConfigParser" and not "configparser" to use the same as OpenFisca packages.
 
 import numpy
 from pandas import Series
 
-import openfisca_france
-from openfisca_survey_manager.survey_collections import SurveyCollection
-from openfisca_survey_manager.surveys import Survey
+import openfisca_france  # type: ignore
+from openfisca_survey_manager.survey_collections import SurveyCollection  # type: ignore
+from openfisca_survey_manager.surveys import Survey  # type: ignore
+
+from openfisca_france_data import openfisca_france_tax_benefit_system    
+
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
     for var in std_list:
         try:
             assert var in dataframe.columns
-        except:
+        except Exception:
             raise Exception('the dataframe does not contain the required column %s' % var)
 
     log.info('longueur de la data frame = {}'.format(len(dataframe.index)))
@@ -110,15 +111,17 @@ def count_NA(name, table):
 def id_formatter(dataframe, entity_id):
     dataframe[entity_id + "_original"] = dataframe[entity_id].copy()
     id_unique = dataframe[entity_id].unique()
-    new_id_by_old_id = dict(zip(id_unique, range(len(id_unique))))
-    dataframe[entity_id].replace(to_replace = new_id_by_old_id, inplace = True)
+    new_id_by_old_id = dict(zip(
+        id_unique, range(len(id_unique)))
+        )
+    dataframe[entity_id] = dataframe[entity_id].map(new_id_by_old_id)
     return dataframe
 
 
 def print_id(df):
     try:
         log.info("Individus with distinc noindiv: {} / {}".format(len(df.noindiv), len(df)))
-    except:
+    except Exception:
         log.info("No noindiv")
 
     try:
@@ -129,7 +132,7 @@ def print_id(df):
             log.info("NaN in idfoy : {}".format(df["idfoy"].isnull().sum()))
         if df["quifoy"].isnull().any():
             log.info("NaN in quifoy : {}".format(df["quifoy"].isnull().sum()))
-    except:
+    except Exception:
         log.info("No idfoy or quifoy")
 
     try:
@@ -140,7 +143,7 @@ def print_id(df):
             log.info("NaN in idmen : {} ".format(df["idmen"].isnull().sum()))
         if df["quimen"].isnull().any():
             log.info("NaN in quimen : {} ".format(df["quimen"].isnull().sum()))
-    except:
+    except Exception:
         print("No idmen or quimen")
 
     try:
@@ -151,7 +154,7 @@ def print_id(df):
             log.info("NaN in idfam : {} ".format(df["idfam"].isnull().sum()))
         if df["quifam"].isnull().any():
             log.info("NaN in quifam : {} ".format(df["quifam"].isnull().sum()))
-    except:
+    except Exception:
         log.info("No idfam or quifam")
     compute_masses(df)
 
@@ -232,23 +235,24 @@ def check_structure(dataframe):
 
 
 def build_cerfa_fields_by_column_name(year, sections_cerfa):
-    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
     cerfa_fields_by_column_name = dict()
-    for name, column in tax_benefit_system.variables.iteritems():
+    for name, column in tax_benefit_system.variables.items():
         for section_cerfa in sections_cerfa:
-            if name.startswith('f{}'.format(section_cerfa)):
+            if name.startswith(f"f{section_cerfa}"):
                 end = column.end or None
+
                 if end is None or end.year >= year:
                     if column.entity.key == 'individu':
-                        cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in column.cerfa_field.values()]
+                        cerfa_field = ['f' + x.lower() for x in list(column.cerfa_field.values())]
                     elif column.entity.key == 'foyer_fiscal':
-                        cerfa_field = ['f' + column.cerfa_field.lower().encode('ascii', 'ignore')]
-                    cerfa_fields_by_column_name[name.encode('ascii', 'ignore')] = cerfa_field
+                        cerfa_field = ['f' + column.cerfa_field.lower()]
+                    cerfa_fields_by_column_name[name] = cerfa_field
     return cerfa_fields_by_column_name
 
 
 def build_cerfa_fields_by_variable(year):
-    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
     cerfa_fields_by_variable = dict()
     for name, variable in sorted(tax_benefit_system.variables.items()):
         if variable.cerfa_field is None:
@@ -258,17 +262,17 @@ def build_cerfa_fields_by_variable(year):
         end = variable.end or None
         if end is None or end.year >= year:
             if variable.entity.key == 'individu':
-                cerfa_field = ['f' + x.lower().encode('ascii', 'ignore') for x in variable.cerfa_field.values()]
+                cerfa_field = ['f' + x.lower() for x in list(variable.cerfa_field.values())]
             elif variable.entity.key == 'foyer_fiscal':
-                cerfa_field = ['f' + variable.cerfa_field.lower().encode('ascii', 'ignore')]
-            cerfa_fields_by_variable[name.encode('ascii', 'ignore')] = cerfa_field
+                cerfa_field = ['f' + variable.cerfa_field.lower()]
+            cerfa_fields_by_variable[name] = cerfa_field
     return cerfa_fields_by_variable
 
 
 def rectify_dtype(dataframe, verbose = True):
     series_to_rectify = []
     rectified_series = []
-    for serie_name, serie in dataframe.iteritems():
+    for serie_name, serie in dataframe.items():
         if serie.dtype.char == 'O':  # test for object
             series_to_rectify.append(serie_name)
             if verbose:
@@ -310,27 +314,17 @@ NaN are present : {}
     if verbose:
         print(set(series_to_rectify).difference(rectified_series))
 
-def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name, person_id = None):
-    if person_id is not None:
-        dataframe.set_index(person_id, inplace = True, verify_integrity = True)
-    test1 = dataframe.loc[dataframe[entity_role_name] >= 2, [entity_id_name, entity_role_name]].copy()
-    test1.loc[:, entity_role_name] = 2
-    j = 2
-    while any(test1.duplicated([entity_id_name, entity_role_name])):
-        test1.loc[test1.duplicated([entity_id_name, entity_role_name]), entity_role_name] = j + 1
-        j += 1
-    dataframe.update(test1)
-    dataframe.reset_index(inplace = True)
+
+def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name):
+    last_roles = (dataframe[entity_role_name] >= 2).copy()
+    dataframe.loc[last_roles, entity_role_name] = 2
     dataframe[entity_role_name] = dataframe[entity_role_name].astype('int')
-    assert_dtype(dataframe[entity_role_name], 'int')
-    return dataframe.copy()
 
 
 def set_variables_default_value(dataframe, year):
-    import openfisca_france
-    tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+    tax_benefit_system = openfisca_france_tax_benefit_system
 
-    for column_name, column in tax_benefit_system.variables.iteritems():
+    for column_name, column in tax_benefit_system.variables.items():
         if column_name in dataframe.columns:
             dataframe[column_name].fillna(column.default_value, inplace = True)
             dataframe[column_name] = dataframe[column_name].astype(column.dtype)
