@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
 
-
 from setuptools import setup, find_packages
+
 
 with open('README.md') as file:
     long_description = file.read()
-
-with open('LICENSE') as file:
-    license = file.read()
 
 setup(
     name = "OpenFisca-France-Data",
     version = "0.14.0",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
+    long_description_content_type="text/markdown",
     author = "OpenFisca Team",
     author_email = "contact@openfisca.fr",
     url = "https://github.com/openfisca/openfisca-france-data",
-    license = license,
+    license = "http://www.fsf.org/licensing/licenses/agpl-3.0.html",
     keywords = "tax benefit social survey data microsimulation",
     classifiers = [
         "Development Status :: 2 - Pre-Alpha",
