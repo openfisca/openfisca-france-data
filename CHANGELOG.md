@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.14 [#187](https://github.com/openfisca/openfisca-france-data/pull/187)
+
+* Technical changes
+- Migrate CI from Travis to CircleCI
+- Contains #161, #171, #172, #173, #179, #183, #186
+
 ### 0.13.2 [#186](https://github.com/openfisca/openfisca-france-data/pull/186)
 
 * Technical changes
