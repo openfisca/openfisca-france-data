@@ -11,7 +11,7 @@ with open('LICENSE') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.13.2",
+    version = "0.14.0",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     author = "OpenFisca Team",
