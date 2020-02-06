@@ -1,16 +1,23 @@
 # Changelog
 
-### 0.14 [#187](https://github.com/openfisca/openfisca-france-data/pull/187)
+### 0.14.1 [#188](https://github.com/openfisca/openfisca-france-data/pull/188)
 
 * Technical changes
-- Migrate CI from Travis to CircleCI
-- Contains #161, #171, #172, #173, #179, #183, #186
+  - Fix pypi upload by fixing package description
+    - Fix this [CircleCI](https://circleci.com/gh/openfisca/openfisca-france-data/663) error: `The description failed to render in the default format of reStructuredText.`
+
+## 0.14 [#187](https://github.com/openfisca/openfisca-france-data/pull/187)
+
+* Technical changes
+  - Migrate CI from Travis to CircleCI
+  - Reset `master` branch as default branch instead of `release/1.0.0`
+    - Contains [#161](https://github.com/openfisca/openfisca-france-data/pull/161), [#171](https://github.com/openfisca/openfisca-france-data/pull/171), [#172](https://github.com/openfisca/openfisca-france-data/pull/172), [#173](https://github.com/openfisca/openfisca-france-data/pull/173), [#179](https://github.com/openfisca/openfisca-france-data/pull/179), [#183](https://github.com/openfisca/openfisca-france-data/pull/183), [#186](https://github.com/openfisca/openfisca-france-data/pull/186)
 
 ### 0.13.2 [#186](https://github.com/openfisca/openfisca-france-data/pull/186)
 
 * Technical changes
-- Various cleaning
-- Introduction of MTR calculation
+  - Various cleaning
+  - Introduction of MTR calculation
 
 ### 0.13.1 [#179](https://github.com/openfisca/openfisca-france-data/pull/179)
 
