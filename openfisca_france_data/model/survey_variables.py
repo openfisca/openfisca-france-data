@@ -66,6 +66,18 @@ class weight_foyers(Variable):
         return foyer_fiscal.declarant_principal('weight_individus', period)
 
 
+class weight_menages(Variable):
+    is_period_size_independent = True
+    value_type = float
+    entity = Menage
+    label = "Poids du ménage"
+    definition_period = YEAR
+
+    def formula(menage, period):
+        return menage.personne_de_reference('weight_individus', period)
+
+
+
 class wprm(Variable):
     default_value = 1.0
     is_period_size_independent = True
