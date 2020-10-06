@@ -13,7 +13,7 @@ stages:
   - build
 
 
-build Docker image:
+build docker image:
   stage: docker
   when: manual
   tags:
@@ -47,7 +47,7 @@ build collections:
     - cp ~/.config/openfisca-survey-manager/config.ini  /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
   when: manual
 
-Build input data:
+build input data:
   stage: build
   image: $CI_REGISTRY_IMAGE:latest
   tags:
