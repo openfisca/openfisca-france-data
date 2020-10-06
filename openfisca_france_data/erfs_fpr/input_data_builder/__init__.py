@@ -59,7 +59,8 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
 
 
 @click.command()
-@click.option('-y', '--year', default = "2013", help = "ERFS-FPR year", show_default = True)
+@click.option('-y', '--year', default = 2013, help = "ERFS-FPR year", show_default = True,
+    type = int, required = True)
 @click.option('-f', '--file', 'export_flattened_df_filepath', default = None,
     help = 'flattened dataframe filepath', show_default = True)
 def main(year = 2014, export_flattened_df_filepath = None):
@@ -78,6 +79,6 @@ def main(year = 2014, export_flattened_df_filepath = None):
 
 if __name__ == '__main__':
     main(
-        year = 2014,
+        year = 2013,
         export_flattened_df_filepath = "./dummy_data.h5",  # Could be disabled with None
         )
