@@ -45,5 +45,20 @@ build collections:
     - build-collection -c enquete_logement -d -m -s 2013
     - build-collection -c erfs_fpr -d -m -s 2013
     - cp ~/.config/openfisca-survey-manager/config.ini  /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
-    - build-erfs-frp -y 2013
+  when: manual
+
+Build input data:
+  stage: build
+  image: $CI_REGISTRY_IMAGE:latest
+  tags:
+    - openfisca
+  before_script:
+    - mkdir -p ~/.config/openfisca-survey-manager
+    - pip3 install -e .[dev,survey]
+    - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+    - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+    - mkdir -p /root/ci-files/data_collections
+  script:
+    - build-erfs-fpr -y 2013
+    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_with_mathed_data.ini
   when: manual
