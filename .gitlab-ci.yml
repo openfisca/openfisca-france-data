@@ -1,0 +1,42 @@
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  CI_REGISTRY: https://index.docker.io/v1/
+  CI_REGISTRY_IMAGE: pseipp/taxipp-life-dependance-ci
+
+cache:
+  paths:
+    - .cache/pip
+    - ./figures/
+
+stages:
+  - docker
+  - build
+  - test
+
+build Docker image:
+  stage: docker
+  when: manual
+  tags:
+    - ipp
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    # From https://github.com/GoogleContainerTools/kaniko#pushing-to-docker-hub
+    - DOCKER_HUB_AUTH=$(echo -n $DOCKER_HUB_USER:$DOCKER_HUB_PASSWORD | base64)
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$DOCKER_HUB_AUTH\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile.ci --destination $CI_REGISTRY_IMAGE:latest
+
+build collections:
+  stage: build
+  image: $CI_REGISTRY_IMAGE:latest
+  tags:
+    - ipp
+  before_script:
+    - pip install -e .[dev]
+    - mkdir -p ~/.config/openfisca-survey-manager
+    - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+    - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+    - mkdir -p /root/ci-files/data_collections
+    - pip3 install -e .[dev,survey]
+
