@@ -40,8 +40,10 @@ build collections:
     - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
     - pip3 install -e .[dev,survey]
+
   script:
     - build-collection -c enquete_logement -d -m -s 2013
     - build-collection -c erfs_fpr -d -m -s 2013
     - cp ~/.config/openfisca-survey-manager/config.ini  /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
+    - build-erfs-frp -y 2013
   when: manual

@@ -72,19 +72,18 @@ Let's say that you would like to format `ERFS-FPR` survey data into OpenFisca fo
 
 You have already used `openfisca-survey-manager`. So, you have a `config.ini` file configured for this survey and a HDF5 file generated in the directory that you defined under `output_directory` in your `config.ini`.
 
-> For more information, you can see the configuration steps of `openfisca-survey-manager` [README](https://github.com/openfisca/openfisca-survey-manager/blob/master/README.md). 
+> For more information, you can see the configuration steps of `openfisca-survey-manager` [README](https://github.com/openfisca/openfisca-survey-manager/blob/master/README.md).
 
 To run `openfisca_france_data` on `ERFS-FPR` survey data:
 
-1. In the survey directory `openfisca_france_data/erfs_fpr`, open the main script: `openfisca_france_data/erfs_fpr/input_data_builder/__init__.py`
-   
-2. At the end of the script, check `if __name__ == '__main__'` bloc and update its configured variables (like `year`) to match your needs.
-   
-3. Run the script with this command:
-   
+
+1. Run the command:
+
     ```shell
-    python openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
+    build-erfs-fpr -y 2013 -f dummy_data.h5
     ```
+
+    You can change ` 2013` with any year you are interested in and for which you have ERFS-FPR data and `dummy_data.h5` with any filename you want to export a flatenned dataframe.
 
     The script should end without error and display these lines:
     ```shell
@@ -92,7 +91,7 @@ To run `openfisca_france_data` on `ERFS-FPR` survey data:
     Closing remaining open files...
     ```
 
-4. Check the script results:
+2. Check the script results:
 
    * `openfisca_erfs_fpr.json` file generated in the directory you configured in your `config.ini` under `collections_directory` key.
    * `input.h5` file generated in the directory you configured in your `config.ini` under `output_directory` key. This HDF5 file contains a group with two items:

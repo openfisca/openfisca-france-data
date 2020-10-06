@@ -25,13 +25,17 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
+    entry_points = {
+        'console_scripts': ['build-erfs-fpr=openfisca_france_data.erfs_fpr.input_data_builder:main'],
+        },
     python_requires = ">= 3.7",
     install_requires = [
+        "click >= 7.1.2, < 8.0.0",
+        "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
         "openFisca-france >= 48.10.0, < 52.0.0",
         "openFisca-survey-manager >= 0.38.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
-        "matplotlib >= 3.1.1, < 4.0.0"
         ],
     extras_require = {
         "test": [

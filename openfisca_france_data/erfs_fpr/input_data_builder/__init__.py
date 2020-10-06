@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import click
 import logging
 
 
@@ -57,16 +58,26 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     final.create_input_data_frame(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
 
-if __name__ == '__main__':
+@click.command()
+@click.option('-y', '--year', default = "2013", help = "ERFS-FPR year", show_default = True)
+@click.option('-f', '--file', 'export_flattened_df_filepath', default = None,
+    help = 'flattened dataframe filepath', show_default = True)
+def main(year = 2014, export_flattened_df_filepath = None):
     import sys
     import time
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
-    year = 2016
-    export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
+    if export_flattened_df_filepath:
+        year = 2016
+        export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
     build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
     # TODO: create_enfants_a_naitre(year = year)
-
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
+
+
+if __name__ == '__main__':
+    main(
+        year = 2014,
+        export_flattened_df_filepath = "./dummy_data.h5",  # Could be disabled with None
+        )
