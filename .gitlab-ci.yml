@@ -17,7 +17,7 @@ build Docker image:
   stage: docker
   when: manual
   tags:
-    - ipp
+    - openfisca
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -32,7 +32,7 @@ build collections:
   stage: build
   image: $CI_REGISTRY_IMAGE:latest
   tags:
-    - ipp
+    - openfisca
   before_script:
     - pip install -e .[dev]
     - mkdir -p ~/.config/openfisca-survey-manager
