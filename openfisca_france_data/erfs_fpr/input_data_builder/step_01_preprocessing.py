@@ -204,6 +204,9 @@ def check_naia_naim(individus, year):
             ] = 1
 
     assert individus.naim.isin(range(1, 13)).all()
+    print(individus.naia.dtype)
+    print(individus.naim.dtype)
+    assert isinstance(year, int)
     good = ((year >= individus.naia) & (individus.naia > 1890))
     assertion = good.all()
     bad_idents = individus.loc[~good, "ident"].unique()
