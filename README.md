@@ -97,7 +97,7 @@ To run `openfisca_france_data` on `ERFS-FPR` survey data:
    * `input.h5` file generated in the directory you configured in your `config.ini` under `output_directory` key. This HDF5 file contains a group with two items:
      * an item with your data organised by OpenFisca-France `Individu` entity,
      * an item with your data organised by OpenFisca-France `Menage` entity.
-   * _Specific to `ERFS-FPR` script_: `dummy_data.h5` if you kept `export_flattened_df_filepath` option's value in `openfisca_france_data/erfs_fpr/input_data_builder/__init__.py`.
+   * _Specific to `ERFS-FPR` script_: `dummy_data.h5` if you kept `export_flattened_df_filepath` option's value.
 
     > The script also adds a `openfisca_erfs_fpr` key to your `config.ini`.
 
