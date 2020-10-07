@@ -63,11 +63,11 @@ build input data:
     - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini
   when: manual
 
-  test:
-    stage: test
-    image: $CI_REGISTRY_IMAGE:latest
-    tags:
-      - openfisca
+test:
+  stage: test
+  image: $CI_REGISTRY_IMAGE:latest
+  tags:
+    - openfisca
   before_script:
     - make install
     - mkdir -p ~/.config/openfisca-survey-manager
