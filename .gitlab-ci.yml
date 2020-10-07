@@ -76,4 +76,3 @@ test:
     - mkdir -p /root/ci-files/data_collections
   script:
     - make test
-  when: manual
