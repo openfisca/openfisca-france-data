@@ -63,8 +63,8 @@ if __name__ == '__main__':
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
-    year = 2014
-    export_flattened_df_filepath = "./dummy_data.h5"  # Could be disabled with None
+    year = 2016
+    export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
     build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
     # TODO: create_enfants_a_naitre(year = year)
 
