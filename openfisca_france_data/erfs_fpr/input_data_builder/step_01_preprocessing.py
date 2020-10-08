@@ -26,16 +26,17 @@ def build_merged_dataframes(temporary_store = None, year = None):
     add_suffix_retropole_years = [2012]
 
     survey = erfs_fpr_survey_collection.get_survey(f"erfs_fpr_{year}")
-    eec_menage = survey.get_values(table = f"fpr_mrf{yr}e{yr}t4") if year<2015 else survey.get_values(table = f"fpr_mrt{yr}e{yr}t4")
-    eec_individu = survey.get_values(table = f"fpr_irf{yr}e{yr}t4")
+
+    eec_menage = survey.get_values(table = f"fpr_mrf{yr}e{yr}t4", ignorecase=True)
+    eec_individu = survey.get_values(table = f"fpr_irf{yr}e{yr}t4", ignorecase= True)
 
     if year in add_suffix_retropole_years:
         fpr_individu = survey.get_values(table = f"fpr_indiv_{year}_retropole")
         fpr_menage = survey.get_values(table = f"fpr_menage_{year}_retropole")
 
     else:
-        fpr_individu = survey.get_values(table = f"fpr_indiv_{year}")
-        fpr_menage = survey.get_values(table = f"fpr_menage_{year}")
+        fpr_individu = survey.get_values(table = f"fpr_indiv_{year}", ignorecase = True)
+        fpr_menage = survey.get_values(table = f"fpr_menage_{year}", ignorecase = True)
 
     for table in (fpr_menage, eec_menage, eec_individu, fpr_individu):
         table.columns = [k.lower() for k in table.columns]
