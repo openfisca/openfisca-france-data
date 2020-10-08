@@ -591,7 +591,7 @@ def create_categorie_non_salarie(individus):
     commercant = individus.cstot.isin([22])
     chef_entreprise = individus.cstot.isin([23])
     profession_liberale = individus.cstot.isin([31])
-    individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut
+    #individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut
     individus.loc[
         agriculteur | artisan,
         'categorie_non_salarie'
