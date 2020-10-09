@@ -7,10 +7,12 @@ from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenar
 from openfisca_france_data import base_survey
 
 
-@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_inflation():
-    period = year = 2012
-    survey_scenario = get_survey_scenario(year = year, tax_benefit_system = base_survey.france_data_tax_benefit_system)
+    period = year = 2013
+    survey_scenario = get_survey_scenario(
+        year = year,
+        tax_benefit_system = base_survey.france_data_tax_benefit_system
+        )
     target_by_variable = dict(
         salaire_imposable = 1.2e08,
         )

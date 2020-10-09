@@ -27,6 +27,7 @@ menage = data_frame_by_entity['menage']
 
 # statut_occupation
 statut_occupation_logement_pct = menage.groupby('statut_occupation_logement')['wprm'].sum() / menage.wprm.sum()
+print(statut_occupation_logement_pct)
 # 2 proprietaire
 assert .39 < statut_occupation_logement_pct[2] < .41
 # accedant

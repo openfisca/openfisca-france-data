@@ -157,7 +157,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 assert variable in self.used_as_input_variables, \
                     f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
-                if self.baseline_tax_benefit_system.variables[variable].value_type == Enum:
+                if self.tax_benefit_system.variables[variable].value_type == Enum:
                     simulation.set_input(
                         variable,
                         simulation_period.offset(offset),

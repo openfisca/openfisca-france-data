@@ -7,6 +7,7 @@ cache:
   paths:
     - .cache/pip
     - ./figures/
+    - *.csv
 
 stages:
   - docker
@@ -76,3 +77,22 @@ test:
     - mkdir -p /root/ci-files/data_collections
   script:
     - make test
+
+
+aggregates:
+  stage: test
+  image: $CI_REGISTRY_IMAGE:latest
+  tags:
+    - openfisca
+  before_script:
+    - make install
+    - mkdir -p ~/.config/openfisca-survey-manager
+    - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+    - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
+    - mkdir -p /root/ci-files/data_collections
+  script:
+    - python tests/erfs_fpr/test_aggregates.py
+  artifacts:
+    paths:
+      - ./*.csv
+  when: manual
