@@ -78,7 +78,6 @@ test:
   script:
     - make test
 
-
 aggregates:
   stage: test
   image: $CI_REGISTRY_IMAGE:latest
