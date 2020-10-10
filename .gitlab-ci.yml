@@ -7,7 +7,7 @@ cache:
   paths:
     - .cache/pip
     - ./figures/
-    - *.csv
+    - ./
 
 stages:
   - docker
