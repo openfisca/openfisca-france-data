@@ -90,7 +90,7 @@ aggregates:
     - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
   script:
-    - python tests/erfs_fpr/test_aggregates.py
+    - python tests/erfs_fpr/integration/test_aggregates.py
   artifacts:
     paths:
       - ./*.csv
