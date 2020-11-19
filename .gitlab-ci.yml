@@ -71,6 +71,7 @@ test:
     - openfisca
   before_script:
     - make install
+    - pip install scipy
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
