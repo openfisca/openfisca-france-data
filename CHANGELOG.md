@@ -1,5 +1,13 @@
 # Changelog
 
+### 0.15.0 [#190](https://github.com/openfisca/openfisca-france-data/pull/190)
+
+* New features
+  - Introduce a new weight variable for households
+
+* Technical changes
+  -  Update the SMIC parameter
+
 ### 0.14.1 [#188](https://github.com/openfisca/openfisca-france-data/pull/188)
 
 * Technical changes
