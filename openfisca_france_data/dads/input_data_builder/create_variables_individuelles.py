@@ -36,7 +36,6 @@ def create_individu_variables_brutes(
     assert 'effectif_entreprise' in individus.columns
     
     # Temp 
-    #individus['categorie_non_salarie'] = 2
     
     created_variables = []
 
