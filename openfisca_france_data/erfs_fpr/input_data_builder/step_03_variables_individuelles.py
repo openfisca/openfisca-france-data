@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 #     }
 
 smic_horaire_brut = dict()
-for year in range(2010, 2020):
+for year in range(2010, 2021):
     try:
         smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
     except:
@@ -38,6 +38,7 @@ for year in range(2010, 2020):
 
 # Sources BDM
 smic_annuel_net_by_year = {
+    2020: 12 * 1200.0,
     2019: 12 * 1200.0,
     2018: 9 * 1173.60 + 3 * 1187.83,  # Baisse de la cotisaation chômage en cours d'annnée
     2017: 12 * 1151.50,
@@ -51,6 +52,8 @@ smic_annuel_net_by_year = {
     }
 
 abattement_by_year = {
+    2020: .0175,
+    2019: .0175,
     2018: .0175,
     2017: .0175,
     2016: .0175,
@@ -75,18 +78,13 @@ def smic_annuel_imposbale_from_net(year):
 
 smic_annuel_imposbale_by_year = dict([
     (year, smic_annuel_imposbale_from_net(year))
-    for year in range(2010, 2019)
+    for year in range(2010, 2021)
     ])
 
 
 smic_horaire_brut_by_year = dict([
-    (
-        year,
-        openfisca_france_tax_benefit_system.get_parameters_at_instant(
-            instant = periods.period(year
-            ).start).cotsoc.gen.smic_h_b
-            )
-    for year in range(2005, 2020)
+    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
+    for year in range(2005, 2021)
     ])
 
 smic_annuel_brut_by_year = dict([
@@ -593,7 +591,6 @@ def create_categorie_non_salarie(individus):
     commercant = individus.cstot.isin([22])
     chef_entreprise = individus.cstot.isin([23])
     profession_liberale = individus.cstot.isin([31])
-    individus['categorie_non_salarie'] = 2  # FIXME commerçant par défaut
     individus.loc[
         agriculteur | artisan,
         'categorie_non_salarie'

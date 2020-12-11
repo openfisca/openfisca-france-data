@@ -32,11 +32,10 @@ def create_individu_variables_brutes(
     assert 'contrat_de_travail' in individus.columns 
     assert 'heures_remunerees_volume' in individus.columns
     assert 'categorie_salarie' in individus.columns
-    #assert 'categorie_non_salarie' in individus.columns
+    assert 'categorie_non_salarie' in individus.columns
     assert 'effectif_entreprise' in individus.columns
     
     # Temp 
-    individus['categorie_non_salarie'] = 2
     
     created_variables = []
 

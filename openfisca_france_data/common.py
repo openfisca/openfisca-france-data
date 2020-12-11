@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 smic_horaire_brut = dict()
-for year in range(2010,2020):
+for year in range(2010, 2021):
     try:
         smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
     except:
