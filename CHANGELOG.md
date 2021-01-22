@@ -1,6 +1,10 @@
 # Changelog
 
-### 0.15.0 [#190](https://github.com/openfisca/openfisca-france-data/pull/190)
+## 0.16.0 [#191](https://github.com/openfisca/openfisca-france-data/pull/191)
+
+Change the requirement version for OF-France
+
+## 0.15.0 [#190](https://github.com/openfisca/openfisca-france-data/pull/190)
 
 * New features
   - Introduce a new weight variable for households
