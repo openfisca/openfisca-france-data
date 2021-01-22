@@ -28,7 +28,7 @@ setup(
     python_requires = ">= 3.7",
     install_requires = [
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openFisca-france >= 48.10.0, < 49.0.0",
+        "openFisca-france >= 48.10.0, < 51.0.0",
         "openFisca-survey-manager >= 0.38.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         "matplotlib >= 3.1.1, < 4.0.0"
