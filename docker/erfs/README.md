@@ -1,5 +1,7 @@
 # Generate flat data from ERFS-FPR with Docker
 
+This process aim at computing a unique file from all the ERFS FPR file.
+
 Pre-requisis : only Docker.
 
 
