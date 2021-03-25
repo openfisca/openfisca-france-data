@@ -1,7 +1,19 @@
 FROM python:3.7
 
-RUN pip install sas7bdat tables openfisca-survey-manager==0.19.1
+# Add user and group to Image to get output files with the host user ownership
+ARG USER_ID
+ARG GROUP_ID
+RUN addgroup --gid $GROUP_ID user
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
+
+RUN chown $USER_ID:$GROUP_ID /opt /home/user
+
+USER user
+RUN mkdir -p /home/user/.local/bin
+ENV PATH "$PATH:/home/user/.local/bin"
+RUN echo "PATH=$PATH:/home/user/.local/bin" > /home/user/.bashrc
 WORKDIR /opt
+RUN pip install sas7bdat tables openfisca-survey-manager==0.19.1
 RUN git clone https://github.com/openfisca/openfisca-france-data.git
 WORKDIR /opt/openfisca-france-data
 RUN git checkout --track origin/erfs-data-improved
@@ -10,8 +22,8 @@ RUN pip install --editable .[test] --upgrade
 
 # build-collection can get a path of file location in parameter but not openfisca_france_data.
 # That's why we create a symbolic link from the default location of config to our data path
-RUN mkdir -p /root/.config
-RUN ln -s  /opt/erfs/data /root/.config/openfisca-survey-manager
+RUN mkdir -p /home/user/.config
+RUN ln -s  /opt/erfs/data /home/user/.config/openfisca-survey-manager
 
 WORKDIR /opt/erfs
 COPY entrypoint.sh .

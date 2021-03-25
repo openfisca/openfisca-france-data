@@ -12,7 +12,7 @@ Pre-requisis : only Docker.
 
 ```sh
 cd openfisca-france-data/docker/erfs
-docker build . -t openfisca-france-data-erfs
+docker build -t openfisca-france-data-erfs --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) .
 docker run --rm -v $PWD/data:/opt/erfs/data openfisca-france-data-erfs
 ```
 
