@@ -1,5 +1,11 @@
 # Changelog
 
+
+## 0.17.0 [#193](https://github.com/openfisca/openfisca-france-data/pull/193)
+
+* Technical changes
+  - Move smic definitions in a separate module
+
 ## 0.16.0 [#191](https://github.com/openfisca/openfisca-france-data/pull/191)
 
 Change the requirement version for OF-France
