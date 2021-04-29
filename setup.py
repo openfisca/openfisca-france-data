@@ -8,7 +8,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.16.0",
+    version = "0.17.0",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -28,7 +28,7 @@ setup(
     python_requires = ">= 3.7",
     install_requires = [
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openFisca-france >= 48.10.0, < 51.0.0",
+        "openFisca-france >= 48.10.0, < 52.0.0",
         "openFisca-survey-manager >= 0.38.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         "matplotlib >= 3.1.1, < 4.0.0"

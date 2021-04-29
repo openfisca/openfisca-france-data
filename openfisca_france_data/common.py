@@ -7,27 +7,19 @@ from openfisca_core import periods
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_core.formula_helpers import switch
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
-from openfisca_france_data import openfisca_france_tax_benefit_system    
-
+from openfisca_france_data import openfisca_france_tax_benefit_system
+from openfisca_france_data.smic import smic_horaire_brut
 
 
 log = logging.getLogger(__name__)
 
 
-smic_horaire_brut = dict()
-for year in range(2010, 2021):
-    try:
-        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
-    except:
-        continue
-
-
 def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
     """
-    
+
     Calcule la variable salaire_de_base à partir du salaire imposable par inversion du barème
     de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
-    
+
     """
     assert period is not None
     assert revenu_type in ['net', 'imposable']
@@ -133,7 +125,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
                 ),
             }
         )
-        
+
     def add_agirc_gmp_to_agirc(agirc, parameters):
         plafond_securite_sociale_annuel = parameters.cotsoc.gen.plafond_securite_sociale * 12
         salaire_charniere = parameters.prelevements_sociaux.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
@@ -373,11 +365,11 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
 
     individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
-    
+
 
 def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     assert 'taux_csg_remplacement' in individus
-    
+
     individus.chomage_imposable.fillna(0, inplace = True)
     individus.retraite_imposable.fillna(0, inplace = True)
 
