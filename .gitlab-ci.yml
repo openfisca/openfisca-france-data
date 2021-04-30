@@ -44,7 +44,7 @@ build collections:
 
   script:
     - build-collection -c enquete_logement -d -m -s 2013
-    - build-collection -c erfs_fpr -d -m -s 2013
+    - build-collection -c erfs_fpr -d -m
     - cp ~/.config/openfisca-survey-manager/config.ini  /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
   when: manual
 
@@ -61,6 +61,10 @@ build input data:
     - mkdir -p /root/ci-files/data_collections
   script:
     - build-erfs-fpr -y 2013
+    - build-erfs-fpr -y 2014
+    - build-erfs-fpr -y 2015
+    - build-erfs-fpr -y 2016
+    - build-erfs-fpr -y 2017
     - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini
   when: manual
 
