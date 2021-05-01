@@ -37,8 +37,9 @@ build collections:
     - openfisca
   before_script:
     - make install
-    - rm -f ~/.config/openfisca-survey-manager
+    - rm -rf ~/.config/openfisca-survey-manager
     - mkdir -p ~/.config/openfisca-survey-manager
+    - cat ./runner/openfisca_survey_manager_raw_data.ini
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
