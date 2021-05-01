@@ -39,6 +39,9 @@ build collections:
     - make install
     - rm -rf ~/.config/openfisca-survey-manager
     - mkdir -p ~/.config/openfisca-survey-manager
+    - cd .
+    - ls -alrth .
+    - ls -alrth ./runner
     - cat ./runner/openfisca_survey_manager_raw_data.ini
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
