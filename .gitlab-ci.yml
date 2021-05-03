@@ -75,7 +75,7 @@ build input data:
     - build-erfs-fpr -y 2016
     - build-erfs-fpr -y 2017
     - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini
-  when: manual
+  # when: manual
 
 test:
   stage: test
