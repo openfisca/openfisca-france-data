@@ -39,10 +39,6 @@ build collections:
     - make install
     - rm -rf ~/.config/openfisca-survey-manager
     - mkdir -p ~/.config/openfisca-survey-manager
-    - cd .
-    - ls -alrth .
-    - ls -alrth ./runner
-    - cat ./runner/openfisca_survey_manager_raw_data.ini
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
@@ -50,11 +46,11 @@ build collections:
     - cat ~/.config/openfisca-survey-manager/config.ini
   script:
     - build-collection -c enquete_logement -d -m -s 2013
-    - cat ~/.config/openfisca-survey-manager/raw_data.ini
-    - cat ~/.config/openfisca-survey-manager/config.ini
     - build-collection -c erfs_fpr -d -m -v
-    - cp ~/.config/openfisca-survey-manager/config.ini  /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
-  when: manual
+    - cat ~/.config/openfisca-survey-manager/config.ini
+    - cp ~/.config/openfisca-survey-manager/config.ini
+    - cat /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
+    when: manual
 
 build input data:
   stage: build
@@ -63,6 +59,7 @@ build input data:
     - openfisca
   before_script:
     - make install
+    - rm -rf ~/.config/openfisca-survey-manager
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
