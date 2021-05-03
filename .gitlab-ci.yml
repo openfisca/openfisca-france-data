@@ -48,7 +48,7 @@ build collections:
     - build-collection -c enquete_logement -d -m -s 2013
     - build-collection -c erfs_fpr -d -m -v
     - cat ~/.config/openfisca-survey-manager/config.ini
-    - cp ~/.config/openfisca-survey-manager/config.ini
+    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
     - cat /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
   when: manual
 
