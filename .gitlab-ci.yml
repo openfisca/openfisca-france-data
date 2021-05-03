@@ -41,14 +41,10 @@ build collections:
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
-    - cat ~/.config/openfisca-survey-manager/raw_data.ini
-    - cat ~/.config/openfisca-survey-manager/config.ini
   script:
     - build-collection -c enquete_logement -d -m -s 2013
     - build-collection -c erfs_fpr -d -m -v
-    - cat ~/.config/openfisca-survey-manager/config.ini
     - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
-    - cat /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
   when: manual
 
 build input data:
@@ -62,15 +58,12 @@ build input data:
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
-    - cat ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
-    - ls -arth /root/ci-files/data_collections
-    - ls -arth /home/ipp/data/openfisca-france-data/data_collections
-    - cat /home/ipp/data/openfisca-france-data/data_collections/erfs_fpr.json
   script:
     - cat ~/.config/openfisca-survey-manager/config.ini
     - build-erfs-fpr -y 2013
     - build-erfs-fpr -y 2014
+    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini
     - build-erfs-fpr -y 2015
     - build-erfs-fpr -y 2016
     - build-erfs-fpr -y 2017
@@ -88,6 +81,7 @@ test:
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
+
     - mkdir -p /root/ci-files/data_collections
   script:
     - make test
