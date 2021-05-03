@@ -7,7 +7,6 @@ cache:
   paths:
     - .cache/pip
     - ./figures/
-    - ./
 
 stages:
   - docker
