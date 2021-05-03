@@ -50,7 +50,7 @@ build collections:
     - cat ~/.config/openfisca-survey-manager/config.ini
     - cp ~/.config/openfisca-survey-manager/config.ini
     - cat /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
-    when: manual
+  when: manual
 
 build input data:
   stage: build
