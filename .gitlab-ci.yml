@@ -61,12 +61,12 @@ build input data:
     - rm -rf ~/.config/openfisca-survey-manager
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-    - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+    - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
     - cat ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
     - ls -arth /root/ci-files/data_collections
     - ls -arth /home/ipp/data/openfisca-france-data/data_collections
-    - cat /home/ipp/data/openfisca-france-indirect-taxation/data_collections/erfs_fpr.json
+    - cat /home/ipp/data/openfisca-france-data/data_collections/erfs_fpr.json
   script:
     - cat ~/.config/openfisca-survey-manager/config.ini
     - build-erfs-fpr -y 2013
@@ -74,7 +74,7 @@ build input data:
     - build-erfs-fpr -y 2015
     - build-erfs-fpr -y 2016
     - build-erfs-fpr -y 2017
-    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini
+    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini
   # when: manual
 
 test:
@@ -87,7 +87,7 @@ test:
     - pip install scipy
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-    - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
+    - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
   script:
     - make test
@@ -101,7 +101,7 @@ aggregates:
     - make install
     - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-    - cp /home/ipp/data/openfisca-france-indirect-taxation/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
+    - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
   script:
     - python tests/erfs_fpr/integration/test_aggregates.py
