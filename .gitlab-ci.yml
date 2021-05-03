@@ -65,6 +65,8 @@ build input data:
     - cat ~/.config/openfisca-survey-manager/config.ini
     - mkdir -p /root/ci-files/data_collections
     - ls -arth /root/ci-files/data_collections
+    - ls -arth /home/ipp/data/openfisca-france-data/data_collections
+    - cat /home/ipp/data/openfisca-france-indirect-taxation/data_collections/erfs_fpr.json
   script:
     - cat ~/.config/openfisca-survey-manager/config.ini
     - build-erfs-fpr -y 2013
