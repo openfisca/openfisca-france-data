@@ -13,7 +13,7 @@ setup(
     long_description = long_description,
     long_description_content_type="text/markdown",
     author = "OpenFisca Team",
-    author_email = "contact@openfisca.fr",
+    author_email = "contact@openfisca.org",
     url = "https://github.com/openfisca/openfisca-france-data",
     license = "http://www.fsf.org/licensing/licenses/agpl-3.0.html",
     keywords = "tax benefit social survey data microsimulation",
