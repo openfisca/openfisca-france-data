@@ -13,6 +13,30 @@ sed -i '/erfs_fpr = /d' $DATA_FOLDER/config.ini
 sed -i '/openfisca_erfs_fpr = /d' $DATA_FOLDER/config.ini
 echo "Building collection in `pwd`..."
 build-collection -c erfs_fpr -d -m -v  -p $DATA_FOLDER
-echo "Generate a flattened file consumable by openfisca..."
+if [ $? -eq 0 ]; then
+    echo "Building collection finished."
+else
+    echo "ERROR in build-collection"
+    ls /opt/erfs/data
+    ls /opt/erfs/data/data-in/
+    ls /opt/erfs/data/data-out/
+    ls /opt/erfs/data/tmp/
+    exit 1
+fi
+
+echo "------------------------------------------------------------"
+echo "-- Generating a flattened file consumable by openfisca... --"
+echo "------------------------------------------------------------"
 python /opt/openfisca-france-data/openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
-mv $DATA_FOLDER/erfs_flat_*.h5 $DATA_FOLDER/data-out/
+if [ $? -eq 0 ]; then
+    mv $DATA_FOLDER/erfs_flat_*.h5 $DATA_FOLDER/data-out/
+else
+    echo "ERROR in openfisca_france_data"
+    ls /opt/erfs/data
+    ls /opt/erfs/data/data-in/
+    ls /opt/erfs/data/data-out/
+    ls /opt/erfs/data/tmp/
+    exit 1
+fi
+echo "---------------- DONE -----------------------------"
+
