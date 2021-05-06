@@ -1,6 +1,6 @@
 # Generate flat data from ERFS-FPR with Docker
 
-This process aim at computing a unique file from all the ERFS FPR file.
+This process aims at computing a unique file from all the [ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231) FPR survey files.
 
 Pre-requisis : only Docker.
 
