@@ -17,10 +17,15 @@ if [ $? -eq 0 ]; then
     echo "Building collection finished."
 else
     echo "ERROR in build-collection"
-    ls /opt/erfs/data
-    ls /opt/erfs/data/data-in/
-    ls /opt/erfs/data/data-out/
-    ls /opt/erfs/data/tmp/
+    echo "Content of $DATA_FOLDER : "
+    ls $DATA_FOLDER
+    echo "Content of $DATA_FOLDER/data-in/: "
+    ls $DATA_FOLDER/data-in/
+    echo "Content of $DATA_FOLDER/data-out/ : "
+    ls $DATA_FOLDER/data-out/
+    echo "Content of $DATA_FOLDER/tmp/ : "
+    ls $DATA_FOLDER/tmp/
+    echo "---------------- DONE WITH ERROR -----------------------------"
     exit 1
 fi
 
@@ -31,11 +36,16 @@ python /opt/openfisca-france-data/openfisca_france_data/erfs_fpr/input_data_buil
 if [ $? -eq 0 ]; then
     mv $DATA_FOLDER/erfs_flat_*.h5 $DATA_FOLDER/data-out/
 else
-    echo "ERROR in openfisca_france_data"
-    ls /opt/erfs/data
-    ls /opt/erfs/data/data-in/
-    ls /opt/erfs/data/data-out/
-    ls /opt/erfs/data/tmp/
+    echo "ERROR in build-collection"
+    echo "Content of $DATA_FOLDER : "
+    ls $DATA_FOLDER
+    echo "Content of $DATA_FOLDER/data-in/: "
+    ls $DATA_FOLDER/data-in/
+    echo "Content of $DATA_FOLDER/data-out/ : "
+    ls $DATA_FOLDER/data-out/
+    echo "Content of $DATA_FOLDER/tmp/ : "
+    ls $DATA_FOLDER/tmp/
+    echo "---------------- DONE WITH ERROR -----------------------------"
     exit 1
 fi
 echo "---------------- DONE -----------------------------"
