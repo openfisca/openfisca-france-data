@@ -3,8 +3,8 @@ FROM python:3.7
 # Add user and group to Image to get output files with the host user ownership
 ARG USER_ID
 ARG GROUP_ID
-RUN addgroup --gid $GROUP_ID user
-RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
+RUN [ $(getent group $GROUP_ID) ] || addgroup --gid $GROUP_ID user
+RUN [ $(id $USER_ID) ] || adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID user
 
 RUN chown $USER_ID:$GROUP_ID /opt /home/user
 
