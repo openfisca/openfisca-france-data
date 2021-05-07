@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.0 [#189](https://github.com/openfisca/openfisca-france-data/pull/189)
+
+* Technical changes
+  - Handles more formats of the ERFS-FPR (the files produced do not always have the exact same columns / column names) and ignore case in file name.
 
 ## 0.17.0 [#193](https://github.com/openfisca/openfisca-france-data/pull/193)
 
