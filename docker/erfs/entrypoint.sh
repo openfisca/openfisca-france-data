@@ -12,7 +12,7 @@ rm $DATA_FOLDER/collections/*.json
 sed -i '/erfs_fpr = /d' $DATA_FOLDER/config.ini
 sed -i '/openfisca_erfs_fpr = /d' $DATA_FOLDER/config.ini
 echo "Building collection in `pwd`..."
-build-collection -c erfs_fpr -d -m -v  -p $DATA_FOLDER
+build-collection -c erfs_fpr -d -m -v  -p $DATA_FOLDER 2>&1
 if [ $? -eq 0 ]; then
     echo "Building collection finished."
 else
@@ -32,7 +32,7 @@ fi
 echo "------------------------------------------------------------"
 echo "-- Generating a flattened file consumable by openfisca... --"
 echo "------------------------------------------------------------"
-python /opt/openfisca-france-data/openfisca_france_data/erfs_fpr/input_data_builder/__init__.py
+python /opt/openfisca-france-data/openfisca_france_data/erfs_fpr/input_data_builder/__init__.py 2>&1
 if [ $? -eq 0 ]; then
     mv $DATA_FOLDER/erfs_flat_*.h5 $DATA_FOLDER/data-out/
 else
