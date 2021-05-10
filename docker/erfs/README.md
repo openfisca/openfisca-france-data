@@ -3,8 +3,10 @@
 This process aims at computing a unique file from all the [ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231) FPR survey files.
 
 Pre-requisis : only Docker.
+Tested on Ubuntu Linux 20.04 with success.
+Tested on MacOSX but did not worked.
 
-XXXX tester avec 2014
+TODO : XXXX tester avec 2014, il y aura un problème avec le __init__
 
 - 1_ Place raw data (FPR_*.sas7bdat) in _openfisca-france-data/docker/erfs/data/data-in_ folder.
 - 2_ Edit _openfisca-france-data/docker/erfs/data/raw_data.ini_ to specify the year.

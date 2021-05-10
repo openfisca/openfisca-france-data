@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-
 import logging
-
-
-#from multipledispatch import dispatch  # type: ignore
-
-
+import configparser
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
     # step_02_imputation_loyer as imputation_loyer,
@@ -62,11 +57,19 @@ if __name__ == '__main__':
     import time
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-
-    year = 2016
-    export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
-    build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
-    # TODO: create_enfants_a_naitre(year = year)
+    years = []
+    try:
+        config = configparser.ConfigParser()
+        config.read('data/raw_data.ini')
+        for key in config['erfs_fpr']:
+            if key.isnumeric()
+                years.append(int(key))
+    except FileNotFoundError as not_found:
+        years = [2016, 2014]
+    for year in years:
+        export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
+        build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+        # TODO: create_enfants_a_naitre(year = year)
 
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)

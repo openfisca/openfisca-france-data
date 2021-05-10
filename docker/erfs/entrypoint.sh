@@ -35,6 +35,7 @@ echo "------------------------------------------------------------"
 python /opt/openfisca-france-data/openfisca_france_data/erfs_fpr/input_data_builder/__init__.py 2>&1
 if [ $? -eq 0 ]; then
     mv $DATA_FOLDER/erfs_flat_*.h5 $DATA_FOLDER/data-out/
+    echo "---------------- DONE WITH SUCCESS ! --------------------------"
 else
     echo "ERROR in build-collection"
     echo "Content of $DATA_FOLDER : "
@@ -48,5 +49,5 @@ else
     echo "---------------- DONE WITH ERROR -----------------------------"
     exit 1
 fi
-echo "---------------- DONE -----------------------------"
+echo "-- The END --"
 
