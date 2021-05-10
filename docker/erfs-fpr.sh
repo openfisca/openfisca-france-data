@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ -z "${DATA_FOLDER}" ]]; then
-  export DATA_FOLDER=/opt/erfs/data
+  export DATA_FOLDER=/opt/data
 fi
 cd $DATA_FOLDER
 # Cleaning

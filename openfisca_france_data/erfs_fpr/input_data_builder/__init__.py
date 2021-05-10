@@ -62,10 +62,10 @@ if __name__ == '__main__':
         config = configparser.ConfigParser()
         config.read('data/raw_data.ini')
         for key in config['erfs_fpr']:
-            if key.isnumeric()
+            if key.isnumeric():
                 years.append(int(key))
-    except FileNotFoundError as not_found:
-        years = [2016, 2014]
+    except FileNotFoundError:
+        years = [2014]
     for year in years:
         export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
         build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
