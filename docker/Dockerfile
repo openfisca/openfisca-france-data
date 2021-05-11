@@ -11,13 +11,13 @@ RUN echo "PATH=$PATH:/home/openfiscauser/.local/bin" > /home/openfiscauser/.bash
 
 # Install OpenFisca France Data
 WORKDIR /opt
-#RUN git clone https://github.com/openfisca/openfisca-france-data.git
+RUN git clone https://github.com/openfisca/openfisca-france-data.git
 WORKDIR /opt/openfisca-france-data
-# WARNING : use COPY only for testing : it will copy your secret files in the image !!!
-COPY . .
 RUN chown $USER_ID:$GROUP_ID -R /opt /home/openfiscauser
 
+# Switch to the openfiscauser
 USER openfiscauser
+# Install dependencies
 RUN python3 -m pip install --upgrade pip
 RUN pip install --upgrade pip setuptools
 RUN pip install --editable .[test] --upgrade
@@ -29,5 +29,3 @@ RUN mkdir -p /home/openfiscauser/.config
 RUN ln -s  /opt/data /home/openfiscauser/.config/openfisca-survey-manager
 
 WORKDIR /opt/data
-#COPY entrypoint.sh .
-#ENTRYPOINT [ "/opt/erfs/entrypoint.sh" ]

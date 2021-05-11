@@ -57,15 +57,18 @@ if __name__ == '__main__':
     import time
     start = time.time()
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+
     years = []
     try:
         config = configparser.ConfigParser()
-        config.read('data/raw_data.ini')
+        config.read('raw_data.ini')
         for key in config['erfs_fpr']:
             if key.isnumeric():
                 years.append(int(key))
-    except FileNotFoundError:
+                log.info(f"Adding year {int(key)}")
+    except KeyError:
         years = [2014]
+        log.warning(f"File raw_data.ini not found, switchin to {years}")
     for year in years:
         export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
         build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
