@@ -2,7 +2,7 @@
 
 This process aims at computing a unique file from all the [ERFS](https://www.insee.fr/fr/metadonnees/source/serie/s1231) FPR survey files.
 
-Pre-requisis : only Docker and git, no needs of Python on your local machine, everything will be install in Docker.
+Pre-requisis : only [Docker](https://docs.docker.com/get-docker/) and git, no needs of Python on your local machine, everything will be install in Docker.
 Tested on Ubuntu Linux 20.04 with success.
 Tested on one MacOSX but did not worked.
 
