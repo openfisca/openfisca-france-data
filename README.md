@@ -48,6 +48,11 @@ More recent versions should work, but are not tested.
 
 ## Installation
 
+### With Docker
+
+Please refer to [Docker Readme](./docker/README.md)
+### Local install
+
 You can follow this installation if you want to:
 * run one of OpenFisca-France-Data scripts,
 * develop and contribute to OpenFisca-France-Data source code. Please be welcomed! :)
