@@ -136,45 +136,59 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             self.new_simulation(use_baseline = True)
 
     def custom_initialize(self, simulation):
-        three_year_span_variables = [
+        input_variables = [
             "categorie_salarie",
-            # 'chomage_brut',
-            "chomage_imposable",
             "contrat_de_travail",
             "effectif_entreprise",
             "heures_remunerees_volume",
             # 'hsup',
             "pensions_alimentaires_percues",
+            ]
+
+        computed_variables_used_as_input =  [
+            # 'chomage_brut',
+            "chomage_imposable",
             "retraite_brute",
             "retraite_imposable",
             "salaire_de_base",
             ]
 
+        three_year_span_variables = input_variables + computed_variables_used_as_input
+
         simulation_period = periods.period(self.year)
+        for variable in three_year_span_variables:
+            assert variable in self.used_as_input_variables, \
+                f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
-        for offset in [-1, -2]:
-            for variable in three_year_span_variables:
-                assert variable in self.used_as_input_variables, \
-                    f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
+            if self.tax_benefit_system.variables[variable].value_type == Enum:
+                permanent_value = simulation.calculate(
+                    variable,
+                    period = periods.period(self.year).first_month,
+                    )
+            else:
+                permanent_value = simulation.calculate_add(
+                    variable,
+                    period = self.year,
+                    )
 
-                if self.tax_benefit_system.variables[variable].value_type == Enum:
+            for offset in [-1, -2]:
+                try:
                     simulation.set_input(
                         variable,
                         simulation_period.offset(offset),
-                        simulation.calculate(
+                        permanent_value
+                        )
+                except ValueError as e:
+                    log.debug(f"Dealing with: {e}")
+                    if sum(simulation.calculate_add(variable, simulation_period.offset(offset))) != sum(permanent_value):
+                        use_baseline = self.baseline_simulation == simulation
+                        simulation.delete_arrays(variable, simulation_period.offset(offset))
+                        simulation.set_input(
                             variable,
-                            period = periods.period(self.year).first_month,
+                            simulation_period.offset(offset),
+                            permanent_value
                             )
-                        )
-                else:
-                    simulation.set_input(
-                        variable,
-                        simulation_period.offset(offset),
-                        simulation.calculate_add(
-                            variable,
-                            period = self.year,
-                            ),
-                        )
+
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
         if "loyer" in input_data_frame:

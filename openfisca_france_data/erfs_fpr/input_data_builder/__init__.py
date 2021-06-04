@@ -2,8 +2,8 @@
 
 import click
 import logging
-
-
+import configparser
+import sys, getopt
 #from multipledispatch import dispatch  # type: ignore
 
 
@@ -63,22 +63,38 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     type = int, required = True)
 @click.option('-f', '--file', 'export_flattened_df_filepath', default = None,
     help = 'flattened dataframe filepath', show_default = True)
-def main(year = 2014, export_flattened_df_filepath = None):
-    import sys
+@click.option('-c', '--configfile', default = None,
+    help = 'raw_data.ini path to read years to process.', show_default = True)
+def main(year = 2014, export_flattened_df_filepath = None, configfile = None):
+    # Pourquoi year = 2014 alors que default = 2013 pour click ?
     import time
     start = time.time()
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
-    if export_flattened_df_filepath:
-        year = 2016
-        export_flattened_df_filepath = f"./erfs_flat_{year}.h5"  # Could be disabled with None
-    build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+
+    if configfile is not None:
+        years = []
+        try:
+            config = configparser.ConfigParser()
+            config.read(configfile)
+            for key in config['erfs_fpr']:
+                if key.isnumeric():
+                    years.append(int(key))
+                    log.info(f"Adding year {int(key)}")
+        except KeyError:
+            years = [year]
+            log.warning(f"File {configfile} not found, switchin to default {years}")
+        for year in years:
+            file = f"./erfs_flat_{year}.h5"
+            log.info(f'Will output to {file}')
+            build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+    else:
+        if export_flattened_df_filepath is None:
+            export_flattened_df_filepath = f"./erfs_flat_{year}.h5"
+        build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
     print(time.time() - start)
 
 
 if __name__ == '__main__':
-    main(
-        year = 2013,
-        export_flattened_df_filepath = "./dummy_data.h5",  # Could be disabled with None
-        )
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
+    main()
