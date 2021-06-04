@@ -1,22 +1,24 @@
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  # PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   CI_REGISTRY: https://index.docker.io/v1/
-  CI_REGISTRY_IMAGE: pseipp/taxipp-life-dependance-ci
+  CI_REGISTRY_IMAGE: leximpact/openfisca-france-data
+  # OUT_FOLDER: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA" # For branch-commit_id
+  OUT_FOLDER: "$CI_COMMIT_REF_NAME" # For just branch
 
-cache:
-  paths:
-    - .cache/pip
-    - ./figures/
+# cache:
+#   paths:
+#     - .cache/pip
+#     - ./figures/
 
 stages:
   - docker
-  - build
+  - build_1
+  - build_2
   - test
 
 
 build docker image:
   stage: docker
-  when: manual
   tags:
     - openfisca
   image:
@@ -26,80 +28,78 @@ build docker image:
     # From https://github.com/GoogleContainerTools/kaniko#pushing-to-docker-hub
     - DOCKER_HUB_AUTH=$(echo -n $DOCKER_HUB_USER:$DOCKER_HUB_PASSWORD | base64)
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$DOCKER_HUB_AUTH\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile.ci --destination $CI_REGISTRY_IMAGE:latest
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/docker/Dockerfile --destination $CI_REGISTRY_IMAGE:latest
+  # Build Docker is needed only if code as changed.
+  # when: manual
 
-
-build collections:
-  stage: build
+build_collections:
+  stage: build_1
   image: $CI_REGISTRY_IMAGE:latest
   tags:
     - openfisca
   before_script:
-    - make install
-    - rm -rf ~/.config/openfisca-survey-manager
-    - mkdir -p ~/.config/openfisca-survey-manager
+    # Begin with fresh config
+    - mkdir -p /mnt/data-out/data_collections/$OUT_FOLDER/
+    - rm /mnt/data-out/data_collections/$OUT_FOLDER/*.json || true # ignore error
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
     - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
-    - mkdir -p /root/ci-files/data_collections
+    # Custom output folder
+    - sed -i "s/data_collections/data_collections\/$OUT_FOLDER\//" ~/.config/openfisca-survey-manager/config.ini
   script:
-    - build-collection -c enquete_logement -d -m -s 2013
+    # - build-collection -c enquete_logement -d -m -s 2013
     - build-collection -c erfs_fpr -d -m -v
-    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini
-  when: manual
+    # Backup updated config
+    - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
+  # when: manual
 
-build input data:
-  stage: build
+build_input_data:
+  stage: build_2
   image: $CI_REGISTRY_IMAGE:latest
+  needs: [build_collections]
   tags:
     - openfisca
   before_script:
-    - make install
-    - rm -rf ~/.config/openfisca-survey-manager
-    - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-    - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
-    - mkdir -p /root/ci-files/data_collections
+    # Put the config from build collections step
+    - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini
   script:
     - cat ~/.config/openfisca-survey-manager/config.ini
-    - build-erfs-fpr -y 2013
+    # - build-erfs-fpr -y 2013
     - build-erfs-fpr -y 2014
-    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini
-    - build-erfs-fpr -y 2015
+    # - build-erfs-fpr -y 2015
     - build-erfs-fpr -y 2016
-    - build-erfs-fpr -y 2017
-    - cp ~/.config/openfisca-survey-manager/config.ini /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini
+    # - build-erfs-fpr -y 2017
+    - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs.ini
   # when: manual
-  allow_failure: true
+  # allow_failure: true # No, we need the output file for next step !
 
 test:
   stage: test
   image: $CI_REGISTRY_IMAGE:latest
+  needs: [build_input_data]
   tags:
     - openfisca
   before_script:
-    - make install
-    - pip install scipy
-    - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-    - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
-
-    - mkdir -p /root/ci-files/data_collections
+    # Put back the config.ini from previous step
+    - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs.ini ~/.config/openfisca-survey-manager/config.ini
   script:
     - make test
 
 aggregates:
   stage: test
   image: $CI_REGISTRY_IMAGE:latest
+  needs: [build_input_data]
   tags:
     - openfisca
   before_script:
-    - make install
-    - mkdir -p ~/.config/openfisca-survey-manager
     - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-    - cp /home/ipp/data/openfisca-france-data/openfisca_survey_manager_config_input_data.ini ~/.config/openfisca-survey-manager/config.ini
-    - mkdir -p /root/ci-files/data_collections
+   # Put back the config.ini from previous step
+    - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs.ini ~/.config/openfisca-survey-manager/config.ini
   script:
-    - python tests/erfs_fpr/integration/test_aggregates.py
+    - python tests/erfs_fpr/integration/test_aggregates.py --configfile ~/.config/openfisca-survey-manager/raw_data.ini
+    #- python tests/erfs_fpr/integration/test_aggregates.py --year 2014
+    - cp ./*.csv /mnt/data-out/
   artifacts:
     paths:
       - ./*.csv
