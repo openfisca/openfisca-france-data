@@ -65,12 +65,12 @@ def fake_input_data():
         input_data_frame.loc[0, "salaire_imposable"] = 20000
         input_data_frame.loc[1, "salaire_imposable"] = 10000
 
-        for idx in [2, 6]:
+        for idx in range(2, 6):
             input_data_frame.loc[idx] = input_data_frame.loc[1].copy()
             input_data_frame.loc[idx, "salaire_imposable"] = 0
-            input_data_frame.loc[idx, "quifam"] = idx
-            input_data_frame.loc[idx, "quifoy"] = idx
-            input_data_frame.loc[idx, "quimen"] = idx
+            input_data_frame.loc[idx, "quifam"] = 2
+            input_data_frame.loc[idx, "quifoy"] = 2
+            input_data_frame.loc[idx, "quimen"] = 2
 
             if idx < 4:
                 input_data_frame.loc[idx, "age"] = 10

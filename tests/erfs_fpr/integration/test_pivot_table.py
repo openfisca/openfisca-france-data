@@ -8,9 +8,8 @@ from openfisca_france_data.erfs.scenario import ErfsSurveyScenario
 from openfisca_france_data import base_survey
 
 
-@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_1d_mean():
-    year = 2012
+    year = 2013
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
     pivot_table = survey_scenario.compute_pivot_table(
         columns = ['decile_rfr'],
@@ -20,9 +19,8 @@ def test_pivot_table_1d_mean():
     return pivot_table
 
 
-@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_1d_sum():
-    year = 2012
+    year = 2013
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
     pivot_table = survey_scenario.compute_pivot_table(
         aggfunc = 'sum',
@@ -33,9 +31,8 @@ def test_pivot_table_1d_sum():
     return pivot_table
 
 
-@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_1d_count():
-    year = 2012
+    year = 2013
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
     pivot_table = survey_scenario.compute_pivot_table(
         aggfunc = 'count',
@@ -46,9 +43,8 @@ def test_pivot_table_1d_count():
     return pivot_table
 
 
-@pytest.mark.skip(reason = "configparser.NoOptionError: No option 'openfisca_erfs_fpr' in section: 'collections'")
 def test_pivot_table_2d_2values():
-    year = 2012
+    year = 2013
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
     pivot_table = survey_scenario.compute_pivot_table(
         columns = ['decile_rfr'],

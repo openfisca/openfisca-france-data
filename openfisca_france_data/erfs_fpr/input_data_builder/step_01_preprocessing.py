@@ -93,6 +93,8 @@ Il y a {} individus dans eec_individu
          + (["noiper"] if "noiper" in individus.columns else []))
 
     for var in var_list:
+        individus[var]=individus[var].fillna(0)
+        individus[var]=individus[var].astype(np.int64)
         assert np.issubdtype(individus[var].dtype, np.integer), \
             "Variable {} dtype is {} and should be an integer".format(
                 var, individus[var].dtype
@@ -159,6 +161,14 @@ Il y a {} individus dans la base individus fusionnée
     if skip_menage:
         menages = None
 
+    m = individus.select_dtypes(np.number)
+    individus[m.columns]= individus[m.columns].fillna(0)
+    individus[m.columns]= individus[m.columns].astype('int64')
+
+    m = menages.select_dtypes(np.number)
+    menages[m.columns]= menages[m.columns].fillna(0)
+    menages[m.columns]= menages[m.columns].astype('int64')
+
     return individus, menages
 
 
@@ -202,8 +212,13 @@ def check_naia_naim(individus, year):
             individus.naim == 0,
             'naim'
             ] = 1
+        individus.loc[
+            individus.naim.isnull(),
+            'naim'
+            ] = 1
 
-    assert individus.naim.isin(range(1, 13)).all()
+    assert individus.naim.isin(range(1, 13)).all(), f"naim values: {individus.naim.unique()}"
+    assert isinstance(year, int)
     good = ((year >= individus.naia) & (individus.naia > 1890))
     assertion = good.all()
     bad_idents = individus.loc[~good, "ident"].unique()

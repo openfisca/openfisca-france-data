@@ -74,3 +74,10 @@ setup.cfg
 
 # MyPy junk
 .mypy_cache/
+
+# Prevent ERFS leaks
+*.sas7bdat
+*.h5
+# Generated files
+erfs_fpr.json
+openfisca_erfs_fpr.json
