@@ -15,7 +15,7 @@ from openfisca_france_data.common import (
 from openfisca_france_data import openfisca_france_tax_benefit_system
 from openfisca_france_data.smic import (
     smic_annuel_net_by_year,
-    smic_annuel_imposbale_by_year,
+    smic_annuel_imposable_by_year,
     )
 from openfisca_france_data.utils import assert_dtype
 from openfisca_survey_manager.temporary import temporary_store_decorator
@@ -623,7 +623,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
         log.info('Salaire retenu: {}'.format('salaire_imposable'))
         individus['salaire'] = individus.salaire_imposable.copy()
-        smic = smic_annuel_imposbale_by_year[period.start.year]
+        smic = smic_annuel_imposable_by_year[period.start.year]
 
     if period.unit == 'month':
         smic = period.size * smic / 12
