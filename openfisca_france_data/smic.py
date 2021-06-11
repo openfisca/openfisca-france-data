@@ -15,7 +15,7 @@ from openfisca_france_data import openfisca_france_tax_benefit_system
 #     }
 
 smic_horaire_brut = dict()
-for year in range(2010, 2021):
+for year in range(2002, 2021):
     try:
         smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
     except:
@@ -34,6 +34,20 @@ smic_annuel_net_by_year = {
     2012: 2 * 1116.87 + 4 * 1118.29 + 6 * 1096.88,
     2011: 11 * 1072.07 + 1094.71,
     2010: 12 * 1056.24,
+    2009: 12 * 1056.24,
+    2008: 12 * 1056.24,
+    2007: 12 * 1056.24,
+    2006: 12 * 1056.24,
+    2005: 12 * 1056.24,
+    2004: 12 * 1056.24,
+    2003: 12 * 1056.24,
+    2002: 12 * 1056.24,
+    2001: 12 * 1056.24,
+    2000: 12 * 1056.24,
+    1999: 12 * 1056.24,
+    1998: 12 * 1056.24,
+    1997: 12 * 1056.24,
+    1996: 12 * 1056.24,
     }
 
 abattement_by_year = {
@@ -48,6 +62,20 @@ abattement_by_year = {
     2012: .0175,
     2011: .03,
     2010: .03,
+    2009: .03,
+    2008: .03,
+    2007: .03,
+    2006: .03,
+    2005: .03,
+    2004: .03,
+    2003: .03,
+    2002: .03,
+    2001: .03,
+    2000: .03,
+    1999: .03,
+    1998: .03,
+    1997: .03,
+    1996: .03,
     }
 
 
@@ -63,13 +91,13 @@ def smic_annuel_imposable_from_net(year):
 
 smic_annuel_imposable_by_year = dict([
     (year, smic_annuel_imposable_from_net(year))
-    for year in range(2010, 2021)
+    for year in range(2002, 2021)
     ])
 
 
 smic_horaire_brut_by_year = dict([
     (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
-    for year in range(2005, 2021)
+    for year in range(2002, 2021)
     ])
 
 smic_annuel_brut_by_year = dict([
