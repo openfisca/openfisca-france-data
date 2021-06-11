@@ -64,6 +64,9 @@ def create_variables_individuelles(individus, year, survey_year = None):
     #individus = [_ for _ in individus if individus.ident != 116340] #naia=0 2010
     #individus = individus[individus.ident != 116340]
     #individus.drop(index = 116340)
+    print(year)
+    if year == 2010:
+        individus = individus[individus["ident"] != 116340]
     print(individus[["naia"]].sort_values("naia"))
     #idmens = [_ for _ in idmens if _ != 80149] #naia=0 2009
     #idmens = [_ for _ in idmens if _ != 69673] #naia=0 2006
