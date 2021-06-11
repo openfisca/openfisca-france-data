@@ -78,7 +78,6 @@ abattement_by_year = {
     1996: .03,
     }
 
-
 def smic_annuel_imposable_from_net(year):
     smic_net = smic_annuel_net_by_year[year]
     smic_brut = smic_horaire_brut[year] * 35 * 52
