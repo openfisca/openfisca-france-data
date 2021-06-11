@@ -60,19 +60,15 @@ def build_variables_individuelles(temporary_store = None, year = None):
 def create_variables_individuelles(individus, year, survey_year = None):
     """Création des variables individuelles
     """
-    print(individus[["naia"]].sort_values("naia"))
-    #individus = [_ for _ in individus if individus.ident != 116340] #naia=0 2010
-    #individus = individus[individus.ident != 116340]
-    #individus.drop(index = 116340)
-    print(year)
     if year == 2010:
-        individus = individus[individus["ident"] != 116340]
-    print(individus[["naia"]].sort_values("naia"))
-    #idmens = [_ for _ in idmens if _ != 80149] #naia=0 2009
-    #idmens = [_ for _ in idmens if _ != 69673] #naia=0 2006
-    #idmens = [_ for _ in idmens if _ != 60696] #naia=0 2006
-    #idmens = [_ for _ in idmens if _ != 84480] #naia=0 2006
-    #idmens = [_ for _ in idmens if _ != 29379] #naia=1850 2006
+        individus = individus[individus["ident"] != 10023257] #naia = 0
+    if year == 2009:
+        individus = individus[individus["ident"] != 9035373] #naia = 0
+    if year == 2006:
+        individus = individus[individus["ident"] != 6026297] #naia = 0
+        individus = individus[individus["ident"] != 6030202] #naia = 0
+        individus = individus[individus["ident"] != 6036558] #naia = 0
+        individus = individus[individus["ident"] != 6012715] #naia = 1850   
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
