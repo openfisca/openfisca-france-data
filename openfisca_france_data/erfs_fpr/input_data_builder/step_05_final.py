@@ -118,8 +118,11 @@ def create_collectives_foyer_variables(individus, menages):
     menages_revenus_fonciers = menages[['idmen', 'rev_fonciers_bruts']].copy()
     idmens = menages_revenus_fonciers.query('(rev_fonciers_bruts > 0)')['idmen'].tolist()
     # I'm not proud
-    # TODO: WDF ?!
+    # TODO: WDF ?!
     idmens = [_ for _ in idmens if _ != 14024264]
+    idmens = [_ for _ in idmens if _ != 15010850]
+    idmens = [_ for _ in idmens if _ != 17000919]
+    idmens = [_ for _ in idmens if _ != 18046072]
     menages_multi_foyers = (individus
         .query('idmen in @idmens')[['idmen', 'idfoy', 'age']]  # On ne garde que les ménages avec des revenus fonciers
         .groupby('idmen')

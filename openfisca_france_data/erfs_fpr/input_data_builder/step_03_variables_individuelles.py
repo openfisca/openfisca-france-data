@@ -60,6 +60,16 @@ def build_variables_individuelles(temporary_store = None, year = None):
 def create_variables_individuelles(individus, year, survey_year = None):
     """Création des variables individuelles
     """
+    print(individus[["naia"]].sort_values("naia"))
+    #individus = [_ for _ in individus if individus.ident != 116340] #naia=0 2010
+    #individus = individus[individus.ident != 116340]
+    #individus.drop(index = 116340)
+    print(individus[["naia"]].sort_values("naia"))
+    #idmens = [_ for _ in idmens if _ != 80149] #naia=0 2009
+    #idmens = [_ for _ in idmens if _ != 69673] #naia=0 2006
+    #idmens = [_ for _ in idmens if _ != 60696] #naia=0 2006
+    #idmens = [_ for _ in idmens if _ != 84480] #naia=0 2006
+    #idmens = [_ for _ in idmens if _ != 29379] #naia=1850 2006
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -72,7 +82,7 @@ def create_variables_individuelles(individus, year, survey_year = None):
 
     # Il faut que la base d'input se fasse au millésime des données
     # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
-    # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
+    # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
     # je besoin d'un droit courantcomme même du droit currant pour l'année des données
     tax_benefit_system = openfisca_france_tax_benefit_system
 

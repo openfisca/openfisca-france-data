@@ -106,7 +106,7 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
     On essaie de repérer un type de famille, à chaque fois.
     Le réliquat on le met où on peut.
 
-    TODO : jeter un oeil à comment INES l'a fait
+    TODO : jeter un oeil à comment INES l'a fait
     """
     assert indivi is not None
     assert year is not None
@@ -672,7 +672,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     if year == 2013:
         famille = famille[famille["noindiv"] != 1300584605]
         famille = famille[famille["noindiv"] != 1302648201]
-    if year == 2015:
+    elif year == 2015:
         famille = famille[famille["noindiv"] != 1501024703]
     else :
         pass # no such issue detected on other years
