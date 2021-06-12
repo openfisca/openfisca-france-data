@@ -29,18 +29,18 @@ class Aggregates(object):
     base_data_frame = None
     filter_by = None
     labels = collections.OrderedDict((
-        ('label', u"Mesure"),
-        ('entity', u"Entité"),
-        ('reform_amount', u"Dépenses\n(millions d'€)"),
-        ('reform_beneficiaries', u"Bénéficiaires\n(milliers)"),
-        ('baseline_amount', u"Dépenses initiales\n(millions d'€)"),
-        ('baseline_beneficiaries', u"Bénéficiaires\ninitiaux\n(milliers)"),
-        ('actual_amount', u"Dépenses\nréelles\n(millions d'€)"),
-        ('actual_beneficiaries', u"Bénéficiaires\nréels\n(milliers)"),
-        ('amount_absolute_difference', u"Diff. absolue\nDépenses\n(millions d'€)"),
-        ('beneficiaries_absolute_difference', u"Diff absolue\nBénéficiaires\n(milliers)"),
-        ('amount_relative_difference', u"Diff. relative\nDépenses"),
-        ('beneficiaries_relative_difference', u"Diff. relative\nBénéficiaires"),
+        ('label', "Mesure"),
+        ('entity', "Entité"),
+        ('reform_amount', "Dépenses\n(millions d'€)"),
+        ('reform_beneficiaries', "Bénéficiaires\n(milliers)"),
+        ('baseline_amount', "Dépenses initiales\n(millions d'€)"),
+        ('baseline_beneficiaries', "Bénéficiaires\ninitiaux\n(milliers)"),
+        ('actual_amount', "Dépenses\nréelles\n(millions d'€)"),
+        ('actual_beneficiaries', "Bénéficiaires\nréels\n(milliers)"),
+        ('amount_absolute_difference', "Diff. absolue\nDépenses\n(millions d'€)"),
+        ('beneficiaries_absolute_difference', "Diff absolue\nBénéficiaires\n(milliers)"),
+        ('amount_relative_difference', "Diff. relative\nDépenses"),
+        ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
         ))
     baseline_simulation = None
     simulation = None
@@ -280,7 +280,7 @@ class Aggregates(object):
             u'OpenFisca',
             u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
             u'Système socio-fiscal au %s' % self.simulation.period.start.year,
-            u"Données d'enquêtes de l'année %s" % str(self.data_year),
+            "Données d'enquêtes de l'année %s" % str(self.data_year),
             ])
 
     def export_table(self,

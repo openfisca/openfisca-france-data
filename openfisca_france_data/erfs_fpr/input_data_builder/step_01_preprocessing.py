@@ -52,7 +52,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
 def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_individu = None, year = None,
         skip_menage = False):
     assert (eec_individu is not None) and (fpr_individu is not None)
-    log.debug(u"""
+    log.debug("""
 Il y a {} individus dans fpr_individu
 Il y a {} individus dans eec_individu
 """.format(
@@ -104,7 +104,7 @@ Il y a {} individus dans eec_individu
         individus['lpr'] = individus.lprm
 
     if not skip_menage:
-        log.debug(u"""
+        log.debug("""
 Il y a {} ménages dans fpr_menage
 Il y a {} ménages dans eec_menage
 """.format(
@@ -112,20 +112,20 @@ Il y a {} ménages dans eec_menage
             len(eec_menage.ident.unique()),
         ))
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
-        log.debug(u"""
+        log.debug("""
 Les variables suivantes sont communes aux deux tables ménages:
   {}
 """.format(common_variables))
         if 'th' in common_variables:
             fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
-            log.debug(u"La variable th de la table fpr_menage est renommée taxe_habitation")
+            log.debug("La variable th de la table fpr_menage est renommée taxe_habitation")
 
         if 'tur5' in common_variables:
             fpr_menage.drop('tur5', axis = 1, inplace = True)
-            log.debug(u"La variable tur5 redondante est retirée de la table fpr_menage")
+            log.debug("La variable tur5 redondante est retirée de la table fpr_menage")
 
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
-        log.debug(u"""
+        log.debug("""
 Après renommage seules les variables suivantes sont communes aux deux tables ménages:
   {}
 """.format(common_variables))
@@ -141,12 +141,12 @@ Après renommage seules les variables suivantes sont communes aux deux tables m�
         except Exception:
             print(individus.dtypes)
             raise
-        log.debug(u"""
+        log.debug("""
 Il y a {} ménages dans la base ménage fusionnée
 """.format(len(menages.ident.unique())))
         #
     #
-    log.debug(u"""
+    log.debug("""
 Il y a {} ménages dans la base individus fusionnée
 Il y a {} individus dans la base individus fusionnée
 """.format(

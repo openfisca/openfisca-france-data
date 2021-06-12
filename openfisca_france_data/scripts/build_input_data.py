@@ -30,5 +30,6 @@ def main():
 
     log.info("Build lasted {}".format(time.time() - start))
 
+
 if __name__ == '__main__':
     sys.exit(main())
