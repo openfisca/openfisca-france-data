@@ -666,11 +666,14 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     assert not famille.duplicated().any()
 
+    # TODO: clean this mess
     # manually removing a family (which year?)
     famille = famille[famille["noifam"] != 1402071301]
     if year == 2013:
         famille = famille[famille["noindiv"] != 1300584605]
         famille = famille[famille["noindiv"] != 1302648201]
+    if year == 2015:
+        famille = famille[famille["noindiv"] != 1501024703]
     else :
         pass # no such issue detected on other years
     assert not famille.noindiv.duplicated().any()
