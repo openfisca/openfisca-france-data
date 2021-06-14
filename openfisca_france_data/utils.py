@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import os
 
@@ -10,7 +8,7 @@ import openfisca_france  # type: ignore
 from openfisca_survey_manager.survey_collections import SurveyCollection  # type: ignore
 from openfisca_survey_manager.surveys import Survey  # type: ignore
 
-from openfisca_france_data import openfisca_france_tax_benefit_system    
+from openfisca_france_data import openfisca_france_tax_benefit_system
 
 
 log = logging.getLogger(__name__)

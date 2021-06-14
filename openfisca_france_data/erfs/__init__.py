@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 def get_of2erf(year=None):
     of2erf = dict()
     of2erf["csg"] = "csgim"  # imposable, et "csgdm", déductible

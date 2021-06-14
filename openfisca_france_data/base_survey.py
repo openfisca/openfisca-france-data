@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from functools import reduce
 
 from openfisca_core.reforms import Reform

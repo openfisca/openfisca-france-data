@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 
 """This module provides routines to impute menage level variable to erfs_fpr data.

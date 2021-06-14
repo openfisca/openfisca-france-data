@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from itertools import izip
 
 from numpy import arange, array, floor, where

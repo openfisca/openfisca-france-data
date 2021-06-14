@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from openfisca_france_data.utils import build_cerfa_fields_by_column_name  # type: ignore
 
 

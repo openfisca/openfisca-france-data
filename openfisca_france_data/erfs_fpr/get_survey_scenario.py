@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from typing import Any, Optional
 
 from multipledispatch import dispatch  # type: ignore

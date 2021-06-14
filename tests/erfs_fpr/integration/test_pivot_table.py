@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import pytest
 
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario as erfs_fpr_get_survey_scenario

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 # TODO: THIS NEEDS CLEANING
 
 # this directory contains:

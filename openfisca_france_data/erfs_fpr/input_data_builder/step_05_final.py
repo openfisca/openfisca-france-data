@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import gc
 import logging
 import pandas

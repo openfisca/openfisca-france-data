@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from pandas import read_csv
 import numpy as np
 
