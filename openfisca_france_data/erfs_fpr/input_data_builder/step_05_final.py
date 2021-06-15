@@ -123,6 +123,7 @@ def create_collectives_foyer_variables(individus, menages):
     idmens = [_ for _ in idmens if _ != 15010850]
     idmens = [_ for _ in idmens if _ != 17000919]
     idmens = [_ for _ in idmens if _ != 18046072]
+    idmens = [_ for _ in idmens if _ != 8019138]
     menages_multi_foyers = (individus
         .query('idmen in @idmens')[['idmen', 'idfoy', 'age']]  # On ne garde que les ménages avec des revenus fonciers
         .groupby('idmen')
@@ -205,6 +206,8 @@ def extract_menages_variables(menages):
         if external_variable in menages.columns:
             log.info("Found {} in menages table: we keep it".format(external_variable))
             variables.append(external_variable)
+    #TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
+    menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
     menages = menages[variables].copy()
     menages.taxe_habitation = - menages.taxe_habitation  # taxes should be negative
     menages.rename(columns = dict(ident = 'idmen'), inplace = True)
