@@ -13,7 +13,10 @@ from openfisca_france_data.aggregates import Aggregates
 
 
 log = logging.getLogger(__name__)
-
+logging.basicConfig(level = logging.INFO, stream = sys.stdout,
+    format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 
 def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data = False):
@@ -62,8 +65,6 @@ def test_erfs_fpr_aggregates_reform():
 def main(year, configfile = None, verbose = False):
     if verbose:
         logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    else:
-        logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     years = []
     if configfile is not None:
@@ -90,4 +91,8 @@ def main(year, configfile = None, verbose = False):
 
 
 if __name__ == '__main__':
+    log.info("Starting...")
     main()
+    log.info("THE END!")
+
+    
