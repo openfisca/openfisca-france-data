@@ -51,7 +51,7 @@ abattement_by_year = {
     }
 
 
-def smic_annuel_imposbale_from_net(year):
+def smic_annuel_imposable_from_net(year):
     smic_net = smic_annuel_net_by_year[year]
     smic_brut = smic_horaire_brut[year] * 35 * 52
     smic_imposable = (
@@ -61,8 +61,8 @@ def smic_annuel_imposbale_from_net(year):
     return smic_imposable
 
 
-smic_annuel_imposbale_by_year = dict([
-    (year, smic_annuel_imposbale_from_net(year))
+smic_annuel_imposable_by_year = dict([
+    (year, smic_annuel_imposable_from_net(year))
     for year in range(2010, 2021)
     ])
 
