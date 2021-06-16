@@ -63,6 +63,7 @@ def test_erfs_fpr_aggregates_reform():
 @click.option('-v', '--verbose', default = False,
     help = 'print debug information', show_default = True)
 def main(year, configfile = None, verbose = False):
+    """Computes aggregates."""
     if verbose:
         logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
 
@@ -86,8 +87,11 @@ def main(year, configfile = None, verbose = False):
             rebuild_input_data = False,
             )
         survey_scenario._set_used_as_input_variables_by_entity()
-        df = aggregates.compute_aggregates(actual = True)
-        df.to_csv(f'aggregates{year}.csv')
+        aggregates.to_csv(f'aggregates{year}.csv')
+        print(aggregates.to_markdown())
+
+        aggregates.to_markdown(f'aggregates{year}.md')
+
 
 
 if __name__ == '__main__':
