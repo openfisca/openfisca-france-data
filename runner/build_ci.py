@@ -29,8 +29,8 @@ stages:
   - test
   - build_input_data
   - aggregates
-  
-  
+
+
 before_script:
   - echo "I'm executed before all job's"
   # To be sure we are up to date even if we do not rebuild docker image
@@ -116,11 +116,11 @@ def aggregates(year):
             #'python tests/erfs_fpr/integration/test_aggregates.py --configfile ~/.config/openfisca-survey-manager/raw_data.ini',
             'python tests/erfs_fpr/integration/test_aggregates.py --year ' + year,
             'mkdir -p /mnt/data-out/$OUT_FOLDER',
-            'ls ./*.csv',
-            'cp ./*.csv /mnt/data-out/$OUT_FOLDER',
+            'ls ./*.md',
+            'cp ./*.md /mnt/data-out/$OUT_FOLDER',
             ],
         'artifacts':{
-            'paths': ['./*.csv']
+            'paths': ['./*.md']
             }
         }
     }

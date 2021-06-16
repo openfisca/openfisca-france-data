@@ -22,8 +22,8 @@ stages:
   - test
   - build_input_data
   - aggregates
-  
-  
+
+
 before_script:
   - echo "I'm executed before all job's"
   # To be sure we are up to date even if we do not rebuild docker image
@@ -81,7 +81,7 @@ in_dt-2012:
 agg-2012:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2012
@@ -91,8 +91,8 @@ agg-2012:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2012
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -110,7 +110,7 @@ in_dt-2013:
 agg-2013:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2013
@@ -120,8 +120,8 @@ agg-2013:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2013
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -139,7 +139,7 @@ in_dt-2014:
 agg-2014:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2014
@@ -149,8 +149,8 @@ agg-2014:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2014
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -168,7 +168,7 @@ in_dt-2015:
 agg-2015:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2015
@@ -178,8 +178,8 @@ agg-2015:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2015
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -197,7 +197,7 @@ in_dt-2016:
 agg-2016:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2016
@@ -207,8 +207,8 @@ agg-2016:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2016
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -226,7 +226,7 @@ in_dt-2017:
 agg-2017:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2017
@@ -236,8 +236,8 @@ agg-2017:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2017
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -255,7 +255,7 @@ in_dt-2018:
 agg-2018:
   artifacts:
     paths:
-    - ./*.csv
+    - ./*.md
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2018
@@ -265,8 +265,8 @@ agg-2018:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.csv
-  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
+  - ls ./*.md
+  - cp ./*.md /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
