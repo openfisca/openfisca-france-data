@@ -31,7 +31,7 @@ def build_famille(temporary_store = None, year = None):
     log.info('Etape 1 : préparation de base')
     log.info('    1.1 : récupération de indivi')
     indivi = temporary_store['individus_{}'.format(year)]
-
+    
     # Si on pense qu'on ne peut pas récupérer les enfants à naître
     if skip_enfants_a_naitre:
         log.info("    1.2 : On ne récupère pas d'enfants à naître")
@@ -202,7 +202,7 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
     base['jeune_non_eligible_rsa'] = (base.agepf >= 16) & (base.agepf < AGE_RSA)
     base['jeune_eligible_rsa'] = base.agepf >= AGE_RSA
 
-    if kind == 'erfs_fpr':
+    if kind == 'erfs_fpr': 
         base['salaire_de_base'].fillna(0, inplace = True)
         base['smic55'] = base.salaire_de_base >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
     else:

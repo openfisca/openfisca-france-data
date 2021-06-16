@@ -214,62 +214,13 @@ def check_naia_naim(individus, year):
             individus.naim.isnull(),
             'naim'
             ] = 1
-
+        
     assert individus.naim.isin(range(1, 13)).all(), f"naim values: {individus.naim.unique()}"
     assert isinstance(year, int)
-    good = ((year >= individus.naia) & (individus.naia > 1890))
-    assertion = good.all()
-    bad_idents = individus.loc[~good, "ident"].unique()
-    try:
-        lpr = "lpr" if year < 2013 else "lprm"
-        lien = "lien" if year < 2013 else "lienprm"  # TODO attention pas les mêmes modalités
-        prosa = "prosa" if year < 2013 else "qprcent"  # TODO attention pas les mêmes modalités
-        retrai = "retrai" if year < 2013 else "ret"  # TODO attention pas les mêmes modalités
-        assert assertion, "Error: \n {}".format(
-            individus.loc[
-                individus.ident.isin(bad_idents),  # WTF is this table supposed to be? I changed the 'lien' in lien
-                # and so on for other variables
-                [
-                    'ag',
-                    'ident',
-                    lien,
-                    'naia',
-                    'naim',
-                    'noi',
-                    'noicon',
-                    'noimer',
-                    prosa,
-                    retrai,
-                    'rstg',
-                    'statut',
-                    'sexe',
-                    lpr,
-                    'chomage_i',
-                    'pens_alim_recue_i',
-                    'rag_i',
-                    'retraites_i',
-                    'ric_i',
-                    'rnc_i',
-                    'salaires_i',
-                    ]
-                    + (["noiper"] if "noiper" in individus.columns else [])
-                ]
-            )
-    except AssertionError:
-        if year == 2012:
-            log.debug('Fixing erroneous naia manually')
-            individus.loc[
-                (individus.ident == 12023304) & (individus.noi == 2),
-                'naia'
-                ] = 1954
-            individus.loc[
-                (individus.ident == 12041815) & (individus.noi == 1),
-                'naia'
-                ] = 2012 - 40
-            #
-        else:
-            AssertionError('naia and naim have invalid values')
-
+    bad_noindiv = individus.loc[~((year >= individus.naia) & (individus.naia > 1890)), 
+                                "noindiv"].unique()
+    for id in bad_noindiv:
+        individus.loc[individus.noindiv == id,'naia'] = year - individus.loc[individus.noindiv == id,'ageq']
 
 if __name__ == '__main__':
     import sys

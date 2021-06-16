@@ -31,7 +31,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
     individus = temporary_store['individus_{}_post_01'.format(year)]
-
+    
     erfs_by_openfisca_variables = {
         'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
@@ -50,6 +50,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
         inplace = True,
         )
     create_variables_individuelles(individus, year)
+    assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     temporary_store['individus_{}'.format(year)] = individus
     log.debug("step_03_variables_individuelles terminée")
     return individus
@@ -60,15 +61,6 @@ def build_variables_individuelles(temporary_store = None, year = None):
 def create_variables_individuelles(individus, year, survey_year = None):
     """Création des variables individuelles
     """
-    if year == 2010:
-        individus = individus[individus["ident"] != 10023257] #naia = 0
-    if year == 2009:
-        individus = individus[individus["ident"] != 9035373] #naia = 0
-    if year == 2006:
-        individus = individus[individus["ident"] != 6026297] #naia = 0
-        individus = individus[individus["ident"] != 6030202] #naia = 0
-        individus = individus[individus["ident"] != 6036558] #naia = 0
-        individus = individus[individus["ident"] != 6012715] #naia = 1850   
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -92,12 +84,14 @@ def create_variables_individuelles(individus, year, survey_year = None):
         revenu_type = revenu_type,
         tax_benefit_system = tax_benefit_system
         )
-
+    
     # Pour les cotisations patronales qui varient avec la taille de la boîte
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus)
+    assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
+    return individus
 
 
 def create_individu_variables_brutes(individus, revenu_type = None, period = None,
