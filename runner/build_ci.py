@@ -26,9 +26,10 @@ cache:
 stages:
   - docker
   - build_collection
+  - test
   - build_input_data
   - aggregates
-  - test
+  
   
 before_script:
   - echo "I'm executed before all job's"
@@ -124,17 +125,15 @@ def aggregates(year):
         }
     }
 
-def make_test(year):
+
+# Warning : not used yet : test are independant for now.
+def make_test_by_year(year):
     return {
         'test-'+year:{
             'stage': 'test',
             'image': '$CI_REGISTRY_IMAGE:latest',
             'needs': ['agg-' + year],
             'tags': ['openfisca'],
-            'before_script':[
-                'echo before_script',
-                'echo Coucou',
-            ],
             'script':[
                 'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini ~/.config/openfisca-survey-manager/config.ini',
                 'make test',
@@ -142,6 +141,19 @@ def make_test(year):
             }
         }
 
+
+def make_test():
+    return {
+        'test':{
+            'stage': 'test',
+            'image': '$CI_REGISTRY_IMAGE:latest',
+            'tags': ['openfisca'],
+            'script':[
+                #'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini ~/.config/openfisca-survey-manager/config.ini',
+                'make test',
+                ],
+            }
+        }
 
 def get_erfs_years():
     years = []
@@ -163,7 +175,7 @@ def build_gitlab_ci(erfs_years):
         print('\t ERFS : Building for year', year)
         gitlab_ci += yaml.dump(build_input_data(year))
         gitlab_ci += yaml.dump(aggregates(year))
-        gitlab_ci += yaml.dump(make_test(year))
+    gitlab_ci += yaml.dump(make_test())
     return gitlab_ci
 
 def main():

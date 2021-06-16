@@ -19,9 +19,10 @@ cache:
 stages:
   - docker
   - build_collection
+  - test
   - build_input_data
   - aggregates
-  - test
+  
   
 before_script:
   - echo "I'm executed before all job's"
@@ -95,20 +96,6 @@ agg-2012:
   stage: aggregates
   tags:
   - openfisca
-test-2012:
-  before_script:
-  - echo before_script
-  - echo Coucou
-  image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2012
-  script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2012.ini
-    ~/.config/openfisca-survey-manager/config.ini
-  - make test
-  stage: test
-  tags:
-  - openfisca
 in_dt-2013:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -136,20 +123,6 @@ agg-2013:
   - ls ./*.csv
   - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
-  tags:
-  - openfisca
-test-2013:
-  before_script:
-  - echo before_script
-  - echo Coucou
-  image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2013
-  script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2013.ini
-    ~/.config/openfisca-survey-manager/config.ini
-  - make test
-  stage: test
   tags:
   - openfisca
 in_dt-2014:
@@ -181,20 +154,6 @@ agg-2014:
   stage: aggregates
   tags:
   - openfisca
-test-2014:
-  before_script:
-  - echo before_script
-  - echo Coucou
-  image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2014
-  script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2014.ini
-    ~/.config/openfisca-survey-manager/config.ini
-  - make test
-  stage: test
-  tags:
-  - openfisca
 in_dt-2015:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -222,20 +181,6 @@ agg-2015:
   - ls ./*.csv
   - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
-  tags:
-  - openfisca
-test-2015:
-  before_script:
-  - echo before_script
-  - echo Coucou
-  image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2015
-  script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2015.ini
-    ~/.config/openfisca-survey-manager/config.ini
-  - make test
-  stage: test
   tags:
   - openfisca
 in_dt-2016:
@@ -267,20 +212,6 @@ agg-2016:
   stage: aggregates
   tags:
   - openfisca
-test-2016:
-  before_script:
-  - echo before_script
-  - echo Coucou
-  image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2016
-  script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2016.ini
-    ~/.config/openfisca-survey-manager/config.ini
-  - make test
-  stage: test
-  tags:
-  - openfisca
 in_dt-2017:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -308,20 +239,6 @@ agg-2017:
   - ls ./*.csv
   - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
-  tags:
-  - openfisca
-test-2017:
-  before_script:
-  - echo before_script
-  - echo Coucou
-  image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2017
-  script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2017.ini
-    ~/.config/openfisca-survey-manager/config.ini
-  - make test
-  stage: test
   tags:
   - openfisca
 in_dt-2018:
@@ -353,16 +270,9 @@ agg-2018:
   stage: aggregates
   tags:
   - openfisca
-test-2018:
-  before_script:
-  - echo before_script
-  - echo Coucou
+test:
   image: $CI_REGISTRY_IMAGE:latest
-  needs:
-  - agg-2018
   script:
-  - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
-    ~/.config/openfisca-survey-manager/config.ini
   - make test
   stage: test
   tags:
