@@ -180,33 +180,34 @@ def create_actrec(individus):
     """
     assert "actrec" not in individus.columns
     individus["actrec"] = np.nan
+    acteu = 'act' if 'act' in individus else 'acteu'
     # Attention : Pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
     # la même nomenclature à été adopée
     # 3: contrat a durée déterminée
-    individus.loc[individus.acteu == 1, 'actrec'] = 3
+    individus.loc[individus[acteu]== 1, 'actrec'] = 3
     # 8: femme (homme) au foyer, autre inactif
-    individus.loc[individus.acteu == 3, 'actrec'] = 8
+    individus.loc[individus[acteu] == 3, 'actrec'] = 8
     # 1: actif occupé non salarié
-    filter1 = (individus.acteu == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte
+    filter1 = (individus[acteu] == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte
     individus.loc[filter1, 'actrec'] = 1                             # ou pour un membre de sa famille
     # 2: salarié pour une durée non limitée
-    filter2 = (individus.acteu == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
+    filter2 = (individus[acteu] == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
     individus.loc[filter2, 'actrec'] = 2
     # 4: au chomage
-    filter4 = (individus.acteu == 2) | ((individus.acteu == 3) & (individus.mrec == 1))
+    filter4 = (individus[acteu] == 2) | ((individus[acteu] == 3) & (individus.mrec == 1))
     individus.loc[filter4, 'actrec'] = 4
     # 5: élève étudiant , stagiaire non rémunéré
-    filter5 = (individus.acteu == 3) & ((individus.forter == 2) | (individus.rstg == 1))
+    filter5 = (individus[acteu] == 3) & ((individus.forter == 2) | (individus.rstg == 1))
     individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
     try:
-        filter7 = (individus.acteu == 3) & ((individus.ret == 1))  # cas >= 2014, evite de ramener l'année dans la fonction
+        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))  # cas >= 2014, evite de ramener l'année dans la fonction
     except Exception:
-        filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+        filter7 = (individus[acteu] == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
 
     individus.loc[filter7, 'actrec'] = 7
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
-    individus.loc[individus.acteu == 0, 'actrec'] = 9
+    individus.loc[individus[acteu] == 0, 'actrec'] = 9
 
     assert individus.actrec.notnull().all()
     individus.actrec = individus.actrec.astype("int8")

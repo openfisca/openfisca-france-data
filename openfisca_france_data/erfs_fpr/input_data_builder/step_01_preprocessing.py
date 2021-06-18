@@ -68,12 +68,12 @@ Il y a {} individus dans eec_individu
     prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
     retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
     txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+    acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
     var_list = ([
-        'acteu',
+        acteu,
         agepr,
         cohab,
         'contra',
-        #'encadr',
         'forter',
         lien,
         'mrec',
