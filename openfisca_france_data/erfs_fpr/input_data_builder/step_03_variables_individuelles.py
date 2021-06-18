@@ -347,10 +347,14 @@ def create_categorie_salarie(individus, period, survey_year = None):
 
     assert individus.chpub.isin(range(0, 7)).all(), \
         "chpub n'est pas toujours dans l'intervalle [0, 6]\n{}".format(individus.chpub.value_counts(dropna = False))
-
-    individus.loc[individus.encadr == 0, 'encadr'] = 2
-    assert individus.encadr.isin(range(1, 3)).all(), \
-        "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
+    
+# N'existe qu'à partir de 2006 inclu
+# On pourrait prendre csei mais elle ne recoupe pas bien prosa, ce serait vraiment
+# une autre manière de déterminer la catégorie salariale.
+    if 'encadr' in individus: 
+       individus.loc[individus.encadr == 0, 'encadr'] = 2
+       assert individus.encadr.isin(range(1, 3)).all(), \
+           "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
 
     assert individus.prosa.isin(range(0, 10)).all(), \
         "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
@@ -385,7 +389,8 @@ def create_categorie_salarie(individus, period, survey_year = None):
     assert 'cadre' not in individus.columns
     individus['cadre'] = False
     individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
-    individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
+    if 'encadr' in individus: #N'existe qu'à partir de 2006 inclu
+        individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
     cadre = (
         (individus.statut >= 21) & (individus.statut <= 35)  # En activité hors fonction publique
         & (chpub > 3) # Hors fonction publique mais entreprise publique
