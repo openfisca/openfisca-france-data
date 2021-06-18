@@ -69,6 +69,7 @@ Il y a {} individus dans eec_individu
     retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
     txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
     acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
+    cstot = 'dcstot' if year < 2002 else 'cstotr' # mêmes modalité (0 = non-réponse)
     var_list = ([
         acteu,
         agepr,
@@ -81,7 +82,7 @@ Il y a {} individus dans eec_individu
         'noicon',
         'noimer',
         prosa,
-        retrai,
+        #retrai,
         'rstg',
         'statut',
         'stc',
@@ -89,7 +90,10 @@ Il y a {} individus dans eec_individu
         txtppb,
         ]
          + (["noiper"] if "noiper" in individus.columns else [])
-         + (["encadr"] if "encadr" in individus.columns else []))
+         + (["encadr"] if "encadr" in individus.columns else [])
+         + ([retrai] if retrai in individus.columns else []) #n'existe pas avant 2004
+         + ([cstot] if cstot in individus.columns else [])) #existe 1996 - 2003, remplace retrai
+
 
     for var in var_list:
         individus[var]=individus[var].fillna(0)

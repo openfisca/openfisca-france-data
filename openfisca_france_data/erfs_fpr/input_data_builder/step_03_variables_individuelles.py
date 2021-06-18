@@ -200,10 +200,15 @@ def create_actrec(individus):
     filter5 = (individus[acteu] == 3) & ((individus.forter == 2) | (individus.rstg == 1))
     individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
-    try:
-        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))  # cas >= 2014, evite de ramener l'année dans la fonction
+    try: # cas >= 2014, evite de ramener l'année dans la fonction
+        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))  
     except Exception:
+        pass
+    try: # cas 2004 - 2013
         filter7 = (individus[acteu] == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+    except Exception: # cas 1996 - 2003
+        cstot = 'dcstot' if 'dcstot' in individus else 'cstotr'
+        filter7 = (individus[acteu] == 3) & ((individus[cstot] == 7))
 
     individus.loc[filter7, 'actrec'] = 7
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
