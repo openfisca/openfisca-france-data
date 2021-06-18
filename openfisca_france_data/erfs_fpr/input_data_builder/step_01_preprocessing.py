@@ -75,7 +75,7 @@ Il y a {} individus dans eec_individu
         agepr,
         cohab,
         'contra',
-        'encadr',
+        #'encadr',
         'forter',
         lien,
         'mrec',
@@ -90,7 +90,8 @@ Il y a {} individus dans eec_individu
         'titc',
         txtppb,
         ]
-         + (["noiper"] if "noiper" in individus.columns else []))
+         + (["noiper"] if "noiper" in individus.columns else [])
+         + (["encadr"] if "encadr" in individus.columns else []))
 
     for var in var_list:
         individus[var]=individus[var].fillna(0)
