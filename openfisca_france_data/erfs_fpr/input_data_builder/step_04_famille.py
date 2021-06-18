@@ -94,10 +94,10 @@ def build_famille(temporary_store = None, year = None):
         Il y a {} enfants à naitre après avoir retiré ceux qui ne sont pas enfants
         de la personne de référence
         """.format(len(enfants_a_naitre.index)))
-
+        
     individus = create_familles(indivi = indivi, year = year, kind = kind, enfants_a_naitre = enfants_a_naitre,
         skip_enfants_a_naitre = skip_enfants_a_naitre)
-
+    
     temporary_store['individus_{}'.format(year)] = individus
 
 
@@ -562,7 +562,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         famille = pd.concat([famille, avec_dec, dec])
         del dec, declarant_id, avec_dec
         control_04(famille, base)
-
+        
     return base, famille
 
 
@@ -754,7 +754,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         famille = pd.concat([famille, non_attribue2])
         control_04(famille, base)
         del non_attribue2
-
+        
     return base, famille
 
 
@@ -841,49 +841,35 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
 
         control_04(famille, base)
 
-    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts().sort_index()))
+    log.info(u"value_counts quifam : \n {}".format(famille['quifam'].value_counts().sort_index())) 
     
-# Famille qui bug avant : 
-#        noindiv     quifam noifam
-# 39709  601882501       0  601882501
-# 39710  601882503       1  601882501
-# 39711  601882504       2  601882501
-# 78664  601882502       1  601882501
-# --> famille.loc[famille.noifam == fam,['noifam','noindiv','quifam','age']] 
-
-    famille["dup"] = famille.duplicated(subset = ['noifam', 'quifam'], keep = False)
+    #TODO: pourquoi une famille en 2006 a deux personnes marquees comme conjoint?
+    #famille["dup"] = famille.duplicated(subset = ['noifam', 'quifam'], keep = False)
+    dup = famille.duplicated(subset = ['noifam', 'quifam'], keep = False)
     
-    for fam in famille.loc[famille.dup==True,"noifam"]:   # ici fam = 601882501
+    for fam in famille.loc[dup==True,"noifam"]:   # ici fam = 601882501
         famille.loc[(famille.noifam==fam) & (famille.quifam != 0), 
                 "quifam"] = famille.loc[(famille.noifam==fam) & (famille.quifam != 0), 
-                                        "age"].rank(ascending=False).astype('int')
+                                        "age"].copy().rank(ascending=False).astype('int')
+                                        
+    famille = famille[['noindiv', 'quifam', 'noifam']].copy()
+    famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
+    gc.collect()
     
-# Famille qui bug après
-    #        noindiv     quifam noifam
-    # 39709  601882501       0  601882501
-    # 39710  601882503       2  601882501
-    # 39711  601882504       3  601882501
-    # 78664  601882502       1  601882501
-
-# Ancien code qui me semble superflu
-    # famille = famille[['noindiv', 'quifam', 'noifam']].copy()
-    # gc.collect()
-    # famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
-    # log.info(u"Vérifications sur famille")
-
-    # duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
-    # if duplicated_famillle.sum() > 0:
-    #     log.info(u"There are {} duplicates of quifam inside famille".format(
-    #         duplicated_famillle.sum()))
-    #     raise
-
+    log.info(u"Vérifications sur famille")
+    duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
+    if duplicated_famillle.sum() > 0:
+        log.info(u"There are {} duplicates of quifam inside famille".format(
+            duplicated_famillle.sum()))
+        raise
+ 
     individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
-
     if skip_enfants_a_naitre:
         del indivi, base
     else:
         del indivi, enfants_a_naitre, base
     gc.collect()
+    
     return individus
 
 
