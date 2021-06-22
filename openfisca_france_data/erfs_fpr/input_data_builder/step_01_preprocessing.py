@@ -67,7 +67,8 @@ Il y a {} individus dans eec_individu
     lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
     prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
     retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
-    txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+    txtppb = 'txtpp' if year < 2004 else 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+                                                                                # + pas utilisee (cf step_03 todo_create)
     acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
     cstot = 'dcstot' if year < 2002 else 'cstotr' # mêmes modalité (0 = non-réponse)
     var_list = ([
