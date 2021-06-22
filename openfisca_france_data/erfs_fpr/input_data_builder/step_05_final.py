@@ -58,6 +58,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     individus = create_ids_and_roles(individus)
     individus = individus[variables].copy()
+    menages = menages.loc[(menages.ident).isin(set(individus.idmen))].copy()
     gc.collect()
 
     # This looks like it could have a sizeable impact

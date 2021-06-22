@@ -309,7 +309,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         lpr = "lpr"
     else:
         lpr = "lprm"
-
+        
     assert base is not None
     assert famille is not None
     assert year is not None
@@ -437,7 +437,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
             assert_dtype(mere[series_name], "int")
         except Exception:
             assert_dtype(mere[series_name], "int64")
-
+            
     avec_mere = avec_mere[avec_mere.noifam.isin(mere.noindiv)].copy()
     famille = famille[~(famille.noindiv.isin(mere.noindiv.values))].copy()  # Avoid duplication in famille
 
@@ -474,6 +474,8 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         log.info("Il y a {} enfants rattachés à leur père".format(
             len(avec_pere.index)))
         avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
+        #Check if father is in the database
+        avec_pere = avec_pere[(avec_pere.noifam.isin(base.noindiv))].copy()      
         avec_pere['famille'] = 44
         avec_pere['kid'] = True
         assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
