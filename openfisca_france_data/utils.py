@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import os
 
@@ -10,7 +8,7 @@ import openfisca_france  # type: ignore
 from openfisca_survey_manager.survey_collections import SurveyCollection  # type: ignore
 from openfisca_survey_manager.surveys import Survey  # type: ignore
 
-from openfisca_france_data import openfisca_france_tax_benefit_system    
+from openfisca_france_data import openfisca_france_tax_benefit_system
 
 
 log = logging.getLogger(__name__)
@@ -27,10 +25,10 @@ def assert_dtype(series, dtype_string):
 
 
 def assert_variable_in_range(name, wrange, table):
-    '''
-    Assert if transformed variables are in correct range
+    """Asserts if transformed variables are in correct range.
+
     wrange is a list like [minimum, maximum]
-    '''
+    """
     temp = (table[table[name].notnull()])
     range_1 = wrange[0]
     range_2 = wrange[1]
@@ -40,8 +38,7 @@ def assert_variable_in_range(name, wrange, table):
 
 
 def control(dataframe, verbose = False, verbose_columns = None, debug = False, verbose_length = 5, ignore = None):
-    """
-    Function to help debugging the data crunchin' files.
+    """Helps debugging the data crunchin' files.
 
     Parameters
     ---------
@@ -104,7 +101,7 @@ def control(dataframe, verbose = False, verbose_columns = None, debug = False, v
 
 
 def count_NA(name, table):
-    '''Counts the number of Na's in a specified axis'''
+    """Counts the number of Na's in a specified axis."""
     print("count of NA's for %s is %s" % (name, str(sum(table[name].isnull()))))
 
 

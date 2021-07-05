@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import logging
 
 from openfisca_france_data import france_data_tax_benefit_system

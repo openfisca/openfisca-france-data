@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 
 # This step requires to have R installed with StatMatch library
@@ -67,7 +66,7 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
         menage_variables = menage_variables.pop('tau99')
 
     # Travail sur la base ERF
-    log.info(u"Préparation de la table ménage de l'ERF")
+    log.info("Préparation de la table ménage de l'ERF")
     erf_menages = temporary_store['menagem_{}'.format(year)]
     erf_menages = erf_menages[menage_variables].copy()
 
@@ -84,11 +83,11 @@ def create_comparable_erf_data_frame(temporary_store = None, year = None):
     erf_menages.loc[erf_menages.nvpr < 0, 'nvpr'] = 0
     erf_menages.rename(columns = dict(so = 'statut_occupation'), inplace = True)
 
-    log.info(u"Preparation de la tables individus de l'ERF")
+    log.info("Preparation de la tables individus de l'ERF")
     erfindm = temporary_store['indivim_{}'.format(year)]
     erfindm = erfindm[['ident', 'dip11']][erfindm.lpr == 1].copy()
 
-    log.info(u"Merging talbes menage et individus de l'ERF")
+    log.info("Merging talbes menage et individus de l'ERF")
     erf = erfmenm.merge(erfindm, on = 'ident', how = 'inner')
     erf = erf.drop_duplicates('ident')
 
@@ -390,12 +389,12 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     logement_menage = data
 
     # Table adresse
-    log.info(u"Préparation de la table adresse de l'enquête logement")
+    log.info("Préparation de la table adresse de l'enquête logement")
 
     logement_adresse = logement_survey.get_values(table = "adresse", variables = logement_adresse_variables)
     logement_adresse.rename(columns = {'idlog': 'ident'}, inplace = True)
 
-    log.info(u"Fusion des tables logement et ménage de l'enquête logement")
+    log.info("Fusion des tables logement et ménage de l'enquête logement")
     Logement = logement_menage.merge(logement_adresse, on = 'ident', how = 'inner')
 
     Logement.hnph2[Logement.hnph2 >= 6] = 6
@@ -587,7 +586,7 @@ def imputation_loyer(temporary_store = None, year = None):
             del menagem[loyer_var]
 
     menagem = menagem.merge(loyers_imputes, on = 'ident', how = 'left')
-    assert 'loyer' in menagem.columns, u"La variable loyer n'est pas présente dans menagem"
+    assert 'loyer' in menagem.columns, "La variable loyer n'est pas présente dans menagem"
 
     temporary_store['menagem_{}'.format(year)] = menagem
     return

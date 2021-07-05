@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from typing import Any, Optional
 
 from multipledispatch import dispatch  # type: ignore
@@ -69,7 +66,8 @@ def get_survey_scenario(
 
         data = dict(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
-            input_data_survey_prefix = "openfisca_erfs_fpr_data",
+            # input_data_survey_prefix = "openfisca_erfs_fpr_data",
+            survey = "input"
             )
 
     # Les données peuvent venir en différents formats :

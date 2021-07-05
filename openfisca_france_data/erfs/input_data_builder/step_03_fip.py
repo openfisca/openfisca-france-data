@@ -1,7 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 import gc
 import logging
 
@@ -37,7 +34,7 @@ def create_fip(temporary_store = None, year = None):
         collection = 'erfs', config_files_directory = config_files_directory)
     survey = erfs_survey_collection.get_survey('erfs_{}'.format(year))
 
-    log.info(u"Démarrage de 03_fip")
+    log.info("Démarrage de 03_fip")
 
     # anaisenf is a string containing letter code of pac (F,G,H,I,J,N,R) and year of birth (example: 'F1990H1992')
     # when a child is invalid, he appears twice in anaisenf (example: F1900G1900 is a single invalid child born in 1990)
@@ -45,11 +42,11 @@ def create_fip(temporary_store = None, year = None):
     foyer = survey.get_values(table = year_specific_by_generic["foyer"], variables = erfFoyVar)
     foyer.replace({'anaisenf': {'NA': np.nan}}, inplace = True)
 
-    log.info(u"Etape 1 : on récupere les personnes à charge des foyers")
-    log.info(u"    1.1 : Création des codes des enfants")
+    log.info("Etape 1 : on récupere les personnes à charge des foyers")
+    log.info("    1.1 : Création des codes des enfants")
     foyer['anaisenf'] = foyer['anaisenf'].astype('string')
     nb_pac_max = len(max(foyer['anaisenf'], key=len)) / 5
-    log.info(u"il ya a au maximum {} pac par foyer".format(nb_pac_max))
+    log.info("il ya a au maximum {} pac par foyer".format(nb_pac_max))
 
     # Separating the string coding the pac of each "déclaration".
     # Creating a list containing the new variables.
@@ -81,7 +78,7 @@ def create_fip(temporary_store = None, year = None):
     fip.reset_index(inplace = True)
     fip.drop(['level_0'], axis = 1, inplace = True)
 
-    log.info(u"    1.2 : elimination des foyers fiscaux sans pac")
+    log.info("    1.2 : elimination des foyers fiscaux sans pac")
     # Clearing missing values and changing data format
     fip = fip[(fip.type_pac.notnull()) & (fip.naia != 'an') & (fip.naia != '')].copy()
     fip = fip.sort(columns = ['declaration', 'naia', 'type_pac'])
@@ -93,7 +90,7 @@ def create_fip(temporary_store = None, year = None):
 
     # control(fip, debug=True, verbose=True, verbose_columns=['naia'])
 
-    log.info(u"    1.3 : on enlève les individus F pour lesquels il existe un individu G")
+    log.info("    1.3 : on enlève les individus F pour lesquels il existe un individu G")
     type_FG = fip[fip.type_pac.isin(['F', 'G'])].copy()  # Filtre pour ne travailler que sur F & G
 
     type_FG['same_pair'] = type_FG.duplicated(subset = ['declaration', 'naia'], take_last = True)
@@ -103,7 +100,7 @@ def create_fip(temporary_store = None, year = None):
     #       puis on retire les autres (à la fois F et G)
     fip['to_keep'] = np.nan
     fip.update(type_FG)
-    log.info(u"    1.4 : on enlève les H pour lesquels il y a un I")
+    log.info("    1.4 : on enlève les H pour lesquels il y a un I")
     type_HI = fip[fip.type_pac.isin(['H', 'I'])].copy()
     type_HI['same_pair'] = type_HI.duplicated(subset = ['declaration', 'naia'], take_last = True)
     type_HI['is_twin'] = type_HI.duplicated(subset = ['declaration', 'naia', 'type_pac'])
@@ -111,7 +108,7 @@ def create_fip(temporary_store = None, year = None):
 
     fip.update(type_HI)
     fip['to_keep'] = fip['to_keep'].fillna(True)
-    log.info(u"{} F, G, H or I non redundant pac kept over {} potential candidates".format(
+    log.info("{} F, G, H or I non redundant pac kept over {} potential candidates".format(
         fip['to_keep'].sum(), len(fip))
         )
     indivifip = fip[fip['to_keep']].copy()
@@ -119,7 +116,7 @@ def create_fip(temporary_store = None, year = None):
     #
     # control(indivifip, debug=True)
 
-    log.info(u"Step 2 : matching indivifip with eec file")
+    log.info("Step 2 : matching indivifip with eec file")
     indivi = temporary_store['indivim_{}'.format(year)]
     pac = indivi[(indivi.persfip.notnull()) & (indivi.persfip == 'pac')].copy()
     assert indivifip.naia.notnull().all(), "Il y a des valeurs manquantes de la variable naia"
@@ -136,16 +133,16 @@ def create_fip(temporary_store = None, year = None):
     fip = indivifip[~(indivifip.key.isin(pac.key1.values))].copy()
     fip = fip[~(fip.key.isin(pac.key2.values))].copy()
 
-    log.info(u"    2.1 new fip created")
+    log.info("    2.1 new fip created")
     # We build a dataframe to link the pac to their type and noindiv
     tmp_pac1 = pac[['noindiv', 'key1']].copy()
     tmp_pac2 = pac[['noindiv', 'key2']].copy()
     tmp_indivifip = indivifip[['key', 'type_pac', 'naia']].copy()
 
     pac_ind1 = tmp_pac1.merge(tmp_indivifip, left_on='key1', right_on='key', how='inner')
-    log.info(u"{} pac dans les 1ères déclarations".format(len(pac_ind1)))
+    log.info("{} pac dans les 1ères déclarations".format(len(pac_ind1)))
     pac_ind2 = tmp_pac2.merge(tmp_indivifip, left_on='key2', right_on='key', how='inner')
-    log.info(u"{} pac dans les 2èms déclarations".format(len(pac_ind2)))
+    log.info("{} pac dans les 2èms déclarations".format(len(pac_ind2)))
 
     log.info("{} duplicated pac_ind1".format(pac_ind1.duplicated().sum()))
     log.info("{} duplicated pac_ind2".format(pac_ind2.duplicated().sum()))
@@ -154,12 +151,12 @@ def create_fip(temporary_store = None, year = None):
 
     if len(pac_ind1.index) == 0:
         if len(pac_ind2.index) == 0:
-            log.info(u"Warning : no link between pac and noindiv for both pacInd1&2")
+            log.info("Warning : no link between pac and noindiv for both pacInd1&2")
         else:
-            log.info(u"Warning : pacInd1 is an empty data frame")
+            log.info("Warning : pacInd1 is an empty data frame")
             pacInd = pac_ind2
     elif len(pac_ind2.index) == 0:
-        log.info(u"Warning : pacInd2 is an empty data frame")
+        log.info("Warning : pacInd2 is an empty data frame")
         pacInd = pac_ind1
     else:
         pacInd = concat([pac_ind2, pac_ind1])
@@ -167,10 +164,10 @@ def create_fip(temporary_store = None, year = None):
     log.info("{} null pac_ind2.type_pac".format(pac_ind2.type_pac.isnull().sum()))
     log.info("pacInd.type_pac.value_counts()) \n {}".format(pacInd.type_pac.value_counts(dropna = False)))
 
-    log.info(u"    2.2 : pacInd created")
-    log.info(u"doublons noindiv, type_pac {}".format(pacInd.duplicated(['noindiv', 'type_pac']).sum()))
-    log.info(u"doublons noindiv seulement {}".format(pacInd.duplicated('noindiv').sum()))
-    log.info(u"nb de NaN {}".format(pacInd.type_pac.isnull().sum()))
+    log.info("    2.2 : pacInd created")
+    log.info("doublons noindiv, type_pac {}".format(pacInd.duplicated(['noindiv', 'type_pac']).sum()))
+    log.info("doublons noindiv seulement {}".format(pacInd.duplicated('noindiv').sum()))
+    log.info("nb de NaN {}".format(pacInd.type_pac.isnull().sum()))
 
     del pacInd["key"]
     pacIndiv = pacInd[~(pacInd.duplicated('noindiv'))].copy()
@@ -196,7 +193,7 @@ def create_fip(temporary_store = None, year = None):
     individec1 = individec1[["declar1", "noidec", "ident", "rga", "ztsai", "ztsao"]].copy()
     individec1 = individec1.rename(columns = {'declar1': 'declaration'})
     fip1 = fip.merge(individec1, on = 'declaration')
-    log.info(u"    2.3 : fip1 created")
+    log.info("    2.3 : fip1 created")
 
     individec2 = indivi.loc[
         (indivi.declar2.isin(fip.declaration.values)) & (indivi['persfip'] == "vous"),
@@ -204,7 +201,7 @@ def create_fip(temporary_store = None, year = None):
         ].copy()
     individec2.rename(columns = {'declar2': 'declaration'}, inplace = True)
     fip2 = fip.merge(individec2)
-    log.info(u"    2.4 : fip2 created")
+    log.info("    2.4 : fip2 created")
 
     fip1.duplicated().value_counts()
     fip2.duplicated().value_counts()
@@ -263,11 +260,11 @@ def create_fip(temporary_store = None, year = None):
     log.info("Number of duplicated fip: {}".format(fip.duplicated('noindiv').value_counts()))
     temporary_store['fipDat_{}'.format(year)] = fip
     del fip, fip1, individec1, indivifip, indivi, pac
-    log.info(u"fip sauvegardé")
+    log.info("fip sauvegardé")
 
 
 if __name__ == '__main__':
     year = 2009
     logging.basicConfig(level = logging.INFO, filename = 'step_03.log', filemode = 'w')
     create_fip(year = year)
-    log.info(u"etape 03 fichier des personnes imposables terminée")
+    log.info("etape 03 fichier des personnes imposables terminée")

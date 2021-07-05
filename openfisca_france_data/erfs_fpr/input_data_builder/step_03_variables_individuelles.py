@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import numpy as np
 import pandas as pd
@@ -25,9 +23,7 @@ log = logging.getLogger(__name__)
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
 def build_variables_individuelles(temporary_store = None, year = None):
-    """
-    Création des variables individuelles
-    """
+    """Création des variables individuelles."""
 
     assert temporary_store is not None
     assert year is not None
@@ -55,7 +51,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
         )
     create_variables_individuelles(individus, year)
     temporary_store['individus_{}'.format(year)] = individus
-    log.debug(u"step_03_variables_individuelles terminée")
+    log.debug("step_03_variables_individuelles terminée")
     return individus
 
 
@@ -152,8 +148,8 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
 
 
 def create_activite(individus):
-    """
-    Création de la variable activite
+    """Création de la variable activite.
+
     0 = Actif occupé
     1 = Chômeur
     2 = Étudiant, élève
@@ -175,9 +171,9 @@ def create_activite(individus):
 
 
 def create_actrec(individus):
-    """
-    Création de la variables actrec
-    pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
+    """Création de la variables actrec.
+
+    acterc pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
     """
     assert "actrec" not in individus.columns
     individus["actrec"] = np.nan
@@ -218,9 +214,7 @@ def create_actrec(individus):
 
 
 def create_ages(individus, year = None):
-    """
-    Création des variables age et age_en_moi
-    """
+    """Création des variables age et age_en_moi."""
     assert year is not None
     individus['age'] = year - individus.naia - 1
     individus['age_en_mois'] = 12 * individus.age + 12 - individus.naim  # TODO why 12 - naim
@@ -231,8 +225,9 @@ def create_ages(individus, year = None):
 
 
 def create_categorie_salarie(individus, period, survey_year = None):
-    """
-    Création de la variable categorie_salarie:
+    """Création de la variable categorie_salarie.
+
+    Ses modalités sont;
       - "prive_non_cadre
       - "prive_cadre
       - "public_titulaire_etat
@@ -442,8 +437,9 @@ def create_categorie_salarie(individus, period, survey_year = None):
 
 
 def create_categorie_non_salarie(individus):
-    """
-    Création de la variable categorie_salarie:
+    """Création de la variable categorie_salarie.
+
+    Ses modalités sont:
       - "non_pertinent
       - "artisan
       - "commercant
@@ -561,8 +557,9 @@ def create_categorie_non_salarie(individus):
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
-    """
-    Création de la variable contrat_de_travail et heure_remunerees_volume
+    """Création de la variable contrat_de_travail et heure_remunerees_volume.
+
+    Ses modliatés sont:
         0 - temps_plein
         1 - temps_partiel
         2 - forfait_heures_semaines
@@ -802,7 +799,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
     # On vérifie que l'on n'a pas fait d'erreurs
-    assert (individus.salaire >= 0).all(), u"Des salaires sont negatifs: {}".format(
+    assert (individus.salaire >= 0).all(), "Des salaires sont negatifs: {}".format(
             individus.loc[~(individus.salaire >= 0), 'salaire']
             )
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
@@ -813,7 +810,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
     assert (individus.heures_remunerees_volume >= 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all(), \
-        u"Des heures des temps partiels ne sont pas strictement positives: {}".format(
+        "Des heures des temps partiels ne sont pas strictement positives: {}".format(
             individus.query('contrat_de_travail == 1').loc[
                 ~(individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0),
                 'heures_remunerees_volume'
@@ -872,9 +869,9 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
 
 
 def create_effectif_entreprise(individus, period = None, survey_year = None):
-    """
-    Création de la variable effectif_entreprise
-    à partir de la variable nbsala qui prend les valeurs suivantes:
+    """Création de la variable effectif_entreprise.
+
+    A partir de la variable nbsala qui prend les valeurs suivantes:
     Création de la variable effectif_entreprise à partir de la variable nbsala qui prend les valeurs suivantes:
     A partir de (>=) 2013
         0 Vide Sans objet ou non renseigné
@@ -961,8 +958,9 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
 
 
 def create_revenus(individus, revenu_type = 'imposable'):
-    """
-    Création des variables:
+    """Création des plusieurs variablesde revenu.
+
+    Ces variables sont:
         chomage_net,
         pensions_alimentaires_percues,
         rag_net,
@@ -977,7 +975,6 @@ def create_revenus(individus, revenu_type = 'imposable'):
         rnc,
         salaire_imposable,
     """
-
     individus['chomage_brut'] = individus.csgchod_i + individus.chomage_net
     individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_nette
 
@@ -1031,7 +1028,7 @@ def create_revenus(individus, revenu_type = 'imposable'):
 
 
 def create_statut_matrimonial(individus):
-    u"""
+    """
     Création de la variable statut_marital qui prend les valeurs:
       1 - "Marié",
       2 - "Célibataire",
@@ -1160,7 +1157,7 @@ target mass: {}""".format(
 
 def todo_create(individus):
     txtppb = "txtppb" if "txtppb" in individus.columns else "txtppred"
-    log.debug(u"    6.3 : variable txtppb")
+    log.debug("    6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), txtppb] = 0
     individus.loc[individus[txtppb] == 9, txtppb] = 0
     assert individus.txtppb.notnull().all()

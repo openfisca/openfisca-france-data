@@ -1,7 +1,4 @@
-## -*- coding: utf-8 -*-
-
-
-from numpy import where, NaN, random
+#from numpy import where, NaN, random
 from openfisca_france.data.erf.build_survey import show_temp, load_temp, save_temp
 from openfisca_france.data.erf.build_survey.utils import print_id, control, check_structure
 from pandas import read_csv, HDFStore

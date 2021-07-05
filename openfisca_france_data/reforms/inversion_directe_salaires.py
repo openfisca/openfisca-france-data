@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from openfisca_france.model.base import *  # noqa analysis:ignore

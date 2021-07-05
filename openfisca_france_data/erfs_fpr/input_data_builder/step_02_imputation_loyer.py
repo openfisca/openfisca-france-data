@@ -1,8 +1,7 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 
-u"""This module provides routines to impute menage level variable to erfs_fpr data.
+"""This module provides routines to impute menage level variable to erfs_fpr data.
 These variables are loyer and is some case zone_apl.
 
 There are two ways of doing that:
@@ -155,7 +154,7 @@ def imputation_loyer(temporary_store = None, year = None):
             del menages[loyer_var]
 
     menages = menages.merge(loyers_imputes, on = 'ident', how = 'left')
-    assert 'loyer' in menages.columns, u"La variable loyer n'est pas présente dans menages"
+    assert 'loyer' in menages.columns, "La variable loyer n'est pas présente dans menages"
 
     temporary_store['menages_{}'.format(year)] = menages
     return
@@ -165,13 +164,13 @@ def imputation_loyer(temporary_store = None, year = None):
 
 
 def prepare_erf_menage(temporary_store = None, year = None, kind = None):
-    u"""
+    """
     Préparation de la sous-table ERFS de travail
     """
     assert temporary_store is not None
     assert year is not None
 
-    log.info(u"Préparation de la table ménage de l'ERF")
+    log.info("Préparation de la table ménage de l'ERF")
     if kind == "erfs_fpr":
         # revenus_variables = [
         #     "chomage",
@@ -249,11 +248,11 @@ def prepare_erf_menage(temporary_store = None, year = None, kind = None):
     erf_menages.loc[erf_menages.nvpr < 0, 'nvpr'] = 0
     erf_menages.rename(columns = dict(so = 'statut_occupation'), inplace = True)
 
-    log.info(u"Preparation de la tables individus de l'ERF")
+    log.info("Preparation de la tables individus de l'ERF")
     erfindm = temporary_store['individus_{}'.format(year)]
     erfindm = erfindm.loc[erfindm.lpr == 1, ['ident', 'dip11']].copy()
 
-    log.info(u"Fusion des tables menage et individus de l'ERF")
+    log.info("Fusion des tables menage et individus de l'ERF")
     erf = erf_menages.merge(erfindm, on = 'ident', how = 'inner')
     del erf_menages, erfindm
     assert not erf.duplicated().any(), \
@@ -454,7 +453,7 @@ def check(erf, kind = None):
 
 
 def create_comparable_erf_data_frame(temporary_store = None, year = None):
-    u"""
+    """
     Préparation des variables de la table ERFS qui serviront à l'imputation
     """
     assert temporary_store is not None
@@ -624,12 +623,12 @@ def create_comparable_logement_data_frame(temporary_store = None, year = None):
     logement_menage = data[data.statut_occupation.notnull()].copy()
 
     # Table adresse
-    log.info(u"Préparation de la table adresse de l'enquête logement")
+    log.info("Préparation de la table adresse de l'enquête logement")
 
     logement_adresse = logement_survey.get_values(table = "adresse", variables = logement_adresse_variables)
     logement_adresse.rename(columns = {'idlog': 'ident'}, inplace = True)
 
-    log.info(u"Fusion des tables logement et ménage de l'enquête logement")
+    log.info("Fusion des tables logement et ménage de l'enquête logement")
     Logement = logement_menage.merge(logement_adresse, on = 'ident', how = 'inner')
 
     Logement.loc[Logement.hnph2 >= 6, 'hnph2'] = 6

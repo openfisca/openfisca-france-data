@@ -1,5 +1,20 @@
 # Changelog
 
+### 0.19.2 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Update dependance for openfisca-survey-manager (again)
+
+### 0.19.1 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Update dependance for openfisca-survey-manager
+
+## 0.19.0 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Use Aggregates from oepnfisca-survey-manager
+
 ## 0.18.0 [#189](https://github.com/openfisca/openfisca-france-data/pull/189)
 
 * Technical changes
