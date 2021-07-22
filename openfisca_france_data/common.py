@@ -395,7 +395,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         )
     assert individus['chomage_brut'].notnull().all()
 
-    csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.retraite.deductible
+    csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.retraite_invalidite.deductible
     taux_plein = csg_deductible_retraite.taux_plein
     taux_reduit = csg_deductible_retraite.taux_reduit
     individus['retraite_brute'] = (
