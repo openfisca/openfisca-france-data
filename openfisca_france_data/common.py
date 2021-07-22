@@ -37,7 +37,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     salarie = parameters.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
-    parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
+    parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = parameters_csg_deductible.taux
     taux_abattement = parameters_csg_deductible.abattement.rates[0]
     try:
@@ -51,7 +51,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     if revenu_type == 'net':  # On ajoute CSG imposable et crds
 
-        parameters_csg_imposable = parameters.prelevements_sociaux.contributions.csg.activite.imposable
+        parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_csg = parameters_csg_imposable.taux
         taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
@@ -63,7 +63,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
 
-        parameters_crds = parameters.prelevements_sociaux.contributions.crds.activite
+        parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
         taux_csg = parameters_crds.taux
         taux_abattement = parameters_crds.abattement.rates[0]
         try:
@@ -206,7 +206,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
 
     salarie = legislation.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
-    legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
+    legislation_csg_deductible = legislation.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = legislation_csg_deductible.taux
     taux_abattement = legislation_csg_deductible.abattement.rates[0]
     try:
@@ -222,7 +222,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # Cas des revenus nets:
         # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
         # 1. csg imposable
-        legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
+        legislation_csg_imposable = legislation.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_csg = legislation_csg_imposable.taux
         taux_abattement = legislation_csg_imposable.abattement.rates[0]
         try:
@@ -234,7 +234,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
-        legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
+        legislation_crds = legislation.prelevements_sociaux.contributions_sociales.crds.activite
         taux_csg = legislation_crds.taux
         taux_abattement = legislation_crds.abattement.rates[0]
         try:
@@ -372,7 +372,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     individus.retraite_imposable.fillna(0, inplace = True)
 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
-    csg = parameters.prelevements_sociaux.contributions.csg
+    csg = parameters.prelevements_sociaux.contributions_sociales.csg
     csg_deductible_chomage = csg.chomage.deductible
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
@@ -395,7 +395,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         )
     assert individus['chomage_brut'].notnull().all()
 
-    csg_deductible_retraite = parameters.prelevements_sociaux.contributions.csg.retraite.deductible
+    csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.retraite.deductible
     taux_plein = csg_deductible_retraite.taux_plein
     taux_reduit = csg_deductible_retraite.taux_reduit
     individus['retraite_brute'] = (

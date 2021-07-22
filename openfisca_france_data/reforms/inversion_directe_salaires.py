@@ -42,7 +42,7 @@ class salaire_de_base(Variable):
 
         salarie = P.cotsoc.cotisations_salarie
         plafond_securite_sociale_annuel = P.cotsoc.gen.plafond_securite_sociale * 12
-        csg_deductible = parameters(period).prelevements_sociaux.contributions.csg.activite.deductible
+        csg_deductible = parameters(period).prelevements_sociaux.contributions_sociales.csg.activite.deductible
         taux_csg = csg_deductible.taux
         taux_abattement = csg_deductible.abattement.rates[0]
         try:
@@ -140,7 +140,7 @@ class salaire_de_base(Variable):
 #         # Note : le supplément familial de traitement est imposable.
 #         categorie_salarie = simulation.calculate('categorie_salarie', period)
 #         P = simulation.parameters_at(period.start)
-#         taux_csg = simulation.parameters_at(period.start).prelevements_sociaux.contributions.csg.activite.deductible.taux * (1 - .0175)
+#         taux_csg = simulation.parameters_at(period.start).prelevements_sociaux.contributions_sociales.csg.activite.deductible.taux * (1 - .0175)
 #         csg = MarginalRateTaxScale(name = 'csg')
 #         csg.add_bracket(0, taux_csg)
 

@@ -24,7 +24,7 @@ class assiette_csg_salaire(Variable):
         assiette_csg_abattue = individu('assiette_csg_abattue', period)
         assiette_csg_non_abattue = individu('assiette_csg_non_abattue', period)
         plafond_securite_sociale = individu('plafond_securite_sociale', period)
-        abattement = parameters(period.start).prelevements_sociaux.contributions.csg.activite.deductible.abattement
+        abattement = parameters(period.start).prelevements_sociaux.contributions_sociales.csg.activite.deductible.abattement
         assiette = assiette_csg_abattue - abattement.calc(
             assiette_csg_abattue,
             factor = plafond_securite_sociale,
