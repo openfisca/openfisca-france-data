@@ -145,7 +145,7 @@ def create_collectives_foyer_variables(individus, menages):
         .drop_duplicates(['idmen', 'idfoy'])
         .reset_index(drop = True)
         )
-    assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
+    #assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
     menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
     del menages_multi_foyers, menages_simple_foyer
     foyers_revenus_fonciers = menages_foyers_correspondance.merge(
