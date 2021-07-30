@@ -100,7 +100,7 @@ def build_input_data(year):
             'build-erfs-fpr -y ' + year,
             'cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini',
             'mkdir -p /mnt/data-out/$OUT_FOLDER',
-            'mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/',
+            'mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/',
             ],
         }
     }

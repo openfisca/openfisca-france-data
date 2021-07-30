@@ -76,7 +76,7 @@ in_dt-1996:
   - build-erfs-fpr -y 1996
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1996.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -107,7 +107,7 @@ in_dt-1997:
   - build-erfs-fpr -y 1997
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1997.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -138,7 +138,7 @@ in_dt-1998:
   - build-erfs-fpr -y 1998
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1998.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -169,7 +169,7 @@ in_dt-1999:
   - build-erfs-fpr -y 1999
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1999.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -200,7 +200,7 @@ in_dt-2000:
   - build-erfs-fpr -y 2000
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2000.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -231,7 +231,7 @@ in_dt-2001:
   - build-erfs-fpr -y 2001
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2001.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -262,7 +262,7 @@ in_dt-2002:
   - build-erfs-fpr -y 2002
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2002.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -293,7 +293,7 @@ in_dt-2003:
   - build-erfs-fpr -y 2003
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2003.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -324,7 +324,7 @@ in_dt-2004:
   - build-erfs-fpr -y 2004
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2004.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -355,7 +355,7 @@ in_dt-2005:
   - build-erfs-fpr -y 2005
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2005.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -386,7 +386,7 @@ in_dt-2006:
   - build-erfs-fpr -y 2006
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2006.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -417,7 +417,7 @@ in_dt-2007:
   - build-erfs-fpr -y 2007
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2007.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -448,7 +448,7 @@ in_dt-2008:
   - build-erfs-fpr -y 2008
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2008.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -479,7 +479,7 @@ in_dt-2009:
   - build-erfs-fpr -y 2009
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2009.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -510,7 +510,7 @@ in_dt-2010:
   - build-erfs-fpr -y 2010
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2010.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -541,7 +541,7 @@ in_dt-2011:
   - build-erfs-fpr -y 2011
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2011.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -572,7 +572,7 @@ in_dt-2012:
   - build-erfs-fpr -y 2012
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2012.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -603,7 +603,7 @@ in_dt-2013:
   - build-erfs-fpr -y 2013
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2013.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -634,7 +634,7 @@ in_dt-2014:
   - build-erfs-fpr -y 2014
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2014.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -665,7 +665,7 @@ in_dt-2015:
   - build-erfs-fpr -y 2015
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2015.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -696,7 +696,7 @@ in_dt-2016:
   - build-erfs-fpr -y 2016
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2016.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -727,7 +727,7 @@ in_dt-2017:
   - build-erfs-fpr -y 2017
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2017.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -758,7 +758,7 @@ in_dt-2018:
   - build-erfs-fpr -y 2018
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 $DATA_FOLDER/data-out/
+  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
