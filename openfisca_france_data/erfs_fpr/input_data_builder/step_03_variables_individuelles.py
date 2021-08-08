@@ -31,7 +31,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
     log.info('step_03_variables_individuelles: Création des variables individuelles')
 
     individus = temporary_store['individus_{}_post_01'.format(year)]
-    
+
     erfs_by_openfisca_variables = {
         'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
@@ -74,7 +74,7 @@ def create_variables_individuelles(individus, year, survey_year = None):
     # Il faut que la base d'input se fasse au millésime des données
     # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
     # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
-    # je besoin d'un droit courantcomme même du droit currant pour l'année des données
+    # je besoin d'un droit courant comme même du droit courrant pour l'année des données
     tax_benefit_system = openfisca_france_tax_benefit_system
 
     # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'inverser
@@ -84,8 +84,8 @@ def create_variables_individuelles(individus, year, survey_year = None):
         revenu_type = revenu_type,
         tax_benefit_system = tax_benefit_system
         )
-    
-    # Pour les cotisations patronales qui varient avec la taille de la boîte
+
+    # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
     # Base pour constituer les familles, foyers, etc.
@@ -201,7 +201,7 @@ def create_actrec(individus):
     individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
     try: # cas >= 2014, evite de ramener l'année dans la fonction
-        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))  
+        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))
     except Exception:
         pass
     try: # cas 2004 - 2013
@@ -353,11 +353,11 @@ def create_categorie_salarie(individus, period, survey_year = None):
 
     assert individus.chpub.isin(range(0, 7)).all(), \
         "chpub n'est pas toujours dans l'intervalle [0, 6]\n{}".format(individus.chpub.value_counts(dropna = False))
-    
+
 # N'existe qu'à partir de 2006 inclu
 # On pourrait prendre csei mais elle ne recoupe pas bien prosa, ce serait vraiment
 # une autre manière de déterminer la catégorie salariale.
-    if 'encadr' in individus: 
+    if 'encadr' in individus:
        individus.loc[individus.encadr == 0, 'encadr'] = 2
        assert individus.encadr.isin(range(1, 3)).all(), \
            "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
