@@ -5,19 +5,44 @@ from openfisca_core import periods
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_core.formula_helpers import switch
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
-from openfisca_france_data import openfisca_france_tax_benefit_system
+from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotisations_sociales.base import (
+    cotisations_salarie_by_categorie_salarie,
+    )
 from openfisca_france_data.smic import smic_horaire_brut
 
 
 log = logging.getLogger(__name__)
 
 
+def get_baremes_salarie(parameters, categorie_salarie, period, exclude_alsace_moselle = True):
+    assert categorie_salarie in [
+        "prive_cadre",
+        "prive_non_cadre",
+        "public_non_titulaire",
+        "public_titulaire_etat",
+        "public_titulaire_hospitaliere",
+        "public_titulaire_territoriale",
+        ]
+
+    cotisations_salaries = cotisations_salarie_by_categorie_salarie[categorie_salarie]
+    cotisations_salarie_retenues = list()
+
+    for cotisation_salarie in cotisations_salaries:
+        bareme = parameters.cotsoc.cotisations_salarie.children[categorie_salarie].children[cotisation_salarie]
+        if exclude_alsace_moselle and "alsace_moselle" in cotisation_salarie:
+            continue
+
+        if bareme(period).thresholds and bareme(period).rates:
+            cotisations_salarie_retenues.append(cotisation_salarie)
+
+    return set(cotisations_salarie_retenues)
+
+
+
 def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
     """
-
     Calcule la variable salaire_de_base à partir du salaire imposable par inversion du barème
     de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
-
     """
     assert period is not None
     assert revenu_type in ['net', 'imposable']
@@ -76,12 +101,10 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             crds.add_bracket(seuil_abattement, taux_csg)
 
     # Check baremes
-    target = dict()
-    target['prive_non_cadre'] = set(['maladie', 'arrco', 'vieillesse_deplafonnee', 'vieillesse', 'agff', 'assedic'])
-    target['prive_cadre'] = set(
-        ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
+    target = dict(
+        (categorie_salarie, get_baremes_salarie(parameters, categorie_salarie, period))
+        for categorie_salarie in ['prive_cadre', 'prive_non_cadre', 'public_non_titulaire']
         )
-    target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         baremes_collection = salarie[categorie]
