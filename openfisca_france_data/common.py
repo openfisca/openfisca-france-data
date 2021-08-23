@@ -34,7 +34,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    parameters = tax_benefit_system.parameters(period.start)
     salarie = parameters.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
     parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
@@ -202,7 +202,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    legislation = tax_benefit_system.get_parameters_at_instant(period.start)
+    legislation = tax_benefit_system.parameters(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = legislation.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
@@ -371,7 +371,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     individus.chomage_imposable.fillna(0, inplace = True)
     individus.retraite_imposable.fillna(0, inplace = True)
 
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    parameters = tax_benefit_system.parameters(period.start)
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
     csg_deductible_chomage = csg.chomage.deductible
     taux_plein = csg_deductible_chomage.taux_plein

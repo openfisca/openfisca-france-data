@@ -18,7 +18,7 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
     nbptr = individus.nbp / 100
 
     def compute_taux_csg_remplacement(rfr, nbptr):
-        parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+        parameters = tax_benefit_system.parameters(period.start)
         seuils = parameters.prelevements_sociaux.contributions_sociales.csg.retraite_invalidite.seuils
         seuil_exoneration = seuils.seuil_rfr1 + (nbptr - 1) * seuils.demi_part_suppl
         seuil_reduction = seuils.seuil_rfr2 + (nbptr - 1) * seuils.demi_part_suppl
