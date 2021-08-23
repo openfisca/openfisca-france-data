@@ -102,7 +102,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     # Check baremes
     target = dict(
-        (categorie_salarie, get_baremes_salarie(parameters, categorie_salarie, period))
+        (categorie_salarie, get_baremes_salarie(tax_benefit_system.parameters, categorie_salarie, period))
         for categorie_salarie in ['prive_cadre', 'prive_non_cadre', 'public_non_titulaire']
         )
 
