@@ -36,7 +36,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     salarie = parameters.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
+    plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
     parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = parameters_csg_deductible.taux
     taux_abattement = parameters_csg_deductible.abattement.rates[0]
@@ -125,7 +125,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         )
 
     def add_agirc_gmp_to_agirc(agirc, parameters):
-        plafond_securite_sociale_annuel = parameters.cotsoc.gen.plafond_securite_sociale * 12
+        plafond_securite_sociale_annuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_annuel
         salaire_charniere = parameters.prelevements_sociaux.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
         cotisation = parameters.prelevements_sociaux.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
         n = (cotisation + 1) * 12
@@ -205,7 +205,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     legislation = tax_benefit_system.get_parameters_at_instant(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
+    plafond_securite_sociale_mensuel = legislation.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
     legislation_csg_deductible = legislation.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = legislation_csg_deductible.taux
     taux_abattement = legislation_csg_deductible.abattement.rates[0]

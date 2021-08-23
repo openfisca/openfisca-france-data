@@ -1,4 +1,3 @@
-
 "Calcule divers Smic"
 
 from openfisca_core import periods
@@ -102,7 +101,7 @@ smic_annuel_imposable_by_year = dict([
 
 
 smic_horaire_brut_by_year = dict([
-    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
+    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).marche_travail.salaire_minimum.smic_h_b)
     for year in range(2002, 2021)
     ])
 
