@@ -120,7 +120,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             name for name, bareme in salarie[categorie]._children.items()
             if isinstance(bareme, MarginalRateTaxScale)
             )
-        assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
+        assert target[categorie] == test, f"target: {sorted(target[categorie])} \n test {sorted(test)}"
     del bareme
 
     # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
