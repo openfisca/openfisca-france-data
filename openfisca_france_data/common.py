@@ -151,8 +151,8 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     def add_agirc_gmp_to_agirc(agirc, parameters):
         plafond_securite_sociale_annuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_annuel
-        salaire_charniere = parameters.prelevements_sociaux.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
-        cotisation = parameters.prelevements_sociaux.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
+        salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
+        cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
         n = (cotisation + 1) * 12
         agirc.add_bracket(n / plafond_securite_sociale_annuel, 0)
         agirc.rates[0] = cotisation / n
@@ -160,7 +160,8 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     salaire_de_base = 0.0
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        if categorie == 'prive_cadre':
+        if categorie == 'prive_cadre' and "agirc" in salarie[categorie]._children:
+            print("adding GMP")
             add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
 
         bareme = combine_tax_scales(salarie[categorie])
