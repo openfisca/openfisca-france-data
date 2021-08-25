@@ -101,13 +101,13 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             crds.add_bracket(seuil_abattement, taux_csg)
 
     # Check baremes
-    target = dict(
+    target_by_categorie_salarie = dict(
         (categorie_salarie, get_baremes_salarie(tax_benefit_system.parameters, categorie_salarie, period))
         for categorie_salarie in ['prive_cadre', 'prive_non_cadre', 'public_non_titulaire']
         )
 
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        baremes_collection = salarie[categorie]
+    for categorie_salarie, target in target_by_categorie_salarie.items():
+        baremes_collection = salarie[categorie_salarie]
         baremes_to_remove = list()
         for name, bareme in baremes_collection._children.items():
             if name not in target:
@@ -117,12 +117,12 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         for name in baremes_to_remove:
             del baremes_collection._children[name]
 
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+    for categorie_salarie, target in target_by_categorie_salarie.items():
         test = set(
-            name for name, bareme in salarie[categorie]._children.items()
+            name for name, bareme in salarie[categorie_salarie]._children.items()
             # if isinstance(bareme, MarginalRateTaxScale)
             )
-        assert target[categorie] == test, f"target: {sorted(target[categorie])} \n test {sorted(test)}"
+        assert target == test, f"target: {sorted(target)} \n test {sorted(test)}"
     del bareme
 
     # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
