@@ -95,7 +95,7 @@ target_by_period_by_categorie_salarie = {
         2016: [
             'excep_solidarite',
             'ircantec',
-            'maladie_alsace_moselle',
+            #'maladie_alsace_moselle',
             'maladie',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
@@ -103,20 +103,20 @@ target_by_period_by_categorie_salarie = {
         2017: [
             'excep_solidarite',
             'ircantec',
-            'maladie_alsace_moselle',
+            #'maladie_alsace_moselle',
             'maladie',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
         2018: [
             'ircantec',
-            'maladie_alsace_moselle',
+            #'maladie_alsace_moselle',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
         2019: [
             'ircantec',
-            'maladie_alsace_moselle',
+            #'maladie_alsace_moselle',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
