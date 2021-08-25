@@ -31,7 +31,7 @@ setup(
         "click >= 7.1.2, < 8.0.0",
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openfisca-france @ git+https://git@github.com/openfisca/openfisca-france@test-preprocessing#egg=OpenfIsca-France",
+        "openfisca-france >= 72.1",
         "openfisca-survey-manager >= 0.44.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
