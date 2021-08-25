@@ -275,8 +275,8 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     # Check baremes
     target = dict()
     target['public_titulaire_etat'] = set(['excep_solidarite', 'pension', 'rafp'])
-    target['public_titulaire_hospitaliere'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
-    target['public_titulaire_territoriale'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
+    target['public_titulaire_hospitaliere'] = set(['excep_solidarite', 'cnracl_s_ti', 'rafp'])
+    target['public_titulaire_territoriale'] = set(['excep_solidarite', 'cnracl_s_ti', 'rafp'])
 
     categories_salarie_du_public = [
         'public_titulaire_etat',
@@ -288,22 +288,22 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_collection = salarie[categorie]
         test = set(
             name for name, bareme in salarie[categorie]._children.items()
-            if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl2'
+            if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl_s_nbi'
             )
         assert target[categorie] == test, 'target for {}: \n  target = {} \n  test = {}'.format(categorie, target[categorie], test)
 
     # Barèmes à éliminer :
-        # cnracl1 = taux hors NBI -> OK
-        # cnracl2 = taux NBI -> On ne le prend pas en compte pour l'instant
+        # cnracl_s_ti = taux hors NBI -> OK
+        # cnracl_s_nbi = taux NBI -> On ne le prend pas en compte pour l'instant
     for categorie in [
         'public_titulaire_hospitaliere',
         'public_titulaire_territoriale',
         ]:
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
-        baremes_to_remove.append('cnracl2')
+        baremes_to_remove.append('cnracl_s_nbi')
         for name in baremes_to_remove:
-            if 'cnracl2' in baremes_collection:
+            if 'cnracl_s_nbi' in baremes_collection:
                 del baremes_collection._children[name]
 
     salarie = salarie._children.copy()
