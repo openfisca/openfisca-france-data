@@ -110,10 +110,8 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
         for name, bareme in baremes_collection._children.items():
-            if name.endswith('alsace_moselle'):
-                baremes_to_remove.append(name)
-        for name in baremes_to_remove:
-            del baremes_collection._children[name]
+            if name not in target:
+                del baremes_collection._children[name]
 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         test = set(
