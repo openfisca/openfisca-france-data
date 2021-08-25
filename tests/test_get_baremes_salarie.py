@@ -42,7 +42,6 @@ target_by_period_by_categorie_salarie = {
             'asf',
             'ceg',
             'cet2019',
-            'chomage',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
@@ -50,12 +49,13 @@ target_by_period_by_categorie_salarie = {
     'prive_cadre': {
         2016: [
             'agff',
-            'arrco',
             'agirc',
             'apec',
+            'arrco',
             'asf',
-            'maladie',
+            'cet',
             'chomage',
+            'maladie',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
@@ -65,6 +65,7 @@ target_by_period_by_categorie_salarie = {
             'agirc',
             'apec',
             'asf',
+            'cet',
             'maladie',
             'chomage',
             'vieillesse_deplafonnee',
@@ -76,6 +77,7 @@ target_by_period_by_categorie_salarie = {
             'agirc',
             'apec',
             'asf',
+            'cet',
             'chomage',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
@@ -86,7 +88,6 @@ target_by_period_by_categorie_salarie = {
             'apec',
             'ceg',
             'cet2019',
-            'chomage',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
@@ -95,7 +96,7 @@ target_by_period_by_categorie_salarie = {
         2016: [
             'excep_solidarite',
             'ircantec',
-            #'maladie_alsace_moselle',
+            # 'maladie_alsace_moselle',
             'maladie',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
@@ -103,24 +104,24 @@ target_by_period_by_categorie_salarie = {
         2017: [
             'excep_solidarite',
             'ircantec',
-            #'maladie_alsace_moselle',
+            # 'maladie_alsace_moselle',
             'maladie',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
         2018: [
             'ircantec',
-            #'maladie_alsace_moselle',
+            # 'maladie_alsace_moselle',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
         2019: [
             'ircantec',
-            #'maladie_alsace_moselle',
+            # 'maladie_alsace_moselle',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
-        },    
+        },
     "public_titulaire_etat": {
         2016: [
             "excep_solidarite",
@@ -140,6 +141,7 @@ target_by_period_by_categorie_salarie = {
             "pension",
             "rafp",
             ],
+        },
     "public_titulaire_hospitaliere": {
         2016: [
             "cnracl_s_ti",
@@ -163,6 +165,7 @@ target_by_period_by_categorie_salarie = {
             "cnracl_s_nbi",
             "rafp",
             ],
+        },
     "public_titulaire_territoriale": {
         2016: [
             "cnracl_s_ti",
@@ -187,12 +190,10 @@ target_by_period_by_categorie_salarie = {
             "rafp",
             ],
         },
-    
-
     }
 
 
 def test_get_baremes_salarie():
     for categorie_salarie, target_by_period in target_by_period_by_categorie_salarie.items():
         for period, target in target_by_period.items():
-            assert set(get_baremes_salarie(parameters, categorie_salarie, period, exclude_alsace_moselle = True)) == set(target)
+            assert set(get_baremes_salarie(parameters, categorie_salarie, period, exclude_alsace_moselle = True)) == set(target), f"Error on {categorie_salarie} for {period}"
