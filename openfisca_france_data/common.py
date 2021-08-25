@@ -120,7 +120,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         test = set(
             name for name, bareme in salarie[categorie]._children.items()
-            if isinstance(bareme, MarginalRateTaxScale)
+            # if isinstance(bareme, MarginalRateTaxScale)
             )
         assert target[categorie] == test, f"target: {sorted(target[categorie])} \n test {sorted(test)}"
     del bareme
