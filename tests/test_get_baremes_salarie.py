@@ -96,7 +96,6 @@ target_by_period_by_categorie_salarie = {
         2016: [
             'excep_solidarite',
             'ircantec',
-            # 'maladie_alsace_moselle',
             'maladie',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
