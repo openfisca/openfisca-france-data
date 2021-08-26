@@ -56,7 +56,7 @@ def test_erfs_fpr_aggregates_reform():
 
 
 @click.command()
-@click.option('-y', '--year', 'year', default = 2016, help = "ERFS-FPR year", show_default = True,
+@click.option('-y', '--year', 'year', default = 2018, help = "ERFS-FPR year", show_default = True,
     type = int, required = True)
 @click.option('-c', '--configfile', default = None,
     help = 'raw_data.ini path to read years to process.', show_default = True)
