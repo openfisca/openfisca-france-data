@@ -1,7 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 import gc
 import logging
 
@@ -24,8 +21,8 @@ def create_totals_first_pass(temporary_store = None, year = None):
 
     # On part de la table individu de l'ERFS
     # on renomme les variables
-    log.info(u"Creating Totals")
-    log.info(u"Etape 1 : Chargement des données")
+    log.info("Creating Totals")
+    log.info("Etape 1 : Chargement des données")
 
     indivim = temporary_store['indivim_{}'.format(year)]
 
@@ -119,7 +116,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     indivi.idfoy.loc[fip_no_declar] = indivi_fnd.idfoy.copy()
     del indivi_fnd, fip_no_declar
 
-    log.info(u"Etape 3 : Récupération des EE_NRT")
+    log.info("Etape 3 : Récupération des EE_NRT")
     nrt = indivi.quelfic == "EE_NRT"
     indivi.loc[nrt, 'idfoy'] = indivi.loc[nrt, 'idmen'] * 100 + indivi.loc[nrt, 'noi']
     indivi.loc[nrt, 'quifoy'] = "vous"
@@ -137,7 +134,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
 
     idfoyList = indivi.loc[indivi.quifoy == "vous", 'idfoy'].unique()
     indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
-    log.info(u"Il reste {} idfoy problématiques".format(
+    log.info("Il reste {} idfoy problématiques".format(
         indivi_without_idfoy.sum()
         ))
 
@@ -197,7 +194,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     pac = (
         indivi_without_idfoy & indivi.idfoy.notnull() & indivi.quifoy.isin(['pac'])
         )
-    log.info(u"Dealing with {} non valid idfoy of pacs".format(
+    log.info("Dealing with {} non valid idfoy of pacs".format(
         pac.sum()
         ))
     conj_noindiv = indivi.idfoy[pac].copy()
@@ -212,7 +209,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     # Il faut traiter les idfoy non attribués
     indivi_without_idfoy = ~indivi.idfoy.isin(idfoyList)
     assert (indivi_without_idfoy == indivi.idfoy.isnull()).all()
-    log.info(u"Il faut traiter les {} idfoy non attribués".format(
+    log.info("Il faut traiter les {} idfoy non attribués".format(
         indivi_without_idfoy.sum()
         ))
 
@@ -229,7 +226,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
         )
     indivi.loc[married_adult_with_vous, 'quifoy'] = 'conj'
     log.info(
-        u"""Il y a {} adultes > 25 ans non enfants avec conjoints déclarants""".format(
+        """Il y a {} adultes > 25 ans non enfants avec conjoints déclarants""".format(
             married_adult_with_vous.sum()
             )
         )
@@ -261,7 +258,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     indivi.loc[conj, 'quifoy'] = 'conj'
     del vous, conj
     log.info(
-        u"""Il y a {} adultes > 25 ans non enfants sans conjoints déclarants: on crée un foyer""".format(
+        """Il y a {} adultes > 25 ans non enfants sans conjoints déclarants: on crée un foyer""".format(
             married_adult_without_vous.sum()
             )
         )
@@ -279,7 +276,7 @@ def create_totals_first_pass(temporary_store = None, year = None):
     indivi.loc[non_married_aged_kids, 'idfoy'] = indivi.loc[non_married_aged_kids, 'noindiv'].copy()
     indivi.loc[non_married_aged_kids, 'quifoy'] = 'vous'
     log.info(
-        u"""On crée un foyer fiscal indépendants pour les {} enfants agés de plus de 25 ans sans conjoint
+        """On crée un foyer fiscal indépendants pour les {} enfants agés de plus de 25 ans sans conjoint
 vivant avec leurs parents""".format(
             non_married_aged_kids.sum()
             )
@@ -335,7 +332,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         colocataires = indivi_without_idfoy & indivi.idmen.isin(coloc_idmens)
         indivi.loc[colocataires, 'quifoy'] = 'vous'
         indivi.loc[colocataires, 'idfoy'] = indivi.loc[colocataires, 'noindiv'].copy()
-        log.info(u"Il y a {} colocataires".format(
+        log.info("Il y a {} colocataires".format(
             colocataires.sum()
             ))
         del colocataires, coloc_dummy_by_idmen, coloc_by_idmen, coloc_idmens, colocs
@@ -348,7 +345,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
     if indivi_without_idfoy.any():
         indivi.loc[other_adults, 'quifoy'] = 'vous'
         indivi.loc[other_adults, 'idfoy'] = indivi.loc[other_adults, 'noindiv'].copy()
-        log.info(u"Il y a {} autres adultes seuls à qui l'on crée un foyer individuel".format(
+        log.info("Il y a {} autres adultes seuls à qui l'on crée un foyer individuel".format(
             other_adults.sum()
             ))
         del other_adults
@@ -363,7 +360,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         ((indivi.noiper > 0) | (indivi.noimer > 0))
         )
     # On rattache les enfants au foyer de leur pères s'il existe
-    log.info(u"On traite le cas des {} enfants (noiper ou noimer non nuls) repérés non rattachés".format(
+    log.info("On traite le cas des {} enfants (noiper ou noimer non nuls) repérés non rattachés".format(
         kids.sum()
         ))
     if kids.any():
@@ -382,7 +379,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             pere_declarant_potentiel_idfoy[pere_veritable_declarant].astype('int')
             )
         indivi.loc[pere_veritable_declarant, 'quifoy'] = 'pac'
-    log.info(u"{} enfants rattachés au père ".format(
+    log.info("{} enfants rattachés au père ".format(
         pere_veritable_declarant.sum()
         ))
     del pere_declarant_potentiel, pere_declarant_potentiel_idfoy, pere_noindiv, \
@@ -395,7 +392,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         (indivi.age < 25) &
         ((indivi.noiper > 0) | (indivi.noimer > 0))
         )
-    log.info(u"Il reste {} enfants (noimer non nuls) repérés non rattachés".format(
+    log.info("Il reste {} enfants (noimer non nuls) repérés non rattachés".format(
         kids.sum()
         ))
     # Et de leurs mères sinon
@@ -415,7 +412,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             mere_declarant_potentiel_idfoy[mere_veritable_declarant].astype('int')
             )
         indivi.loc[mere_veritable_declarant, 'quifoy'] = 'pac'
-    log.info(u"{} enfants rattachés à la mère".format(
+    log.info("{} enfants rattachés à la mère".format(
         mere_veritable_declarant.sum()
         ))
     del mere_declarant_potentiel, mere_declarant_potentiel_idfoy, mere_noindiv, \
@@ -461,7 +458,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             indivi.loc[avec_parents, 'idmen'].map(parents_idfoy_by_idmem))
         indivi.loc[avec_parents, 'quifoy'] = 'pac'
 
-        log.info(u"Il y a {} enfants sans noiper ni noimer avec le seul vous du ménage".format(
+        log.info("Il y a {} enfants sans noiper ni noimer avec le seul vous du ménage".format(
             avec_parents.sum()
             ))
         del parents, parents_by_idmen, parents_dummy_by_idmen, parents_idfoy_by_idmem, parents_idmens
@@ -494,7 +491,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
             indivi.loc[avec_parents_non_pr, 'idmen'].map(parents_idfoy_by_idmem))
         indivi.loc[avec_parents_non_pr, 'quifoy'] = 'pac'
 
-        log.info(u"Il y a {} enfants sans noiper ni noimer avec le seul vous du ménage".format(
+        log.info("Il y a {} enfants sans noiper ni noimer avec le seul vous du ménage".format(
             avec_parents_non_pr.sum()
             ))
         del parents_non_pr, parents_by_idmen, parents_idfoy_by_idmem, avec_parents_non_pr
@@ -514,7 +511,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         indivi.loc[other_enfants, 'idfoy'] = indivi.loc[other_enfants, 'idmen'].copy().map(declarants_by_idmen)
         indivi.loc[other_enfants, 'quifoy'] = 'pac'
 
-        log.info(u"Il y a {} autres enfants que l'on met avec un vous du ménage".format(
+        log.info("Il y a {} autres enfants que l'on met avec un vous du ménage".format(
             other_enfants.sum()
             ))
 
@@ -526,7 +523,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
         indivi.loc[other_grands_enfants, 'idfoy'] = indivi.loc[other_grands_enfants, 'noindiv']
         indivi.loc[other_grands_enfants, 'quifoy'] = 'vous'
 
-        log.info(u"Il y a {} autres grans enfants (>= 18) que l'on met avec un vous du ménage".format(
+        log.info("Il y a {} autres grans enfants (>= 18) que l'on met avec un vous du ménage".format(
             other_grands_enfants.sum()
             ))
 
@@ -537,7 +534,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
 
     assert not indivi_without_idfoy.any()
 
-    log.info(u"    4.2 : On enlève les individus pour lesquels il manque le déclarant")
+    log.info("    4.2 : On enlève les individus pour lesquels il manque le déclarant")
     fip = temporary_store['fipDat_{}'.format(year)]
     fip["declar"] = np.nan
     fip["agepf"] = np.nan
@@ -580,7 +577,7 @@ vivant avec leurs parents qui ne sont pas traités""".format(
 
     assert indivi.not_pr_cpr.isin([True, False]).all()
 
-    log.info(u"    4.3 : Creating non pr=0 and cpr=1 idmen's")
+    log.info("    4.3 : Creating non pr=0 and cpr=1 idmen's")
 
     indivi.set_index('noindiv', inplace = True, verify_integrity = True)
     test1 = indivi.loc[indivi.not_pr_cpr, ['quimen', 'idmen']].copy()
@@ -605,7 +602,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
-    log.info(u"    5.1 : Elimination idfoy restant")
+    log.info("    5.1 : Elimination idfoy restant")
     # Voiture balai
     # On a plein d'idfoy vides, on fait 1 ménage = 1 foyer fiscal
     indivi = temporary_store['indivi_step_06_{}'.format(year)]
@@ -664,9 +661,9 @@ def create_totals_second_pass(temporary_store = None, year = None):
 
     # TODO les actrec des fip ne sont pas codées (on le fera à la fin quand on aura rassemblé
     # les infos provenant des déclarations)
-    log.info(u"Etape 6 : Création des variables descriptives")
-    log.info(u"    6.1 : Variable activité")
-    log.info(u"Variables présentes; \n {}".format(indivi.columns))
+    log.info("Etape 6 : Création des variables descriptives")
+    log.info("    6.1 : Variable activité")
+    log.info("Variables présentes; \n {}".format(indivi.columns))
 
     indivi['activite'] = np.nan
     indivi.loc[indivi.actrec <= 3, 'activite'] = 0
@@ -681,9 +678,9 @@ def create_totals_second_pass(temporary_store = None, year = None):
     indivi.loc[indivi.actrec.isnull(), 'activite'] = 5
     indivi.loc[indivi.titc.isnull(), 'titc'] = 0
     assert indivi.titc.notnull().all(), \
-        u"Problème avec les titc"  # On a 420 NaN pour les varaibels statut, titc etc
+        "Problème avec les titc"  # On a 420 NaN pour les varaibels statut, titc etc
 
-    log.info(u"    6.2 : Variable statut")
+    log.info("    6.2 : Variable statut")
     indivi.loc[indivi.statut.isnull(), 'statut'] = 0
     indivi.statut = indivi.statut.astype('int')
     indivi.loc[indivi.statut == 11, 'statut'] = 1
@@ -697,11 +694,11 @@ def create_totals_second_pass(temporary_store = None, year = None):
     indivi.loc[indivi.statut == 43, 'statut'] = 9
     indivi.loc[indivi.statut == 44, 'statut'] = 10
     indivi.loc[indivi.statut == 45, 'statut'] = 11
-    assert indivi.statut.isin(range(12)).all(), u"statut value over range"
+    assert indivi.statut.isin(range(12)).all(), "statut value over range"
     log.info("Valeurs prises par la variable statut \n {}".format(
         indivi['statut'].value_counts(dropna = False)))
 
-    log.info(u"    6.3 : variable txtppb")
+    log.info("    6.3 : variable txtppb")
     indivi.loc[indivi.txtppb.isnull(), 'txtppb'] = 0
     assert indivi.txtppb.notnull().all()
     indivi.loc[indivi.nbsala.isnull(), 'nbsala'] = 0
@@ -711,7 +708,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     log.info("Valeurs prises par la variable txtppb \n {}".format(
         indivi['txtppb'].value_counts(dropna = False)))
 
-    log.info(u"    6.4 : variable chpub et CSP")
+    log.info("    6.4 : variable chpub et CSP")
     indivi.loc[indivi.chpub.isnull(), 'chpub'] = 0
     indivi.chpub = indivi.chpub.astype('int')
     assert indivi.chpub.isin(range(11)).all()
@@ -732,13 +729,13 @@ def create_totals_second_pass(temporary_store = None, year = None):
     assert indivi.cadre.isin(range(2)).all()
 
     log.info(
-        u"Etape 7: on vérifie qu'il ne manque pas d'info sur les liens avec la personne de référence"
+        "Etape 7: on vérifie qu'il ne manque pas d'info sur les liens avec la personne de référence"
         )
     log.info(
-        u"nb de doublons idfoy/quifoy {}".format(len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])]))
+        "nb de doublons idfoy/quifoy {}".format(len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])]))
         )
 
-    log.info(u"On crée les n° de personnes à charge dans le foyer fiscal")
+    log.info("On crée les n° de personnes à charge dans le foyer fiscal")
     assert indivi.idfoy.notnull().all()
     print_id(indivi)
     indivi['quifoy_bis'] = 2
@@ -766,15 +763,15 @@ def create_totals_second_pass(temporary_store = None, year = None):
     print_id(indivi)
     del pac
     assert len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])]) == 0, \
-        u"Il y a {} doublons idfoy/quifoy".format(
+        "Il y a {} doublons idfoy/quifoy".format(
             len(indivi[indivi.duplicated(subset = ['idfoy', 'quifoy'])])
             )
     print_id(indivi)
 
-    log.info(u"Etape 8 : création des fichiers totaux")
+    log.info("Etape 8 : création des fichiers totaux")
     famille = temporary_store['famc_{}'.format(year)]
 
-    log.info(u"    8.1 : création de tot2 & tot3")
+    log.info("    8.1 : création de tot2 & tot3")
     tot2 = indivi.merge(famille, on = 'noindiv', how = 'inner')
     # TODO: MBJ increase in number of menage/foyer when merging with family ...
     del famille
@@ -784,7 +781,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
 
     temporary_store['tot2_{}'.format(year)] = tot2
     del indivi
-    log.info(u"    tot2 saved")
+    log.info("    tot2 saved")
     tot2 = tot2[tot2.idmen.notnull()].copy()
 
     print_id(tot2)
@@ -807,7 +804,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
     tot3 = tot3.drop_duplicates(subset = ['noindiv'])
     control(tot3)
 
-    log.info(u"    8.2 : On ajoute les variables individualisables")
+    log.info("    8.2 : On ajoute les variables individualisables")
 
     allvars = temporary_store['ind_vars_to_remove_{}'.format(year)]
     vars2 = set(tot3.columns).difference(set(allvars))
@@ -823,7 +820,7 @@ def create_totals_second_pass(temporary_store = None, year = None):
 
     del tot2, allvars, tot3, vars2
     gc.collect()
-    log.info(u"tot3 sauvegardé")
+    log.info("tot3 sauvegardé")
 
 
 @temporary_store_decorator(file_name = 'erfs')
@@ -832,13 +829,13 @@ def create_final(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
-    log.info(u"création de final")
+    log.info("création de final")
     foy_ind = temporary_store['foy_ind_{}'.format(year)]
     tot3 = temporary_store['tot3_{}'.format(year)]
 
-    log.info(u"Stats on tot3")
+    log.info("Stats on tot3")
     print_id(tot3)
-    log.info(u"Stats on foy_ind")
+    log.info("Stats on foy_ind")
     print_id(foy_ind)
     foy_ind.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
     tot3.set_index(['idfoy', 'quifoy'], inplace = True, verify_integrity = True)
@@ -882,7 +879,7 @@ def create_final(temporary_store = None, year = None):
     print_id(final)
 
     temporary_store['final_{}'.format(year)] = final
-    log.info(u"final sauvegardé")
+    log.info("final sauvegardé")
     del sif, final
 
 if __name__ == '__main__':
@@ -891,4 +888,4 @@ if __name__ == '__main__':
     create_totals_first_pass(year = year)
     create_totals_second_pass(year = year)
     create_final(year = year)
-    log.info(u"étape 06 remise en forme des données terminée")
+    log.info("étape 06 remise en forme des données terminée")

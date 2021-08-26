@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 

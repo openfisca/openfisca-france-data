@@ -9,11 +9,14 @@ import sys
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
-from openfisca_france_data.aggregates import Aggregates
+from openfisca_france_data.aggregates import FranceAggregates as Aggregates
 
 
 log = logging.getLogger(__name__)
-
+logging.basicConfig(level = logging.INFO, stream = sys.stdout,
+    format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 
 def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data = False):
@@ -60,10 +63,9 @@ def test_erfs_fpr_aggregates_reform():
 @click.option('-v', '--verbose', default = False,
     help = 'print debug information', show_default = True)
 def main(year, configfile = None, verbose = False):
+    """Computes aggregates."""
     if verbose:
         logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
-    else:
-        logging.basicConfig(level = logging.INFO, stream = sys.stdout)
 
     years = []
     if configfile is not None:
@@ -85,9 +87,13 @@ def main(year, configfile = None, verbose = False):
             rebuild_input_data = False,
             )
         survey_scenario._set_used_as_input_variables_by_entity()
-        df = aggregates.compute_aggregates(actual = True)
-        df.to_csv(f'aggregates{year}.csv')
+        aggregates.to_csv(f'aggregates{year}.csv')
+        print(aggregates.to_markdown())
+        aggregates.to_html(f'aggregates{year}.html')
+
 
 
 if __name__ == '__main__':
+    log.info("Starting...")
     main()
+    log.info("THE END!")

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import inspect
 import logging
 import os
@@ -55,7 +52,7 @@ def impute_take_up(target_probability, eligible, weights, recourant_last_period,
 
     eligibles = data.loc[data.eligible == 1].copy()
     eligibles['recourant'] = eligibles.deja_recourant
-    assert len(eligibles) > 0, u"Aucun eligibles : impossible d'imputer le non recours"
+    assert len(eligibles) > 0, "Aucun eligibles : impossible d'imputer le non recours"
     taux_recours_provisoire = eligibles.loc[eligibles.recourant].weights.sum() / eligibles.weights.sum()
 
     if target_probability > taux_recours_provisoire:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import logging
 
@@ -7,19 +5,44 @@ from openfisca_core import periods
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_core.formula_helpers import switch
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
-from openfisca_france_data import openfisca_france_tax_benefit_system
+from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotisations_sociales.base import (
+    cotisations_salarie_by_categorie_salarie,
+    )
 from openfisca_france_data.smic import smic_horaire_brut
 
 
 log = logging.getLogger(__name__)
 
 
+def get_baremes_salarie(parameters, categorie_salarie, period, exclude_alsace_moselle = True):
+    assert categorie_salarie in [
+        "prive_cadre",
+        "prive_non_cadre",
+        "public_non_titulaire",
+        "public_titulaire_etat",
+        "public_titulaire_hospitaliere",
+        "public_titulaire_territoriale",
+        ]
+
+    cotisations_salaries = cotisations_salarie_by_categorie_salarie[categorie_salarie]
+    cotisations_salarie_retenues = list()
+
+    for cotisation_salarie in cotisations_salaries:
+        bareme = parameters.cotsoc.cotisations_salarie.children[categorie_salarie].children[cotisation_salarie]
+        if exclude_alsace_moselle and "alsace_moselle" in cotisation_salarie:
+            continue
+
+        if bareme(period).thresholds and bareme(period).rates:
+            cotisations_salarie_retenues.append(cotisation_salarie)
+
+    return set(cotisations_salarie_retenues)
+
+
+
 def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', tax_benefit_system = None):
     """
-
     Calcule la variable salaire_de_base à partir du salaire imposable par inversion du barème
     de cotisations sociales correspondant à la catégorie à laquelle appartient le salarié.
-
     """
     assert period is not None
     assert revenu_type in ['net', 'imposable']
@@ -36,10 +59,10 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
+    parameters = tax_benefit_system.parameters(period.start)
     salarie = parameters.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = parameters.cotsoc.gen.plafond_securite_sociale
-    parameters_csg_deductible = parameters.prelevements_sociaux.contributions.csg.activite.deductible
+    plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
+    parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = parameters_csg_deductible.taux
     taux_abattement = parameters_csg_deductible.abattement.rates[0]
     try:
@@ -53,7 +76,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     if revenu_type == 'net':  # On ajoute CSG imposable et crds
 
-        parameters_csg_imposable = parameters.prelevements_sociaux.contributions.csg.activite.imposable
+        parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_csg = parameters_csg_imposable.taux
         taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
@@ -65,7 +88,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
 
-        parameters_crds = parameters.prelevements_sociaux.contributions.crds.activite
+        parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
         taux_csg = parameters_crds.taux
         taux_abattement = parameters_crds.abattement.rates[0]
         try:
@@ -78,28 +101,28 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             crds.add_bracket(seuil_abattement, taux_csg)
 
     # Check baremes
-    target = dict()
-    target['prive_non_cadre'] = set(['maladie', 'arrco', 'vieillesse_deplafonnee', 'vieillesse', 'agff', 'assedic'])
-    target['prive_cadre'] = set(
-        ['maladie', 'arrco', 'vieillesse_deplafonnee', 'agirc', 'cet', 'apec', 'vieillesse', 'agff', 'assedic']
+    target_by_categorie_salarie = dict(
+        (categorie_salarie, get_baremes_salarie(tax_benefit_system.parameters, categorie_salarie, period))
+        for categorie_salarie in ['prive_cadre', 'prive_non_cadre', 'public_non_titulaire']
         )
-    target['public_non_titulaire'] = set(['excep_solidarite', 'maladie', 'ircantec', 'vieillesse_deplafonnee', 'vieillesse'])
 
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        baremes_collection = salarie[categorie]
+    for categorie_salarie, target in target_by_categorie_salarie.items():
+        baremes_collection = salarie[categorie_salarie]
         baremes_to_remove = list()
         for name, bareme in baremes_collection._children.items():
-            if name.endswith('alsace_moselle'):
+            if name not in target:
                 baremes_to_remove.append(name)
+
+        # We split since we cannot remove from dict while iterating
         for name in baremes_to_remove:
             del baremes_collection._children[name]
 
-    for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
+    for categorie_salarie, target in target_by_categorie_salarie.items():
         test = set(
-            name for name, bareme in salarie[categorie]._children.items()
-            if isinstance(bareme, MarginalRateTaxScale)
+            name for name, bareme in salarie[categorie_salarie]._children.items()
+            # if isinstance(bareme, MarginalRateTaxScale)
             )
-        assert target[categorie] == test, 'target: {} \n test {}'.format(target[categorie], test)
+        assert target == test, f"target: {sorted(target)} \n test {sorted(test)}"
     del bareme
 
     # On ajoute la CSG deductible et on proratise par le plafond de la sécurité sociale
@@ -127,9 +150,9 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         )
 
     def add_agirc_gmp_to_agirc(agirc, parameters):
-        plafond_securite_sociale_annuel = parameters.cotsoc.gen.plafond_securite_sociale * 12
-        salaire_charniere = parameters.prelevements_sociaux.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
-        cotisation = parameters.prelevements_sociaux.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
+        plafond_securite_sociale_annuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_annuel
+        salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
+        cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle_en_euros.part_salariale * 12
         n = (cotisation + 1) * 12
         agirc.add_bracket(n / plafond_securite_sociale_annuel, 0)
         agirc.rates[0] = cotisation / n
@@ -137,7 +160,8 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     salaire_de_base = 0.0
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
-        if categorie == 'prive_cadre':
+        if categorie == 'prive_cadre' and "agirc" in salarie[categorie]._children:
+            print("adding GMP")
             add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
 
         bareme = combine_tax_scales(salarie[categorie])
@@ -204,11 +228,11 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    legislation = tax_benefit_system.get_parameters_at_instant(period.start)
+    legislation = tax_benefit_system.parameters(period.start)
 
     salarie = legislation.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = legislation.cotsoc.gen.plafond_securite_sociale
-    legislation_csg_deductible = legislation.prelevements_sociaux.contributions.csg.activite.deductible
+    plafond_securite_sociale_mensuel = legislation.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
+    legislation_csg_deductible = legislation.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = legislation_csg_deductible.taux
     taux_abattement = legislation_csg_deductible.abattement.rates[0]
     try:
@@ -224,7 +248,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # Cas des revenus nets:
         # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
         # 1. csg imposable
-        legislation_csg_imposable = legislation.prelevements_sociaux.contributions.csg.activite.imposable
+        legislation_csg_imposable = legislation.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_csg = legislation_csg_imposable.taux
         taux_abattement = legislation_csg_imposable.abattement.rates[0]
         try:
@@ -236,7 +260,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
-        legislation_crds = legislation.prelevements_sociaux.contributions.crds.activite
+        legislation_crds = legislation.prelevements_sociaux.contributions_sociales.crds.activite
         taux_csg = legislation_crds.taux
         taux_abattement = legislation_crds.abattement.rates[0]
         try:
@@ -251,8 +275,8 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     # Check baremes
     target = dict()
     target['public_titulaire_etat'] = set(['excep_solidarite', 'pension', 'rafp'])
-    target['public_titulaire_hospitaliere'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
-    target['public_titulaire_territoriale'] = set(['excep_solidarite', 'cnracl1', 'rafp'])
+    target['public_titulaire_hospitaliere'] = set(['excep_solidarite', 'cnracl_s_ti', 'rafp'])
+    target['public_titulaire_territoriale'] = set(['excep_solidarite', 'cnracl_s_ti', 'rafp'])
 
     categories_salarie_du_public = [
         'public_titulaire_etat',
@@ -264,22 +288,22 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_collection = salarie[categorie]
         test = set(
             name for name, bareme in salarie[categorie]._children.items()
-            if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl2'
+            if isinstance(bareme, MarginalRateTaxScale) and name != 'cnracl_s_nbi'
             )
         assert target[categorie] == test, 'target for {}: \n  target = {} \n  test = {}'.format(categorie, target[categorie], test)
 
     # Barèmes à éliminer :
-        # cnracl1 = taux hors NBI -> OK
-        # cnracl2 = taux NBI -> On ne le prend pas en compte pour l'instant
+        # cnracl_s_ti = taux hors NBI -> OK
+        # cnracl_s_nbi = taux NBI -> On ne le prend pas en compte pour l'instant
     for categorie in [
         'public_titulaire_hospitaliere',
         'public_titulaire_territoriale',
         ]:
         baremes_collection = salarie[categorie]
         baremes_to_remove = list()
-        baremes_to_remove.append('cnracl2')
+        baremes_to_remove.append('cnracl_s_nbi')
         for name in baremes_to_remove:
-            if 'cnracl2' in baremes_collection:
+            if 'cnracl_s_nbi' in baremes_collection:
                 del baremes_collection._children[name]
 
     salarie = salarie._children.copy()
@@ -373,8 +397,8 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     individus.chomage_imposable.fillna(0, inplace = True)
     individus.retraite_imposable.fillna(0, inplace = True)
 
-    parameters = tax_benefit_system.get_parameters_at_instant(period.start)
-    csg = parameters.prelevements_sociaux.contributions.csg
+    parameters = tax_benefit_system.parameters(period.start)
+    csg = parameters.prelevements_sociaux.contributions_sociales.csg
     csg_deductible_chomage = csg.chomage.deductible
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
@@ -397,7 +421,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         )
     assert individus['chomage_brut'].notnull().all()
 
-    csg_deductible_retraite = parameters.prelevements_sociaux.contributions.csg.retraite.deductible
+    csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.retraite_invalidite.deductible
     taux_plein = csg_deductible_retraite.taux_plein
     taux_reduit = csg_deductible_retraite.taux_reduit
     individus['retraite_brute'] = (

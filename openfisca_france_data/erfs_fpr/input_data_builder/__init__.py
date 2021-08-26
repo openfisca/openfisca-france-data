@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import click
 import logging
 import configparser
@@ -70,6 +68,12 @@ def main(year = 2014, export_flattened_df_filepath = None, configfile = None):
     import time
     start = time.time()
 
+    logging.basicConfig(level = logging.INFO, stream = sys.stdout,
+        format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    log.info("Starting build-erfs-fpr...")
+
     if configfile is not None:
         years = []
         try:
@@ -92,9 +96,7 @@ def main(year = 2014, export_flattened_df_filepath = None, configfile = None):
         build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
-    print(time.time() - start)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     main()

@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 
 # OpenFisca
@@ -138,7 +137,7 @@ def sif(temporary_store = None, year = None):
     log.info("Number of duplicated individuals: {}".format(len(duplicated_noindiv)))
     log.info("Number of distinct individuals: {}".format(len(sif.noindiv.value_counts())))
 
-    log.info(u"Saving sif")
+    log.info("Saving sif")
     temporary_store['sif_{}'.format(year)] = sif
     del sif
     gc.collect()
@@ -267,7 +266,7 @@ def foyer_all(temporary_store = None, year = None):
     eligible_vars = (set().union(*vars_sets)).intersection(set(list(foyer.columns)))
 
     log.info(
-        u"From {} variables, we keep {} eligibles variables".format(
+        "From {} variables, we keep {} eligibles variables".format(
             len(set().union(*vars_sets)),
             len(eligible_vars),
             )
@@ -338,4 +337,4 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO,  filename = 'step_05.log', filemode = 'w')
     sif(year = year)
     foyer_all(year = year)
-    log.info(u"étape 05 foyer terminée")
+    log.info("étape 05 foyer terminée")

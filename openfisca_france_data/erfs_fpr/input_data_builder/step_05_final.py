@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import gc
 import logging
 import pandas
@@ -61,6 +58,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     individus = create_ids_and_roles(individus)
     individus = individus[variables].copy()
+    menages = menages.loc[(menages.ident).isin(set(individus.idmen))].copy()
     gc.collect()
 
     # This looks like it could have a sizeable impact
@@ -121,8 +119,12 @@ def create_collectives_foyer_variables(individus, menages):
     menages_revenus_fonciers = menages[['idmen', 'rev_fonciers_bruts']].copy()
     idmens = menages_revenus_fonciers.query('(rev_fonciers_bruts > 0)')['idmen'].tolist()
     # I'm not proud
-    # TODO: WDF ?!
+    # TODO: WDF ?!
     idmens = [_ for _ in idmens if _ != 14024264]
+    idmens = [_ for _ in idmens if _ != 15010850]
+    idmens = [_ for _ in idmens if _ != 17000919]
+    idmens = [_ for _ in idmens if _ != 18046072]
+    idmens = [_ for _ in idmens if _ != 8019138]
     menages_multi_foyers = (individus
         .query('idmen in @idmens')[['idmen', 'idfoy', 'age']]  # On ne garde que les ménages avec des revenus fonciers
         .groupby('idmen')
@@ -205,6 +207,8 @@ def extract_menages_variables(menages):
         if external_variable in menages.columns:
             log.info("Found {} in menages table: we keep it".format(external_variable))
             variables.append(external_variable)
+    #TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
+    menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
     menages = menages[variables].copy()
     menages.taxe_habitation = - menages.taxe_habitation  # taxes should be negative
     menages.rename(columns = dict(ident = 'idmen'), inplace = True)

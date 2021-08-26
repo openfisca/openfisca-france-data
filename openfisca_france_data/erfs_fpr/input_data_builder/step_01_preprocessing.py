@@ -1,6 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import gc
 import logging
 import numpy as np
@@ -52,7 +50,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
 def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_individu = None, year = None,
         skip_menage = False):
     assert (eec_individu is not None) and (fpr_individu is not None)
-    log.debug(u"""
+    log.debug("""
 Il y a {} individus dans fpr_individu
 Il y a {} individus dans eec_individu
 """.format(
@@ -69,13 +67,15 @@ Il y a {} individus dans eec_individu
     lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
     prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
     retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
-    txtppb = 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+    txtppb = 'txtpp' if year < 2004 else 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+                                                                                # + pas utilisee (cf step_03 todo_create)
+    acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
+    cstot = 'dcstot' if year < 2002 else 'cstotr' # mêmes modalité (0 = non-réponse)
     var_list = ([
-        'acteu',
+        acteu,
         agepr,
         cohab,
         'contra',
-        'encadr',
         'forter',
         lien,
         'mrec',
@@ -83,14 +83,18 @@ Il y a {} individus dans eec_individu
         'noicon',
         'noimer',
         prosa,
-        retrai,
+        #retrai,
         'rstg',
         'statut',
         'stc',
         'titc',
         txtppb,
         ]
-         + (["noiper"] if "noiper" in individus.columns else []))
+         + (["noiper"] if "noiper" in individus.columns else [])
+         + (["encadr"] if "encadr" in individus.columns else [])
+         + ([retrai] if retrai in individus.columns else []) #n'existe pas avant 2004
+         + ([cstot] if cstot in individus.columns else [])) #existe 1996 - 2003, remplace retrai
+
 
     for var in var_list:
         individus[var]=individus[var].fillna(0)
@@ -104,7 +108,7 @@ Il y a {} individus dans eec_individu
         individus['lpr'] = individus.lprm
 
     if not skip_menage:
-        log.debug(u"""
+        log.debug("""
 Il y a {} ménages dans fpr_menage
 Il y a {} ménages dans eec_menage
 """.format(
@@ -112,20 +116,20 @@ Il y a {} ménages dans eec_menage
             len(eec_menage.ident.unique()),
         ))
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
-        log.debug(u"""
+        log.debug("""
 Les variables suivantes sont communes aux deux tables ménages:
   {}
 """.format(common_variables))
         if 'th' in common_variables:
             fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
-            log.debug(u"La variable th de la table fpr_menage est renommée taxe_habitation")
+            log.debug("La variable th de la table fpr_menage est renommée taxe_habitation")
 
         if 'tur5' in common_variables:
             fpr_menage.drop('tur5', axis = 1, inplace = True)
-            log.debug(u"La variable tur5 redondante est retirée de la table fpr_menage")
+            log.debug("La variable tur5 redondante est retirée de la table fpr_menage")
 
         common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
-        log.debug(u"""
+        log.debug("""
 Après renommage seules les variables suivantes sont communes aux deux tables ménages:
   {}
 """.format(common_variables))
@@ -141,12 +145,12 @@ Après renommage seules les variables suivantes sont communes aux deux tables m�
         except Exception:
             print(individus.dtypes)
             raise
-        log.debug(u"""
+        log.debug("""
 Il y a {} ménages dans la base ménage fusionnée
 """.format(len(menages.ident.unique())))
         #
     #
-    log.debug(u"""
+    log.debug("""
 Il y a {} ménages dans la base individus fusionnée
 Il y a {} individus dans la base individus fusionnée
 """.format(
@@ -216,62 +220,13 @@ def check_naia_naim(individus, year):
             individus.naim.isnull(),
             'naim'
             ] = 1
-
+        
     assert individus.naim.isin(range(1, 13)).all(), f"naim values: {individus.naim.unique()}"
     assert isinstance(year, int)
-    good = ((year >= individus.naia) & (individus.naia > 1890))
-    assertion = good.all()
-    bad_idents = individus.loc[~good, "ident"].unique()
-    try:
-        lpr = "lpr" if year < 2013 else "lprm"
-        lien = "lien" if year < 2013 else "lienprm"  # TODO attention pas les mêmes modalités
-        prosa = "prosa" if year < 2013 else "qprcent"  # TODO attention pas les mêmes modalités
-        retrai = "retrai" if year < 2013 else "ret"  # TODO attention pas les mêmes modalités
-        assert assertion, "Error: \n {}".format(
-            individus.loc[
-                individus.ident.isin(bad_idents),  # WTF is this table supposed to be? I changed the 'lien' in lien
-                # and so on for other variables
-                [
-                    'ag',
-                    'ident',
-                    lien,
-                    'naia',
-                    'naim',
-                    'noi',
-                    'noicon',
-                    'noimer',
-                    prosa,
-                    retrai,
-                    'rstg',
-                    'statut',
-                    'sexe',
-                    lpr,
-                    'chomage_i',
-                    'pens_alim_recue_i',
-                    'rag_i',
-                    'retraites_i',
-                    'ric_i',
-                    'rnc_i',
-                    'salaires_i',
-                    ]
-                    + (["noiper"] if "noiper" in individus.columns else [])
-                ]
-            )
-    except AssertionError:
-        if year == 2012:
-            log.debug('Fixing erroneous naia manually')
-            individus.loc[
-                (individus.ident == 12023304) & (individus.noi == 2),
-                'naia'
-                ] = 1954
-            individus.loc[
-                (individus.ident == 12041815) & (individus.noi == 1),
-                'naia'
-                ] = 2012 - 40
-            #
-        else:
-            AssertionError('naia and naim have invalid values')
-
+    bad_noindiv = individus.loc[~((year >= individus.naia) & (individus.naia > 1890)), 
+                                "noindiv"].unique()
+    for id in bad_noindiv:
+        individus.loc[individus.noindiv == id,'naia'] = year - individus.loc[individus.noindiv == id,'ageq']
 
 if __name__ == '__main__':
     import sys

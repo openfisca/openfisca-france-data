@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import logging
 import numpy as np
 import pandas as pd
@@ -25,9 +23,7 @@ log = logging.getLogger(__name__)
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
 def build_variables_individuelles(temporary_store = None, year = None):
-    """
-    Création des variables individuelles
-    """
+    """Création des variables individuelles."""
 
     assert temporary_store is not None
     assert year is not None
@@ -54,8 +50,9 @@ def build_variables_individuelles(temporary_store = None, year = None):
         inplace = True,
         )
     create_variables_individuelles(individus, year)
+    assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     temporary_store['individus_{}'.format(year)] = individus
-    log.debug(u"step_03_variables_individuelles terminée")
+    log.debug("step_03_variables_individuelles terminée")
     return individus
 
 
@@ -76,8 +73,8 @@ def create_variables_individuelles(individus, year, survey_year = None):
 
     # Il faut que la base d'input se fasse au millésime des données
     # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
-    # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
-    # je besoin d'un droit courantcomme même du droit currant pour l'année des données
+    # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
+    # je besoin d'un droit courant comme même du droit courrant pour l'année des données
     tax_benefit_system = openfisca_france_tax_benefit_system
 
     # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'inverser
@@ -88,11 +85,13 @@ def create_variables_individuelles(individus, year, survey_year = None):
         tax_benefit_system = tax_benefit_system
         )
 
-    # Pour les cotisations patronales qui varient avec la taille de la boîte
+    # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus)
+    assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
+    return individus
 
 
 def create_individu_variables_brutes(individus, revenu_type = None, period = None,
@@ -152,8 +151,8 @@ def create_individu_variables_brutes(individus, revenu_type = None, period = Non
 
 
 def create_activite(individus):
-    """
-    Création de la variable activite
+    """Création de la variable activite.
+
     0 = Actif occupé
     1 = Chômeur
     2 = Étudiant, élève
@@ -175,39 +174,45 @@ def create_activite(individus):
 
 
 def create_actrec(individus):
-    """
-    Création de la variables actrec
-    pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
+    """Création de la variables actrec.
+
+    acterc pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
     """
     assert "actrec" not in individus.columns
     individus["actrec"] = np.nan
+    acteu = 'act' if 'act' in individus else 'acteu'
     # Attention : Pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
     # la même nomenclature à été adopée
     # 3: contrat a durée déterminée
-    individus.loc[individus.acteu == 1, 'actrec'] = 3
+    individus.loc[individus[acteu]== 1, 'actrec'] = 3
     # 8: femme (homme) au foyer, autre inactif
-    individus.loc[individus.acteu == 3, 'actrec'] = 8
+    individus.loc[individus[acteu] == 3, 'actrec'] = 8
     # 1: actif occupé non salarié
-    filter1 = (individus.acteu == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte
+    filter1 = (individus[acteu] == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte
     individus.loc[filter1, 'actrec'] = 1                             # ou pour un membre de sa famille
     # 2: salarié pour une durée non limitée
-    filter2 = (individus.acteu == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
+    filter2 = (individus[acteu] == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
     individus.loc[filter2, 'actrec'] = 2
     # 4: au chomage
-    filter4 = (individus.acteu == 2) | ((individus.acteu == 3) & (individus.mrec == 1))
+    filter4 = (individus[acteu] == 2) | ((individus[acteu] == 3) & (individus.mrec == 1))
     individus.loc[filter4, 'actrec'] = 4
     # 5: élève étudiant , stagiaire non rémunéré
-    filter5 = (individus.acteu == 3) & ((individus.forter == 2) | (individus.rstg == 1))
+    filter5 = (individus[acteu] == 3) & ((individus.forter == 2) | (individus.rstg == 1))
     individus.loc[filter5, 'actrec'] = 5
     # 7: retraité, préretraité, retiré des affaires unchecked
-    try:
-        filter7 = (individus.acteu == 3) & ((individus.ret == 1))  # cas >= 2014, evite de ramener l'année dans la fonction
+    try: # cas >= 2014, evite de ramener l'année dans la fonction
+        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))
     except Exception:
-        filter7 = (individus.acteu == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+        pass
+    try: # cas 2004 - 2013
+        filter7 = (individus[acteu] == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
+    except Exception: # cas 1996 - 2003
+        cstot = 'dcstot' if 'dcstot' in individus else 'cstotr'
+        filter7 = (individus[acteu] == 3) & ((individus[cstot] == 7))
 
     individus.loc[filter7, 'actrec'] = 7
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
-    individus.loc[individus.acteu == 0, 'actrec'] = 9
+    individus.loc[individus[acteu] == 0, 'actrec'] = 9
 
     assert individus.actrec.notnull().all()
     individus.actrec = individus.actrec.astype("int8")
@@ -218,9 +223,7 @@ def create_actrec(individus):
 
 
 def create_ages(individus, year = None):
-    """
-    Création des variables age et age_en_moi
-    """
+    """Création des variables age et age_en_moi."""
     assert year is not None
     individus['age'] = year - individus.naia - 1
     individus['age_en_mois'] = 12 * individus.age + 12 - individus.naim  # TODO why 12 - naim
@@ -231,8 +234,9 @@ def create_ages(individus, year = None):
 
 
 def create_categorie_salarie(individus, period, survey_year = None):
-    """
-    Création de la variable categorie_salarie:
+    """Création de la variable categorie_salarie.
+
+    Ses modalités sont;
       - "prive_non_cadre
       - "prive_cadre
       - "public_titulaire_etat
@@ -350,9 +354,13 @@ def create_categorie_salarie(individus, period, survey_year = None):
     assert individus.chpub.isin(range(0, 7)).all(), \
         "chpub n'est pas toujours dans l'intervalle [0, 6]\n{}".format(individus.chpub.value_counts(dropna = False))
 
-    individus.loc[individus.encadr == 0, 'encadr'] = 2
-    assert individus.encadr.isin(range(1, 3)).all(), \
-        "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
+# N'existe qu'à partir de 2006 inclu
+# On pourrait prendre csei mais elle ne recoupe pas bien prosa, ce serait vraiment
+# une autre manière de déterminer la catégorie salariale.
+    if 'encadr' in individus:
+       individus.loc[individus.encadr == 0, 'encadr'] = 2
+       assert individus.encadr.isin(range(1, 3)).all(), \
+           "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
 
     assert individus.prosa.isin(range(0, 10)).all(), \
         "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
@@ -387,7 +395,8 @@ def create_categorie_salarie(individus, period, survey_year = None):
     assert 'cadre' not in individus.columns
     individus['cadre'] = False
     individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
-    individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
+    if 'encadr' in individus: #N'existe qu'à partir de 2006 inclu
+        individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
     cadre = (
         (individus.statut >= 21) & (individus.statut <= 35)  # En activité hors fonction publique
         & (chpub > 3) # Hors fonction publique mais entreprise publique
@@ -442,8 +451,9 @@ def create_categorie_salarie(individus, period, survey_year = None):
 
 
 def create_categorie_non_salarie(individus):
-    """
-    Création de la variable categorie_salarie:
+    """Création de la variable categorie_salarie.
+
+    Ses modalités sont:
       - "non_pertinent
       - "artisan
       - "commercant
@@ -561,8 +571,9 @@ def create_categorie_non_salarie(individus):
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
-    """
-    Création de la variable contrat_de_travail et heure_remunerees_volume
+    """Création de la variable contrat_de_travail et heure_remunerees_volume.
+
+    Ses modliatés sont:
         0 - temps_plein
         1 - temps_partiel
         2 - forfait_heures_semaines
@@ -802,7 +813,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
     # On vérifie que l'on n'a pas fait d'erreurs
-    assert (individus.salaire >= 0).all(), u"Des salaires sont negatifs: {}".format(
+    assert (individus.salaire >= 0).all(), "Des salaires sont negatifs: {}".format(
             individus.loc[~(individus.salaire >= 0), 'salaire']
             )
     assert individus.contrat_de_travail.isin([0, 1, 6]).all()
@@ -813,7 +824,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
     assert (individus.heures_remunerees_volume >= 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0).all(), \
-        u"Des heures des temps partiels ne sont pas strictement positives: {}".format(
+        "Des heures des temps partiels ne sont pas strictement positives: {}".format(
             individus.query('contrat_de_travail == 1').loc[
                 ~(individus.query('contrat_de_travail == 1').heures_remunerees_volume > 0),
                 'heures_remunerees_volume'
@@ -872,9 +883,9 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
 
 
 def create_effectif_entreprise(individus, period = None, survey_year = None):
-    """
-    Création de la variable effectif_entreprise
-    à partir de la variable nbsala qui prend les valeurs suivantes:
+    """Création de la variable effectif_entreprise.
+
+    A partir de la variable nbsala qui prend les valeurs suivantes:
     Création de la variable effectif_entreprise à partir de la variable nbsala qui prend les valeurs suivantes:
     A partir de (>=) 2013
         0 Vide Sans objet ou non renseigné
@@ -961,8 +972,9 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
 
 
 def create_revenus(individus, revenu_type = 'imposable'):
-    """
-    Création des variables:
+    """Création des plusieurs variablesde revenu.
+
+    Ces variables sont:
         chomage_net,
         pensions_alimentaires_percues,
         rag_net,
@@ -977,7 +989,6 @@ def create_revenus(individus, revenu_type = 'imposable'):
         rnc,
         salaire_imposable,
     """
-
     individus['chomage_brut'] = individus.csgchod_i + individus.chomage_net
     individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_nette
 
@@ -1031,7 +1042,7 @@ def create_revenus(individus, revenu_type = 'imposable'):
 
 
 def create_statut_matrimonial(individus):
-    u"""
+    """
     Création de la variable statut_marital qui prend les valeurs:
       1 - "Marié",
       2 - "Célibataire",
@@ -1066,10 +1077,10 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
     nbptr = individus.nbp / 100
 
     def compute_taux_csg_remplacement(rfr, nbptr):
-        parameters = tax_benefit_system.get_parameters_at_instant(period.start)
-        seuils = parameters.prelevements_sociaux.contributions.csg.remplacement.pensions_de_retraite_et_d_invalidite
-        seuil_exoneration = seuils.seuil_de_rfr_1 + (nbptr - 1) * seuils.demi_part_suppl
-        seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
+        parameters = tax_benefit_system.parameters(period.start)
+        seuils = parameters.prelevements_sociaux.contributions_sociales.csg.retraite_invalidite.seuils
+        seuil_exoneration = seuils.seuil_rfr1 + (nbptr - 1) * seuils.demi_part_suppl
+        seuil_reduction = seuils.seuil_rfr2 + (nbptr - 1) * seuils.demi_part_suppl
         taux_csg_remplacement = 0.0 * rfr
         taux_csg_remplacement = np.where(
             rfr <= seuil_exoneration,
@@ -1160,7 +1171,7 @@ target mass: {}""".format(
 
 def todo_create(individus):
     txtppb = "txtppb" if "txtppb" in individus.columns else "txtppred"
-    log.debug(u"    6.3 : variable txtppb")
+    log.debug("    6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), txtppb] = 0
     individus.loc[individus[txtppb] == 9, txtppb] = 0
     assert individus.txtppb.notnull().all()

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from setuptools import setup, find_packages
 
 
@@ -8,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.18.0",
+    version = "0.19.2",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -33,8 +31,8 @@ setup(
         "click >= 7.1.2, < 8.0.0",
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openFisca-france >= 48.10.0, < 52.0.0",
-        "openFisca-survey-manager >= 0.42.2, < 1.0.0",
+        "openfisca-france >= 72.1",
+        "openfisca-survey-manager >= 0.44.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
     extras_require = {

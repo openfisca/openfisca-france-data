@@ -1,7 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-
 import logging
 
 
@@ -18,7 +15,7 @@ def invalide(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
-    log.info(u"Entering 07_invalides: construction de la variable invalide")
+    log.info("Entering 07_invalides: construction de la variable invalide")
 # # # Invalides
 # # #invalide = caseP (vous), caseF (conj) ou case G, caseI, ou caseR (pac)
 
@@ -33,8 +30,8 @@ def invalide(temporary_store = None, year = None):
 # # invalides[(invalides$caseP==1) & (invalides$quifoy=="vous"),"invalide"] <- TRUE
 # #
 
-    log.info(u"Etape 1 : création de la df invalides")
-    log.info(u"    1.1 : déclarants invalides")
+    log.info("Etape 1 : création de la df invalides")
+    log.info("    1.1 : déclarants invalides")
     final = temporary_store['final_{}'.format(year)]
     if "invalide" in final:
         # on drop les colonnes inv et alt au cas ou on aurait déjà lancé le step07
@@ -68,17 +65,17 @@ def invalide(temporary_store = None, year = None):
 
     # Les déclarants invalides
     invalides.loc[(invalides['caseP'] == 1) & (invalides['quifoy'] == 0), 'invalide'] = True
-    log.info(u"Il y a {} invalides déclarants".format(invalides["invalide"].sum()))
+    log.info("Il y a {} invalides déclarants".format(invalides["invalide"].sum()))
 
     # Les personnes qui touchent l'aah dans l'enquête emploi
     if aah_eec:
-        log.info(u"Inspecting rc1rev")
+        log.info("Inspecting rc1rev")
         log.info(invalides['rc1rev'].value_counts())
         invalides.loc[invalides.maahe > 0, 'invalide'] = True
         invalides.loc[invalides.rc1rev == 4, 'invalide'] = True  # TODO: vérifier le format.
 #  TODO:      invalides.rc1rev.astype("str") voir mai mahdi pour pendre en compte 14 24 etc
 
-        log.info(u"Il y a {} invalides qui touchent des alloc".format(invalides["invalide"].sum()))
+        log.info("Il y a {} invalides qui touchent des alloc".format(invalides["invalide"].sum()))
 
     print_id(invalides)
 
@@ -112,8 +109,8 @@ def invalide(temporary_store = None, year = None):
     inv_conj_condition = (invalides.idfoy.isin(idfoy_inv_conj) & (invalides.quifoy == 1))
     invalides.loc[inv_conj_condition, "invalide"] = True
 
-    log.info(u"Il y a {} invalides conjoints".format(len(invalides[inv_conj_condition])))
-    log.info(u" Il y a {} invalides déclarants et invalides conjoints".format(invalides["invalide"].sum()))
+    log.info("Il y a {} invalides conjoints".format(len(invalides[inv_conj_condition])))
+    log.info(" Il y a {} invalides déclarants et invalides conjoints".format(invalides["invalide"].sum()))
 
     # Enfants invalides et garde alternée
     # #
@@ -134,7 +131,7 @@ def invalide(temporary_store = None, year = None):
     # # invalides$alt <- 0
     # # foy_inv_pac[is.na(foy_inv_pac$alt),"alt"] <- 0
     # # invalides[!(invalides$quifoy %in% c("vous","conj")),c("noindiv","invalide","alt")] <- foy_inv_pac
-    log.info(u"    1.3 : enfants invalides et en garde alternée (variables inv et alt)")
+    log.info("    1.3 : enfants invalides et en garde alternée (variables inv et alt)")
     pacIndiv = temporary_store['pacIndiv_{}'.format(year)]
     log.info(pacIndiv.type_pac.value_counts())
 
@@ -194,4 +191,4 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, filename = 'step_07.log', filemode = 'w')
     year = 2009
     invalide(year = year)
-    log.info(u"étape 07 création des invalides terminée")
+    log.info("étape 07 création des invalides terminée")
