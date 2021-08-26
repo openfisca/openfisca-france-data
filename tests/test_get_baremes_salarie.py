@@ -109,7 +109,6 @@ target_by_period_by_categorie_salarie = {
             ],
         2018: [
             'ircantec',
-            # 'maladie_alsace_moselle',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
