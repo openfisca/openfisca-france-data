@@ -50,15 +50,6 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         assert variable in individus.columns, "{} is missing".format(variable)
     assert tax_benefit_system is not None
 
-    if revenu_type == 'imposable':
-        salaire_pour_inversion = individus.salaire_imposable
-    else:
-        salaire_pour_inversion = individus.salaire_net
-
-    categorie_salarie = individus.categorie_salarie
-    contrat_de_travail = individus.contrat_de_travail
-    heures_remunerees_volume = individus.heures_remunerees_volume
-
     parameters = tax_benefit_system.parameters(period.start)
     salarie = parameters.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
@@ -135,6 +126,15 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         heures_temps_plein = (52 * 35 / 12) * period.size
     else:
         raise
+
+    if revenu_type == 'imposable':
+        salaire_pour_inversion = individus.salaire_imposable
+    else:
+        salaire_pour_inversion = individus.salaire_net
+
+    categorie_salarie = individus.categorie_salarie
+    contrat_de_travail = individus.contrat_de_travail
+    heures_remunerees_volume = individus.heures_remunerees_volume
 
     heures_remunerees_volume_avoid_warning = heures_remunerees_volume + (heures_remunerees_volume == 0) * 1e9
     salaire_pour_inversion_proratise = switch(

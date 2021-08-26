@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.19.3 [#201](https://github.com/openfisca/openfisca-france-data/pull/201)
+
+* Technical changes
+  - Fix create_salaire_de_base
+
 ### 0.19.2 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
 
 * Technical changes
