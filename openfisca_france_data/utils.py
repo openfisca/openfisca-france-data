@@ -354,3 +354,14 @@ def store_input_data_frame(data_frame = None, collection = None, survey = None, 
     json_file_path = os.path.join(collections_directory, '{}.json'.format(collection))
     log.debug("In collection {} the following surveyx are present: {}".format(collection, openfisca_survey_collection.surveys))
     openfisca_survey_collection.dump(json_file_path = json_file_path)
+
+def get_end_date(var_list):
+    tax_benefit_system = openfisca_france_tax_benefit_system
+    end_date = dict()
+    for name, variable in sorted(tax_benefit_system.variables.items()):
+        if name in var_list:
+            end_date[name] = variable.end or None
+        else:
+            continue
+    return end_date
+
