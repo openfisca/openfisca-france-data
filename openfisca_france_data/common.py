@@ -406,7 +406,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         (35 * 52) * smic_horaire_brut[period.start.year]
         * (
             (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
-            + (individus.taux_csg_remplacement == 3) / (1 - taux_plein)
+            + (individus.taux_csg_remplacement >= 3) / (1 - taux_plein)
             )
         )
     exonere_csg_chomage = (
@@ -417,16 +417,25 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         exonere_csg_chomage,
         individus.chomage_imposable,
         (individus.taux_csg_remplacement == 2) * individus.chomage_imposable / (1 - taux_reduit)
-        + (individus.taux_csg_remplacement == 3) * individus.chomage_imposable / (1 - taux_plein)
+        + (individus.taux_csg_remplacement >= 3) * individus.chomage_imposable / (1 - taux_plein)
         )
     assert individus['chomage_brut'].notnull().all()
 
     csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.retraite_invalidite.deductible
     taux_plein = csg_deductible_retraite.taux_plein
     taux_reduit = csg_deductible_retraite.taux_reduit
-    individus['retraite_brute'] = (
+    if period.start.year >= 2019:
+        taux_median = csg_deductible_retraite.taux_median
+        individus['retraite_brute'] = (
         (individus.taux_csg_remplacement < 2) * individus.retraite_imposable
         + (individus.taux_csg_remplacement == 2) * individus.retraite_imposable / (1 - taux_reduit)
-        + (individus.taux_csg_remplacement == 3) * individus.retraite_imposable / (1 - taux_plein)
+        + (individus.taux_csg_remplacement == 3) * individus.retraite_imposable / (1 - taux_median)
+        + (individus.taux_csg_remplacement == 4) * individus.retraite_imposable / (1 - taux_plein)
         )
+    else:
+        individus['retraite_brute'] = (
+            (individus.taux_csg_remplacement < 2) * individus.retraite_imposable
+            + (individus.taux_csg_remplacement == 2) * individus.retraite_imposable / (1 - taux_reduit)
+            + (individus.taux_csg_remplacement >= 3) * individus.retraite_imposable / (1 - taux_plein)
+            )
     assert individus['retraite_brute'].notnull().all()

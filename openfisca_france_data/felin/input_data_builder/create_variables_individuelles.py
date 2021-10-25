@@ -19,22 +19,38 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
 
     def compute_taux_csg_remplacement(rfr, nbptr):
         parameters = tax_benefit_system.parameters(period.start)
-        seuils = parameters.prelevements_sociaux.contributions_sociales.csg.retraite_invalidite.seuils
-        seuil_exoneration = seuils.seuil_rfr1 + (nbptr - 1) * seuils.demi_part_suppl
-        seuil_reduction = seuils.seuil_rfr2 + (nbptr - 1) * seuils.demi_part_suppl
+        seuils = parameters.prelevements_sociaux.contributions_sociales.csg.seuils
+        seuil_exoneration = seuils.seuil_rfr1 + (nbptr - 1) * seuils.demi_part_suppl_rfr1
+        seuil_reduction = seuils.seuil_rfr2 + (nbptr - 1) * seuils.demi_part_supplçrfr2
         taux_csg_remplacement = 0.0 * rfr
-        taux_csg_remplacement = np.where(
-            rfr <= seuil_exoneration,
-            1,
-            np.where(
-                rfr <= seuil_reduction,
-                2,
-                3,
+        if period.start.year >= 2019:
+            seuil_taux_intermédiaire = seuils.seuil_rfr3 + (nbptr - 1) * seuils.demi_part_suppl_rfr3
+            taux_csg_remplacement = np.where(
+                rfr <= seuil_exoneration,
+                1,
+                np.where(
+                    rfr <= seuil_reduction,
+                    2,
+                    nb.where(
+                        rfr <= seuil_taux_intermediaire,
+                        3,
+                        4,
+                        )
+                    )
                 )
-            )
+        else: 
+            taux_csg_remplacement = np.where(
+                rfr <= seuil_exoneration,
+                1,
+                np.where(
+                    rfr <= seuil_reduction,
+                    2,
+                    3,
+                    )
+                )
 
         return taux_csg_remplacement
 
     individus['taux_csg_remplacement'] = compute_taux_csg_remplacement(rfr, nbptr)
 
-    assert individus['taux_csg_remplacement'].isin(range(4)).all()
+    assert individus['taux_csg_remplacement'].isin(range(5)).all()
