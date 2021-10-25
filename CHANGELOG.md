@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.19.4 [#203](https://github.com/openfisca/openfisca-france-data/pull/203)
+
+* Technical changes
+  - Update the function create_taux_csg_remplacement and create_revenus_remplacement_bruts
+
 ### 0.19.3 [#201](https://github.com/openfisca/openfisca-france-data/pull/201)
 
 * Technical changes
