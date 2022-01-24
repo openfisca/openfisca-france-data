@@ -25,8 +25,8 @@ for year in range(2002, 2021):
 
 # Sources BDM
 # Pour les années avant 2010: BDM donne un indice en base 2000. On multiplie à
-#partir du chiffre de 2010. Les résultats pour les années après 2010 sont les
-#mêmes à un euro près. 1996-1999 ont la meeeeeême valeur que 2000.
+# partir du chiffre de 2010. Les résultats pour les années après 2010 sont les
+# mêmes à un euro près. 1996-1999 ont la meeeeeême valeur que 2000.
 smic_annuel_net_by_year = {
     2020: 12 * 1200.0,
     2019: 12 * 1200.0,

@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.20 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Update openfisca-france dependency and fix parameters paths accordingly
+
+
 ### 0.19.4 [#203](https://github.com/openfisca/openfisca-france-data/pull/203)
 
 * Technical changes
