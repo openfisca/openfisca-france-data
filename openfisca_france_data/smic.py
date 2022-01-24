@@ -19,7 +19,7 @@ smic_horaire_brut = dict()
 for year in range(2002, 2021):
     try:
 
-        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.parameters(year).marche_travail.salaire_minimum.smic_h_b
+        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.parameters(year).marche_travail.salaire_minimum.smic.smic_b_horaire
     except:
         continue
 
@@ -102,7 +102,7 @@ smic_annuel_imposable_by_year = dict([
 smic_horaire_brut_by_year = dict([
     (
         year,
-        openfisca_france_tax_benefit_system.parameters(year).marche_travail.salaire_minimum.smic_h_b
+        openfisca_france_tax_benefit_system.parameters(year).marche_travail.salaire_minimum.smic.smic_b_horaire
         )
     for year in range(2002, 2021)
     ])

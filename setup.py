@@ -31,7 +31,7 @@ setup(
         "click >= 7.1.2, < 8.0.0",
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openFisca-france >= 72.1, < 90.0.0",
+        "openFisca-france >= 103.00, < 104.0.0",
         "openFisca-survey-manager >= 0.44.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
