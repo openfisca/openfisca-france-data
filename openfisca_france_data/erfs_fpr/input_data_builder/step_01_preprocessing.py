@@ -220,13 +220,14 @@ def check_naia_naim(individus, year):
             individus.naim.isnull(),
             'naim'
             ] = 1
-        
+
     assert individus.naim.isin(range(1, 13)).all(), f"naim values: {individus.naim.unique()}"
     assert isinstance(year, int)
-    bad_noindiv = individus.loc[~((year >= individus.naia) & (individus.naia > 1890)), 
+    bad_noindiv = individus.loc[~((year >= individus.naia) & (individus.naia > 1890)),
                                 "noindiv"].unique()
     for id in bad_noindiv:
-        individus.loc[individus.noindiv == id,'naia'] = year - individus.loc[individus.noindiv == id,'ageq']
+        individus.loc[individus.noindiv == id,'naia'] = year - individus.loc[individus.noindiv == id, 'ageq']
+
 
 if __name__ == '__main__':
     import sys
