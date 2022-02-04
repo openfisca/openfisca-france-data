@@ -32,7 +32,7 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
     individus = temporary_store['individus_{}_post_01'.format(year)]
 
-    erfs_by_openfisca_variables = {
+    openfisca_by_erfs_variable = {
         'chomage_i': 'chomage_net',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
         'rag_i': 'rag_net',
@@ -42,11 +42,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
         'salaires_i': 'salaire_net',
         }
 
-    for variable in erfs_by_openfisca_variables.keys():
+    for variable in openfisca_by_erfs_variable.keys():
         assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
 
     individus.rename(
-        columns = erfs_by_openfisca_variables,
+        columns = openfisca_by_erfs_variable,
         inplace = True,
         )
     create_variables_individuelles(individus, year)
