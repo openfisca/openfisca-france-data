@@ -2,8 +2,10 @@ import click
 import logging
 import configparser
 import sys, getopt
+import warnings
 #from multipledispatch import dispatch  # type: ignore
 
+warnings.filterwarnings("ignore", ".*is an invalid version and will not be supported in a future release.*")
 
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
@@ -63,37 +65,52 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     help = 'flattened dataframe filepath', show_default = True)
 @click.option('-c', '--configfile', default = None,
     help = 'raw_data.ini path to read years to process.', show_default = True)
-def main(year = 2017, export_flattened_df_filepath = None, configfile = None):
-    # Pourquoi year = 2014 alors que default = 2013 pour click ?
+@click.option('-l', '--log', 'lg', default = "info",
+    help = 'level of detail for log output.', show_default = True)
+def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg = "info"):
     import time
     start = time.time()
 
-    logging.basicConfig(level = logging.INFO, stream = sys.stdout,
+    # get level of logging
+    if lg == "info":
+        lgi = logging.INFO
+    elif lg == "warn":
+        lgi = logging.WARNING
+    elif lg == "debug":
+        lgi = logging.DEBUG
+
+    logging.basicConfig(level = lgi, stream = sys.stdout,
         format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
-    log.info("Starting build-erfs-fpr...")
 
+    log.info("Starting build-erfs-fpr [log: {}]".format(lg))
+
+    # determine which years are to be analyzed, from file if available, else parameter
     if configfile is not None:
         years = []
+
         try:
             config = configparser.ConfigParser()
             config.read(configfile)
             for key in config['erfs_fpr']:
                 if key.isnumeric():
                     years.append(int(key))
-                    log.info(f"Adding year {int(key)}")
+                    # log.info(f"Adding year {int(key)}")
         except KeyError:
             years = [year]
             log.warning(f"File {configfile} not found, switchin to default {years}")
+
+        log.info('Configured multiple years: [{}]'.format(';'.join(years)))
+
         for year in years:
-            file = f"./erfs_flat_{year}.h5"
-            log.info(f'Will output to {file}')
+            log.info('Starting with year {}'.format(year))
             build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+
     else:
-        if export_flattened_df_filepath is None:
-            export_flattened_df_filepath = f"./erfs_flat_{year}.h5"
+        log.info('Configured single year: [{}]'.format(year))
         build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+
     # TODO: create_enfants_a_naitre(year = year)
     log.info("Script finished after {}".format(time.time() - start))
 

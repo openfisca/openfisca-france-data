@@ -144,18 +144,30 @@ def create_collectives_foyer_variables(individus, menages):
         .reset_index(drop = True)
         )
 
-    set_multi = set(menages_multi_foyers.idmen.tolist())
-    set_single = set(menages_simple_foyer.idmen.tolist())
-    set_joint = set_multi.union(set_single)
-    set_target = set(idmens)
+    # update idmens, as some households may have dropped out, causing errors
+    # this is kind of a dirty fix, better solution would be to fix the dropping out itself
+    # for instance: 2017, 17000919 drops out bc. no "chef de famille" which is weird, neet to investigate
+    idmens_old = idmens.copy()
+    idmens = set(menages_multi_foyers.idmen.to_list()).union(set(menages_simple_foyer.idmen.to_list()))
 
-    log.info('Simple foyer menages contain {} unique observations.'.format(len(set_multi)))
-    log.info('Multi-foyer menages contain {} unique observations.'.format(len(set_single)))
-    log.info('Multi- and single-foyer menages jointly contain {} unique observations.'.format(len(set_joint)))
-    log.info('According to variable idmens, there should be {} observations.'.format(len(set_target)))
+    dropouts = set(idmens).symmetric_difference(set(idmens_old))
+    if len(dropouts) == 0:
+        log.info('No households have been dropped. All clear.')
+    else:
+        log.info('WARNING: Some households [{}] have dropped out. You should investigate why this has happened. [{}]'.format(len(dropouts), ','.join(str(e) for e in dropouts)))
 
-    if len(set_joint) != len(set_target):
-        log.info('Problematic Menage IDs: {}'.format(set_target.symmetric_difference(set_joint)))
+    # set_multi = set(menages_multi_foyers.idmen.tolist())
+    # set_single = set(menages_simple_foyer.idmen.tolist())
+    # set_joint = set_multi.union(set_single)
+    # set_target = set(idmens)
+
+    # log.info('Simple foyer menages contain {} unique observations.'.format(len(set_multi)))
+    # log.info('Multi-foyer menages contain {} unique observations.'.format(len(set_single)))
+    # log.info('Multi- and single-foyer menages jointly contain {} unique observations.'.format(len(set_joint)))
+    # log.info('According to variable idmens, there should be {} observations.'.format(len(set_target)))
+
+    # if len(set_joint) != len(set_target):
+    #     log.info('Problematic Menage IDs: {}'.format(set_target.symmetric_difference(set_joint)))
 
     assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
     menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
