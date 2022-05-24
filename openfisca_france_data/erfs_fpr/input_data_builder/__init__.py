@@ -57,13 +57,13 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
 
 
 @click.command()
-@click.option('-y', '--year', default = 2013, help = "ERFS-FPR year", show_default = True,
+@click.option('-y', '--year', default = 2017, help = "ERFS-FPR year", show_default = True,
     type = int, required = True)
 @click.option('-f', '--file', 'export_flattened_df_filepath', default = None,
     help = 'flattened dataframe filepath', show_default = True)
 @click.option('-c', '--configfile', default = None,
     help = 'raw_data.ini path to read years to process.', show_default = True)
-def main(year = 2014, export_flattened_df_filepath = None, configfile = None):
+def main(year = 2017, export_flattened_df_filepath = None, configfile = None):
     # Pourquoi year = 2014 alors que default = 2013 pour click ?
     import time
     start = time.time()
