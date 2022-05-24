@@ -20,6 +20,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
 
+    # ici : variables à garder
     variables = [
         'activite',
         'age',
@@ -142,6 +143,20 @@ def create_collectives_foyer_variables(individus, menages):
         .drop_duplicates(['idmen', 'idfoy'])
         .reset_index(drop = True)
         )
+
+    set_multi = set(menages_multi_foyers.idmen.tolist())
+    set_single = set(menages_simple_foyer.idmen.tolist())
+    set_joint = set_multi.union(set_single)
+    set_target = set(idmens)
+
+    log.info('Simple foyer menages contain {} unique observations.'.format(len(set_multi)))
+    log.info('Multi-foyer menages contain {} unique observations.'.format(len(set_single)))
+    log.info('Multi- and single-foyer menages jointly contain {} unique observations.'.format(len(set_joint)))
+    log.info('According to variable idmens, there should be {} observations.'.format(len(set_target)))
+
+    if len(set_joint) != len(set_target):
+        log.info('Problematic Menage IDs: {}'.format(set_target.symmetric_difference(set_joint)))
+
     assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
     menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
     del menages_multi_foyers, menages_simple_foyer
