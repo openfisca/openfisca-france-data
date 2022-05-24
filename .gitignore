@@ -81,3 +81,5 @@ setup.cfg
 # Generated files
 erfs_fpr.json
 openfisca_erfs_fpr.json
+*.csv
+*.html
