@@ -51,6 +51,7 @@ def get_survey_scenario(
             baseline_tax_benefit_system = baseline_tax_benefit_system,
             year = year,
             )
+        # taux marginaux !!
         survey_scenario.variation_factor = variation_factor
         survey_scenario.varying_variable = varying_variable
 

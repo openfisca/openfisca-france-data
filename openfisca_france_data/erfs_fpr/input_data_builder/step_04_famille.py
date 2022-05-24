@@ -111,7 +111,9 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
     assert indivi is not None
     assert year is not None
     assert (enfants_a_naitre is not None) or skip_enfants_a_naitre
+
     complete_indivi(indivi, year)
+
     base = famille_1(
         indivi = indivi,
         kind = kind,
@@ -119,22 +121,26 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
         skip_enfants_a_naitre = True,
         year = year,
         )
+
     base, famille, personne_de_reference = famille_2(
         base = base,
         year = year,
         )
+
     base, famille = famille_3(
         base = base,
         famille = famille,
         kind = kind,
         year = year,
         )
+
     base, famille = famille_5(
         base = base,
         famille = famille,
         kind = kind,
         year = year,
         )
+
     base, famille = famille_6(
         base = base,
         famille = famille,
@@ -142,13 +148,19 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
         kind = kind,
         year = year,
         )
-    return famille_7(
+
+    # here 17000919 is removed bc. "no chef de famille" - but famille df is not returned
+    # so these obs are still in the famille data. return famille df as well? check implications
+    # or simply remove manually afterwarfs/workaround
+    individus = famille_7(
         base = base,
         famille = famille,
         indivi = indivi,
         kind = kind,
         year = year,
         )
+
+    return individus
 
 
 def complete_indivi(indivi, year):
