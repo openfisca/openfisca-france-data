@@ -81,6 +81,7 @@ def main(year, configfile = None, verbose = False):
             log.warning(f"File {configfile} not found, switchin to default {years}")
     else:
         years = [year]
+        
     for year in years:
         survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
             year = year,
