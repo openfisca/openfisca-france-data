@@ -2,9 +2,7 @@ import gc
 import logging
 import pandas
 
-from openfisca_france_data.utils import (
-    id_formatter, print_id, normalizes_roles_in_entity,
-    )
+from openfisca_france_data.utils import (id_formatter, print_id, normalizes_roles_in_entity)
 from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey  # type: ignore
 
@@ -16,7 +14,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     assert temporary_store is not None
     assert year is not None
 
-    log.info('step_05_create_input_data_frame: Etape finale ')
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
 
@@ -73,7 +70,9 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     menages["statut_occupation_logement"] = 0
 
     menages = extract_menages_variables(menages)
+
     individus = create_collectives_foyer_variables(individus, menages)
+
     idmens = individus.idmen.unique()
     menages = menages.loc[
         menages.idmen.isin(idmens),
@@ -154,20 +153,7 @@ def create_collectives_foyer_variables(individus, menages):
     if len(dropouts) == 0:
         log.info('No households have been dropped. All clear.')
     else:
-        log.info('WARNING: Some households [{}] have dropped out. You should investigate why this has happened. [{}]'.format(len(dropouts), ','.join(str(e) for e in dropouts)))
-
-    # set_multi = set(menages_multi_foyers.idmen.tolist())
-    # set_single = set(menages_simple_foyer.idmen.tolist())
-    # set_joint = set_multi.union(set_single)
-    # set_target = set(idmens)
-
-    # log.info('Simple foyer menages contain {} unique observations.'.format(len(set_multi)))
-    # log.info('Multi-foyer menages contain {} unique observations.'.format(len(set_single)))
-    # log.info('Multi- and single-foyer menages jointly contain {} unique observations.'.format(len(set_joint)))
-    # log.info('According to variable idmens, there should be {} observations.'.format(len(set_target)))
-
-    # if len(set_joint) != len(set_target):
-    #     log.info('Problematic Menage IDs: {}'.format(set_target.symmetric_difference(set_joint)))
+        log.warning('Some households [{}] have dropped out. You should investigate why this has happened. [{}]'.format(len(dropouts), ','.join(str(e) for e in dropouts)))
 
     assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
     menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
@@ -209,7 +195,7 @@ def create_ids_and_roles(individus):
 
 def format_ids_and_roles(data_frame):
     for entity_id in ['idmen', 'idfoy', 'idfam']:
-        log.info('Reformat ids: {}'.format(entity_id))
+        log.debug('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
     data_frame.reset_index(drop = True, inplace = True)
     normalizes_roles_in_entity(data_frame, 'idfoy', 'quifoy')
@@ -232,7 +218,7 @@ def extract_menages_variables(menages):
     external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement']
     for external_variable in external_variables:
         if external_variable in menages.columns:
-            log.info("Found {} in menages table: we keep it".format(external_variable))
+            log.debug("Found {} in menages table: we keep it".format(external_variable))
             variables.append(external_variable)
     #TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
     menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
@@ -247,7 +233,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2014
     data_frame = create_input_data_frame(year = year)
-    log.info('Ok')
 
 # TODO
 # Variables revenus collectifs

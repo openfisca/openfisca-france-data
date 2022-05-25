@@ -2,7 +2,6 @@ import logging
 import numpy as np
 import pandas as pd
 
-
 from openfisca_core import periods
 from openfisca_france_data import select_to_match_target
 from openfisca_france_data.common import (
@@ -28,8 +27,6 @@ def build_variables_individuelles(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
-    log.info('step_03_variables_individuelles: Création des variables individuelles')
-
     individus = temporary_store['individus_{}_post_01'.format(year)]
 
     openfisca_by_erfs_variable = {
@@ -52,15 +49,14 @@ def build_variables_individuelles(temporary_store = None, year = None):
     create_variables_individuelles(individus, year)
     assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     temporary_store['individus_{}'.format(year)] = individus
-    log.debug("step_03_variables_individuelles terminée")
     return individus
 
 
 # helpers
 
 def create_variables_individuelles(individus, year, survey_year = None):
-    """Création des variables individuelles
-    """
+    """Création des variables individuelles"""
+
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -321,7 +317,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
         survey_year = period.start.year
 
     if survey_year >= 2013:
-        log.debug(f"Using qprcent to infer prosa for year {survey_year}")
+        log.debug(f"Using qprcent to infer chpub for year {survey_year}")
         chpub_replacement = {
             0: 0,
             3: 1,
@@ -333,6 +329,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             6: 1,
             }
         individus['chpub'] = individus.chpub.map(chpub_replacement)
+
         log.debug('Using qprc to infer prosa for year {}'.format(survey_year))
         qprc_to_prosa = {
             0: 0,
@@ -1105,18 +1102,14 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
     individus['taux_csg_remplacement_n_1'] = compute_taux_csg_remplacement(rfr_n_1, nbptr)
 
     distribution = individus.groupby(['taux_csg_remplacement', 'taux_csg_remplacement_n_1'])['ponderation'].sum() / 1000
-    log.debug(
-        "Distribution of taux_csg_remplacement (in thousands):\n",
-        distribution)
+    log.debug("Distribution of taux_csg_remplacement (in thousands):\n", distribution)
     assert individus['taux_csg_remplacement_n_1'].isin(range(4)).all()
     assert individus['taux_csg_remplacement'].isin(range(4)).all()
 
 
 def calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = None):
     assert mass_by_categorie_salarie is not None
-    log.info(
-        mass_by_categorie_salarie
-        )
+    log.debug('Mass of salaries: ', mass_by_categorie_salarie)
 
     weight_individus = individus['ponderation'].values
     for rebalanced_categorie, target_mass in mass_by_categorie_salarie.items():
@@ -1141,7 +1134,7 @@ target mass: {}""".format(
             take = take,
             seed = 9779972
             )
-        log.info("""
+        log.debug("""
     final selected population: {}
     error: {} %
     """.format(
@@ -1149,7 +1142,7 @@ target mass: {}""".format(
             ((eligible * selected * weight_individus).sum() - target_mass) / target_mass * 100,
             ))
         individus.loc[selected, 'categorie_salarie'] = rebalanced_categorie
-        log.info(individus.groupby('categorie_salarie')['ponderation'].sum())
+        log.debug(individus.groupby('categorie_salarie')['ponderation'].sum())
         seuil_salaire_imposable_mensuel = 2 * 3000
         individus.loc[
             (
@@ -1171,7 +1164,7 @@ target mass: {}""".format(
 
 def todo_create(individus):
     txtppb = "txtppb" if "txtppb" in individus.columns else "txtppred"
-    log.debug("    6.3 : variable txtppb")
+    log.debug("6.3 : variable txtppb")
     individus.loc[individus.txtppb.isnull(), txtppb] = 0
     individus.loc[individus[txtppb] == 9, txtppb] = 0
     assert individus.txtppb.notnull().all()

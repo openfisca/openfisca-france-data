@@ -30,6 +30,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # - On merge les tables individus / menages
     #
     # Note : c'est ici où on objectivise les hypothèses, step 1
+    log.info('Year {} - Step 1 / 5'.format(year))
     preprocessing.build_merged_dataframes(year = year)
 
     # Step 02 : Si on veut calculer les allocations logement, il faut faire le matching avec une autre enquête (ENL)
@@ -38,8 +39,10 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
     # stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
     # imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
+    log.info('Year {} - Step 2 / 5 SKIPPED'.format(year))
 
     # Step 03 : on commence par les variables indivuelles
+    log.info('Year {} - Step 3 / 5'.format(year))
     variables_individuelles.build_variables_individuelles(year = year)
 
     # Step 04 : ici on va constituer foyer et famille à partir d'invididu et ménage
@@ -48,6 +51,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # - On va faire des suppositions pour faire les familles
     # - On va faire les foyers fiscaux à partir des familles
     # - On va faire de suppositions pour faire les foyers fiscaux
+    log.info('Year {} - Step 4 / 5'.format(year))
     famille.build_famille(year = year)
 
     # Affreux ! On injectait tout dans un même DataFrame !!!
@@ -55,6 +59,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     #
     # On crée une df par entité par période.
     # Elles sont stockées dans un fichier h5
+    log.info('Year {} - Step 5 / 5'.format(year))
     final.create_input_data_frame(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
 
@@ -79,10 +84,9 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
     elif lg == "debug":
         lgi = logging.DEBUG
 
-    logging.basicConfig(level = lgi, stream = sys.stdout,
+    logging.basicConfig(level = lgi, stream = sys.stdout, filename = 'build_erfs_fpr.log',
         format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
+        datefmt='%Y-%m-%d %H:%M:%S')
 
     log.info("Starting build-erfs-fpr [log: {}]".format(lg))
 
