@@ -181,7 +181,7 @@ def complete_indivi(indivi, year):
 
     if nb_enfants_en_nourrice > 0:
         indivi = indivi[~(selection_enfant_en_nourrice)].copy()
-        log.info("{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
+        log.debug("{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
 
     # for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
     #     assert_dtype(indivi[series_name], "object")

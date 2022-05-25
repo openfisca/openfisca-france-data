@@ -84,7 +84,7 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
     elif lg == "debug":
         lgi = logging.DEBUG
 
-    logging.basicConfig(level = lgi, stream = sys.stdout, filename = 'build_erfs_fpr.log',
+    logging.basicConfig(level = lgi, stream = sys.stdout, # filename = 'build_erfs_fpr.log',
         format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 

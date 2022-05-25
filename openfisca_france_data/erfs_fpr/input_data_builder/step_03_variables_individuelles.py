@@ -622,14 +622,14 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus['contrat_de_travail'] = 6  # sans objet par défaut
     if salaire_type == 'net':
         assert (individus.query('salaire_net == 0').contrat_de_travail == 6).all()
-        log.info('Salaire retenu: {}'.format('salaire_net'))
+        log.debug('Salaire retenu: {}'.format('salaire_net'))
         individus['salaire'] = individus.salaire_net.copy()
         smic = smic_annuel_net_by_year[period.start.year]
 
     elif salaire_type == 'imposable':
         individus['salaire_imposable'] = individus.salaire_imposable.fillna(0)
         assert (individus.query('salaire_imposable == 0').contrat_de_travail == 6).all()
-        log.info('Salaire retenu: {}'.format('salaire_imposable'))
+        log.debug('Salaire retenu: {}'.format('salaire_imposable'))
         individus['salaire'] = individus.salaire_imposable.copy()
         smic = smic_annuel_imposable_by_year[period.start.year]
 

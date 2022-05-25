@@ -185,7 +185,7 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
             raise
 
         nobs['merge_men'] = len(menages.ident.unique())
-        nobs['merge_ind'] = len(menages.noindiv.unique())
+        nobs['merge_ind'] = len(menages.ident.unique())
 
         log.debug('There are {} individuals [before: {}] and {} households [before: {}] in the merged data table.'.format(nobs['merge_ind'], nobs['fpr_eec_ind'], nobs['merge_men'], nobs['fpr_eec_men']))
 
