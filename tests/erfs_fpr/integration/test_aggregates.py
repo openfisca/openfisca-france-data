@@ -81,7 +81,7 @@ def main(year, configfile = None, verbose = False):
             log.warning(f"File {configfile} not found, switchin to default {years}")
     else:
         years = [year]
-        
+
     for year in years:
         survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
             year = year,
@@ -90,7 +90,7 @@ def main(year, configfile = None, verbose = False):
         survey_scenario._set_used_as_input_variables_by_entity()
         aggregates.to_csv(f'aggregates{year}.csv')
         print(aggregates.to_markdown())
-        aggregates.to_html(f'aggregates{year}.html')
+        # aggregates.to_html(f'aggregates{year}.html')
 
 
 
