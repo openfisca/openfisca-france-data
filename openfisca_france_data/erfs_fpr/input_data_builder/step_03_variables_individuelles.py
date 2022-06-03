@@ -870,6 +870,9 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
         if mois_naissance is not None:
             month_birth = individus[mois_naissance].astype(int)
 
+    # sometimes age is actually the year, fixing this by adding back year
+    year_birth[year_birth < 1000] += year
+
     individus['date_naissance'] = pd.to_datetime(
         pd.DataFrame({
             'year': year_birth,
