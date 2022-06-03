@@ -111,10 +111,14 @@ smic_annuel_net_by_year = {
     }
 
 # get availability of parameters
-t = openfisca_france_tax_benefit_system.parameters.prelevements_sociaux.contributions.csg.abattement.sous_4pss
-t3 = t.values_list
-sd = t3[t3.__len__() - 1]
-sd.instant_str
+# p = openfisca_france_tax_benefit_system.parameters
+
+# t = p.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement[1]
+
+# t = openfisca_france_tax_benefit_system.parameters.prelevements_sociaux.contributions.csg.abattement.sous_4pss
+# t3 = t.values_list
+# sd = t3[t3.__len__() - 1]
+# sd.instant_str
 
 # check coverage
 start_year = min(smic_annuel_net_by_year.keys())
@@ -124,7 +128,9 @@ smic_horaire_brut = dict()
 for year in range(start_year, end_year+1):
     try:
         # this collects the data from openfisca-france/openfisca_france/parameters/marche_travail/salaire_minimum/smic/smic_b_horaire.yaml ?
-        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b
+        # if year < 1970: log.warning('SMIC before 1970 (SMIG) depends on zone. Which one to use is unclear. TBD.')
+        # else : openfisca_france\parameters\marche_travail\salaire_minimum\smic\smic_b_horaire.yaml
+        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.smic_b_horaire
     except:
         continue
 
@@ -133,21 +139,31 @@ start_year = min(smic_horaire_brut.keys())
 end_year = max(smic_horaire_brut.keys())
 
 def smic_annuel_imposable_from_net(year, smic_hor_brut):
-    params = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start)
-    smic_net = smic_annuel_net_by_year[year]
-    working_hours = params.cotsoc.gen.nb_heure_travail_mensuel
-    smic_brut = smic_hor_brut * working_hours * 12
-    taux_csg = params.prelevements_sociaux.contributions.csg.activite.imposable.taux
-    taux_crds = params.prelevements_sociaux.contributions.crds.activite.taux
-    abatt_sous_4pss = params.prelevements_sociaux.contributions.csg.abattement.sous_4pss
-    abatt_dessus_4pss = params.prelevements_sociaux.contributions.csg.abattement.au_dessus_de_4_pss
-    pss = params.prelevements_sociaux.pss.plafond_de_la_securite_sociale_annuel
+    try:
+        # TODO: the formula is not 100 % flexible, I have hard-coded the 4 PSS cut-off; this could be improved in the future
+        params = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start)
+        smic_net = smic_annuel_net_by_year[year]
+        working_hours = params.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
+        smic_brut = smic_hor_brut * working_hours * 12
+        taux_csg = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.taux
+        taux_crds = params.prelevements_sociaux.contributions_sociales.crds.activite.taux
+        pss = params.prelevements_sociaux.pss.plafond_securite_sociale_annuel
+        abatt_sous_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement.rates[0]
+        use_plafond = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement.rates.__len__() == 2
+        if use_plafond:
+            abatt_dessus_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement.rates[1]
+        
+        # precise formula is kinda unnecessary, since SMIC won't ever be beyond 4 PSS. but still, for the heck of it.
+        if use_plafond:
+            base_csg_crds = (1 - abatt_sous_4pss) * min(smic_brut, 4 * pss) + (smic_brut > 4 * pss) * (1 - abatt_dessus_4pss) * (smic_brut - 4 * pss)
+        else:
+            base_csg_crds = (1 - abatt_sous_4pss) * smic_brut
 
-    # precise formula is kinda unnecessary, since SMIC won't ever be beyond 4 PSS. but still, for the heck of it.
-    base_csg_crds = (1 - abatt_sous_4pss) * min(smic_brut, 4 * pss) * (smic_brut > 4 * pss) * (1 - abatt_dessus_4pss) * (smic_brut - 4 * pss)
-
-    # final result, add CSG and CRDS to SMIC net
-    smic_imposable = (smic_net + (taux_csg + taux_crds) * base_csg_crds)
+        # final result, add CSG and CRDS to SMIC net
+        smic_imposable = (smic_net + (taux_csg + taux_crds) * base_csg_crds)
+    except:
+        # not all parameters available, return NA
+        smic_imposable = None
 
     return smic_imposable
 
@@ -159,13 +175,13 @@ smic_annuel_imposable_by_year = dict([
 
 
 smic_horaire_brut_by_year = dict([
-    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.smic_h_b)
+    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.smic_b_horaire)
     for year in range(start_year, end_year)
     ])
 
 
 smic_annuel_brut_by_year = dict([
     (year,
-    smic_horaire_brut_by_year[year] * openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).cotsoc.gen.nb_heure_travail_mensuel * 12)
+    smic_horaire_brut_by_year[year] * openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel * 12)
     for year in range(start_year, end_year)
     ])
