@@ -223,6 +223,7 @@ def extract_menages_variables(menages):
     #TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
     menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
     menages = menages[variables].copy()
+
     menages.taxe_habitation = - menages.taxe_habitation  # taxes should be negative
     menages.rename(columns = dict(ident = 'idmen'), inplace = True)
     return menages

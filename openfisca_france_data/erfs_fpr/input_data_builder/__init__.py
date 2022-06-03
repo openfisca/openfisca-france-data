@@ -3,6 +3,7 @@ import logging
 import configparser
 import sys, getopt
 import warnings
+import datetime
 #from multipledispatch import dispatch  # type: ignore
 
 warnings.filterwarnings("ignore", ".*is an invalid version and will not be supported in a future release.*")
@@ -16,6 +17,15 @@ from openfisca_france_data.erfs_fpr.input_data_builder import (
     )
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
+fileHandler = logging.FileHandler("../log/build_erfs_fpr_{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
+fileHandler.setLevel(logging.DEBUG)
+log.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(logging.INFO)
+log.addHandler(consoleHandler)
 
 
 #@dispatch(int)
@@ -30,7 +40,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # - On merge les tables individus / menages
     #
     # Note : c'est ici où on objectivise les hypothèses, step 1
-    log.info('Year {} - Step 1 / 5'.format(year))
+    log.info('\n [[[ Year {} - Step 1 / 5 ]]] \n'.format(year))
     preprocessing.build_merged_dataframes(year = year)
 
     # Step 02 : Si on veut calculer les allocations logement, il faut faire le matching avec une autre enquête (ENL)
@@ -39,10 +49,10 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
     # stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
     # imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
-    log.info('Year {} - Step 2 / 5 SKIPPED'.format(year))
+    log.info('\n [[[ Year {} - Step 2 / 5 SKIPPED ]]] \n'.format(year))
 
     # Step 03 : on commence par les variables indivuelles
-    log.info('Year {} - Step 3 / 5'.format(year))
+    log.info('\n [[[ Year {} - Step 3 / 5 ]]] \n'.format(year))
     variables_individuelles.build_variables_individuelles(year = year)
 
     # Step 04 : ici on va constituer foyer et famille à partir d'invididu et ménage
@@ -51,7 +61,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # - On va faire des suppositions pour faire les familles
     # - On va faire les foyers fiscaux à partir des familles
     # - On va faire de suppositions pour faire les foyers fiscaux
-    log.info('Year {} - Step 4 / 5'.format(year))
+    log.info('\n [[[ Year {} - Step 4 / 5 ]]] \n'.format(year))
     famille.build_famille(year = year)
 
     # Affreux ! On injectait tout dans un même DataFrame !!!
@@ -59,7 +69,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     #
     # On crée une df par entité par période.
     # Elles sont stockées dans un fichier h5
-    log.info('Year {} - Step 5 / 5'.format(year))
+    log.info('\n [[[ Year {} - Step 5 / 5 ]]] \n'.format(year))
     final.create_input_data_frame(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
 
@@ -76,6 +86,8 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
     import time
     start = time.time()
 
+    catch_errors = False
+
     # get level of logging
     if lg == "info":
         lgi = logging.INFO
@@ -84,7 +96,7 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
     elif lg == "debug":
         lgi = logging.DEBUG
 
-    logging.basicConfig(level = lgi, stream = sys.stdout, # filename = 'build_erfs_fpr.log',
+    logging.basicConfig(stream = sys.stdout, # filename = 'build_erfs_fpr.log', level = lgi, 
         format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -105,18 +117,28 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
             years = [year]
             log.warning(f"File {configfile} not found, switchin to default {years}")
 
-        log.info('Configured multiple years: [{}]'.format(';'.join(years)))
+        if len(years) > 1:
+            log.info('Configured multiple years: [{}]'.format(';'.join([str(y) for y in years])))
+        else:
+            log.info('Configured single year: [{}]'.format(years))
 
         for year in years:
             log.info('Starting with year {}'.format(year))
-            build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+            if catch_errors:
+                try:
+                    build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+                except Exception as e:
+                    log.warning(" == BUILD HAS FAILED FOR YEAR {} == ".format(year))
+                    log.warning("Error message:\n{}\nEND OF ERROR MESSAGE\n\n".format(str(e)))
+            else:
+                build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
     else:
         log.info('Configured single year: [{}]'.format(year))
         build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
     # TODO: create_enfants_a_naitre(year = year)
-    log.info("Script finished after {}".format(time.time() - start))
+    log.info("\n\n ==> Script finished after {} seconds.".format(round(time.time() - start)))
 
 
 if __name__ == '__main__':
