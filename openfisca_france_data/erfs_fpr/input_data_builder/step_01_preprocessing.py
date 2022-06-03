@@ -51,6 +51,11 @@ def build_merged_dataframes(temporary_store = None, year = None):
     # merge EEC and FPR tables
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
 
+    # check name of revenus fonciers variable
+    if 'rev_fonciers' in menages.columns:
+        log.info('Renaming rev_fonciers to rev_fonciers_bruts.')
+        menages.rename(columns = {'rev_fonciers':'rev_fonciers_bruts'}, inplace = True)
+
     # store household table
     temporary_store[f"menages_{year}"] = menages
     del eec_menage, fpr_menage, menages
@@ -264,7 +269,7 @@ def check_naia_naim(individus, year):
     bad_years = individus.loc[~good, "naia"].unique()
     bad_idents = individus.loc[~good, "ident"].unique()
 
-    log.debug('There are incorrect years of birth [naia; {}] for individuals with ident [{}].'.format(','.join(bad_years), ','.join(bad_idents)))
+    log.debug('There are incorrect years of birth [naia: {}] for individuals with ident [{}].'.format(';'.join([str(by) for by in bad_years]), ';'.join([str(bi) for bi in bad_idents])))
 
     try:
         lpr = "lpr" if year < 2013 else "lprm"
