@@ -115,7 +115,7 @@ smic_annuel_net_by_year = {
 
 # t = p.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement[1]
 
-# t = openfisca_france_tax_benefit_system.parameters.prelevements_sociaux.contributions.csg.abattement.sous_4pss
+# t = openfisca_france_tax_benefit_system.parameters.prelevements_sociaux.contributions_sociales.csg.abattement.sous_4pss
 # t3 = t.values_list
 # sd = t3[t3.__len__() - 1]
 # sd.instant_str
@@ -141,6 +141,7 @@ end_year = max(smic_horaire_brut.keys())
 def smic_annuel_imposable_from_net(year, smic_hor_brut):
     try:
         # TODO: the formula is not 100 % flexible, I have hard-coded the 4 PSS cut-off; this could be improved in the future
+        # then again, it seems not to be used at all for OFF-ERFS, just the smic_horaire_brut
         params = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start)
         smic_net = smic_annuel_net_by_year[year]
         working_hours = params.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
