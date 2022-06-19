@@ -869,9 +869,9 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
     log.info(u"Vérifications sur famille")
     duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
     if duplicated_famillle.sum() > 0:
-        log.debug("There are {} duplicates of quifam inside famille".format(
-            duplicated_famillle.sum()))
-        raise
+        log.warning("There are {} duplicates of quifam inside famille [{}]".format(
+            duplicated_famillle.sum(), duplicated_famillle))
+        # raise
 
     individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
     if skip_enfants_a_naitre:

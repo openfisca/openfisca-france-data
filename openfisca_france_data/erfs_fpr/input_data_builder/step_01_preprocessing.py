@@ -20,6 +20,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
 
     erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
     yr = str(year)[-2:]  # 12 for 2012
+    yr1 = str(year+1)[-2:]  # 12 for 2012
 
     # where available, use harmoized data
     add_suffix_retropole_years = [2012]
@@ -27,8 +28,8 @@ def build_merged_dataframes(temporary_store = None, year = None):
     # infer names of the survey and data tables
     names = {
         "survey": f"erfs_fpr_{year}",
-        "eec_individu": f"fpr_irf{yr}e{yr}t4",
-        "eec_menage": f"fpr_mrf{yr}e{yr}t4",
+        "eec_individu": f"fpr_irf{yr}e{yr}t4" if year >= 2002 else f"fpr_irf{yr}e{yr1}",
+        "eec_menage": f"fpr_mrf{yr}e{yr}t4" if year >= 2002 else f"fpr_mrf{yr}e{yr1}",
         "fpr_individu": f"fpr_indiv_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_indiv_{year}",
         "fpr_menage": f"fpr_menage_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_menage_{year}"
     }
@@ -47,6 +48,10 @@ def build_merged_dataframes(temporary_store = None, year = None):
     # transform to lowercase
     for table in (fpr_menage, eec_menage, eec_individu, fpr_individu):
         table.columns = [k.lower() for k in table.columns]
+
+    # check column names prior to 2002
+    if 'nopers' in eec_individu.columns:
+        eec_individu.rename(columns = {'nopers':'noindiv'}, inplace = True)
 
     # merge EEC and FPR tables
     individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
@@ -79,8 +84,16 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
     nobs['fpr_ind'] = len(fpr_individu.noindiv.unique())
     nobs['eec_ind'] = len(eec_individu.noindiv.unique())
 
+    # check name of 'acteu' variable and rename if necessary
+    if 'act' in eec_individu.columns:
+        eec_individu.rename(columns = {'act':'acteu'}, inplace = True)
+
+
     log.debug('There are {} obs. in the FPR individual-level data [unique(noindiv)]'.format(nobs['fpr_ind']))
     log.debug('There are {} obs. in the EEC individual-level data [unique(noindiv)]'.format(nobs['eec_ind']))
+
+    log.debug('Columns in FPR-Ind table: {}.'.format(','.join(fpr_individu.columns)))
+    log.debug('Columns in EEC-Ind table: {}.'.format(','.join(eec_individu.columns)))
 
     # merge tables
     individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
