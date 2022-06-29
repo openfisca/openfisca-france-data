@@ -4,7 +4,9 @@ import configparser
 import click
 import logging
 import numpy as np
+import pandas as pd
 import sys
+import gc
 
 
 from openfisca_france_data import france_data_tax_benefit_system
@@ -28,8 +30,24 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data =
         tax_benefit_system = tax_benefit_system,
         year = year,
         rebuild_input_data = rebuild_input_data,
+        use_marginal_tax_rate = True,
+        variation_factor = 0.03,
+        varying_variable = 'salaire_de_base',
         )
     aggregates = Aggregates(survey_scenario = survey_scenario)
+
+    if False:
+        mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = 'revenu_disponible', period = year, use_baseline = True)
+        print("Rev Disp: Mean = {}; Zero = {}; Positive = {}; Total = {};".format(mtr_rd.mean(), sum(mtr_rd == 0), sum(mtr_rd > 0), mtr_rd.size))
+        np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
+
+        vv1 = survey_scenario.simulation.calculate_add('salaire_de_base', period = year)
+        vv2 = survey_scenario._modified_simulation.calculate_add('salaire_de_base', period = year)
+
+        tv1 = survey_scenario.simulation.calculate_add('revenu_disponible', period = year)
+        tv2 = survey_scenario._modified_simulation.calculate_add('revenu_disponible', period = year)
+
+        np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
 
     return survey_scenario, aggregates
 
@@ -88,9 +106,56 @@ def main(year, configfile = None, verbose = False):
             rebuild_input_data = False,
             )
         survey_scenario._set_used_as_input_variables_by_entity()
-        aggregates.to_csv(f'aggregates{year}.csv')
-        print(aggregates.to_markdown())
+        # aggregates.to_csv(f'aggregates{year}.csv')
+        # print(aggregates.to_markdown())
         # aggregates.to_html(f'aggregates{year}.html')
+
+        mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = 'revenu_disponible', period = year, use_baseline = True)
+        print("Rev Disp: Mean = {}; Zero = {}; Positive = {}; Total = {};".format(mtr_rd.mean(), sum(mtr_rd == 0), sum(mtr_rd > 0), mtr_rd.size))
+        # np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
+
+        # vv1 = survey_scenario.simulation.calculate_add('salaire_de_base', period = year)
+        # vv2 = survey_scenario._modified_simulation.calculate_add('salaire_de_base', period = year)
+
+        # tv1 = survey_scenario.simulation.calculate_add('revenu_disponible', period = year)
+        # tv2 = survey_scenario._modified_simulation.calculate_add('revenu_disponible', period = year)
+
+        vars_to_export = ['salaire_de_base',
+        'revenu_disponible',
+        'revenus_nets_du_travail',
+        'revenus_nets_du_capital',
+        'pensions_nettes',
+        'impots_directs',
+        'prestations_sociales',
+        'ppe'
+        ]
+
+        # dt = pd.DataFrame()
+        # gc.collect()
+
+        for v in vars_to_export:
+            dt = pd.DataFrame()
+            gc.collect()
+            
+            print("Getting values of variable {}".format(v))
+            print("Baseline")
+            baseline = survey_scenario.simulation.calculate_add(v, period = year)
+            print("Done")
+            print("Reforme")
+            reforme = survey_scenario._modified_simulation.calculate_add(v, period = year)
+            print("Done")
+
+            varname_bl = v + '_bl'
+            varname_rf = v + '_rf'
+
+            dt[varname_bl] = baseline
+            dt[varname_rf] = reforme
+
+            print("Writing to disk")
+            dt.to_csv("comp_mtr_{}_{}.csv".format(v, year))
+            gc.collect()
+
+
 
 
 
