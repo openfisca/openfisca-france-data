@@ -120,40 +120,53 @@ def main(year, configfile = None, verbose = False):
         # tv1 = survey_scenario.simulation.calculate_add('revenu_disponible', period = year)
         # tv2 = survey_scenario._modified_simulation.calculate_add('revenu_disponible', period = year)
 
-        vars_to_export = ['salaire_de_base',
-        'revenu_disponible',
-        'revenus_nets_du_travail',
-        'revenus_nets_du_capital',
-        'pensions_nettes',
-        'impots_directs',
-        'prestations_sociales',
-        'ppe'
-        ]
+        vars_to_export = [
+            'salaire_de_base',
+            'revenu_disponible',
+            'revenus_nets_du_travail',
+            'revenus_nets_du_capital',
+            'pensions_nettes',
+            'impots_directs',
+            'prestations_sociales',
+            'ppe'
+            ]
+
+        print("Computing baseline data frame")
+        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, use_modified=False)
+        print("Saving to disk")
+        dtbl.to_csv("dt_baseline.csv")
+
+        print("Computing reform data frame")
+        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, use_modified=True)
+        print("Saving to disk")
+        dtrf.to_csv("dt_reforme.csv")
+
+        print("All done!")
 
         # dt = pd.DataFrame()
         # gc.collect()
 
-        for v in vars_to_export:
-            dt = pd.DataFrame()
-            gc.collect()
+        # for v in vars_to_export:
+        #     dt = pd.DataFrame()
+        #     gc.collect()
             
-            print("Getting values of variable {}".format(v))
-            print("Baseline")
-            baseline = survey_scenario.simulation.calculate_add(v, period = year)
-            print("Done")
-            print("Reforme")
-            reforme = survey_scenario._modified_simulation.calculate_add(v, period = year)
-            print("Done")
+        #     print("Getting values of variable {}".format(v))
+        #     print("Baseline")
+        #     baseline = survey_scenario.simulation.calculate_add(v, period = year)
+        #     print("Done")
+        #     print("Reforme")
+        #     reforme = survey_scenario._modified_simulation.calculate_add(v, period = year)
+        #     print("Done")
 
-            varname_bl = v + '_bl'
-            varname_rf = v + '_rf'
+        #     varname_bl = v + '_bl'
+        #     varname_rf = v + '_rf'
 
-            dt[varname_bl] = baseline
-            dt[varname_rf] = reforme
+        #     dt[varname_bl] = baseline
+        #     dt[varname_rf] = reforme
 
-            print("Writing to disk")
-            dt.to_csv("comp_mtr_{}_{}.csv".format(v, year))
-            gc.collect()
+        #     print("Writing to disk")
+        #     dt.to_csv("comp_mtr_{}_{}.csv".format(v, year))
+        #     gc.collect()
 
 
 
