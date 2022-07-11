@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import sys
 import gc
+import os
 
 
 from openfisca_france_data import france_data_tax_benefit_system
@@ -112,34 +113,85 @@ def main(year, configfile = None, verbose = False):
 
         mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = 'revenu_disponible', period = year, use_baseline = True)
         print("Rev Disp: Mean = {}; Zero = {}; Positive = {}; Total = {};".format(mtr_rd.mean(), sum(mtr_rd == 0), sum(mtr_rd > 0), mtr_rd.size))
+        gc.collect()
+
         # np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
 
         # vv1 = survey_scenario.simulation.calculate_add('salaire_de_base', period = year)
         # vv2 = survey_scenario._modified_simulation.calculate_add('salaire_de_base', period = year)
+        # sal_de_base = pd.DataFrame([vv1, vv2]).transpose()
+        # sal_de_base.columns = ['baseline', ]
+        # sal_de_base.to_csv("sal_de_base.csv")
 
         # tv1 = survey_scenario.simulation.calculate_add('revenu_disponible', period = year)
         # tv2 = survey_scenario._modified_simulation.calculate_add('revenu_disponible', period = year)
 
-        vars_to_export = [
-            'salaire_de_base',
-            'revenu_disponible',
-            'revenus_nets_du_travail',
-            'revenus_nets_du_capital',
-            'pensions_nettes',
-            'impots_directs',
-            'prestations_sociales',
-            'ppe'
-            ]
+        var_level = "b+1"
+
+        # ce qui salaire_de_base ne bouge pas :
+        # ppe, rev_cap, pens_nettes
+
+        if var_level == "basic":
+            vars_to_export = [
+                'salaire_de_base',
+                'revenu_disponible',
+                'revenus_nets_du_travail',
+                'revenus_nets_du_capital',
+                'pensions_nettes',
+                'impots_directs',
+                'prestations_sociales',
+                # 'ppe'
+                ]
+        elif var_level == "b+1":
+            vars_to_export = [
+                'salaire_de_base',
+                'revenu_disponible',
+                'revenus_nets_du_travail',
+                'salaire_net',
+                'rpns_imposables',
+                'csg_imposable_non_salarie',
+                'crds_non_salarie',
+                # 'revenus_nets_du_capital',
+                # 'pensions_nettes',
+                'impots_directs',
+                'taxe_habitation',
+                'irpp_economique',
+                'prelevement_forfaitaire_liberatoire',
+                'prelevement_forfaitaire_unique_ir',
+                'ir_pv_immo',
+                'isf_ifi',
+                'prestations_sociales',
+                'prestations_familiales',
+                'minima_sociaux',
+                'aides_logement',
+                'reduction_loyer_solidarite',
+                'covid_aide_exceptionnelle_famille_montant',
+                'covid_aide_exceptionnelle_tpe_montant',
+                # 'ppe'
+                ]
 
         print("Computing baseline data frame")
-        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, use_modified=False)
+        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=False)
         print("Saving to disk")
-        dtbl.to_csv("dt_baseline.csv")
+        dtbl["individu"].to_csv("dt_baseline_individu.csv")
+        dtbl["famille"].to_csv("dt_baseline_famille.csv")
+        dtbl["foyer_fiscal"].to_csv("dt_baseline_foyer_fiscal.csv")
+        dtbl["menage"].to_csv("dt_baseline_menage.csv")
+        gc.collect()
 
         print("Computing reform data frame")
-        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, use_modified=True)
+        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=True)
         print("Saving to disk")
-        dtrf.to_csv("dt_reforme.csv")
+        dtrf["individu"].to_csv("dt_reform_individu.csv")
+        dtrf["famille"].to_csv("dt_reform_famille.csv")
+        dtrf["foyer_fiscal"].to_csv("dt_reform_foyer_fiscal.csv")
+        dtrf["menage"].to_csv("dt_reform_menage.csv")
+        gc.collect()
+
+        print("Launching R script..")
+
+        # 'vsc' option necessary to indicate right path to R; the number afterwards is the individual ID for the cas types
+        os.system('echo 0070 | sudo -S Rscript ~/Analysis/Debug/MTR-Components_Python.R vsc 42')
 
         print("All done!")
 
