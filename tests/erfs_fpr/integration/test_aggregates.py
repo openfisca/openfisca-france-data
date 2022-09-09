@@ -22,7 +22,7 @@ logging.basicConfig(level = logging.INFO, stream = sys.stdout,
 )
 
 
-def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data = False):
+def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
     np.seterr(all = 'raise')
     tax_benefit_system = france_data_tax_benefit_system
@@ -31,9 +31,9 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data =
         tax_benefit_system = tax_benefit_system,
         year = year,
         rebuild_input_data = rebuild_input_data,
-        use_marginal_tax_rate = True,
-        variation_factor = 0.03,
-        varying_variable = 'salaire_de_base',
+        use_marginal_tax_rate = use_marginal_tax_rate,
+        variation_factor = variation_factor,
+        varying_variable = varying_variable,
         )
     aggregates = Aggregates(survey_scenario = survey_scenario)
 
@@ -86,6 +86,11 @@ def main(year, configfile = None, verbose = False):
     if verbose:
         logging.basicConfig(level = logging.DEBUG, stream = sys.stdout)
 
+    # marginal tax rate parameters
+    varying_variable = 'salaire_de_base'
+    target_variable = 'revenu_disponible'
+    relative_variation = 0.03
+
     years = []
     if configfile is not None:
         try:
@@ -102,50 +107,43 @@ def main(year, configfile = None, verbose = False):
         years = [year]
 
     for year in years:
-        survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
+        survey_scenario, _ = test_erfs_fpr_survey_simulation_aggregates(
             year = year,
             rebuild_input_data = False,
+            use_marginal_tax_rate = True,
+            variation_factor = relative_variation,
+            varying_variable = varying_variable
             )
         survey_scenario._set_used_as_input_variables_by_entity()
-        # aggregates.to_csv(f'aggregates{year}.csv')
-        # print(aggregates.to_markdown())
-        # aggregates.to_html(f'aggregates{year}.html')
 
-        mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = 'revenu_disponible', period = year, use_baseline = True)
+        mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = target_variable, period = year, use_baseline = True)
         print("Rev Disp: Mean = {}; Zero = {}; Positive = {}; Total = {};".format(mtr_rd.mean(), sum(mtr_rd == 0), sum(mtr_rd > 0), mtr_rd.size))
         gc.collect()
 
-        # np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
-
-        # vv1 = survey_scenario.simulation.calculate_add('salaire_de_base', period = year)
-        # vv2 = survey_scenario._modified_simulation.calculate_add('salaire_de_base', period = year)
-        # sal_de_base = pd.DataFrame([vv1, vv2]).transpose()
-        # sal_de_base.columns = ['baseline', ]
-        # sal_de_base.to_csv("sal_de_base.csv")
-
-        # tv1 = survey_scenario.simulation.calculate_add('revenu_disponible', period = year)
-        # tv2 = survey_scenario._modified_simulation.calculate_add('revenu_disponible', period = year)
-
         var_level = "b+1"
 
-        # ce qui salaire_de_base ne bouge pas :
+        # salaire_de_base ne bouge pas :
         # ppe, rev_cap, pens_nettes
+        # exclues dans les décompositions suivantes, pour l'instant
 
         if var_level == "basic":
             vars_to_export = [
                 'salaire_de_base',
                 'revenu_disponible',
+                'niveau_de_vie',
                 'revenus_nets_du_travail',
                 'revenus_nets_du_capital',
                 'pensions_nettes',
                 'impots_directs',
                 'prestations_sociales',
-                # 'ppe'
+                # 'ppe',
+                'wprm',
                 ]
         elif var_level == "b+1":
             vars_to_export = [
                 'salaire_de_base',
                 'revenu_disponible',
+                'niveau_de_vie',
                 'revenus_nets_du_travail',
                 'salaire_net',
                 'rpns_imposables',
@@ -168,60 +166,27 @@ def main(year, configfile = None, verbose = False):
                 'covid_aide_exceptionnelle_famille_montant',
                 'covid_aide_exceptionnelle_tpe_montant',
                 # 'ppe'
+                'wprm',
                 ]
 
         print("Computing baseline data frame")
-        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=False)
+        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=False, merge=True)
         print("Saving to disk")
-        dtbl["individu"].to_csv("dt_baseline_individu.csv")
-        dtbl["famille"].to_csv("dt_baseline_famille.csv")
-        dtbl["foyer_fiscal"].to_csv("dt_baseline_foyer_fiscal.csv")
-        dtbl["menage"].to_csv("dt_baseline_menage.csv")
+        dtbl.to_csv("dt_baseline.csv")
         gc.collect()
 
         print("Computing reform data frame")
-        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=True)
+        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=True, merge=True)
         print("Saving to disk")
-        dtrf["individu"].to_csv("dt_reform_individu.csv")
-        dtrf["famille"].to_csv("dt_reform_famille.csv")
-        dtrf["foyer_fiscal"].to_csv("dt_reform_foyer_fiscal.csv")
-        dtrf["menage"].to_csv("dt_reform_menage.csv")
+        dtrf.to_csv("dt_reform.csv")
         gc.collect()
 
         print("Launching R script..")
 
         # 'vsc' option necessary to indicate right path to R; the number afterwards is the individual ID for the cas types
-        os.system('echo 0070 | sudo -S Rscript ~/Analysis/Debug/MTR-Components_Python.R vsc 42')
+        os.system('echo 0070 | sudo -S Rscript ~/Analysis/Debug/MTR-Components_Python.R vsc 42 {} {} {}'.format(varying_variable, target_variable, relative_variation))
 
         print("All done!")
-
-        # dt = pd.DataFrame()
-        # gc.collect()
-
-        # for v in vars_to_export:
-        #     dt = pd.DataFrame()
-        #     gc.collect()
-            
-        #     print("Getting values of variable {}".format(v))
-        #     print("Baseline")
-        #     baseline = survey_scenario.simulation.calculate_add(v, period = year)
-        #     print("Done")
-        #     print("Reforme")
-        #     reforme = survey_scenario._modified_simulation.calculate_add(v, period = year)
-        #     print("Done")
-
-        #     varname_bl = v + '_bl'
-        #     varname_rf = v + '_rf'
-
-        #     dt[varname_bl] = baseline
-        #     dt[varname_rf] = reforme
-
-        #     print("Writing to disk")
-        #     dt.to_csv("comp_mtr_{}_{}.csv".format(v, year))
-        #     gc.collect()
-
-
-
 
 
 if __name__ == '__main__':
