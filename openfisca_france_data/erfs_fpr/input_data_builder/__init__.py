@@ -19,7 +19,10 @@ from openfisca_france_data.erfs_fpr.input_data_builder import (
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
-fileHandler = logging.FileHandler("../log/build_erfs_fpr_{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
+# BCO : Il ne faut pas envoyer les logs dans ""../logs" car c'est un dossier qui n'existe pas.
+# /tmp à le mérite d'exister sur OSX et Linux mais pas sous Windows. Le mieux est de ne pas utiliser de fichier,
+# et de rediriger la sortie console vers un fichier quand on en a besoin.
+fileHandler = logging.FileHandler("/tmp/build_erfs_fpr_{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
 fileHandler.setLevel(logging.DEBUG)
 log.addHandler(fileHandler)
 
@@ -96,7 +99,7 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
     elif lg == "debug":
         lgi = logging.DEBUG
 
-    logging.basicConfig(stream = sys.stdout, # filename = 'build_erfs_fpr.log', level = lgi, 
+    logging.basicConfig(stream = sys.stdout, # filename = 'build_erfs_fpr.log', level = lgi,
         format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 
