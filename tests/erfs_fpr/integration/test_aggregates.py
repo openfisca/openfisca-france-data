@@ -170,13 +170,15 @@ def main(year, configfile = None, verbose = False):
                 ]
 
         print("Computing baseline data frame")
-        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=False, merge=True)
+        # dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=False, merge=True)
+        dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, merge=True)
         print("Saving to disk")
         dtbl.to_csv("dt_baseline.csv")
         gc.collect()
 
         print("Computing reform data frame")
-        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=True, merge=True)
+        # dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=True, merge=True)
+        dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, merge=True)
         print("Saving to disk")
         dtrf.to_csv("dt_reform.csv")
         gc.collect()
