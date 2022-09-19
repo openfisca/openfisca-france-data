@@ -775,8 +775,9 @@ agg-2018:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
+  - ls
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca

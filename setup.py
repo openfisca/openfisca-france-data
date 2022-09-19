@@ -28,7 +28,7 @@ setup(
         },
     python_requires = ">= 3.7",
     install_requires = [
-        "click >= 7.1.2, < 8.0.0",
+        "click >= 8.0.0, < 9.0.0",
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
         "openFisca-france >= 113.0.0",
