@@ -101,8 +101,10 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             right_index = True,
             left_on = "idmen",
             suffixes = ("", "_x"))
+        log.debug(f"Saving to {export_flattened_df_filepath}")
         supermerge.to_hdf(export_flattened_df_filepath, key = "input")
     # Enters the individual table into the openfisca_erfs_fpr collection
+    log.debug(f"Saving individus in openfisca_erfs_fpr with set_table_in_survey")
     set_table_in_survey(
         individus,
         entity = "individu",
@@ -110,9 +112,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         collection = "openfisca_erfs_fpr",
         survey_name = 'input',
         )
-
-
-    # assert 'f4ba' in data_frame.columns
+    log.debug("End of create_input_data_frame")
 
 
 def create_collectives_foyer_variables(individus, menages):
