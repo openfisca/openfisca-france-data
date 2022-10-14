@@ -85,13 +85,13 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             'zone_apl',
             ]
         ].copy()
-
+    survey_name = 'openfisca_erfs_fpr_' + str(year)
     set_table_in_survey(
         menages,
         entity = "menage",
         period = year,
         collection = "openfisca_erfs_fpr",
-        survey_name = 'input',
+        survey_name = survey_name,
         )
 
     individus = format_ids_and_roles(individus)
@@ -110,7 +110,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         entity = "individu",
         period = year,
         collection = "openfisca_erfs_fpr",
-        survey_name = 'input',
+        survey_name = survey_name,
         )
     log.debug("End of create_input_data_frame")
 

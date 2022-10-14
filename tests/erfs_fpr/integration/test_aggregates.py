@@ -26,7 +26,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data =
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
     np.seterr(all = 'raise')
     tax_benefit_system = france_data_tax_benefit_system
-
+    survey_name = 'openfisca_erfs_fpr_' + str(year)
     survey_scenario = get_survey_scenario(
         tax_benefit_system = tax_benefit_system,
         year = year,
@@ -34,6 +34,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data =
         use_marginal_tax_rate = use_marginal_tax_rate,
         variation_factor = variation_factor,
         varying_variable = varying_variable,
+        survey_name = survey_name,
         )
     aggregates = Aggregates(survey_scenario = survey_scenario)
 
@@ -93,6 +94,7 @@ def main(year, configfile = None, verbose = False):
 
     years = []
     if configfile is not None:
+        log.warning(f"Reading years to process from {configfile}, ignoring 'year' input parameter")
         try:
             config = configparser.ConfigParser()
             config.read(configfile)
@@ -102,18 +104,23 @@ def main(year, configfile = None, verbose = False):
                     log.info(f"Adding year {int(key)}")
         except KeyError:
             years = [year]
-            log.warning(f"File {configfile} not found, switchin to default {years}")
+            log.warning(f"Key 'erfs_fpr' not found in {configfile}, switching back to year {year}")
     else:
         years = [year]
 
     for year in years:
-        survey_scenario, _ = test_erfs_fpr_survey_simulation_aggregates(
+        survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
             year = year,
             rebuild_input_data = False,
             use_marginal_tax_rate = True,
             variation_factor = relative_variation,
             varying_variable = varying_variable
             )
+
+        aggregates.to_csv(f'aggregates_erfs_fpr_{year}.csv')
+        print(aggregates.to_markdown())
+        aggregates.to_html(f'aggregates_erfs_fpr_{year}.html')
+
         survey_scenario._set_used_as_input_variables_by_entity()
 
         mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = target_variable, period = year, use_baseline = True)
@@ -173,20 +180,21 @@ def main(year, configfile = None, verbose = False):
         # dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=False, merge=True)
         dtbl = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, merge=True)
         print("Saving to disk")
-        dtbl.to_csv("dt_baseline.csv")
+        dtbl.to_csv(f"dt_baseline_erfs_fpr_{year}.csv")
         gc.collect()
 
         print("Computing reform data frame")
         # dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, use_modified=True, merge=True)
         dtrf = survey_scenario.create_data_frame_by_entity(vars_to_export, index=True, merge=True)
         print("Saving to disk")
-        dtrf.to_csv("dt_reform.csv")
+        dtrf.to_csv(f"dt_reform_erfs_fpr_{year}.csv")
         gc.collect()
 
         print("Launching R script..")
 
         # 'vsc' option necessary to indicate right path to R; the number afterwards is the individual ID for the cas types
-        os.system('echo 0070 | sudo -S Rscript ~/Analysis/Debug/MTR-Components_Python.R vsc 42 {} {} {}'.format(varying_variable, target_variable, relative_variation))
+        # Note BCO : this code won't work outside a specific env
+        # os.system('echo 0070 | sudo -S Rscript ~/Analysis/Debug/MTR-Components_Python.R vsc 42 {} {} {}'.format(varying_variable, target_variable, relative_variation))
 
         print("All done!")
 

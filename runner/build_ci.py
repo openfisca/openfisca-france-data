@@ -97,10 +97,9 @@ def build_input_data(year):
             'echo "build_input_data-' + year + '"',
             # Put the config from build collections step
             'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini',
-            'build-erfs-fpr -y ' + year,
+            f'build-erfs-fpr -y {year} -f /mnt/data-out/$OUT_FOLDER/erfs_flat_{year}.h5',
             'cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini',
             'mkdir -p /mnt/data-out/$OUT_FOLDER',
-            'mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/',
             ],
         }
     }
@@ -114,15 +113,14 @@ def aggregates(year):
         'tags': ['openfisca'],
         'script': [
             'echo "aggregates-' + year + '"',
-            'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini ~/.config/openfisca-survey-manager/config.ini',
-            #'python tests/erfs_fpr/integration/test_aggregates.py --configfile ~/.config/openfisca-survey-manager/raw_data.ini',
-            'python tests/erfs_fpr/integration/test_aggregates.py --year ' + year,
+            f'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini',
+            f'python tests/erfs_fpr/integration/test_aggregates.py --year {year}',
             'mkdir -p /mnt/data-out/$OUT_FOLDER',
-            'ls ./*.html',
             'cp ./*.html /mnt/data-out/$OUT_FOLDER',
+            'cp ./*.csv /mnt/data-out/$OUT_FOLDER',
             ],
         'artifacts':{
-            'paths': ['./*.html']
+            'paths': ['./*.html', './*.csv']
             }
         }
     }
@@ -137,7 +135,7 @@ def make_test_by_year(year):
             'needs': ['agg-' + year],
             'tags': ['openfisca'],
             'script':[
-                'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini ~/.config/openfisca-survey-manager/config.ini',
+                f'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini',
                 'make test',
                 ],
             }
@@ -151,13 +149,15 @@ def make_test():
             'image': '$CI_REGISTRY_IMAGE:latest',
             'tags': ['openfisca'],
             'script':[
-                #'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini ~/.config/openfisca-survey-manager/config.ini',
                 'make test',
                 ],
             }
         }
 
 def get_erfs_years():
+    """
+    Read raw_data.ini to find all available years.
+    """
     years = []
     try:
         config = configparser.ConfigParser()
@@ -167,7 +167,7 @@ def get_erfs_years():
                 years.append(key)
         return years
     except KeyError:
-        print(f"File {configfile} not found, switchin to default {years}")
+        print(f"Key 'erfs_fpr' not found in {configfile}, switchin to default {years}")
         raise KeyError
 
 def build_gitlab_ci(erfs_years):
@@ -183,6 +183,8 @@ def build_gitlab_ci(erfs_years):
 def main():
     print("Reading survey manager config...")
     erfs_years = get_erfs_years()
+    # For testing only some years
+    # erfs_years = ["2005", "2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
     with open(r'.gitlab-ci.yml', mode='w') as file:
         file.write(gitlab_ci)

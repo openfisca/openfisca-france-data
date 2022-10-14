@@ -107,6 +107,7 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
 
     # determine which years are to be analyzed, from file if available, else parameter
     if configfile is not None:
+        log.warning("Reading years to process from {configfile}")
         years = []
 
         try:
@@ -118,7 +119,7 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
                     # log.info(f"Adding year {int(key)}")
         except KeyError:
             years = [year]
-            log.warning(f"File {configfile} not found, switchin to default {years}")
+            log.warning(f"Key 'erfs_fpr' not found in {configfile}, switchin to default {years}")
 
         if len(years) > 1:
             log.info('Configured multiple years: [{}]'.format(';'.join([str(y) for y in years])))

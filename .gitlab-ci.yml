@@ -73,10 +73,9 @@ in_dt-1996:
   - echo "build_input_data-1996"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 1996
+  - build-erfs-fpr -y 1996 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_1996.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1996.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -84,6 +83,7 @@ agg-1996:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-1996
@@ -93,8 +93,8 @@ agg-1996:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1996
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -104,10 +104,9 @@ in_dt-1997:
   - echo "build_input_data-1997"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 1997
+  - build-erfs-fpr -y 1997 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_1997.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1997.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -115,6 +114,7 @@ agg-1997:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-1997
@@ -124,8 +124,8 @@ agg-1997:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1997
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -135,10 +135,9 @@ in_dt-1998:
   - echo "build_input_data-1998"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 1998
+  - build-erfs-fpr -y 1998 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_1998.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1998.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -146,6 +145,7 @@ agg-1998:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-1998
@@ -155,8 +155,8 @@ agg-1998:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1998
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -166,10 +166,9 @@ in_dt-1999:
   - echo "build_input_data-1999"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 1999
+  - build-erfs-fpr -y 1999 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_1999.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1999.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -177,6 +176,7 @@ agg-1999:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-1999
@@ -186,8 +186,8 @@ agg-1999:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1999
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -197,10 +197,9 @@ in_dt-2000:
   - echo "build_input_data-2000"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2000
+  - build-erfs-fpr -y 2000 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2000.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2000.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -208,6 +207,7 @@ agg-2000:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2000
@@ -217,8 +217,8 @@ agg-2000:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2000
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -228,10 +228,9 @@ in_dt-2001:
   - echo "build_input_data-2001"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2001
+  - build-erfs-fpr -y 2001 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2001.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2001.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -239,6 +238,7 @@ agg-2001:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2001
@@ -248,8 +248,8 @@ agg-2001:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2001
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -259,10 +259,9 @@ in_dt-2002:
   - echo "build_input_data-2002"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2002
+  - build-erfs-fpr -y 2002 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2002.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2002.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -270,6 +269,7 @@ agg-2002:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2002
@@ -279,8 +279,8 @@ agg-2002:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2002
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -290,10 +290,9 @@ in_dt-2003:
   - echo "build_input_data-2003"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2003
+  - build-erfs-fpr -y 2003 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2003.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2003.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -301,6 +300,7 @@ agg-2003:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2003
@@ -310,8 +310,8 @@ agg-2003:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2003
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -321,10 +321,9 @@ in_dt-2004:
   - echo "build_input_data-2004"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2004
+  - build-erfs-fpr -y 2004 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2004.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2004.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -332,6 +331,7 @@ agg-2004:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2004
@@ -341,8 +341,8 @@ agg-2004:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2004
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -352,10 +352,9 @@ in_dt-2005:
   - echo "build_input_data-2005"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2005
+  - build-erfs-fpr -y 2005 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2005.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2005.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -363,6 +362,7 @@ agg-2005:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2005
@@ -372,8 +372,8 @@ agg-2005:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2005
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -383,10 +383,9 @@ in_dt-2006:
   - echo "build_input_data-2006"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2006
+  - build-erfs-fpr -y 2006 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2006.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2006.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -394,6 +393,7 @@ agg-2006:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2006
@@ -403,8 +403,8 @@ agg-2006:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2006
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -414,10 +414,9 @@ in_dt-2007:
   - echo "build_input_data-2007"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2007
+  - build-erfs-fpr -y 2007 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2007.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2007.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -425,6 +424,7 @@ agg-2007:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2007
@@ -434,8 +434,8 @@ agg-2007:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2007
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -445,10 +445,9 @@ in_dt-2008:
   - echo "build_input_data-2008"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2008
+  - build-erfs-fpr -y 2008 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2008.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2008.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -456,6 +455,7 @@ agg-2008:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2008
@@ -465,8 +465,8 @@ agg-2008:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2008
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -476,10 +476,9 @@ in_dt-2009:
   - echo "build_input_data-2009"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2009
+  - build-erfs-fpr -y 2009 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2009.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2009.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -487,6 +486,7 @@ agg-2009:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2009
@@ -496,8 +496,8 @@ agg-2009:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2009
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -507,10 +507,9 @@ in_dt-2010:
   - echo "build_input_data-2010"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2010
+  - build-erfs-fpr -y 2010 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2010.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2010.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -518,6 +517,7 @@ agg-2010:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2010
@@ -527,8 +527,8 @@ agg-2010:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2010
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -538,10 +538,9 @@ in_dt-2011:
   - echo "build_input_data-2011"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2011
+  - build-erfs-fpr -y 2011 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2011.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2011.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -549,6 +548,7 @@ agg-2011:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2011
@@ -558,8 +558,8 @@ agg-2011:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2011
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -569,10 +569,9 @@ in_dt-2012:
   - echo "build_input_data-2012"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2012
+  - build-erfs-fpr -y 2012 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2012.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2012.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -580,6 +579,7 @@ agg-2012:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2012
@@ -589,8 +589,8 @@ agg-2012:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2012
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -600,10 +600,9 @@ in_dt-2013:
   - echo "build_input_data-2013"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2013
+  - build-erfs-fpr -y 2013 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2013.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2013.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -611,6 +610,7 @@ agg-2013:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2013
@@ -620,8 +620,8 @@ agg-2013:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2013
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -631,10 +631,9 @@ in_dt-2014:
   - echo "build_input_data-2014"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2014
+  - build-erfs-fpr -y 2014 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2014.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2014.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -642,6 +641,7 @@ agg-2014:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2014
@@ -651,8 +651,8 @@ agg-2014:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2014
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -662,10 +662,9 @@ in_dt-2015:
   - echo "build_input_data-2015"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2015
+  - build-erfs-fpr -y 2015 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2015.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2015.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -673,6 +672,7 @@ agg-2015:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2015
@@ -682,8 +682,8 @@ agg-2015:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2015
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -693,10 +693,9 @@ in_dt-2016:
   - echo "build_input_data-2016"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2016
+  - build-erfs-fpr -y 2016 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2016.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2016.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -704,6 +703,7 @@ agg-2016:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2016
@@ -713,8 +713,8 @@ agg-2016:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2016
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -724,10 +724,9 @@ in_dt-2017:
   - echo "build_input_data-2017"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2017
+  - build-erfs-fpr -y 2017 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2017.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2017.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -735,6 +734,7 @@ agg-2017:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2017
@@ -744,8 +744,8 @@ agg-2017:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2017
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls ./*.html
   - cp ./*.html /mnt/data-out/$OUT_FOLDER
+  - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
   - openfisca
@@ -755,10 +755,9 @@ in_dt-2018:
   - echo "build_input_data-2018"
   - cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini
     ~/.config/openfisca-survey-manager/config.ini
-  - build-erfs-fpr -y 2018
+  - build-erfs-fpr -y 2018 -f /mnt/data-out/$OUT_FOLDER/erfs_flat_2018.h5
   - cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - mv ./erfs_flat_*.h5 /mnt/data-out/$OUT_FOLDER/
   stage: build_input_data
   tags:
   - openfisca
@@ -766,6 +765,7 @@ agg-2018:
   artifacts:
     paths:
     - ./*.html
+    - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - in_dt-2018
@@ -775,8 +775,7 @@ agg-2018:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
   - mkdir -p /mnt/data-out/$OUT_FOLDER
-  - ls
-  - cp ./*.html /mnt/data-out/$OUT_FOLDER || true
+  - cp ./*.html /mnt/data-out/$OUT_FOLDER
   - cp ./*.csv /mnt/data-out/$OUT_FOLDER
   stage: aggregates
   tags:
