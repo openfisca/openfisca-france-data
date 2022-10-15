@@ -104,7 +104,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         log.debug(f"Saving to {export_flattened_df_filepath}")
         supermerge.to_hdf(export_flattened_df_filepath, key = "input")
     # Enters the individual table into the openfisca_erfs_fpr collection
-    log.debug(f"Saving individus in openfisca_erfs_fpr with set_table_in_survey")
+    log.debug(f"Saving entity 'individu' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
     set_table_in_survey(
         individus,
         entity = "individu",
