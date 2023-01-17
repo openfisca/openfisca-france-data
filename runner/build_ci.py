@@ -1,3 +1,10 @@
+"""
+Create the file `.gitlab-ci.yml` that is read by Gitlab Runner to execute the CI.
+
+Run in project root folder:
+
+python runner/build_ci.py
+"""
 import configparser
 import yaml
 
@@ -17,6 +24,7 @@ variables:
   CI_REGISTRY_IMAGE: leximpact/openfisca-france-data
   # OUT_FOLDER: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA" # For branch-commit_id
   OUT_FOLDER: "$CI_COMMIT_REF_NAME" # For just branch
+  ROOT_FOLDER: "/mnt/data-out/openfisca-france-data"
 
 cache:
   paths:
@@ -25,14 +33,13 @@ cache:
 
 stages:
   - docker
-  - build_collection
   - test
+  - build_collection
   - build_input_data
   - aggregates
 
 
 before_script:
-  - echo "I'm executed before all job's"
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
   - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
@@ -68,8 +75,8 @@ def build_collections():
         'tags': ['openfisca'],
         'script': [
             'echo "Begin with fresh config"',
-            'mkdir -p /mnt/data-out/data_collections/$OUT_FOLDER/',
-            'rm /mnt/data-out/data_collections/$OUT_FOLDER/*.json || true',   # || true to ignore error
+            'mkdir -p $ROOT_FOLDER/data_collections/$OUT_FOLDER/',
+            'rm $ROOT_FOLDER/data_collections/$OUT_FOLDER/*.json || true',   # || true to ignore error
             'cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini',
             'echo "Custom output folder"',
             'sed -i "s/data_collections/data_collections\/$OUT_FOLDER\//" ~/.config/openfisca-survey-manager/config.ini',
@@ -77,7 +84,7 @@ def build_collections():
             '#build-collection -c enquete_logement -d -m -s 2013',
             'build-collection -c erfs_fpr -d -m -v',
             'echo "Backup updated config"',
-            'cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini'
+            'cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini'
 
         ],
         'when': 'manual',
@@ -95,11 +102,11 @@ def build_input_data(year):
         'tags': ['openfisca'],
         'script': [
             'echo "build_input_data-' + year + '"',
+            'mkdir -p $ROOT_FOLDER/$OUT_FOLDER',
             # Put the config from build collections step
-            'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini',
-            f'build-erfs-fpr -y {year} -f /mnt/data-out/$OUT_FOLDER/erfs_flat_{year}.h5',
-            'cp ~/.config/openfisca-survey-manager/config.ini /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini',
-            'mkdir -p /mnt/data-out/$OUT_FOLDER',
+            'cp $ROOT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini',
+            f'build-erfs-fpr -y {year} -f $ROOT_FOLDER/$OUT_FOLDER/erfs_flat_{year}.h5',
+            'cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-' + year + '.ini',
             ],
         }
     }
@@ -113,11 +120,11 @@ def aggregates(year):
         'tags': ['openfisca'],
         'script': [
             'echo "aggregates-' + year + '"',
-            f'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini',
+            f'cp $ROOT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini',
             f'python tests/erfs_fpr/integration/test_aggregates.py --year {year}',
-            'mkdir -p /mnt/data-out/$OUT_FOLDER',
-            'cp ./*.html /mnt/data-out/$OUT_FOLDER',
-            'cp ./*.csv /mnt/data-out/$OUT_FOLDER',
+            'mkdir -p $ROOT_FOLDER/$OUT_FOLDER',
+            'cp ./*.html $ROOT_FOLDER/$OUT_FOLDER',
+            'cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER',
             ],
         'artifacts':{
             'paths': ['./*.html', './*.csv']
@@ -135,7 +142,7 @@ def make_test_by_year(year):
             'needs': ['agg-' + year],
             'tags': ['openfisca'],
             'script':[
-                f'cp /mnt/data-out/openfisca-france-data/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini',
+                f'cp $ROOT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini',
                 'make test',
                 ],
             }
@@ -172,19 +179,19 @@ def get_erfs_years():
 
 def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
+    gitlab_ci += yaml.dump(make_test())
     gitlab_ci += yaml.dump(build_collections())
     for year in erfs_years:
         print('\t ERFS : Building for year', year)
         gitlab_ci += yaml.dump(build_input_data(year))
         gitlab_ci += yaml.dump(aggregates(year))
-    gitlab_ci += yaml.dump(make_test())
     return gitlab_ci
 
 def main():
     print("Reading survey manager config...")
     erfs_years = get_erfs_years()
     # For testing only some years
-    # erfs_years = ["2005", "2018"]
+    # erfs_years = ["2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
     with open(r'.gitlab-ci.yml', mode='w') as file:
         file.write(gitlab_ci)
