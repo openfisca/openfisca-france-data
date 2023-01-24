@@ -23,18 +23,17 @@ def build_famille(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
 
-    log.info('step_04_famille: construction de la table famille')
-
     skip_enfants_a_naitre = True
     kind = 'erfs_fpr'
 
-    log.info('Etape 1 : préparation de base')
-    log.info('    1.1 : récupération de indivi')
+    log.info(' [1] Preparing the data base')
+    log.info(' [1.1] Getting individuals')
+
     indivi = temporary_store['individus_{}'.format(year)]
 
     # Si on pense qu'on ne peut pas récupérer les enfants à naître
     if skip_enfants_a_naitre:
-        log.info("    1.2 : On ne récupère pas d'enfants à naître")
+        log.info(" [1.2] Skipping enfants à naître")
         enfants_a_naitre = None
     else:
         if year < 2013:
@@ -42,7 +41,7 @@ def build_famille(temporary_store = None, year = None):
         else:
             lpr = "lprm"
         lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
-        log.info("    1.2 : récupération des enfants à naître")
+        log.info(" [1.2] Récupération des enfants à naître")
         cohab = 'cohab' if year < 2013 else "coured"
         agepr = 'agepr' if year < 2013 else "ageprm"
         retrai = 'retrai' if year < 2013 else "ret"
@@ -81,16 +80,13 @@ def build_famille(temporary_store = None, year = None):
 
         enfants_a_naitre = temporary_store['enfants_a_naitre_{}'.format(year)][individual_variables].copy()
         enfants_a_naitre.drop_duplicates('noindiv', inplace = True)
-        log.info(""""
-    Il y a {} enfants à naitre avant de retirer ceux qui ne sont pas enfants
-    de la personne de référence
-    """.format(len(enfants_a_naitre.index)))
+
+        ean_avant = len(enfants_a_naitre.index)
         enfants_a_naitre = enfants_a_naitre.loc[enfants_a_naitre[lpr] == 3].copy()
         enfants_a_naitre = enfants_a_naitre.loc[~(enfants_a_naitre.noindiv.isin(indivi.noindiv.values))].copy()
-        log.info(""""
-        Il y a {} enfants à naitre après avoir retiré ceux qui ne sont pas enfants
-        de la personne de référence
-        """.format(len(enfants_a_naitre.index)))
+        ean_apres = len(enfants_a_naitre.index)
+
+        log.debug("Il y a {} ({}) enfants à naitre avant (après) avoir retiré ceux qui ne sont pas enfants de la personne de référence".format(ean_avant, ean_apres))
 
     individus = create_familles(indivi = indivi, year = year, kind = kind, enfants_a_naitre = enfants_a_naitre,
         skip_enfants_a_naitre = skip_enfants_a_naitre)
@@ -111,7 +107,9 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
     assert indivi is not None
     assert year is not None
     assert (enfants_a_naitre is not None) or skip_enfants_a_naitre
+
     complete_indivi(indivi, year)
+
     base = famille_1(
         indivi = indivi,
         kind = kind,
@@ -119,22 +117,26 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
         skip_enfants_a_naitre = True,
         year = year,
         )
+
     base, famille, personne_de_reference = famille_2(
         base = base,
         year = year,
         )
+
     base, famille = famille_3(
         base = base,
         famille = famille,
         kind = kind,
         year = year,
         )
+
     base, famille = famille_5(
         base = base,
         famille = famille,
         kind = kind,
         year = year,
         )
+
     base, famille = famille_6(
         base = base,
         famille = famille,
@@ -142,13 +144,19 @@ def create_familles(indivi = None, year = None, kind = 'erfs_fpr', enfants_a_nai
         kind = kind,
         year = year,
         )
-    return famille_7(
+
+    # here 17000919 is removed bc. "no chef de famille" - but famille df is not returned
+    # so these obs are still in the famille data. return famille df as well? check implications
+    # or simply remove manually afterwarfs/workaround
+    individus = famille_7(
         base = base,
         famille = famille,
         indivi = indivi,
         kind = kind,
         year = year,
         )
+
+    return individus
 
 
 def complete_indivi(indivi, year):
@@ -173,7 +181,7 @@ def complete_indivi(indivi, year):
 
     if nb_enfants_en_nourrice > 0:
         indivi = indivi[~(selection_enfant_en_nourrice)].copy()
-        log.info("{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
+        log.debug("{} enfants en nourrice sont exlus".format(nb_enfants_en_nourrice.sum()))
 
     # for series_name in ['agepf']:  # , 'noidec']:  # integer with NaN
     #     assert_dtype(indivi[series_name], "object")
@@ -190,13 +198,16 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
     smic = smic_horaire_brut[year]
 
     # PB with vars "agepf"  "noidec" "year"  NOTE: quels problèmes ? JS
-    log.info("    1.3 : création de la base complète")
+
+    log.info(" [1.3] création de la base complète")
+
     if skip_enfants_a_naitre:
         base = indivi.copy()
     else:
         base = pd.concat([indivi, enfants_a_naitre])
 
-    log.info("base contient {} lignes ".format(len(base.index)))
+    log.debug("base contient {} lignes ".format(len(base.index)))
+
     base['noindiv'] = (100 * base.ident + base['noi']).astype(int)
     base['moins_de_15_ans_inclus'] = base.agepf < 16
     base['jeune_non_eligible_rsa'] = (base.agepf >= 16) & (base.agepf < AGE_RSA)
@@ -211,6 +222,7 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
 
     base['famille'] = 0
     base['kid'] = False
+
     for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:
         assert_dtype(base[series_name], "bool")
     try:
@@ -224,7 +236,7 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
 
 def famille_2(base, year = None):
     assert year is not None
-    log.info("Etape 2 : On cherche les enfants ayant père et/ou mère comme personne de référence et conjoint")
+    log.info(" [2] On cherche les enfants ayant père et/ou mère comme personne de référence et conjoint")
 
     if year < 2013:
         lpr = "lpr"
@@ -234,13 +246,15 @@ def famille_2(base, year = None):
     personne_de_reference = base.loc[base[lpr] == 1, ['ident', 'noi']].copy()
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
-    log.info("length personne_de_reference : {}".format(len(personne_de_reference.index)))
+
+    log.debug("length personne_de_reference : {}".format(len(personne_de_reference.index)))
+
     nof01 = base.loc[
         base[lpr].isin([1, 2]) |
         ((base[lpr] == 3) & (base.moins_de_15_ans_inclus)) |
         ((base[lpr] == 3) & base.jeune_non_eligible_rsa & (~base.smic55))
         ].copy()
-    log.info('longueur de nof01 avant merge: {}'.format(len(nof01.index)))
+    log.debug('longueur de nof01 avant merge: {}'.format(len(nof01.index)))
     nof01 = nof01.merge(personne_de_reference, on = 'ident', how = 'outer')
     nof01['famille'] = 10
     nof01['kid'] = (
@@ -258,7 +272,8 @@ def famille_2(base, year = None):
     del nof01
     control_04(famille, base)
 
-    log.info("    2.1 : Identification des couples non personne de référence ou conjoint de celle-ci")
+    log.info(" [2.1] Identification des couples non personne de référence ou conjoint de celle-ci")
+
     # On adopte une approche non genrée
     couple = subset_base(base, famille)
     cohab = 'cohab' if year < 2013 else "coured"
@@ -288,16 +303,9 @@ def famille_2(base, year = None):
         except Exception:
             assert_dtype(couple[series_name], "int64")
 
-    log.info("""Nombre de personnes vivant en couple sans être personne de référence ou conjoint:
-    {} dont {} sans conjoints dans la base
-""".format(
-        len(couple),
-        len(couple.loc[
-            ~(
-                (100 * couple.ident + couple.noicon).astype(int).isin(base.noindiv)
-                )
-            ])
-        ))
+    log.debug("Nombre de personnes vivant en couple sans être personne de référence ou conjoint: {} dont {} sans conjoints dans la base".format(
+        len(couple), len(couple.loc[~((100 * couple.ident + couple.noicon).astype(int).isin(base.noindiv))])))
+
     famille = pd.concat([famille, couple])
     control_04(famille, base)
     return base, famille, personne_de_reference
@@ -309,20 +317,23 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         lpr = "lpr"
     else:
         lpr = "lprm"
-        
+
     assert base is not None
     assert famille is not None
     assert year is not None
-    log.info("Etape 3: Récupération des personnes seules")
-    log.info("    3.1 : personnes seules de catégorie 1")
+
+    log.info(" [3] Récupération des personnes seules")
+    log.info(" [3.1] personnes seules de catégorie 1")
+
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
     cohab = 'cohab' if year < 2013 else "coured"
 
     seul1 = seul1[
         (seul1[lpr].isin([3, 4,5,6])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1[cohab] == 1) &
         (seul1.sexe == 2)].copy()
-    log.info("Il y a {} personnes seules de catégorie 1".format(
-        len(seul1.index)))
+
+    log.debug("Il y a {} personnes seules de catégorie 1".format(len(seul1.index)))
+
     if len(seul1.index) > 0:
         seul1['noifam'] = (100 * seul1.ident + seul1.noi).astype(int)
         seul1['famille'] = 31
@@ -331,10 +342,10 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         famille = pd.concat([famille, seul1])
         control_04(famille, base)
 
-    log.info("    3.1 personnes seules de catégorie 2")
+    log.info(" [3.1] personnes seules de catégorie 2")
     seul2 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
     seul2 = seul2[(seul2[lpr].isin([3, 4,5,6])) & seul2.jeune_non_eligible_rsa & seul2.smic55 & (seul2[cohab] != 1)].copy()
-    log.info("Il y a {} personnes seules de catégorie 2".format(
+    log.debug("Il y a {} personnes seules de catégorie 2".format(
         len(seul2.index)))
     if len(seul2.index) > 0:
         seul2['noifam'] = (100 * seul2.ident + seul2.noi).astype(int)
@@ -348,11 +359,11 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         famille = pd.concat([famille, seul2])
         control_04(famille, base)
 
-    log.info("    3.3 personnes seules de catégorie 3")
+    log.info(" [3.3] personnes seules de catégorie 3")
     seul3 = subset_base(base, famille)
     seul3 = seul3[(seul3[lpr].isin([3, 4,5,6])) & seul3.jeune_eligible_rsa & (seul3[cohab] != 1)].copy()
     # TODO: CHECK erreur dans le guide méthodologique ERF 2002 lpr 3,4 au lieu de 3 seulement
-    log.info("Il y a {} personnes seules de catégorie 3".format(
+    log.debug("Il y a {} personnes seules de catégorie 3".format(
         len(seul3.index)))
     if len(seul3.index) > 0:
         seul3['noifam'] = (100 * seul3.ident + seul3.noi).astype(int)
@@ -365,7 +376,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         famille = pd.concat([famille, seul3])
         control_04(famille, base)
 
-    log.info("    3.4 : personnes seules de catégorie 4")
+    log.info(" [3.4] personnes seules de catégorie 4")
     seul4 = subset_base(base, famille)
     assert seul4.noimer.notnull().all()
     if kind == 'erfs_fpr':
@@ -385,7 +396,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
             (seul4.noimer == 0) &
             (seul4.persfip == 'vous')
             ].copy()
-    log.info("Il y a {} personnes seules de catégorie 4".format(
+    log.debug("Il y a {} personnes seules de catégorie 4".format(
         len(seul4.index)))
 
     if len(seul4.index) > 0:
@@ -400,16 +411,16 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     control_04(famille, base)
 
-    log.info("Etape 4 : traitement des enfants")
-    log.info("    4.1 : enfant avec mère")
+    log.info(" [4] traitement des enfants")
+    log.info(" [4.1] enfant avec mère")
+
     avec_mere = subset_base(base, famille)
     avec_mere = avec_mere[
         (avec_mere[lpr].isin([4,5,6])) &
         (avec_mere.jeune_non_eligible_rsa | avec_mere.moins_de_15_ans_inclus) &
         (avec_mere.noimer > 0)
         ].copy()
-    log.info("Il y a {} enfants rattachés à leur mère".format(
-        len(avec_mere.index)))
+    log.debug("Il y a {} enfants rattachés à leur mère".format(len(avec_mere.index)))
 
     avec_mere['noifam'] = (100 * avec_mere.ident + avec_mere.noimer).astype(int)
     avec_mere['famille'] = 41
@@ -428,7 +439,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         .drop_duplicates()
         .merge(base)
         )
-    log.info("qui sont au nombre de {}".format(len(mere)))
+    log.debug("qui sont au nombre de {}".format(len(mere)))
 
     mere['noifam'] = (100 * mere.ident + mere.noi).astype(int)
     mere['famille'] = 42
@@ -437,7 +448,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
             assert_dtype(mere[series_name], "int")
         except Exception:
             assert_dtype(mere[series_name], "int64")
-            
+
     avec_mere = avec_mere[avec_mere.noifam.isin(mere.noindiv)].copy()
     famille = famille[~(famille.noindiv.isin(mere.noindiv.values))].copy()  # Avoid duplication in famille
 
@@ -445,8 +456,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert mere.noicon.notnull().all()
     conjoint_mere_id = mere.loc[mere.noicon > 0, ['ident', 'noicon', 'noifam']].copy()
     conjoint_mere_id['noindiv'] = (100 * conjoint_mere_id.ident + conjoint_mere_id.noicon).astype(int)
-    log.info("et dont les conjoints sont au nombre de {}".format(
-        len(conjoint_mere_id)))
+    log.debug("et dont les conjoints sont au nombre de {}".format(len(conjoint_mere_id)))
     conjoint_mere = (conjoint_mere_id[['noindiv', 'noifam']].copy()
         .merge(base)
         )
@@ -462,7 +472,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     del avec_mere, mere, conjoint_mere, conjoint_mere_id
     control_04(famille, base)
 
-    log.info("    4.2 : enfants avec père")
+    log.info(" [4.2] enfants avec père")
     avec_pere = subset_base(base, famille)
     if "noiper" in base.columns:
         assert avec_pere.noiper.notnull().all()
@@ -471,11 +481,11 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
             (avec_pere.jeune_non_eligible_rsa | avec_pere.moins_de_15_ans_inclus) &
             (avec_pere.noiper > 0)
             ].copy()
-        log.info("Il y a {} enfants rattachés à leur père".format(
+        log.debug("Il y a {} enfants rattachés à leur père".format(
             len(avec_pere.index)))
         avec_pere['noifam'] = (100 * avec_pere.ident + avec_pere.noiper).astype(int)
         #Check if father is in the database
-        avec_pere = avec_pere[(avec_pere.noifam.isin(base.noindiv))].copy()      
+        avec_pere = avec_pere[(avec_pere.noifam.isin(base.noindiv))].copy()
         avec_pere['famille'] = 44
         avec_pere['kid'] = True
         assert avec_pere['noifam'].notnull().all(), 'presence of NaN in avec_pere'
@@ -500,7 +510,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
         # On récupère les conjoints des pères
         assert pere.noicon.notnull().all()
         conjoint_pere_id = pere.loc[pere.noicon > 0, ['ident', 'noicon', 'noifam']].copy()
-        log.info("et dont les conjoints sont au nombre de {}".format(
+        log.debug("et dont les conjoints sont au nombre de {}".format(
             len(conjoint_pere_id)))
 
         if len(conjoint_pere_id.index) > 0:
@@ -524,10 +534,10 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
         del avec_pere, pere, conjoint_pere, conjoint_pere_id
     if kind == 'erfs_fpr':
-        log.info("    4.3 : enfants avec déclarant (ignorée dans erfs_fpr)")
+        log.info(" [4.3] enfants avec déclarant (ignorée dans erfs_fpr)")
         pass
     else:
-        log.info("    4.3 : enfants avec déclarant")
+        log.info(" [4.3] enfants avec déclarant")
         avec_dec = subset_base(base, famille)
         avec_dec = avec_dec[
             (avec_dec.persfip == "pac") &
@@ -576,11 +586,11 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
     agepr = 'agepr' if year < 2013 else "ageprm"
     retrai = 'retrai' if year < 2013 else "ret"
     if kind == 'erfs_fpr':
-        log.info("Etape 5 : Récupération des enfants fip (ignorée dans erfs_fpr)")
+        log.info(" [5] Récupération des enfants fip (ignorée dans erfs_fpr)")
         pass
     else:
-        log.info("Etape 5 : Récupération des enfants fip")
-        log.info("    5.1 : Création de la df fip")
+        log.info(" [5] Récupération des enfants fip")
+        log.info(" [5.1] Création de la df fip")
         individual_variables_fip = [
             'acteu',
             'actrec',
@@ -631,7 +641,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
             except Exception:
                 assert_dtype(fip[series_name], "int64")
 
-        log.info("    5.2 : extension de base avec les fip")
+        log.info(" [5.2] extension de base avec les fip")
         base_ = pd.concat([base, fip])
         enfant_fip = subset_base(base_, famille)
         enfant_fip = enfant_fip[
@@ -660,7 +670,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         parent_fip['noifam'] = parent_fip['noindiv'].values.copy()
         parent_fip['famille'] = 51
         parent_fip['kid'] = False
-        log.info("Contrôle de parent_fip")
+        log.debug("Contrôle de parent_fip")
         control_04(parent_fip, base)
         control_04(famille, base)
         famille = famille.merge(parent_fip, how='outer')
@@ -688,8 +698,8 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
     assert famille is not None
     assert personne_de_reference is not None
     assert year is not None
-    log.info("Etape 6 : gestion des non attribués")
-    log.info("    6.1 : non attribués type 1")
+    log.info(" [6] gestion des non attribués")
+    log.info(" [6.1] non attribués type 1")
     non_attribue1 = subset_base(base, famille)
     lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
     subsetlienfamilial = list(range(1,5)) if year<2013 else list(range(6))
@@ -717,7 +727,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
                 )
             ].copy()
     # On rattache les moins de 15 ans avec la PR (on a déjà éliminé les enfants en nourrice)
-    log.info("Il y a {} enfants non attribués de type 1".format(
+    log.debug("Il y a {} enfants non attribués de type 1".format(
         len(non_attribue1.index)))
 
     if len(non_attribue1.index) > 0:
@@ -733,13 +743,13 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
         control_04(famille, base)
         del personne_de_reference, non_attribue1
 
-    log.info("    6.2 : non attribué type 2")
+    log.info(" [6.2] non attribué type 2")
     if kind == 'erfs_fpr':
         non_attribue2 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
     else:
         non_attribue2 = base[(~(base.noindiv.isin(famille.noindiv.values)) & (base.quelfic != "FIP"))].copy()
 
-    log.info("Il y a {} enfants non attribués de type 2".format(
+    log.debug("Il y a {} enfants non attribués de type 2".format(
         len(non_attribue2.index)))
     if len(non_attribue2.index) > 0:
         non_attribue2['noifam'] = (100 * non_attribue2.ident + non_attribue2.noi).astype(int)
@@ -761,19 +771,19 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
 # helpers
 
 def control_04(dataframe, base):
-    log.info("longueur de la dataframe après opération : {}".format(len(dataframe)))
+    log.debug("longueur de la dataframe après opération : {}".format(len(dataframe)))
 
     if any(dataframe.duplicated(subset = 'noindiv')):
-        log.info("contrôle des doublons : il y a {} individus en double".format(
+        log.debug("contrôle des doublons : il y a {} individus en double".format(
             dataframe.duplicated(subset = 'noindiv').sum()))
         # dataframe[dataframe.noindiv.duplicated()].to_csv("laoslasiecoule.csv")
         # lllt = dataframe[dataframe.noindiv.duplicated()]["noindiv"]
         # dataframe[dataframe.noindiv.isin(lllt)].to_csv("bronskibeat.csv")
     # log.info("contrôle des colonnes : il y a {} colonnes".format(len(dataframe.columns)))
-    log.info("Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
+    log.debug("Il y a {} identifiants de familles différentes".format(len(dataframe.noifam.unique())))
     assert not dataframe.noifam.isnull().any(), "{} noifam are NaN".format(dataframe.noifam.isnull().sum())
 
-    log.info("{} lignes dans dataframe vs {} lignes dans base".format(len(dataframe.index), len(base.index)))
+    log.debug("{} lignes dans dataframe vs {} lignes dans base".format(len(dataframe.index), len(base.index)))
     assert len(dataframe.index) <= len(base.index), "dataframe has too many rows compared to base"
     assert set(dataframe.noifam.unique()).issubset(set(base.noindiv)), \
         "The following {} are not in the dataframe: \n {}".format(
@@ -783,7 +793,7 @@ def control_04(dataframe, base):
 
     if 'quifam' in dataframe:
         famille_population = dataframe.query('quifam == 0').groupby('famille')['wprm'].sum()
-        log.info("famille :\n{}".format(
+        log.debug("famille :\n{}".format(
             famille_population / famille_population.sum()
             ))
 
@@ -794,16 +804,16 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
     assert famille is not None
     assert indivi is not None
     assert year is not None
-    log.info("Etape 7 : Sauvegarde de la table famille")
+    log.info(" [7] Sauvegarde de la table famille")
 
-    log.info("    7.1 : Mise en forme finale")
+    log.info(" [7.1] Mise en forme finale")
     famille['chef'] = (famille.noifam == (100 * famille.ident + famille.noi))
     assert_dtype(famille.chef, "bool")
 
     famille.reset_index(inplace = True)
     control_04(famille, base)
 
-    log.info("    7.2 : création de la colonne rang")
+    log.info(" [7.2] création de la colonne rang")
     famille['rang'] = famille.kid.astype(int)
     while any(famille.loc[famille.rang != 0].duplicated(subset = ['rang', 'noifam'])):
         famille.loc[famille.rang != 0, 'rang'] += (
@@ -813,9 +823,9 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
             .duplicated(subset = ["rang", 'noifam']).values
             )
 
-    log.info("    7.3 : création de la colonne quifam et troncature")
-    log.info("value_counts chef : \n {}".format(famille['chef'].value_counts()))
-    log.info("value_counts kid :' \n {}".format(famille['kid'].value_counts()))
+    log.info(" [7.3] création de la colonne quifam et troncature")
+    log.debug("value_counts chef : \n {}".format(famille['chef'].value_counts()))
+    log.debug("value_counts kid :' \n {}".format(famille['kid'].value_counts()))
 
     famille['quifam'] = -1
     famille['quifam'] = famille['quifam'].where(famille['chef'].values, 0)
@@ -828,13 +838,13 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
     assert (famille.groupby('noifam')['chef'].sum() <= 1).all(), "Il y a plusieurs chefs par famille"
 
     if not (famille.groupby('noifam')['chef'].sum() == 1).all():
-        log.info("Il y a {} familles qui n'ont pas de chef de famille".format(
+        log.debug("Il y a {} familles qui n'ont pas de chef de famille".format(
             (famille.groupby('noifam')['chef'].sum() == 0).sum()
             ))
         absence_chef = (famille.groupby('noifam')['chef'].sum() == 0)
         noifam_absence_chef = absence_chef.loc[absence_chef].index
         idents = famille.loc[famille.noifam.isin(noifam_absence_chef), 'ident'].unique()
-        log.info(u'Il y a {} ménages contenant des familles sans chefs. on les retire'.format(
+        log.debug(u'Il y a {} ménages contenant des familles sans chefs. on les retire'.format(
             len(idents)))
         famille = famille.loc[~famille.ident.isin(idents)].copy()
         indivi = indivi.loc[~indivi.ident.isin(idents)].copy()
@@ -854,14 +864,14 @@ def famille_7(base = None, famille = None, indivi = None, kind = 'erfs_fpr',
 
     famille = famille[['noindiv', 'quifam', 'noifam']].copy()
     famille.rename(columns = {'noifam': 'idfam'}, inplace = True)
-    gc.collect()
+    log.debug("Vérifications sur famille")
 
     log.info(u"Vérifications sur famille")
     duplicated_famillle = famille.duplicated(subset = ['idfam', 'quifam'], keep = False)
     if duplicated_famillle.sum() > 0:
-        log.info(u"There are {} duplicates of quifam inside famille".format(
-            duplicated_famillle.sum()))
-        raise
+        log.warning("There are {} duplicates of quifam inside famille [{}]".format(
+            duplicated_famillle.sum(), duplicated_famillle))
+        # raise
 
     individus = indivi.merge(famille, on = ['noindiv'], how = "inner")
     if skip_enfants_a_naitre:
@@ -886,4 +896,3 @@ if __name__ == '__main__':
     # logging.basicConfig(level = logging.INFO, filename = 'step_04.log', filemode = 'w')
     year = 2014
     build_famille(year = year)
-    log.info("étape 04 famille terminée")

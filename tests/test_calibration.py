@@ -22,7 +22,7 @@ def test_calibration(survey_scenario, fake_input_data, location, year: int = 200
     survey_scenario.init_from_data(data = dict(input_data_frame = input_data))
 
     # On fait la calibration
-    calibration = Calibration(survey_scenario, period = year)
+    calibration = Calibration(survey_scenario)
     calibration.parameters["method"] = "linear"
     calibration.total_population = calibration.initial_total_population * 1.123
 

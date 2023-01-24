@@ -19,6 +19,8 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     Note : beaucoup de mix entre milléssime, à nettoyer à un moment donné
     """
 
+    period = None  # TODO: déplacer cela dans AbstractSurveyScenario ? C'est un fix suite à https://github.com/openfisca/openfisca-survey-manager/commit/f30ef99fc9f4536406e593693af914516650f458
+
     id_variable_by_entity_key = dict(
         famille = "idfam",
         foyer_fiscal = "idfoy",
@@ -120,6 +122,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             )
 
         survey_scenario.year = year
+        survey_scenario.period = year
 
         return survey_scenario
 

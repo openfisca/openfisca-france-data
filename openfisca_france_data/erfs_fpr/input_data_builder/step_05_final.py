@@ -2,9 +2,7 @@ import gc
 import logging
 import pandas
 
-from openfisca_france_data.utils import (
-    id_formatter, print_id, normalizes_roles_in_entity,
-    )
+from openfisca_france_data.utils import (id_formatter, print_id, normalizes_roles_in_entity)
 from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey  # type: ignore
 
@@ -16,10 +14,10 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     assert temporary_store is not None
     assert year is not None
 
-    log.info('step_05_create_input_data_frame: Etape finale ')
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
 
+    # ici : variables à garder
     variables = [
         'activite',
         'age',
@@ -72,7 +70,9 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     menages["statut_occupation_logement"] = 0
 
     menages = extract_menages_variables(menages)
+
     individus = create_collectives_foyer_variables(individus, menages)
+
     idmens = individus.idmen.unique()
     menages = menages.loc[
         menages.idmen.isin(idmens),
@@ -85,13 +85,13 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             'zone_apl',
             ]
         ].copy()
-
+    survey_name = 'openfisca_erfs_fpr_' + str(year)
     set_table_in_survey(
         menages,
         entity = "menage",
         period = year,
         collection = "openfisca_erfs_fpr",
-        survey_name = 'input',
+        survey_name = survey_name,
         )
 
     individus = format_ids_and_roles(individus)
@@ -101,18 +101,18 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             right_index = True,
             left_on = "idmen",
             suffixes = ("", "_x"))
+        log.debug(f"Saving to {export_flattened_df_filepath}")
         supermerge.to_hdf(export_flattened_df_filepath, key = "input")
     # Enters the individual table into the openfisca_erfs_fpr collection
+    log.debug(f"Saving entity 'individu' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
     set_table_in_survey(
         individus,
         entity = "individu",
         period = year,
         collection = "openfisca_erfs_fpr",
-        survey_name = 'input',
+        survey_name = survey_name,
         )
-
-
-    # assert 'f4ba' in data_frame.columns
+    log.debug("End of create_input_data_frame")
 
 
 def create_collectives_foyer_variables(individus, menages):
@@ -142,6 +142,19 @@ def create_collectives_foyer_variables(individus, menages):
         .drop_duplicates(['idmen', 'idfoy'])
         .reset_index(drop = True)
         )
+
+    # update idmens, as some households may have dropped out, causing errors
+    # this is kind of a dirty fix, better solution would be to fix the dropping out itself
+    # for instance: 2017, 17000919 drops out bc. no "chef de famille" which is weird, neet to investigate
+    idmens_old = idmens.copy()
+    idmens = set(menages_multi_foyers.idmen.to_list()).union(set(menages_simple_foyer.idmen.to_list()))
+
+    dropouts = set(idmens).symmetric_difference(set(idmens_old))
+    if len(dropouts) == 0:
+        log.info('No households have been dropped. All clear.')
+    else:
+        log.warning('Some households [{}] have dropped out. You should investigate why this has happened. [{}]'.format(len(dropouts), ','.join(str(e) for e in dropouts)))
+
     assert set(menages_multi_foyers.idmen.tolist() + menages_simple_foyer.idmen.tolist()) == set(idmens)
     menages_foyers_correspondance = pandas.concat([menages_multi_foyers, menages_simple_foyer], ignore_index = True)
     del menages_multi_foyers, menages_simple_foyer
@@ -182,7 +195,7 @@ def create_ids_and_roles(individus):
 
 def format_ids_and_roles(data_frame):
     for entity_id in ['idmen', 'idfoy', 'idfam']:
-        log.info('Reformat ids: {}'.format(entity_id))
+        log.debug('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
     data_frame.reset_index(drop = True, inplace = True)
     normalizes_roles_in_entity(data_frame, 'idfoy', 'quifoy')
@@ -205,11 +218,12 @@ def extract_menages_variables(menages):
     external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement']
     for external_variable in external_variables:
         if external_variable in menages.columns:
-            log.info("Found {} in menages table: we keep it".format(external_variable))
+            log.debug("Found {} in menages table: we keep it".format(external_variable))
             variables.append(external_variable)
     #TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
     menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
     menages = menages[variables].copy()
+
     menages.taxe_habitation = - menages.taxe_habitation  # taxes should be negative
     menages.rename(columns = dict(ident = 'idmen'), inplace = True)
     return menages
@@ -220,7 +234,6 @@ if __name__ == '__main__':
     logging.basicConfig(level = logging.INFO, stream = sys.stdout)
     year = 2014
     data_frame = create_input_data_frame(year = year)
-    log.info('Ok')
 
 # TODO
 # Variables revenus collectifs

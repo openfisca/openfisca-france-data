@@ -81,3 +81,9 @@ setup.cfg
 # Generated files
 erfs_fpr.json
 openfisca_erfs_fpr.json
+*.csv
+*.html
+.venv*/
+# PyEnv
+.pytest_cache
+.python-version

@@ -19,6 +19,7 @@ def get_survey_scenario(
         use_marginal_tax_rate: bool = False,
         variation_factor: float = 0.03,
         varying_variable: str = None,
+        survey_name: str = "input",
         ) -> ErfsFprSurveyScenario:
     """Helper pour créer un `ErfsFprSurveyScenario`.
 
@@ -51,6 +52,7 @@ def get_survey_scenario(
             baseline_tax_benefit_system = baseline_tax_benefit_system,
             year = year,
             )
+        # taux marginaux !!
         survey_scenario.variation_factor = variation_factor
         survey_scenario.varying_variable = varying_variable
 
@@ -67,7 +69,7 @@ def get_survey_scenario(
         data = dict(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
             # input_data_survey_prefix = "openfisca_erfs_fpr_data",
-            survey = "input"
+            survey = survey_name
             )
 
     # Les données peuvent venir en différents formats :
