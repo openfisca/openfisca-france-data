@@ -57,7 +57,7 @@ test:
   stage: test
   tags:
   - openfisca
-deploy_conda:
+build_conda_package:
   before_script:
   - ''
   except:
@@ -68,7 +68,7 @@ deploy_conda:
   - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca
     .conda
   stage: anaconda
-deploy_conda:
+build_and_deploy_conda_package:
   before_script:
   - ''
   image: continuumio/miniconda3

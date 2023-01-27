@@ -189,7 +189,7 @@ def build_conda_package():
     Build conda package
     """
     return {
-        "deploy_conda": {
+        "build_conda_package": {
             "stage": "anaconda",
             "before_script": [""],
             "image": "continuumio/miniconda3",
@@ -207,7 +207,7 @@ def build_and_deploy_conda_package():
     Build and deploy conda package
     """
     return {
-        "deploy_conda": {
+        "build_and_deploy_conda_package": {
             "stage": "anaconda",
             "before_script": [""],
             "image": "continuumio/miniconda3",
