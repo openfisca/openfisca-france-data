@@ -42,3 +42,6 @@ archive: clean
 
 ctags:
 	ctags --recurse=yes .
+
+bump:
+	bumpver update --minor

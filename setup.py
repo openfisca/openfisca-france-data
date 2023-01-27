@@ -45,6 +45,7 @@ setup(
             "pytest-cov >= 2.6.0, < 3.0.0",
             "scipy >= 1.2.1, < 2.0.0",
             "toolz >= 0.9.0, < 1.0.0",
+            "bumpver >= 2022.1120",
             ],
         },
     packages = find_packages(exclude = ("docs", "tests")),
