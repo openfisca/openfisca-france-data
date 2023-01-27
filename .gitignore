@@ -85,5 +85,5 @@ openfisca_erfs_fpr.json
 *.html
 .venv*/
 # PyEnv
-.pytest_cache
 .python-version
+.pytest_cache/
