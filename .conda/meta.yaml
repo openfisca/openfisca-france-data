@@ -24,49 +24,41 @@ requirements:
     - python
     - pip
   run:
-    - python >=3.6,<4.0
+    - python >=3.7,<4.0
     - click >=8.0.0,<9.0.0
     - matplotlib >=3.1.1,<4.0.0
     - multipledispatch >=0.6.0,<1.0.0
     - openFisca-france >=113.0.0
-    - openFisca-survey-manager >= 0.44.2, < 1.0.0
-    - wquantiles >= 0.3.0, < 1.0.0
+    - openFisca-survey-manager >= 0.44.2,< 1.0.0
+    - wquantiles >= 0.3.0,< 1.0.0
 
 test:
   imports:
-    - openfisca_france
+    - openfisca-france-data
   requires:
     - pip
   commands:
     - pip check
 
 outputs:
-  - name: openfisca-france
+  - name: openfisca-france-data
 
-  - name: openfisca-france-scipy
+  - name: openfisca-france-test
     build:
       noarch: python
     requirements:
       host:
         - python
       run:
-        - scipy >=0.17
-        - {{ pin_subpackage('openfisca-france', exact=True) }}
-
-  - name: openfisca-france-dev
-    build:
-      noarch: python
-    requirements:
-      host:
-        - python
-      run:
-        - autopep8 ==1.5.7
-        - flake8 >=3.8.0,<3.10.0
-        - flake8-print
-        - pytest >=5.0.0, <7.0.0
-        - requests >=2.8
-        - yamllint >=1.11.1,<1.27
-        - {{ pin_subpackage('openfisca-france-scipy', exact=True) }}
+        - autopep8 >=1.4.0,< 1.5.0
+        - flake8 >=3.7.0,<3.8.0
+        - ipython >=7.5.0,< 8.0.0
+        - mypy >=0.670,< 1.0.0
+        - pytest >=4.3.0,< 5.0.0
+        - pytest-cov >=2.6.0,< 3.0.0
+        - scipy >=1.2.1,< 2.0.0
+        - toolz >=0.9.0,< 1.0.0
+        - {{ pin_subpackage('openfisca-france-data', exact=True) }}
 
 about:
   home: https://fr.openfisca.org/
@@ -78,4 +70,4 @@ about:
     OpenFisca is a versatile microsimulation free software.
     This repository contains the module to work with French survey data.
   doc_url: https://fr.openfisca.org/
-  dev_url: https://github.com/openfisca/openfisca-france/
+  dev_url: https://github.com/openfisca/openfisca-france-data/
