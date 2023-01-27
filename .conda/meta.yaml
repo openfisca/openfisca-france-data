@@ -28,16 +28,17 @@ requirements:
     - matplotlib >=3.1.1,<4.0.0
     - multipledispatch >=0.6.0,<1.0.0
     - openFisca-france >=113.0.0
-    - openFisca-survey-manager >= 0.44.2,< 1.0.0
-    - wquantiles >= 0.3.0,< 1.0.0
+    - openFisca-survey-manager >=0.44.2,<1.0.0
+    - wquantiles >=0.3.0,<1.0.0
 
 test:
   imports:
-    - openfisca-france-data
+    - openfisca_france_data
   requires:
     - pip
   commands:
-    - pip check
+    #- pip check # TODO: openfisca-core 35.7.6 requires pytest, which is not installed. !!!
+    - pip list
 
 outputs:
   - name: openfisca-france-data
@@ -49,14 +50,14 @@ outputs:
       host:
         - python
       run:
-        - autopep8 >=1.4.0,< 1.5.0
+        - autopep8 >=1.4.0,<1.5.0
         - flake8 >=3.7.0,<3.8.0
-        - ipython >=7.5.0,< 8.0.0
-        - mypy >=0.670,< 1.0.0
-        - pytest >=4.3.0,< 5.0.0
-        - pytest-cov >=2.6.0,< 3.0.0
-        - scipy >=1.2.1,< 2.0.0
-        - toolz >=0.9.0,< 1.0.0
+        - ipython >=7.5.0,<8.0.0
+        - mypy >=0.670,<1.0.0
+        - pytest >=4.3.0,<5.0.0
+        - pytest-cov >=2.6.0,<3.0.0
+        - scipy >=1.2.1,<2.0.0
+        - toolz >=0.9.0,<1.0.0
         - bumpver
         - {{ pin_subpackage('openfisca-france-data', exact=True) }}
 
@@ -64,7 +65,7 @@ about:
   home: https://fr.openfisca.org/
   license_family: AGPL
   license: AGPL-3.0-only
-  license_file: LICENSE.AGPL.txt
+  license_file: LICENSE
   summary: "OpenFisca-France-Data module to work with French survey data"
   description: |
     OpenFisca is a versatile microsimulation free software.

@@ -194,12 +194,29 @@ def build_conda_package():
             "before_script": [""],
             "image": "continuumio/miniconda3",
             "script": [
-                "conda install -y conda-build anaconda-client toml",
-                "python3 runner/get_pypi_info.py -p openfisca-france-data",
-                #"conda config --set anaconda_upload yes",
+                "conda install -y conda-build anaconda-client",
                 "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
             ],
-            #"only": ["master"],
+            "except": ["master"],
+        }
+    }
+
+
+def build_and_deploy_conda_package():
+    """
+    Build and deploy conda package
+    """
+    return {
+        "deploy_conda": {
+            "stage": "anaconda",
+            "before_script": [""],
+            "image": "continuumio/miniconda3",
+            "script": [
+                "conda install -y conda-build anaconda-client",
+                "conda config --set anaconda_upload yes",
+                "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
+            ],
+            "only": ["master"],
         }
     }
 
@@ -208,6 +225,7 @@ def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
     gitlab_ci += yaml.dump(make_test())
     gitlab_ci += yaml.dump(build_conda_package())
+    gitlab_ci += yaml.dump(build_and_deploy_conda_package())
     gitlab_ci += yaml.dump(build_collections())
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
