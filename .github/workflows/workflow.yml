@@ -30,7 +30,7 @@ jobs:
             build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ matrix.os }}
             build-${{ env.pythonLocation }}-${{ matrix.os }}
       - name: Build package
-        run: make build
+        run: python setup.py bdist_wheel
       - name: Cache release
         id: restore-release
         uses: actions/cache@v2
