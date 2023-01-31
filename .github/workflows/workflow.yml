@@ -1,4 +1,4 @@
-name: OpenFisca France
+name: OpenFisca France Data
 
 on:
   push:
@@ -30,7 +30,7 @@ jobs:
             build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ matrix.os }}
             build-${{ env.pythonLocation }}-${{ matrix.os }}
       - name: Build package
-        run: python setup.py bdist_wheel
+        run: make build
       - name: Cache release
         id: restore-release
         uses: actions/cache@v2
