@@ -82,7 +82,7 @@ jobs:
 
   check-version-and-changelog:
     runs-on: ubuntu-20.04
-    needs: [ lint-files, test-python, test-yaml, test-api ] # Last job to run
+    needs: [ lint-files, test-python ] # Last job to run
     steps:
       - uses: actions/checkout@v2
         with:
