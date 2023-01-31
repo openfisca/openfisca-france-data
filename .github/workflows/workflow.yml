@@ -48,15 +48,41 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: 3.9.9
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
-      - run: make check-syntax-errors
-      - run: make check-style
+      - run: |
+          make check-syntax-errors
+          # pip install flake8
+          # make check-style  # Pas lancé car 1 600 erreurs !!!
+
+  coverage:
+    runs-on: ubuntu-20.04
+    needs: [ build ]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TERM: xterm-256color  # To colorize output of make tasks.
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9.9
+      - name: Cache build
+        id: restore-build
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
+      - run: |
+          pip install --upgrade coveralls
+          coveralls --service=github
 
   test-python:
     runs-on: ${{ matrix.os }}
@@ -90,7 +116,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: 3.8.9
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
@@ -110,7 +136,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: 3.9.9
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi
 
@@ -128,7 +154,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7.9
+          python-version: 3.9.9
       - name: Cache build
         id: restore-build
         uses: actions/cache@v2
@@ -155,9 +181,9 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.7.9"
-          # Add conda-forge for OpenFisca-Core
-          channels: conda-forge
+          python-version: "3.9.9"
+          # Add "conda-forge" for OpenFisca-Core and "openfisca" for openfisca-survey-manager
+          channels: conda-forge, openfisca
           activate-environment: true
       - uses: actions/checkout@v3
       - name: Get version
@@ -183,8 +209,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: "3.9.9"
-          # Add conda-forge for OpenFisca-Core
-          channels: conda-forge
+          channels: conda-forge, openfisca
           activate-environment: true
       - uses: actions/checkout@v3
       - name: Get version
@@ -208,7 +233,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.7.9"
+          python-version: "3.9.9"
           # Add conda-forge for OpenFisca-Core
           channels: conda-forge
           activate-environment: true

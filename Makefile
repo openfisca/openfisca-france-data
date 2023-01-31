@@ -49,3 +49,4 @@ bump:
 build:
 	python3 -m pip install --upgrade build twine
 	python3 -m build
+	find dist -name "*.whl" -exec pip install --force-reinstall {}[test] \;
