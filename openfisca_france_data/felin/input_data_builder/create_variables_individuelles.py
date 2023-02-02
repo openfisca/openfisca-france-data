@@ -24,7 +24,7 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
         seuil_reduction = seuils.seuil_de_rfr_2 + (nbptr - 1) * seuils.demi_part_suppl
         taux_csg_remplacement = 0.0 * rfr
         if period.start.year >= 2019:
-            seuil_taux_intermédiaire = seuils.seuil_rfr3 + (nbptr - 1) * seuils.demi_part_suppl_rfr3
+            seuil_taux_intermediaire = seuils.seuil_rfr3 + (nbptr - 1) * seuils.demi_part_suppl_rfr3
             taux_csg_remplacement = np.where(
                 rfr <= seuil_exoneration,
                 1,
