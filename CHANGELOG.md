@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.21.1 [#207](https://github.com/openfisca/openfisca-france-data/pull/207)
+
+* Technical changes
+  - Corrects two typos in the create_taux_csg_remplacement function used in the income inversion.
+
 ### 0.21 [#205](https://github.com/openfisca/openfisca-france-data/pull/205)
 
 * Technical changes
