@@ -31,7 +31,7 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
                 np.where(
                     rfr <= seuil_reduction,
                     2,
-                    nb.where(
+                    np.where(
                         rfr <= seuil_taux_intermediaire,
                         3,
                         4,
