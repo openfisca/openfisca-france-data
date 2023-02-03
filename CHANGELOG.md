@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.22.0 [#206](https://github.com/openfisca/openfisca-france-data/pull/206)
+
+* Technical changes
+  - Replace Circle CI by GitHub Action
+  - Add publication to Conda https://anaconda.org/openfisca/openfisca-france-data
+
 ### 0.21.1 [#207](https://github.com/openfisca/openfisca-france-data/pull/207)
 
 * Technical changes
