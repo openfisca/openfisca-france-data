@@ -3,20 +3,20 @@ Create the file `.gitlab-ci.yml` that is read by Gitlab Runner to execute the CI
 
 Run in project root folder:
 
-python runner/build_ci.py
+python ci-runner/build_ci.py
 """
 import configparser
 import yaml
 
 # Config file use to get the available years
-CONFIG = "./runner/openfisca_survey_manager_raw_data.ini"
+CONFIG = "./ci-runner/openfisca_survey_manager_raw_data.ini"
 
 
 def header():
     return """
 ################################################
 # GENERATED FILE, DO NOT EDIT
-# Please visit runner/README.md
+# Please visit ci-runner/README.md
 ################################################
 
 variables:
@@ -35,16 +35,15 @@ cache:
 stages:
   - docker
   - test
-  - anaconda
   - build_collection
   - build_input_data
   - aggregates
-
+  - anaconda
 
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
-  - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+  - cp ./ci-runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
   - echo "End of before_script"
 
 build docker image:
@@ -78,7 +77,7 @@ def build_collections():
                 'echo "Begin with fresh config"',
                 "mkdir -p $ROOT_FOLDER/data_collections/$OUT_FOLDER/",
                 "rm $ROOT_FOLDER/data_collections/$OUT_FOLDER/*.json || true",  # || true to ignore error
-                "cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
+                "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
                 'echo "Custom output folder"',
                 'sed -i "s/data_collections/data_collections\/$OUT_FOLDER\//" ~/.config/openfisca-survey-manager/config.ini',
                 "cat ~/.config/openfisca-survey-manager/config.ini",
@@ -224,13 +223,13 @@ def build_and_deploy_conda_package():
 def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
     gitlab_ci += yaml.dump(make_test())
-    gitlab_ci += yaml.dump(build_conda_package())
-    gitlab_ci += yaml.dump(build_and_deploy_conda_package())
+    # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
     gitlab_ci += yaml.dump(build_collections())
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
         gitlab_ci += yaml.dump(build_input_data(year))
         gitlab_ci += yaml.dump(aggregates(year))
+    gitlab_ci += yaml.dump(build_conda_package())
     return gitlab_ci
 
 
@@ -238,7 +237,7 @@ def main():
     print("Reading survey manager config...")
     erfs_years = get_erfs_years()
     # For testing only some years
-    erfs_years = ["2018"]
+    # erfs_years = ["2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
     with open(r".gitlab-ci.yml", mode="w") as file:
         file.write(gitlab_ci)

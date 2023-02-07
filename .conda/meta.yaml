@@ -4,7 +4,7 @@
 ###############################################################################
 
 {% set name = "openfisca-france-data" %}
-{% set version = "0.22.0" %}
+{% set version = "0.22.1" %}
 
 package:
   name: {{ name|lower }}
