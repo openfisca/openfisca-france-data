@@ -40,12 +40,36 @@ Ceci est la liste les données traitées :
 
 ## Environment
 
-OpenFisca-France-Data runs runs on Python 3.7.
+OpenFisca-France-Data runs on Python from version 3.7.
 More recent versions should work, but are not tested.
 
 > Backward compatibility with Python 2.7 has been dropped since January 1st, 2019.
 
 ## Installation
+
+### Installing with `conda`
+
+Since version `0.22.0`, you could use `conda` to install OpenFisca-France-Data.
+
+Conda is the easiest way to use OpenFisca under Windows as by installing Anaconda you will get:
+- Python
+- The package manager [Anaconda.org](https://docs.anaconda.com/anacondaorg/user-guide/)
+- A virtual environment manager : [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+- A GUI [Anaconda Navigator](https://docs.anaconda.com/anaconda/navigator/index.html) if you choose to install the full [Anaconda](https://www.anaconda.com/products/individual)
+
+If you are familiar with the command line you could use [Miniconda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html), which needs very much less disk space than Anaconda.
+
+After installing conda, run these commands in an `Anaconda Powershell Prompt`:
+- `conda create --name openfisca python=3.9` to create an `openfisca` environment.
+- `conda activate openfisca` to use your new environment.
+
+Then, choose one of the following options according to your use case:
+- `conda install -c conda-forge -c openfisca openfisca-france-data` for default dependencies,
+- or `conda install -c conda-forge -c openfisca openfisca-france-data-test` if you want all the dependencies needed to contribute to the project.
+
+For information on how we publish to conda, see [.conda/README.md](.conda/README.md).
+
+### Development installation
 
 You can follow this installation if you want to:
 * run one of OpenFisca-France-Data scripts,
