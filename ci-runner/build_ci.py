@@ -35,11 +35,10 @@ cache:
 stages:
   - docker
   - test
-  - anaconda
   - build_collection
   - build_input_data
   - aggregates
-
+  - anaconda
 
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
@@ -224,13 +223,13 @@ def build_and_deploy_conda_package():
 def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
     gitlab_ci += yaml.dump(make_test())
-    gitlab_ci += yaml.dump(build_conda_package())
     # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
     gitlab_ci += yaml.dump(build_collections())
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
         gitlab_ci += yaml.dump(build_input_data(year))
         gitlab_ci += yaml.dump(aggregates(year))
+    gitlab_ci += yaml.dump(build_conda_package())
     return gitlab_ci
 
 

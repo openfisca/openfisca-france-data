@@ -20,11 +20,10 @@ cache:
 stages:
   - docker
   - test
-  - anaconda
   - build_collection
   - build_input_data
   - aggregates
-
+  - anaconda
 
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
@@ -57,17 +56,6 @@ test:
   stage: test
   tags:
   - openfisca
-build_conda_package:
-  before_script:
-  - ''
-  except:
-  - master
-  image: continuumio/miniconda3
-  script:
-  - conda install -y conda-build anaconda-client
-  - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca
-    .conda
-  stage: anaconda
 build_collection:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -806,3 +794,14 @@ agg-2019:
   stage: aggregates
   tags:
   - openfisca
+build_conda_package:
+  before_script:
+  - ''
+  except:
+  - master
+  image: continuumio/miniconda3
+  script:
+  - conda install -y conda-build anaconda-client
+  - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca
+    .conda
+  stage: anaconda
