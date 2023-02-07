@@ -1,5 +1,11 @@
 # Changelog
 
+### 0.22.1 [#208](https://github.com/openfisca/openfisca-france-data/pull/208)
+
+* Technical changes
+  -  Remove Conda publish from Gitlab CI
+  -  Put back all years in Gitlab CI
+
 ### 0.22.0 [#206](https://github.com/openfisca/openfisca-france-data/pull/206)
 
 * Technical changes
