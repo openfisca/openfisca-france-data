@@ -44,7 +44,7 @@ ctags:
 	ctags --recurse=yes .
 
 bump:
-	bumpver update --minor
+	bumpver update --patch
 
 build:
 	python3 -m pip install --upgrade build twine
