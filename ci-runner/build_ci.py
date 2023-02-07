@@ -225,7 +225,7 @@ def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
     gitlab_ci += yaml.dump(make_test())
     gitlab_ci += yaml.dump(build_conda_package())
-    gitlab_ci += yaml.dump(build_and_deploy_conda_package())
+    # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
     gitlab_ci += yaml.dump(build_collections())
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
@@ -238,7 +238,7 @@ def main():
     print("Reading survey manager config...")
     erfs_years = get_erfs_years()
     # For testing only some years
-    erfs_years = ["2018"]
+    # erfs_years = ["2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
     with open(r".gitlab-ci.yml", mode="w") as file:
         file.write(gitlab_ci)
