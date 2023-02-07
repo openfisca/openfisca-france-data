@@ -1,0 +1,74 @@
+###############################################################################
+## Fichier de description du package pour Anaconda.org
+## Le numéro de version est mis à jour automatiquement par BumpVer
+###############################################################################
+
+{% set name = "openfisca-france-data" %}
+{% set version = "0.22.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    - python >=3.7,<4.0
+    - click >=8.0.0,<9.0.0
+    - matplotlib >=3.1.1,<4.0.0
+    - multipledispatch >=0.6.0,<1.0.0
+    - openFisca-france >=113.0.0,<120.0.0  # Max 120 because of a bug in OF : https://github.com/openfisca/openfisca-france/issues/1996
+    - openFisca-survey-manager >=0.44.2,<1.0.0
+    - wquantiles >=0.3.0,<1.0.0
+
+test:
+  imports:
+    - openfisca_france_data
+  requires:
+    - pip
+  commands:
+    #- pip check # TODO: openfisca-core 35.7.6 requires pytest, which is not installed. !!!
+    - pip list
+
+outputs:
+  - name: openfisca-france-data
+
+  - name: openfisca-france-data-test
+    build:
+      noarch: python
+    requirements:
+      host:
+        - python
+      run:
+        - autopep8 >=1.4.0,<1.5.0
+        - flake8 >=3.7.0,<3.8.0
+        - ipython >=7.5.0,<8.0.0
+        - mypy >=0.670,<1.0.0
+        - pytest >=4.3.0,<5.0.0
+        - pytest-cov >=2.6.0,<3.0.0
+        - scipy >=1.2.1,<2.0.0
+        - toolz >=0.9.0,<1.0.0
+        - bumpver
+        - {{ pin_subpackage('openfisca-france-data', exact=True) }}
+
+about:
+  home: https://fr.openfisca.org/
+  license_family: AGPL
+  license: AGPL-3.0-only
+  license_file: LICENSE
+  summary: "OpenFisca-France-Data module to work with French survey data"
+  description: |
+    OpenFisca is a versatile microsimulation free software.
+    This repository contains the module to work with French survey data.
+  doc_url: https://fr.openfisca.org/
+  dev_url: https://github.com/openfisca/openfisca-france-data/

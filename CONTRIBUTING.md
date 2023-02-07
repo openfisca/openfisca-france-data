@@ -27,6 +27,8 @@ In case of breaking changes, you **must** give details about what features were 
 
 ### Version number
 
+Use `make bump` to bump the version number.
+
 We follow the [semantic versioning](http://semver.org/) spec: any change impacts the version number, and the version number conveys API compatibility information **only**.
 
 Examples:

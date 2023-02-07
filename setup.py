@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.21.1",
+    version = "0.22.0",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -43,8 +43,9 @@ setup(
             "mypy >= 0.670, < 1.0.0",
             "pytest >= 4.3.0, < 5.0.0",
             "pytest-cov >= 2.6.0, < 3.0.0",
-            'scipy >= 1.2.1, < 2.0.0',
+            "scipy >= 1.2.1, < 2.0.0",
             "toolz >= 0.9.0, < 1.0.0",
+            "bumpver >= 2022.1120",
             ],
         },
     packages = find_packages(exclude = ("docs", "tests")),
