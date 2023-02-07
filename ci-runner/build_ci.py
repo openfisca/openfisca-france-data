@@ -3,20 +3,20 @@ Create the file `.gitlab-ci.yml` that is read by Gitlab Runner to execute the CI
 
 Run in project root folder:
 
-python runner/build_ci.py
+python ci-runner/build_ci.py
 """
 import configparser
 import yaml
 
 # Config file use to get the available years
-CONFIG = "./runner/openfisca_survey_manager_raw_data.ini"
+CONFIG = "./ci-runner/openfisca_survey_manager_raw_data.ini"
 
 
 def header():
     return """
 ################################################
 # GENERATED FILE, DO NOT EDIT
-# Please visit runner/README.md
+# Please visit ci-runner/README.md
 ################################################
 
 variables:
@@ -44,7 +44,7 @@ stages:
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
-  - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+  - cp ./ci-runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
   - echo "End of before_script"
 
 build docker image:
@@ -78,7 +78,7 @@ def build_collections():
                 'echo "Begin with fresh config"',
                 "mkdir -p $ROOT_FOLDER/data_collections/$OUT_FOLDER/",
                 "rm $ROOT_FOLDER/data_collections/$OUT_FOLDER/*.json || true",  # || true to ignore error
-                "cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
+                "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
                 'echo "Custom output folder"',
                 'sed -i "s/data_collections/data_collections\/$OUT_FOLDER\//" ~/.config/openfisca-survey-manager/config.ini',
                 "cat ~/.config/openfisca-survey-manager/config.ini",

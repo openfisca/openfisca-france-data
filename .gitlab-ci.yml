@@ -1,7 +1,7 @@
 
 ################################################
 # GENERATED FILE, DO NOT EDIT
-# Please visit runner/README.md
+# Please visit ci-runner/README.md
 ################################################
 
 variables:
@@ -29,7 +29,7 @@ stages:
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
-  - cp ./runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+  - cp ./ci-runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
   - echo "End of before_script"
 
 build docker image:
@@ -86,7 +86,7 @@ build_collection:
   - echo "Begin with fresh config"
   - mkdir -p $ROOT_FOLDER/data_collections/$OUT_FOLDER/
   - rm $ROOT_FOLDER/data_collections/$OUT_FOLDER/*.json || true
-  - cp ./runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+  - cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
   - echo "Custom output folder"
   - sed -i "s/data_collections/data_collections\/$OUT_FOLDER\//" ~/.config/openfisca-survey-manager/config.ini
   - cat ~/.config/openfisca-survey-manager/config.ini
