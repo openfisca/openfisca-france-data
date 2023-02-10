@@ -75,20 +75,24 @@ def build_collections():
             "tags": ["openfisca"],
             "script": [
                 'echo "Begin with fresh config"',
-                "mkdir -p $ROOT_FOLDER/data_collections/$OUT_FOLDER/",
-                "rm $ROOT_FOLDER/data_collections/$OUT_FOLDER/*.json || true",  # || true to ignore error
+                # Delete all previous data
+                "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
+                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
                 "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
                 'echo "Custom output folder"',
-                'sed -i "s/data_collections/data_collections\/$OUT_FOLDER\//" ~/.config/openfisca-survey-manager/config.ini',
+                'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
+                'echo {"name": "erfs_fpr", "surveys": {}} > $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json',
+                'echo {"name": "openfisca_erfs_fpr", "surveys": {}} > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json',
+                # 'sed -i "s/data_output/$OUT_FOLDER\/data_output/" ~/.config/openfisca-survey-manager/config.ini',
                 "cat ~/.config/openfisca-survey-manager/config.ini",
                 "#build-collection -c enquete_logement -d -m -s 2013",
                 "build-collection -c erfs_fpr -d -m -v",
                 'echo "Backup updated config"',
-                "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini",
-            ],
+                "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini",
+                ],
             "when": "manual",
+            }
         }
-    }
     return build_collection
 
 
@@ -99,20 +103,20 @@ def build_input_data(year):
             "stage": "build_input_data",
             "image": "$CI_REGISTRY_IMAGE:latest",
             # Remove needs because it prevent execution if build_collection is in manual
-            #'needs': ['build_collection'],
+            # 'needs': ['build_collection'],
             "tags": ["openfisca"],
             "script": [
                 'echo "build_input_data-' + year + '"',
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER",
                 # Put the config from build collections step
-                "cp $ROOT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini",
-                f"build-erfs-fpr -y {year} -f $ROOT_FOLDER/$OUT_FOLDER/erfs_flat_{year}.h5",
-                "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-"
+                "cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini",
+                f"build-erfs-fpr -y {year} -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_{year}.h5",
+                "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-"
                 + year
                 + ".ini",
-            ],
+                ],
+            }
         }
-    }
 
 
 def aggregates(year):
@@ -125,15 +129,15 @@ def aggregates(year):
             "tags": ["openfisca"],
             "script": [
                 'echo "aggregates-' + year + '"',
-                f"cp $ROOT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
+                f"cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
                 f"python tests/erfs_fpr/integration/test_aggregates.py --year {year}",
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER",
                 "cp ./*.html $ROOT_FOLDER/$OUT_FOLDER",
                 "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER",
-            ],
+                ],
             "artifacts": {"paths": ["./*.html", "./*.csv"]},
+            }
         }
-    }
 
 
 # Warning : not used yet : test are independant for now.
@@ -146,11 +150,11 @@ def make_test_by_year(year):
             "needs": ["agg-" + year],
             "tags": ["openfisca"],
             "script": [
-                f"cp $ROOT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
+                f"cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
                 "make test",
-            ],
+                ],
+            }
         }
-    }
 
 
 def make_test():
@@ -161,9 +165,9 @@ def make_test():
             "tags": ["openfisca"],
             "script": [
                 "make test",
-            ],
+                ],
+            }
         }
-    }
 
 
 def get_erfs_years():
@@ -195,10 +199,10 @@ def build_conda_package():
             "script": [
                 "conda install -y conda-build anaconda-client",
                 "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
-            ],
+                ],
             "except": ["master"],
+            }
         }
-    }
 
 
 def build_and_deploy_conda_package():
@@ -214,10 +218,10 @@ def build_and_deploy_conda_package():
                 "conda install -y conda-build anaconda-client",
                 "conda config --set anaconda_upload yes",
                 "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
-            ],
+                ],
             "only": ["master"],
+            }
         }
-    }
 
 
 def build_gitlab_ci(erfs_years):
@@ -237,7 +241,7 @@ def main():
     print("Reading survey manager config...")
     erfs_years = get_erfs_years()
     # For testing only some years
-    # erfs_years = ["2018"]
+    # erfs_years = ["2016", "2017", "2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
     with open(r".gitlab-ci.yml", mode="w") as file:
         file.write(gitlab_ci)
