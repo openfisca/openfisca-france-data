@@ -20,11 +20,11 @@ def create_taux_csg_remplacement(individus, period, tax_benefit_system, sigma = 
     def compute_taux_csg_remplacement(rfr, nbptr):
         parameters = tax_benefit_system.get_parameters_at_instant(period.start)
         seuils = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.seuils
-        seuil_exoneration = seuils.seuil_rfr1.seuil_rfr1 + (nbptr - 1) * seuils.seuil_rfr1.demi_part_suppl_rfr1
-        seuil_reduction = seuils.seuil_rfr2.seuil_rfr2 + (nbptr - 1) * seuils.seuil_rfr2.demi_part_suppl_rfr2
+        seuil_exoneration = seuils.seuil_rfr1.seuil_rfr1 + (nbptr - 1)*2 * seuils.seuil_rfr1.demi_part_suppl_rfr1
+        seuil_reduction = seuils.seuil_rfr2.seuil_rfr2 + (nbptr - 1)*2 * seuils.seuil_rfr2.demi_part_suppl_rfr2
         taux_csg_remplacement = 0.0 * rfr
         if period.start.year >= 2019:
-            seuil_taux_intermediaire = seuils.seuil_rfr3.seuil_rfr3 + (nbptr - 1) * seuils.seuil_rfr3.demi_part_suppl_rfr3
+            seuil_taux_intermediaire = seuils.seuil_rfr3.seuil_rfr3 + (nbptr - 1)*2 * seuils.seuil_rfr3.demi_part_suppl_rfr3
             taux_csg_remplacement = np.where(
                 rfr <= seuil_exoneration,
                 1,
