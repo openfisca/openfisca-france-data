@@ -1,36 +1,59 @@
 import numpy as np
+import pandas as pd
+from yaml import load, SafeLoader
+import os
+import sys
 
-from openfisca_france.model.base import *  # noqa analysis:ignore
-from openfisca_core.reforms import Reform
-from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
-from openfisca_france_data.felin.input_data_builder.create_variables_individuelles import create_taux_csg_remplacement
+from openfisca_core.periods import *
+
 from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.scenarios import init_single_entity
 
-import logging
+from openfisca_france_data.felin.input_data_builder.create_variables_individuelles import create_taux_csg_remplacement
+from openfisca_france_data.common import create_revenus_remplacement_bruts
 
-log = logging.getLogger(__name__)
+margin = .01
 
-def inversion_chomage():
+tax_benefit_system = FranceTaxBenefitSystem()
+scenario = tax_benefit_system.new_scenario()
+    
+## First part : upwards (start from *_net, inverse to *_gross)
 
-    tax_benefit_system = FranceTaxBenefitSystem()
-    scenario = tax_benefit_system.new_scenario()
-    init_single_entity(
-        scenario, 
-        period='2021',  # wide: we simulate for the year
-        parent1=dict(
-            chomage_imposable={'2021-01': 1000},
-            rfr={'2021': 11407}, # Seuil 11408 / npbtr = 1
-            nbptr={'2021': 1}, 
-            allocation_retour_emploi_journaliere='prive_non_cadre'},
-            allegement_fillon_mode_recouvrement='progressif'
-            )
-        )
-    simulation = scenario.new_simulation()
-    create_taux_csg_remplacement(scenario.individus, scenario.period, scenario.tax_benefit_system)
-    assert simulation.calculate('chomage_brut', '2021-01') == 1000
-    assert simulation.calculate('csg_deductible_chomage', '2021-01') == 0
-    assert simulation.calculate('csg_imposable_chomage', '2021-01') == 0
-    assert simulation.calculate('crds_chomage', '2021-01') == 1
+# Data creation 
 
-inversion_chomage()
+path = "/home/paul/Documents/projets/openfisca-france-data/tests/inversion/remplacement_2021.yaml"
+year = re.match(".*([0-9]{4}).yaml", path).group(1)
+
+with open(path) as yaml: 
+    individus = pd.DataFrame.from_dict(load(yaml, Loader=SafeLoader))
+
+# Inverse incomes from net to gross : the tested functions
+
+create_taux_csg_remplacement(individus, period(year), tax_benefit_system)
+create_revenus_remplacement_bruts(individus, period(year), tax_benefit_system)
+
+# Test against chomage_brut_test
+
+fails_chomage = [i for i in individus.index if abs(individus.loc[i]["chomage_brut"]-individus.loc[i]["chomage_brut_test"])>=margin]
+fails_retraite = [i for i in individus.index if abs(individus.loc[i]["retraite_brute"]-individus.loc[i]["retraite_brute_test"])>=margin]
+
+message = "".join(
+    ["For test {}, found {} for chomage_brut, tested against {}.\n".format(i,individus.loc[i]["chomage_brut"],individus.loc[i]["chomage_brut_test"]) for i in fails_chomage]+
+    ["For test {}, found {} for retraite_brute, tested against {}.\n".format(i,individus.loc[i]["retraite_brute"],individus.loc[i]["retraite_brute_test"]) for i in fails_retraite]
+    )
+
+assert len(fails_chomage) + len(fails_retraite) ==0, "Some tests have failed.\n" + message
+
+## Second part : downwards (start from brut obtained from inversion, goes back to imposable)
+
+# Initialize the survey scenario with the brut
+
+# init_single_entity(scenario, init_data)
+# simulation = scenario.new_simulation()
+
+# # Computes *_imposable back from inversed *_brut
+
+# simulation.calculate('chomage_imposable', '2021-01') == 1000
+# simulation.calculate('csg_deductible_chomage', '2021-01') == 0
+# simulation.calculate('csg_imposable_chomage', '2021-01') == 0
+# simulation.calculate('crds_chomage', '2021-01') == 1
+
