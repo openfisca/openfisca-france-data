@@ -1,0 +1,10 @@
+- name: "Chomage avec RFR sous seuil 1, personne seule"
+  revkire: 10000
+  nbp: 1
+  chomage_imposable: 20000 # if Chomage brut is 10000, taux de csg is and imposable is
+  chomage_brut_test: 1000
+- name: "Retraite avec RFR sous seuil 1, personne seule"
+  revkire: 10000
+  nbp: 1
+  retraite_imposable: 10000
+  retraite_brute_test: 1000
