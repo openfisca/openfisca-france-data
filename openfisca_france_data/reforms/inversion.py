@@ -21,7 +21,8 @@ scenario = tax_benefit_system.new_scenario()
 
 # Data creation 
 
-path = "/home/paul/Documents/projets/openfisca-france-data/tests/inversion/remplacement_2021.yaml"
+cd = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+path = os.path.join(cd, "tests", "inversion", "remplacement_2021.yaml")
 year = re.match(".*([0-9]{4}).yaml", path).group(1)
 
 with open(path) as yaml: 
