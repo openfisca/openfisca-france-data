@@ -3,6 +3,7 @@ import pandas as pd
 from yaml import load, SafeLoader
 import os
 import sys
+import re
 
 from openfisca_core.periods import *
 
@@ -11,7 +12,7 @@ from openfisca_france import FranceTaxBenefitSystem
 from openfisca_france_data.felin.input_data_builder.create_variables_individuelles import create_taux_csg_remplacement
 from openfisca_france_data.common import create_revenus_remplacement_bruts
 
-margin = .1
+margin = 1
 
 tax_benefit_system = FranceTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario()
