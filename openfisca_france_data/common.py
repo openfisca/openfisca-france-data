@@ -404,6 +404,9 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
     csg_deductible_chomage = csg.remplacement.allocations_chomage.deductible
+    pss = parameters.prelevements_sociaux.pss.plafond_securite_sociale_annuel
+    taux_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.rates[0]
+    seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.thresholds[1]
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
     seuil_chomage_net_exoneration = (
@@ -417,12 +420,23 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         (individus.taux_csg_remplacement < 2)
         | (individus.chomage_imposable <= seuil_chomage_net_exoneration)
         )
+    taux_csg_chomage = np.where(
+        individus.taux_csg_remplacement < 2,
+        0,
+        (individus.taux_csg_remplacement == 2) * taux_reduit
+        + (individus.taux_csg_remplacement >= 3) * taux_plein
+        )
+    threshold = seuil_abattement_csg_chomage * pss * (1 - (taux_csg_chomage * (1 - taux_abattement_csg_chomage)))
+    base_csg_chomage = np.where(
+        individus.chomage_imposable <= threshold,
+        individus.chomage_imposable * (1 - taux_abattement_csg_chomage) / (1 - (taux_csg_chomage * (1 - taux_abattement_csg_chomage))),
+        (individus.chomage_imposable - seuil_abattement_csg_chomage * taux_abattement_csg_chomage) / (1 - taux_csg_chomage)
+        )
     individus['chomage_brut'] = np.where(
         exonere_csg_chomage,
         individus.chomage_imposable,
-        (individus.taux_csg_remplacement == 2) * individus.chomage_imposable / (1 - taux_reduit)
-        + (individus.taux_csg_remplacement >= 3) * individus.chomage_imposable / (1 - taux_plein)
-        )
+        individus.chomage_imposable + (base_csg_chomage * taux_csg_chomage)
+    )
     assert individus['chomage_brut'].notnull().all()
 
     csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.pensions_retraite_invalidite.deductible
