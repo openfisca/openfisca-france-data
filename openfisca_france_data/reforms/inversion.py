@@ -1,8 +1,6 @@
-import numpy as np
 import pandas as pd
 from yaml import load, SafeLoader
 import os
-import sys
 import re
 
 from openfisca_core.periods import *
@@ -17,7 +15,7 @@ margin = 1
 tax_benefit_system = FranceTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario()
     
-## First part : upwards (start from *_net, inverse to *_gross)
+## First part : upwards (start from *_taxable, inverse to *_gross)
 
 # Data creation 
 
@@ -25,7 +23,7 @@ cd = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 path = os.path.join(cd, "tests", "inversion", "remplacement_2021.yaml")
 year = re.match(".*([0-9]{4}).yaml", path).group(1)
 
-with open(path) as yaml: 
+with open(path) as yaml:
     individus = pd.DataFrame.from_dict(load(yaml, Loader=SafeLoader))
 
 # Inverse incomes from net to gross : the tested functions
@@ -45,14 +43,14 @@ message = "".join(
 
 assert len(fails_chomage) + len(fails_retraite) ==0, "Some tests have failed.\n" + message
 
-## Second part : downwards (start from brut obtained from inversion, goes back to imposable)
+## Second part : downwards (start from gross obtained from inversion, goes back to taxable)
 
-# Initialize the survey scenario with the brut
+# Initialize the survey scenario with the gross (inverted)
 
 # init_single_entity(scenario, init_data)
 # simulation = scenario.new_simulation()
 
-# # Computes *_imposable back from inversed *_brut
+# # Computes *_taxable back from inverted *_gross
 
 # simulation.calculate('chomage_imposable', '2021-01') == 1000
 # simulation.calculate('csg_deductible_chomage', '2021-01') == 0
