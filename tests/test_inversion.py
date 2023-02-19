@@ -14,10 +14,10 @@ margin = 1
 
 tax_benefit_system = FranceTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario()
-    
+
 ## First part : upwards (start from *_taxable, inverse to *_gross)
 
-# Data creation 
+# Data creation
 
 cd = os.path.dirname(__file__)
 path = os.path.join(cd, "inversion", "remplacement_2021.yaml")
