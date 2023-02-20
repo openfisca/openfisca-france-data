@@ -69,4 +69,4 @@ Input :
 - `/mnt/data-out/openfisca-france-data/<BRANCH_NAME>/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini`
 
 Output :
- - CSV and HTML files in artifact of the [CI job](https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs) and in `/mnt/data-out/openfisca-france-data/<BRANCH_NAME>/`
+ - CSV and HTML files in artifact of the [CI job](https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs) and in `/mnt/data-out/openfisca-france-data/<BRANCH_NAME>/data_output`

@@ -83,7 +83,6 @@ def build_collections():
                 'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
                 'echo {"name": "erfs_fpr", "surveys": {}} > $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json',
                 'echo {"name": "openfisca_erfs_fpr", "surveys": {}} > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json',
-                # 'sed -i "s/data_output/$OUT_FOLDER\/data_output/" ~/.config/openfisca-survey-manager/config.ini',
                 "cat ~/.config/openfisca-survey-manager/config.ini",
                 "#build-collection -c enquete_logement -d -m -s 2013",
                 "build-collection -c erfs_fpr -d -m -v",
@@ -102,8 +101,6 @@ def build_input_data(year):
         + year: {
             "stage": "build_input_data",
             "image": "$CI_REGISTRY_IMAGE:latest",
-            # Remove needs because it prevent execution if build_collection is in manual
-            # 'needs': ['build_collection'],
             "tags": ["openfisca"],
             "script": [
                 'echo "build_input_data-' + year + '"',
@@ -132,8 +129,8 @@ def aggregates(year):
                 f"cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
                 f"python tests/erfs_fpr/integration/test_aggregates.py --year {year}",
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER",
-                "cp ./*.html $ROOT_FOLDER/$OUT_FOLDER",
-                "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER",
+                "cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output",
+                "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output",
                 ],
             "artifacts": {"paths": ["./*.html", "./*.csv"]},
             }
