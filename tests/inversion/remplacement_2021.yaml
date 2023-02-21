@@ -33,6 +33,11 @@
   nbp: 200
   chomage_imposable: 20014 # revkire < 17500 & nbp =2 : taux is taux_reduit, chomage_imposable > seuil d'exo; applying abattement
   chomage_brut_test: 20790
+- name: "Chomage avec RFR au dessus seuil 2, personne seule, alloc > 4 PSS"
+  revkire: 100000
+  nbp: 100
+  chomage_imposable: 173269.42176 # revkire < 11408 & nbp =1 : taux is taux_exonere (0), base == gross
+  chomage_brut_test: 180000
 - name: "Retraite avec RFR sous seuil 1, personne seule"
   revkire: 11400
   nbp: 100
