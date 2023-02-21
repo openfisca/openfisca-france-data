@@ -430,7 +430,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     base_csg_chomage = np.where(
         individus.chomage_imposable <= threshold,
         individus.chomage_imposable * (1 - taux_abattement_csg_chomage) / (1 - (taux_csg_chomage * (1 - taux_abattement_csg_chomage))),
-        (individus.chomage_imposable - seuil_abattement_csg_chomage * taux_abattement_csg_chomage) / (1 - taux_csg_chomage)
+        (individus.chomage_imposable - seuil_abattement_csg_chomage * taux_abattement_csg_chomage * pss) / (1 - taux_csg_chomage)
         )
     individus['chomage_brut'] = np.where(
         exonere_csg_chomage,
