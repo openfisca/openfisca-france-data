@@ -3,35 +3,41 @@ from yaml import load, SafeLoader
 import os
 import re
 
-from openfisca_core.periods import *
+from openfisca_core.periods import period as p
+from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
+from openfisca_core.formula_helpers import switch
 
 from openfisca_france import FranceTaxBenefitSystem
 
 from openfisca_france_data.felin.input_data_builder.create_variables_individuelles import create_taux_csg_remplacement
-from openfisca_france_data.common import create_revenus_remplacement_bruts
+from openfisca_france_data.common import create_revenus_remplacement_bruts, create_salaire_de_base
+
+
 
 margin = 1
 
 tax_benefit_system = FranceTaxBenefitSystem()
 scenario = tax_benefit_system.new_scenario()
-    
+
+# Revenus de remplacement
+
 ## First part : upwards (start from *_taxable, inverse to *_gross)
 
-# Data creation 
+### Data creation
 
-cd = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-path = os.path.join(cd, "tests", "inversion", "remplacement_2021.yaml")
+cd = os.path.dirname(__file__)
+path = os.path.join(cd, "inversion", "remplacement_2021.yaml")
 year = re.match(".*([0-9]{4}).yaml", path).group(1)
 
 with open(path) as yaml:
     individus = pd.DataFrame.from_dict(load(yaml, Loader=SafeLoader))
 
-# Inverse incomes from net to gross : the tested functions
+### Inverse incomes from net to gross : the tested functions
 
 create_taux_csg_remplacement(individus, period(year), tax_benefit_system)
 create_revenus_remplacement_bruts(individus, period(year), tax_benefit_system)
 
-# Test against chomage_brut_test
+### Test against chomage_brut_test
 
 fails_chomage = [i for i in individus.index if abs(individus.loc[i]["chomage_brut"]-individus.loc[i]["chomage_brut_test"])>=margin]
 fails_retraite = [i for i in individus.index if abs(individus.loc[i]["retraite_brute"]-individus.loc[i]["retraite_brute_test"])>=margin]
@@ -43,17 +49,41 @@ message = "".join(
 
 assert len(fails_chomage) + len(fails_retraite) ==0, "Some tests have failed.\n" + message
 
-## Second part : downwards (start from gross obtained from inversion, goes back to taxable)
+# ## Second part : downwards (start from gross obtained from inversion, goes back to taxable)
 
-# Initialize the survey scenario with the gross (inverted)
+# ### Initialize the survey scenario with the gross (inverted)
 
 # init_single_entity(scenario, init_data)
 # simulation = scenario.new_simulation()
 
-# # Computes *_taxable back from inverted *_gross
+# ### Computes *_taxable back from inverted *_gross
 
 # simulation.calculate('chomage_imposable', '2021-01') == 1000
 # simulation.calculate('csg_deductible_chomage', '2021-01') == 0
 # simulation.calculate('csg_imposable_chomage', '2021-01') == 0
 # simulation.calculate('crds_chomage', '2021-01') == 1
 
+# Salaire
+
+cd = os.path.dirname(__file__)
+
+cd = "/home/paul/Documents/projets/openfisca-france-data/tests/"
+path = os.path.join(cd, "inversion", "salaire_2021.yaml")
+year = re.match(".*([0-9]{4}).yaml", path).group(1)
+
+with open(path) as yaml:
+    individus = pd.DataFrame.from_dict(load(yaml, Loader=SafeLoader))
+
+### Inverse incomes from net to gross : the tested functions
+
+create_salaire_de_base(individus, p(year), revenu_type = "net", tax_benefit_system=tax_benefit_system)
+
+### Test against chomage_brut_test
+
+fails = [i for i in individus.index if abs(individus.loc[i]["salaire_de_base"]-individus.loc[i]["salaire_de_base_test"])>=margin]
+
+message = "".join(
+    ["For test {}, found {} for salaire_de_base, tested against {}.\n".format(i,individus.loc[i]["salaire_de_base"],individus.loc[i]["salaire_de_base_test"]) for i in fails]
+    )
+
+assert len(fails) == 0, "Some tests have failed.\n" + message

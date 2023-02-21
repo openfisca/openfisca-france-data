@@ -1,0 +1,23 @@
+- name: "Salaire salarié privé non-cadre temps plein"
+  salaire_net: 32505
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 0
+  salaire_de_base_test: 41136 # assiette_cotisation = 24000, assiette_csg = 24000
+  # csg_deductible                                    6.8
+  # csg_imposable                                     2.4
+  # crds                                              0.5
+  # cotisations_sociales
+  ##  agff                                            0
+  ##  agirc_arrco                                     3.15
+  ##  asf                                             0
+  ##  arrco                                           0
+  ##  ceg                                             0.86
+  ##  cet2019                                         0.14
+  ##  chomage                                         0
+  ##  vieillesse_deplafonnee                          0.4
+  ##  vieillesse_plafonnee                            6.9
+
+  # 20.98, dont : 45% de CSG-CRDS, et 49% de vieillesse (taux de 10.45%)
+  # d'où 8753,74 euros de cotisations
+  # soit un net de 32382 euros.
