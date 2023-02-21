@@ -1,12 +1,7 @@
 import gc
 import logging
-# import configparser
-# import pkg_resources
-# import os
 import pandas
-# from openfisca_core import periods
-# from openfisca_survey_manager.survey_collections import SurveyCollection
-# from openfisca_survey_manager.surveys import Survey
+
 from openfisca_france_data.utils import (id_formatter, print_id, normalizes_roles_in_entity)
 from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
 from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey  # type: ignore
