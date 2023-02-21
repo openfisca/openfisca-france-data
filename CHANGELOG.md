@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.22.2 [#211](https://github.com/openfisca/openfisca-france-data/pull/211)
+
+* Technical changes
+  -  Better branch isolation in Gitlab CI
+
 ### 0.22.1 [#208](https://github.com/openfisca/openfisca-france-data/pull/208)
 
 * Technical changes

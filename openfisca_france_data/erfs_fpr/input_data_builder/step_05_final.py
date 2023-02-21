@@ -86,6 +86,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             ]
         ].copy()
     survey_name = 'openfisca_erfs_fpr_' + str(year)
+    log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
     set_table_in_survey(
         menages,
         entity = "menage",
@@ -220,7 +221,7 @@ def extract_menages_variables(menages):
         if external_variable in menages.columns:
             log.debug("Found {} in menages table: we keep it".format(external_variable))
             variables.append(external_variable)
-    #TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
+    # TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
     menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
     menages = menages[variables].copy()
 
