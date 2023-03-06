@@ -56,7 +56,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     individus = create_ids_and_roles(individus)
     individus = individus[variables].copy()
-    menages = menages.loc[(menages.ident).isin(set(individus.idmen))].copy()
+    #menages = menages.loc[(menages.ident).isin(set(individus.idmen))].copy()
     gc.collect()
 
     # This looks like it could have a sizeable impact
@@ -86,16 +86,14 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             ]
         ].copy()
     survey_name = 'openfisca_erfs_fpr_' + str(year)
-    log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
-    set_table_in_survey(
-        menages,
-        entity = "menage",
-        period = year,
-        collection = "openfisca_erfs_fpr",
-        survey_name = survey_name,
-        )
-
+    
+    # Formats ids
     individus = format_ids_and_roles(individus)
+    menages = menages.rename(columns = {'idmen':'idmen_original'})
+    menages = menages.merge(individus[['idmen','idmen_original']].drop_duplicates(),
+                            how = 'inner',
+                            on = 'idmen_original')
+
     if export_flattened_df_filepath:
         supermerge = individus.merge(
             menages,
@@ -104,7 +102,9 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             suffixes = ("", "_x"))
         log.debug(f"Saving to {export_flattened_df_filepath}")
         supermerge.to_hdf(export_flattened_df_filepath, key = "input")
+
     # Enters the individual table into the openfisca_erfs_fpr collection
+    individus = individus.sort_values(by = ['idmen', 'idfoy', 'idfam'])
     log.debug(f"Saving entity 'individu' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
     set_table_in_survey(
         individus,
@@ -113,8 +113,17 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         collection = "openfisca_erfs_fpr",
         survey_name = survey_name,
         )
-    log.debug("End of create_input_data_frame")
 
+    menages = menages.sort_values(by = ['idmen'])
+    log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
+    set_table_in_survey(
+        menages,
+        entity = "menage",
+        period = year,
+        collection = "openfisca_erfs_fpr",
+        survey_name = survey_name,
+        )
+    log.debug("End of create_input_data_frame")
 
 def create_collectives_foyer_variables(individus, menages):
     menages_revenus_fonciers = menages[['idmen', 'rev_fonciers_bruts']].copy()
@@ -196,6 +205,7 @@ def create_ids_and_roles(individus):
 
 def format_ids_and_roles(data_frame):
     for entity_id in ['idmen', 'idfoy', 'idfam']:
+        data_frame = data_frame.sort_values(by = ['idmen', 'idfoy', 'idfam'])
         log.debug('Reformat ids: {}'.format(entity_id))
         data_frame = id_formatter(data_frame, entity_id)
     data_frame.reset_index(drop = True, inplace = True)
