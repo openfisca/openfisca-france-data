@@ -90,7 +90,10 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     # Formats ids
     individus = format_ids_and_roles(individus)
     menages = menages.rename(columns = {'idmen':'idmen_original'})
-    menages = menages.merge(individus[['idmen','idmen_original']].drop_duplicates(),
+    unique_idmen = individus[['idmen','idmen_original']].drop_duplicates()
+    assert len(unique_idmen) == len(menages), "Number of idmen should be the same individus and menages tables."
+ 
+    menages = menages.merge(unique_idmen,
                             how = 'inner',
                             on = 'idmen_original')
 
