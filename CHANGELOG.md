@@ -1,5 +1,12 @@
 # Changelog
 
+### 0.23.0 [#212](https://github.com/openfisca/openfisca-france-data/pull/212)
+
+* Technical changes
+
+  - Dans openfisca_france_data/erfs_fpr/input_data_builder/step_05_final.py:
+    - Corrige la création de l'identifiant unifié ménage. Celui-ci était créé dans la table individus mais n'était pas propagé dans la table ménage. Les identifiants entre les deux tables n'étaient donc pas correspondant
+
 ### 0.22.2 [#211](https://github.com/openfisca/openfisca-france-data/pull/211)
 
 * Technical changes
