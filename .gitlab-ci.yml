@@ -93,6 +93,37 @@ build_collection:
   tags:
   - openfisca
   when: manual
+input_data-2018:
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+  - echo "build_input_data-2018"
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - build-erfs-fpr -y 2018 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2018.h5
+  - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
+  stage: build_input_data
+  tags:
+  - openfisca
+aggregates-2018:
+  artifacts:
+    paths:
+    - ./*.html
+    - ./*.csv
+  image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - input_data-2018
+  script:
+  - echo "aggregates-2018"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
+  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
+  stage: aggregates
+  tags:
+  - openfisca
 in_dt-1996:
   image: $CI_REGISTRY_IMAGE:latest
   script:
