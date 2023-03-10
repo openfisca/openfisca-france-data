@@ -79,6 +79,7 @@ def copy_previous_build_collections():
                 # Delete all previous data
                 "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
+                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/",
                 "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
                 'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
                 "cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json",
@@ -101,6 +102,7 @@ def build_collections():
                 # Delete all previous data
                 "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
+                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/",
                 "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
                 'echo "Custom output folder"',
                 'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
