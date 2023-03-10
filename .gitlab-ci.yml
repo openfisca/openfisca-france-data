@@ -23,7 +23,7 @@ stages:
   - build_collection
   - build_input_data
   - aggregates
-  - etape_manuelle
+  - run_on_all_years
   - build_input_data_all
   - aggregates_all
   - anaconda
@@ -53,8 +53,8 @@ build docker image:
   when: manual
 
 
-etape_manuelle:
-  stage: etape_manuelle
+run_on_all_years:
+  stage: run_on_all_years
   # Prevent call of before_script because it will fail in this context
   before_script:
     - ''
@@ -62,10 +62,18 @@ etape_manuelle:
     - echo "On ne fait rien"
   when: manual
 
+clean_folder:
+  before_script:
+    - ''
+  script: rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+  stage: build_collection
+  tags:
+  - openfisca
+  when: manual
+
 copy_previous_build_collections:
   before_script:
     - ''
-  image: $CI_REGISTRY_IMAGE:latest
   script: |
     if [[ -f "$ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json" ]]; then
         echo "Files already exists, do nothing."
@@ -73,11 +81,10 @@ copy_previous_build_collections:
         rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
         mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
         mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
-        cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
-        sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
-        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
-        echo "{"name": "openfisca_erfs_fpr", "surveys": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
         cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
+        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
     fi
   stage: build_collection
   tags:
@@ -147,7 +154,7 @@ aggregates-2018:
 in_dt-1996:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-1996"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -180,7 +187,7 @@ agg-1996:
 in_dt-1997:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-1997"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -213,7 +220,7 @@ agg-1997:
 in_dt-1998:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-1998"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -246,7 +253,7 @@ agg-1998:
 in_dt-1999:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-1999"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -279,7 +286,7 @@ agg-1999:
 in_dt-2000:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2000"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -312,7 +319,7 @@ agg-2000:
 in_dt-2001:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2001"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -345,7 +352,7 @@ agg-2001:
 in_dt-2002:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2002"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -378,7 +385,7 @@ agg-2002:
 in_dt-2003:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2003"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -411,7 +418,7 @@ agg-2003:
 in_dt-2004:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2004"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -444,7 +451,7 @@ agg-2004:
 in_dt-2005:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2005"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -477,7 +484,7 @@ agg-2005:
 in_dt-2006:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2006"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -510,7 +517,7 @@ agg-2006:
 in_dt-2007:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2007"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -543,7 +550,7 @@ agg-2007:
 in_dt-2008:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2008"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -576,7 +583,7 @@ agg-2008:
 in_dt-2009:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2009"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -609,7 +616,7 @@ agg-2009:
 in_dt-2010:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2010"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -642,7 +649,7 @@ agg-2010:
 in_dt-2011:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2011"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -675,7 +682,7 @@ agg-2011:
 in_dt-2012:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2012"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -708,7 +715,7 @@ agg-2012:
 in_dt-2013:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2013"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -741,7 +748,7 @@ agg-2013:
 in_dt-2014:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2014"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -774,7 +781,7 @@ agg-2014:
 in_dt-2015:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2015"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -807,7 +814,7 @@ agg-2015:
 in_dt-2016:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2016"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -840,7 +847,7 @@ agg-2016:
 in_dt-2017:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2017"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -873,7 +880,7 @@ agg-2017:
 in_dt-2018:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2018"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -906,7 +913,7 @@ agg-2018:
 in_dt-2019:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  - etape_manuelle
+  - run_on_all_years
   script:
   - echo "build_input_data-2019"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER

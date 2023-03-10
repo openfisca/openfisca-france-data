@@ -38,7 +38,7 @@ stages:
   - build_collection
   - build_input_data
   - aggregates
-  - etape_manuelle
+  - run_on_all_years
   - build_input_data_all
   - aggregates_all
   - anaconda
@@ -68,8 +68,8 @@ build docker image:
   when: manual
 
 
-etape_manuelle:
-  stage: etape_manuelle
+run_on_all_years:
+  stage: run_on_all_years
   # Prevent call of before_script because it will fail in this context
   before_script:
     - ''
@@ -77,10 +77,18 @@ etape_manuelle:
     - echo "On ne fait rien"
   when: manual
 
+clean_folder:
+  before_script:
+    - ''
+  script: rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+  stage: build_collection
+  tags:
+  - openfisca
+  when: manual
+
 copy_previous_build_collections:
   before_script:
     - ''
-  image: $CI_REGISTRY_IMAGE:latest
   script: |
     if [[ -f "$ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json" ]]; then
         echo "Files already exists, do nothing."
@@ -88,11 +96,10 @@ copy_previous_build_collections:
         rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
         mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
         mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
-        cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
-        sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
-        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
-        echo "{\"name\": \"openfisca_erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
         cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
+        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
     fi
   stage: build_collection
   tags:
@@ -156,7 +163,7 @@ def build_input_data(year: str, stage: str = "build_input_data_all"):
         }
     }
     if stage == "build_input_data_all":
-        step[prefix + year]["needs"] = ["etape_manuelle"]
+        step[prefix + year]["needs"] = ["run_on_all_years"]
     return step
 
 
