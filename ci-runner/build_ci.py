@@ -77,31 +77,30 @@ etape_manuelle:
     - echo "On ne fait rien"
   when: manual
 
+copy_previous_build_collections:
+  before_script:
+    - ''
+  image: $CI_REGISTRY_IMAGE:latest
+  script: |
+    if [[ -f "$ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json" ]]; then
+        echo "Files already exists, do nothing."
+    else
+        rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
+        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
+        cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+        sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
+        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
+        echo "{\"name\": \"openfisca_erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
+        cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    fi
+  stage: build_collection
+  tags:
+  - openfisca
+  except:
+  - master
+
 """
-
-
-def copy_previous_build_collections():
-    return {
-        "copy_previous_build_collections": {
-            # Prevent call of before_script because it will fail in this context
-            "before_script": [""],
-            "stage": "build_collection",
-            "image": "$CI_REGISTRY_IMAGE:latest",
-            "tags": ["openfisca"],
-            "script": [
-                # Delete all previous data
-                "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
-                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
-                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/",
-                "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
-                'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
-                "cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json",
-                r"""echo "{\"name\": \"openfisca_erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json""",
-                "cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini",
-            ],
-            "when": "manual",
-        }
-    }
 
 
 def build_collections():
@@ -276,7 +275,6 @@ def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
     gitlab_ci += yaml.dump(make_test())
     # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
-    gitlab_ci += yaml.dump(copy_previous_build_collections())
     gitlab_ci += yaml.dump(build_collections())
     gitlab_ci += yaml.dump(build_input_data("2018", stage="build_input_data"))
     gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates"))
