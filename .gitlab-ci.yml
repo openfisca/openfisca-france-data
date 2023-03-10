@@ -56,6 +56,23 @@ test:
   stage: test
   tags:
   - openfisca
+copy_previous_build_collections:
+  before_script:
+  - ''
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+  - rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
+  - cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+  - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
+  - cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
+  - 'echo "{\"name\": \"openfisca_erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json'
+  - cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini
+    $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+  stage: build_collection
+  tags:
+  - openfisca
+  when: manual
 build_collection:
   image: $CI_REGISTRY_IMAGE:latest
   script:

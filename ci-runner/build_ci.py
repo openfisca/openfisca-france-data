@@ -67,6 +67,29 @@ build docker image:
 """
 
 
+def copy_previous_build_collections():
+    return {
+        "copy_previous_build_collections": {
+            # Prevent call of before_script because it will fail in this context
+            "before_script": [""],
+            "stage": "build_collection",
+            "image": "$CI_REGISTRY_IMAGE:latest",
+            "tags": ["openfisca"],
+            "script": [
+                # Delete all previous data
+                "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
+                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
+                "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
+                'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
+                "cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json",
+                r"""echo "{\"name\": \"openfisca_erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json""",
+                "cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini",
+            ],
+            "when": "manual",
+        }
+    }
+
+
 def build_collections():
     build_collection = {
         "build_collection": {
