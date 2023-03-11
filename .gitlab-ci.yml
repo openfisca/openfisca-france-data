@@ -23,6 +23,9 @@ stages:
   - build_collection
   - build_input_data
   - aggregates
+  - run_on_all_years
+  - build_input_data_all
+  - aggregates_all
   - anaconda
 
 before_script:
@@ -49,6 +52,46 @@ build docker image:
   # Build Docker is needed only if code as changed.
   when: manual
 
+
+run_on_all_years:
+  stage: run_on_all_years
+  # Prevent call of before_script because it will fail in this context
+  before_script:
+    - ''
+  script:
+    - echo "On ne fait rien"
+  when: manual
+
+clean_folder:
+  before_script:
+    - ''
+  script: rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+  stage: build_collection
+  tags:
+  - openfisca
+  when: manual
+
+copy_previous_build_collections:
+  before_script:
+    - ''
+  script: |
+    if [[ -f "$ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json" ]]; then
+        echo "Files already exists, do nothing."
+    else
+        rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
+        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
+        cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
+        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
+    fi
+  stage: build_collection
+  tags:
+  - openfisca
+  except:
+  - master
+
 test:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -62,6 +105,7 @@ build_collection:
   - echo "Begin with fresh config"
   - rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
   - cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
   - echo "Custom output folder"
   - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
@@ -76,8 +120,41 @@ build_collection:
   tags:
   - openfisca
   when: manual
+input_data-2018:
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+  - echo "build_input_data-2018"
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - build-erfs-fpr -y 2018 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2018.h5
+  - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
+  stage: build_input_data
+  tags:
+  - openfisca
+aggregates-2018:
+  artifacts:
+    paths:
+    - ./*.html
+    - ./*.csv
+  image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - input_data-2018
+  script:
+  - echo "aggregates-2018"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
+  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
+  stage: aggregates
+  tags:
+  - openfisca
 in_dt-1996:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-1996"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -85,7 +162,7 @@ in_dt-1996:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 1996 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_1996.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1996.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-1996:
@@ -104,11 +181,13 @@ agg-1996:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-1997:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-1997"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -116,7 +195,7 @@ in_dt-1997:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 1997 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_1997.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1997.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-1997:
@@ -135,11 +214,13 @@ agg-1997:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-1998:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-1998"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -147,7 +228,7 @@ in_dt-1998:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 1998 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_1998.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1998.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-1998:
@@ -166,11 +247,13 @@ agg-1998:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-1999:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-1999"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -178,7 +261,7 @@ in_dt-1999:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 1999 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_1999.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-1999.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-1999:
@@ -197,11 +280,13 @@ agg-1999:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2000:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2000"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -209,7 +294,7 @@ in_dt-2000:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2000 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2000.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2000.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2000:
@@ -228,11 +313,13 @@ agg-2000:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2001:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2001"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -240,7 +327,7 @@ in_dt-2001:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2001 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2001.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2001.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2001:
@@ -259,11 +346,13 @@ agg-2001:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2002:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2002"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -271,7 +360,7 @@ in_dt-2002:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2002 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2002.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2002.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2002:
@@ -290,11 +379,13 @@ agg-2002:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2003:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2003"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -302,7 +393,7 @@ in_dt-2003:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2003 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2003.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2003.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2003:
@@ -321,11 +412,13 @@ agg-2003:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2004:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2004"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -333,7 +426,7 @@ in_dt-2004:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2004 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2004.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2004.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2004:
@@ -352,11 +445,13 @@ agg-2004:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2005:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2005"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -364,7 +459,7 @@ in_dt-2005:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2005 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2005.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2005.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2005:
@@ -383,11 +478,13 @@ agg-2005:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2006:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2006"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -395,7 +492,7 @@ in_dt-2006:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2006 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2006.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2006.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2006:
@@ -414,11 +511,13 @@ agg-2006:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2007:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2007"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -426,7 +525,7 @@ in_dt-2007:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2007 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2007.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2007.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2007:
@@ -445,11 +544,13 @@ agg-2007:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2008:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2008"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -457,7 +558,7 @@ in_dt-2008:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2008 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2008.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2008.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2008:
@@ -476,11 +577,13 @@ agg-2008:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2009:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2009"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -488,7 +591,7 @@ in_dt-2009:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2009 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2009.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2009.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2009:
@@ -507,11 +610,13 @@ agg-2009:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2010:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2010"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -519,7 +624,7 @@ in_dt-2010:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2010 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2010.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2010.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2010:
@@ -538,11 +643,13 @@ agg-2010:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2011:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2011"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -550,7 +657,7 @@ in_dt-2011:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2011 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2011.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2011.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2011:
@@ -569,11 +676,13 @@ agg-2011:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2012:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2012"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -581,7 +690,7 @@ in_dt-2012:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2012 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2012.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2012.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2012:
@@ -600,11 +709,13 @@ agg-2012:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2013:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2013"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -612,7 +723,7 @@ in_dt-2013:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2013 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2013.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2013.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2013:
@@ -631,11 +742,13 @@ agg-2013:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2014:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2014"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -643,7 +756,7 @@ in_dt-2014:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2014 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2014.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2014.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2014:
@@ -662,11 +775,13 @@ agg-2014:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2015:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2015"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -674,7 +789,7 @@ in_dt-2015:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2015 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2015.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2015.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2015:
@@ -693,11 +808,13 @@ agg-2015:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2016:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2016"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -705,7 +822,7 @@ in_dt-2016:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2016 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2016.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2016.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2016:
@@ -724,11 +841,13 @@ agg-2016:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2017:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2017"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -736,7 +855,7 @@ in_dt-2017:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2017 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2017.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2017.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2017:
@@ -755,11 +874,13 @@ agg-2017:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2018:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2018"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -767,7 +888,7 @@ in_dt-2018:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2018 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2018.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2018.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2018:
@@ -786,11 +907,13 @@ agg-2018:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 in_dt-2019:
   image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
   script:
   - echo "build_input_data-2019"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
@@ -798,7 +921,7 @@ in_dt-2019:
     ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2019 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2019.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
-  stage: build_input_data
+  stage: build_input_data_all
   tags:
   - openfisca
 agg-2019:
@@ -817,7 +940,7 @@ agg-2019:
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-  stage: aggregates
+  stage: aggregates_all
   tags:
   - openfisca
 build_conda_package:

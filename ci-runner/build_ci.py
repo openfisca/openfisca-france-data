@@ -38,6 +38,9 @@ stages:
   - build_collection
   - build_input_data
   - aggregates
+  - run_on_all_years
+  - build_input_data_all
+  - aggregates_all
   - anaconda
 
 before_script:
@@ -64,6 +67,46 @@ build docker image:
   # Build Docker is needed only if code as changed.
   when: manual
 
+
+run_on_all_years:
+  stage: run_on_all_years
+  # Prevent call of before_script because it will fail in this context
+  before_script:
+    - ''
+  script:
+    - echo "On ne fait rien"
+  when: manual
+
+clean_folder:
+  before_script:
+    - ''
+  script: rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+  stage: build_collection
+  tags:
+  - openfisca
+  when: manual
+
+copy_previous_build_collections:
+  before_script:
+    - ''
+  script: |
+    if [[ -f "$ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json" ]]; then
+        echo "Files already exists, do nothing."
+    else
+        rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
+        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
+        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
+        cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
+        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
+    fi
+  stage: build_collection
+  tags:
+  - openfisca
+  except:
+  - master
+
 """
 
 
@@ -78,6 +121,7 @@ def build_collections():
                 # Delete all previous data
                 "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
+                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/",
                 "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
                 'echo "Custom output folder"',
                 'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
@@ -88,18 +132,22 @@ def build_collections():
                 "build-collection -c erfs_fpr -d -m -v",
                 'echo "Backup updated config"',
                 "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini",
-                ],
+            ],
             "when": "manual",
-            }
         }
+    }
     return build_collection
 
 
-def build_input_data(year):
-    return {
-        "in_dt-"
+def build_input_data(year: str, stage: str = "build_input_data_all"):
+    if stage == "build_input_data_all":
+        prefix = "in_dt-"
+    else:
+        prefix = "input_data-"
+    step = {
+        prefix
         + year: {
-            "stage": "build_input_data",
+            "stage": stage,
             "image": "$CI_REGISTRY_IMAGE:latest",
             "tags": ["openfisca"],
             "script": [
@@ -111,18 +159,27 @@ def build_input_data(year):
                 "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-"
                 + year
                 + ".ini",
-                ],
-            }
+            ],
         }
+    }
+    if stage == "build_input_data_all":
+        step[prefix + year]["needs"] = ["run_on_all_years"]
+    return step
 
 
-def aggregates(year):
+def aggregates(year, stage: str = "aggregates_all"):
+    if stage == "aggregates_all":
+        prefix = "agg-"
+        prefix_input_data = "in_dt-"
+    else:
+        prefix = "aggregates-"
+        prefix_input_data = "input_data-"
     return {
-        "agg-"
+        prefix
         + year: {
-            "stage": "aggregates",
+            "stage": stage,
             "image": "$CI_REGISTRY_IMAGE:latest",
-            "needs": ["in_dt-" + year],
+            "needs": [prefix_input_data + year],
             "tags": ["openfisca"],
             "script": [
                 'echo "aggregates-' + year + '"',
@@ -131,10 +188,10 @@ def aggregates(year):
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER",
                 "cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output",
                 "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output",
-                ],
+            ],
             "artifacts": {"paths": ["./*.html", "./*.csv"]},
-            }
         }
+    }
 
 
 # Warning : not used yet : test are independant for now.
@@ -149,9 +206,9 @@ def make_test_by_year(year):
             "script": [
                 f"cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
                 "make test",
-                ],
-            }
+            ],
         }
+    }
 
 
 def make_test():
@@ -162,9 +219,9 @@ def make_test():
             "tags": ["openfisca"],
             "script": [
                 "make test",
-                ],
-            }
+            ],
         }
+    }
 
 
 def get_erfs_years():
@@ -196,10 +253,10 @@ def build_conda_package():
             "script": [
                 "conda install -y conda-build anaconda-client",
                 "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
-                ],
+            ],
             "except": ["master"],
-            }
         }
+    }
 
 
 def build_and_deploy_conda_package():
@@ -215,10 +272,10 @@ def build_and_deploy_conda_package():
                 "conda install -y conda-build anaconda-client",
                 "conda config --set anaconda_upload yes",
                 "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
-                ],
+            ],
             "only": ["master"],
-            }
         }
+    }
 
 
 def build_gitlab_ci(erfs_years):
@@ -226,6 +283,9 @@ def build_gitlab_ci(erfs_years):
     gitlab_ci += yaml.dump(make_test())
     # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
     gitlab_ci += yaml.dump(build_collections())
+    gitlab_ci += yaml.dump(build_input_data("2018", stage="build_input_data"))
+    gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates"))
+
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
         gitlab_ci += yaml.dump(build_input_data(year))
