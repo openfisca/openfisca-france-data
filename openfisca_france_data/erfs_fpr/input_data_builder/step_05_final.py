@@ -42,7 +42,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'statut_marital',
         # 'salaire_imposable',
         'salaire_de_base',
-        'taux_csg_remplacement',
         "traitement_indiciaire_brut",
         "primes_fonction_publique",
         ]
