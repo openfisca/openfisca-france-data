@@ -74,18 +74,20 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
 
     # inversion des revenus pour retrouver le brut
     # pour les revenus de remplacement on a la csg et la crds dans l'erfs-fpr donc on peut avoir le brut directement
-    create_revenus(individus, revenu_type = revenu_type)
+    create_revenus_remplacement_bruts(individus)
     # On n'a pas le salaire et le traitement_indiciaire brut, on doit l'inverser
+    # comme on a la crds et la csg non déductible on recalcule l'imposable puis on inverse l'imposable pour avoir le brut
+    individus['salaire_imposable'] = individus.salaire_net + individus.csg_nd_crds_sal_i
     create_salaire_de_base(
         individus,
         period = period,
-        revenu_type = revenu_type,
+        revenu_type = 'imposable',
         tax_benefit_system = tax_benefit_system
         )
     create_traitement_indiciaire_brut(
         individus, 
         period = period, 
-        revenu_type = revenu_type,
+        revenu_type = 'imposable',
         tax_benefit_system = tax_benefit_system)
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
@@ -968,46 +970,14 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
             individus.effectif_entreprise.value_counts(dropna = False)))
 
 
-def create_revenus(individus, revenu_type = 'imposable'):
-    """Création des plusieurs variablesde revenu.
-
-    Ces variables sont:
-        chomage_net,
-        pensions_alimentaires_percues,
-        rag_net,
-        retraite_nette,
-        ric_net,
-        rnc_net,
-    et éventuellement, si revenus_type = 'imposable' des variables:
-        chomage_imposable,
-        rag,
-        retraite_imposable,
-        ric,
-        rnc,
-        salaire_imposable,
+def create_revenus_remplacement_bruts(individus):
     """
-    individus['chomage_brut'] = individus.csgchod_i + individus.chomage_net
-    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_nette
-
-    if revenu_type == 'imposable':
-        variables = [
-            # 'pension_alimentaires_percues',
-            'chomage_imposable',
-            'retraite_imposable',
-            ]
-        for variable in variables:
-            assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
-
-        for variable in variables:
-            if (individus[variable] < 0).any():
-
-                negatives_values = individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
-                log.debug("La variable {} contient {} valeurs négatives\n {}".format(
-                    variable,
-                    negatives_values.sum(),
-                    negatives_values,
-                    )
-                )
+    Reconstitution des variables de retraite et chomage brut à partir des variables nettes et des variables de csg et crds
+    """
+    
+    # revenu_brut = revenu_net + csg_deductible + csg_non_deductible_crds
+    individus['chomage_brut'] = individus.chomage_net + individus.csgchod_i + individus. csg_nd_crds_cho_i
+    individus['retraite_brute'] =  individus.retraite_nette + individus.csgrstd_i + individus.csg_nd_crds_ret_i
 
 
 def create_statut_matrimonial(individus):
