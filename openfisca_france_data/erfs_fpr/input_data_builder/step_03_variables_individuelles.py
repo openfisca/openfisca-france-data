@@ -73,76 +73,11 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
 
     # inversion des revenus pour retrouver le brut
-    # pour les revenus de remplacement on a la csg et la crds dans l'erfs-fpr donc on peut avoir le brut directement
-    create_revenus_remplacement_bruts(individus)
-    # On n'a pas le salaire et le traitement_indiciaire brut, on doit l'inverser
-    # comme on a la crds et la csg non déductible on recalcule l'imposable puis on inverse l'imposable pour avoir le brut
-    individus['salaire_imposable'] = individus.salaire_net + individus.csg_nd_crds_sal_i
-    create_salaire_de_base(
-        individus,
-        period = period,
-        revenu_type = 'imposable',
-        tax_benefit_system = tax_benefit_system
-        )
-    create_traitement_indiciaire_brut(
-        individus, 
-        period = period, 
-        revenu_type = 'imposable',
-        tax_benefit_system = tax_benefit_system)
+
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
     return individus
-
-
-def create_individu_variables_brutes(individus, revenu_type = None, period = None,
-        tax_benefit_system = None, mass_by_categorie_salarie = None,
-        calibration_eec = False):
-    """
-    Crée les variables brutes de revenus:
-      - salaire_de_base
-      - traitement_indiciaire_brut
-      - primes_fonction_publique
-      - retraite_bruite
-      - chomage_brut
-    à partir des valeurs nettes ou imposables de ces revenus
-    et d'autres information individuelles
-    """
-    assert revenu_type in ['imposable', 'net']
-    assert period is not None
-    assert tax_benefit_system is not None
-
-    assert 'age' in individus.columns
-
-    created_variables = []
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
-    created_variables.append('contrat_de_travail')
-    created_variables.append('heures_remunerees_volume')
-
-    create_categorie_salarie(individus, period = period)
-    created_variables.append('categorie_salarie')
-    create_categorie_non_salarie(individus)
-    created_variables.append('categorie_non_salarie')
-
-    # FIXME: categorie_non_salarie modifie aussi categorie_salarie  !!
-    if (mass_by_categorie_salarie is not None) & (calibration_eec is True):
-        calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = mass_by_categorie_salarie)
-
-    create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
-    created_variables.append('salaire_de_base')
-
-    create_effectif_entreprise(individus, period = period)
-    created_variables.append('effectif_entreprise')
-
-    create_traitement_indiciaire_brut(individus, period = period, revenu_type = revenu_type,
-        tax_benefit_system = tax_benefit_system)
-    created_variables.append('traitement_indiciaire_brut')
-    created_variables.append('primes_fonction_publique')
-
-    create_revenus_remplacement_bruts(individus, period, tax_benefit_system)
-    created_variables.append('chomage_brut')
-    created_variables.append('retraite_brute')
-    return created_variables
 
 
 def create_activite(individus):
