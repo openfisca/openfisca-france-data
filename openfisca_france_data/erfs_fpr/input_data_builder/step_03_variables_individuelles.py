@@ -474,31 +474,6 @@ def create_categorie_non_salarie(individus):
         profession_liberale,
         'categorie_non_salarie'
         ] = 3
-    # Correction fonction publique
-    individus.loc[
-        (
-            (individus.categorie_salarie == 0)
-            & (individus.cstot.isin([31, 33, 34, 35, 37, 38,]))
-            ),
-        'categorie_salarie'
-        ] = 1
-
-    # Correction encadrement
-    individus.loc[
-        (
-            (individus.categorie_salarie == 0)
-            & (individus.cstot.isin([31, 34, 35, 37 ,38]))  # Cadres hors FP
-            ),
-        'categorie_salarie'
-        ] = 1
-    # Correction fonction publique
-    individus.loc[
-        (
-            (individus.categorie_salarie.isin([0, 1, 7]))
-            & (individus.cstot == 53) # Policiers et militaires reversé dans titulaire état
-            ),
-        'categorie_salarie'
-        ] = 2
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
