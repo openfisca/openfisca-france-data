@@ -80,13 +80,19 @@ def create_variables_individuelles(individus, year, survey_year = None):
         revenu_type = revenu_type,
         tax_benefit_system = tax_benefit_system
         )
-
+    create_traitement_indiciaire_brut(
+        individus, 
+        period = period, 
+        revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system)
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus)
     assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
+    assert 'traitement_indiciaire_brut' in individus.columns , 'traitement indiciaire brut not in individus'
+    assert 'primes_fonction_publique' in individus.columns , 'primes fonction publique not in individus'
     return individus
 
 
