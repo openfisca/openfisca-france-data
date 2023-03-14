@@ -73,7 +73,23 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
 
     # inversion des revenus pour retrouver le brut
-
+    # pour les revenus de remplacement on a la csg et la crds dans l'erfs-fpr donc on peut avoir le brut directement
+    create_revenus_remplacement_bruts(individus)
+    # On n'a pas le salaire et le traitement_indiciaire brut, on doit l'inverser
+    # comme on a la crds et la csg non déductible on recalcule l'imposable puis on inverse l'imposable pour avoir le brut
+    individus['salaire_imposable'] = individus.salaire_net + individus.csg_nd_crds_sal_i
+    create_salaire_de_base(
+        individus,
+        period = period,
+        revenu_type = 'imposable',
+        tax_benefit_system = tax_benefit_system
+        )
+    create_traitement_indiciaire_brut(
+        individus, 
+        period = period, 
+        revenu_type = 'imposable',
+        tax_benefit_system = tax_benefit_system)   
+    
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
