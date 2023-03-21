@@ -85,16 +85,17 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             ]
         ].copy()
     survey_name = 'openfisca_erfs_fpr_' + str(year)
-    
+
     # Formats ids
     individus = format_ids_and_roles(individus)
     menages = menages.rename(columns = {'idmen':'idmen_original'})
     unique_idmen = individus[['idmen','idmen_original']].drop_duplicates()
     assert len(unique_idmen) == len(menages), "Number of idmen should be the same individus and menages tables."
- 
-    menages = menages.merge(unique_idmen,
-                            how = 'inner',
-                            on = 'idmen_original')
+    menages = menages.merge(
+        unique_idmen,
+        how = 'inner',
+        on = 'idmen_original'
+        )
 
     if export_flattened_df_filepath:
         supermerge = individus.merge(
@@ -115,7 +116,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         collection = "openfisca_erfs_fpr",
         survey_name = survey_name,
         )
-
     menages = menages.sort_values(by = ['idmen'])
     log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
     set_table_in_survey(

@@ -1,6 +1,14 @@
 from .base import * # noqa  analysis:ignore
 
 
+class noindiv(Variable):
+    value_type = int
+    is_period_size_independent = True
+    entity = Individu
+    label = "Identifiant indvidu de l'ERFS"
+    definition_period = YEAR
+
+
 class idmen_original(Variable):
     value_type = int
     is_period_size_independent = True

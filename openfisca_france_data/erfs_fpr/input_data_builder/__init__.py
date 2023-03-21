@@ -1,9 +1,14 @@
 import click
-import logging
 import configparser
-import sys, getopt
-import warnings
 import datetime
+import logging
+import pdb
+import sys
+import time
+import warnings
+
+
+from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
 #from multipledispatch import dispatch  # type: ignore
 
 warnings.filterwarnings("ignore", ".*is an invalid version and will not be supported in a future release.*")
@@ -37,7 +42,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     Ici on va nettoyer et formatter les donnés ERFS-FPR, pour les rendre OpenFisca-like
     """
 
-    # Step 01 : la magie de ce qui nous intéresse : le formattage OpenFisca
+    # Step 01 : le formattage OpenFisca
     #
     # - Formattage des différentes variables
     # - On merge les tables individus / menages
@@ -77,20 +82,14 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
 
 
 @click.command()
-@click.option('-y', '--year', default = 2017, help = "ERFS-FPR year", show_default = True,
-    type = int, required = True)
-@click.option('-f', '--file', 'export_flattened_df_filepath', default = None,
-    help = 'flattened dataframe filepath', show_default = True)
-@click.option('-c', '--configfile', default = None,
-    help = 'raw_data.ini path to read years to process.', show_default = True)
-@click.option('-l', '--log', 'lg', default = "info",
-    help = 'level of detail for log output.', show_default = True)
-def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg = "info"):
-    import time
+@click.option('-y', '--year', default = REFERENCE_YEAR, help = "ERFS-FPR year", show_default = True, type = int, required = True)
+@click.option('-f', '--file', 'export_flattened_df_filepath', default = None, help = 'flattened dataframe filepath', show_default = True)
+@click.option('-c', '--configfile', default = None, help = 'raw_data.ini path to read years to process.', show_default = True)
+@click.option('-l', '--log', 'lg', default = "info", help = 'level of detail for log output.', show_default = True)
+@click.option('-d', '--debug', 'debug', is_flag = True, default = False, help = 'debug', show_default = True)
+def main(year = None, export_flattened_df_filepath = None, configfile = None, lg = "info", debug = False):
+    assert year is not None
     start = time.time()
-
-    catch_errors = False
-
     # get level of logging
     if lg == "info":
         lgi = logging.INFO
@@ -105,9 +104,9 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
 
     log.info("Starting build-erfs-fpr [log: {}]".format(lg))
 
-    # determine which years are to be analyzed, from file if available, else parameter
+    # Determine which years are to be analyzed, from file if available, else parameter
     if configfile is not None:
-        log.warning("Reading years to process from {configfile}")
+        log.info("Reading years to process from {configfile}")
         years = []
 
         try:
@@ -128,18 +127,24 @@ def main(year = 2017, export_flattened_df_filepath = None, configfile = None, lg
 
         for year in years:
             log.info('Starting with year {}'.format(year))
-            if catch_errors:
-                try:
-                    build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
-                except Exception as e:
-                    log.warning(" == BUILD HAS FAILED FOR YEAR {} == ".format(year))
-                    log.warning("Error message:\n{}\nEND OF ERROR MESSAGE\n\n".format(str(e)))
-            else:
+            try:
                 build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
-
+            except Exception as e:
+                log.warning(f" == BUILD HAS FAILED FOR YEAR {year} ==")
+                log.warning(f"Error message:\n{str(e)}\nEND OF ERROR MESSAGE\n\n")
+                if debug:
+                    pdb.post_mortem(sys.exc_info()[2])
+                raise e
     else:
         log.info('Configured single year: [{}]'.format(year))
-        build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+        try:
+            build(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+        except Exception as e:
+            log.warning(f" == BUILD HAS FAILED FOR YEAR {year} ==")
+            log.warning(f"Error message:\n{str(e)}\nEND OF ERROR MESSAGE\n\n")
+            if debug:
+                pdb.post_mortem(sys.exc_info()[2])
+            raise e
 
     # TODO: create_enfants_a_naitre(year = year)
     log.info("\n\n ==> Script finished after {} seconds.".format(round(time.time() - start)))
