@@ -12,38 +12,63 @@ from openfisca_survey_manager.survey_collections import SurveyCollection  # type
 
 log = logging.getLogger(__name__)
 
+def build_table_by_name(year, erfs_fpr_survey_collection):
+    """Infer names of the survey and data tables."""
+    # where available, use harmoized data
+    yr = str(year)[-2:]  # 12 for 2012
+    yr1 = str(year + 1)[-2:]  # 13 for 2012
+    add_suffix_retropole_years = [2012]
+    survey = erfs_fpr_survey_collection.get_survey(f"erfs_fpr_{year}")
+    tables = set(survey.tables.keys())
+
+    table_by_name_stata = {
+        "eec_individu": f"fpr_irf{yr}e{yr}t4" if year >= 2002 else f"fpr_irf{yr}e{yr1}",
+        "eec_menage": f"fpr_mrf{yr}e{yr}t4" if year >= 2002 else f"fpr_mrf{yr}e{yr1}",
+        "fpr_individu": f"fpr_indiv_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_indiv_{year}",
+        "fpr_menage": f"fpr_menage_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_menage_{year}"
+        }
+
+    table_by_name_sas = {
+        "eec_individu": "IRF",
+        "eec_menage": "MRF",
+        "fpr_individu": "Individu",
+        "fpr_menage": "Menage"
+        }
+
+    if tables == set(table_by_name_stata.values()):
+        table_by_name = table_by_name_stata.copy()
+
+    elif tables == set(table_by_name_sas.values()):
+        table_by_name = table_by_name_sas.copy()
+
+    else:
+        raise ValueError("No incorrect table pattern: {tables}")
+
+    table_by_name["survey"] = f"erfs_fpr_{year}"
+
+    return table_by_name
+
 
 @temporary_store_decorator(file_name = "erfs_fpr")
 def build_merged_dataframes(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
-
-    erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
-    yr = str(year)[-2:]  # 12 for 2012
-    yr1 = str(year+1)[-2:]  # 12 for 2012
-
-    # where available, use harmoized data
-    add_suffix_retropole_years = [2012]
+    erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr",
+        )
 
     # infer names of the survey and data tables
-    names = {
-        "survey": f"erfs_fpr_{year}",
-        "eec_individu": f"fpr_irf{yr}e{yr}t4" if year >= 2002 else f"fpr_irf{yr}e{yr1}",
-        "eec_menage": f"fpr_mrf{yr}e{yr}t4" if year >= 2002 else f"fpr_mrf{yr}e{yr1}",
-        "fpr_individu": f"fpr_indiv_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_indiv_{year}",
-        "fpr_menage": f"fpr_menage_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_menage_{year}"
-    }
+    table_by_name = build_table_by_name(year, erfs_fpr_survey_collection)
 
-    log.debug("Loading tables for year {} [{}]".format(year, names))
+    log.debug("Loading tables for year {} [{}]".format(year, table_by_name))
 
     # load survey and tables
-    survey = erfs_fpr_survey_collection.get_survey(names['survey'])
+    survey = erfs_fpr_survey_collection.get_survey(table_by_name['survey'])
 
-    eec_individu = survey.get_values(table = names['eec_individu'], ignorecase= True)
-    eec_menage = survey.get_values(table = names['eec_menage'], ignorecase=True)
+    eec_individu = survey.get_values(table = table_by_name['eec_individu'], ignorecase= True)
+    eec_menage = survey.get_values(table = table_by_name['eec_menage'], ignorecase=True)
 
-    fpr_individu = survey.get_values(table = names['fpr_individu'], ignorecase = True)
-    fpr_menage = survey.get_values(table = names['fpr_menage'], ignorecase = True)
+    fpr_individu = survey.get_values(table = table_by_name['fpr_individu'], ignorecase = True)
+    fpr_menage = survey.get_values(table = table_by_name['fpr_menage'], ignorecase = True)
 
     # transform to lowercase
     for table in (fpr_menage, eec_menage, eec_individu, fpr_individu):
@@ -272,8 +297,11 @@ def check_naia_naim(individus, year):
 
     assert individus.naim.isin(range(1, 13)).all(), f"naim values: {individus.naim.unique()}"
     assert isinstance(year, int)
-    bad_noindiv = individus.loc[~((year >= individus.naia) & (individus.naia > 1890)),
-                                "noindiv"].unique()
+    bad_noindiv = individus.loc[
+        ~((year >= individus.naia) & (individus.naia > 1890)),
+        "noindiv",
+        ].unique()
+
     for id in bad_noindiv:
         individus.loc[individus.noindiv == id,'naia'] = year - individus.loc[individus.noindiv == id, 'ageq']
 

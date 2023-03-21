@@ -10,7 +10,7 @@ from openfisca_france_data import france_data_tax_benefit_system
 
 
 def get_survey_scenario(
-        year: int = 2014,
+        year: int = None,
         rebuild_input_data: bool = False,
         tax_benefit_system: Optional[TaxBenefitSystem] = None,
         baseline_tax_benefit_system: Optional[TaxBenefitSystem] = None,
@@ -30,6 +30,7 @@ def get_survey_scenario(
     :param data:                        Les données de l'enquête.
     :param reform:                      Une réforme à appliquer à *france_data_tax_benefit_system*.
     """
+    assert year is not None
     tax_benefit_system = get_tax_benefit_system(
         tax_benefit_system,
         reform,
@@ -38,6 +39,15 @@ def get_survey_scenario(
     baseline_tax_benefit_system = get_baseline_tax_benefit_system(
         baseline_tax_benefit_system,
         )
+
+
+    from openfisca_france_data.model.id_variables import (
+        idmen_original,
+        noindiv,
+        )
+
+    tax_benefit_system.add_variable(idmen_original)
+    tax_benefit_system.add_variable(noindiv)
 
     if not use_marginal_tax_rate:
         survey_scenario = ErfsFprSurveyScenario.create(
