@@ -9,7 +9,6 @@ from openfisca_france.reforms import (
     allocations_familiales_imposables,
     cesthra_invalidee,
     # inversion_directe_salaires, # We use a custom inversion_directe_salaires, not merged in the openfisca-france yet
-    plf2016,
     plf2016_ayrault_muet,
     plf2015,
     plfr2014,
@@ -25,10 +24,7 @@ reform_list = {
     'allocations_familiales_imposables': allocations_familiales_imposables.allocations_familiales_imposables,
     'cesthra_invalidee': cesthra_invalidee.cesthra_invalidee,
     'inversion_directe_salaires': inversion_directe_salaires.inversion_directe_salaires,
-    'plf2016': plf2016.plf2016,
     'ayrault_muet': plf2016_ayrault_muet.ayrault_muet,
-    'plf2016_counterfactual': plf2016.plf2016_counterfactual,
-    'plf2016_counterfactual_2014': plf2016.plf2016_counterfactual_2014,
     'plf2015': plf2015.plf2015,
     'plfr2014': plfr2014.plfr2014,
     'trannoy_wasmer': trannoy_wasmer.trannoy_wasmer,
@@ -81,4 +77,3 @@ def get_cached_composed_reform(reform_keys, tax_benefit_system):
 
 def get_cached_reform(reform_key, tax_benefit_system):
     return get_cached_composed_reform([reform_key], tax_benefit_system)
-

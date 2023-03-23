@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.23.1",
+    version = "0.24",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -24,28 +24,34 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
     entry_points = {
-        'console_scripts': ['build-erfs-fpr=openfisca_france_data.erfs_fpr.input_data_builder:main'],
+        'console_scripts': [
+            'build-erfs-fpr=openfisca_france_data.erfs_fpr.input_data_builder:main',
+            'compare-erfs-fpr-input=openfisca_france_data.erfs_fpr.comparison:compare',
+            'create-test-erfs-fpr=openfisca_france_data.erfs_fpr.test_case_creation:create_test',
+            ],
         },
     python_requires = ">= 3.7",
     install_requires = [
         "click >= 8.0.0, < 9.0.0",
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openFisca-france >= 113.0.0, < 120.0.0",  # Max 120 because of a bug in OF : https://github.com/openfisca/openfisca-france/issues/1996
-        "openFisca-survey-manager >= 0.44.2, < 1.0.0",
+        "openFisca-france >= 145.0.0, < 146.0.0",
+        "openFisca-survey-manager >= 0.47.2, < 1.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
     extras_require = {
         "test": [
             "autopep8 >= 1.4.0, < 1.5.0",
+            "bumpver >= 2022.1120",
+            "dtale",
             "flake8 >= 3.7.0, < 3.8.0",
             "ipython >= 7.5.0, < 8.0.0",
             "mypy >= 0.670, < 1.0.0",
-            "pytest >= 4.3.0, < 5.0.0",
-            "pytest-cov >= 2.6.0, < 3.0.0",
+            "pypandoc",
+            'pytest >= 5.0.0, < 7.0.0',
+            # "pytest-cov >= 2.6.0, < 3.0.0",
             "scipy >= 1.2.1, < 2.0.0",
             "toolz >= 0.9.0, < 1.0.0",
-            "bumpver >= 2022.1120",
             ],
         },
     packages = find_packages(exclude = ("docs", "tests")),

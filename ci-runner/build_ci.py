@@ -19,124 +19,7 @@ def header():
 # Please visit ci-runner/README.md
 ################################################
 
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  CI_REGISTRY: https://index.docker.io/v1/
-  CI_REGISTRY_IMAGE: leximpact/openfisca-france-data
-  # OUT_FOLDER: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA" # For branch-commit_id
-  OUT_FOLDER: "$CI_COMMIT_REF_NAME" # For just branch
-  ROOT_FOLDER: "/mnt/data-out/openfisca-france-data"
-
-cache:
-  paths:
-    - .cache/pip
-    - ./figures/
-
-stages:
-  - docker
-  - test
-  - build_collection
-  - build_input_data
-  - aggregates
-  - run_on_all_years
-  - build_input_data_all
-  - aggregates_all
-  - anaconda
-
-before_script:
-  # To be sure we are up to date even if we do not rebuild docker image
-  - make install
-  - cp ./ci-runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
-  - echo "End of before_script"
-
-build docker image:
-  stage: docker
-  tags:
-    - openfisca
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  # Prevent call of before_script because it will fail in this context
-  before_script:
-    - ''
-  script:
-    # From https://github.com/GoogleContainerTools/kaniko#pushing-to-docker-hub
-    - DOCKER_HUB_AUTH=$(echo -n $DOCKER_HUB_USER:$DOCKER_HUB_PASSWORD | base64)
-    - echo "{\\"auths\\":{\\"$CI_REGISTRY\\":{\\"auth\\":\\"$DOCKER_HUB_AUTH\\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/docker/Dockerfile --destination $CI_REGISTRY_IMAGE:latest
-  # Build Docker is needed only if code as changed.
-  when: manual
-
-
-run_on_all_years:
-  stage: run_on_all_years
-  # Prevent call of before_script because it will fail in this context
-  before_script:
-    - ''
-  script:
-    - echo "On ne fait rien"
-  when: manual
-
-clean_folder:
-  before_script:
-    - ''
-  script: rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
-  stage: build_collection
-  tags:
-  - openfisca
-  when: manual
-
-copy_previous_build_collections:
-  before_script:
-    - ''
-  script: |
-    if [[ -f "$ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json" ]]; then
-        echo "Files already exists, do nothing."
-    else
-        rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
-        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
-        mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
-        cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
-        sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
-        cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
-        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
-    fi
-  stage: build_collection
-  tags:
-  - openfisca
-  except:
-  - master
-
 """
-
-
-def build_collections():
-    build_collection = {
-        "build_collection": {
-            "stage": "build_collection",
-            "image": "$CI_REGISTRY_IMAGE:latest",
-            "tags": ["openfisca"],
-            "script": [
-                'echo "Begin with fresh config"',
-                # Delete all previous data
-                "rm -rf $ROOT_FOLDER/$OUT_FOLDER || true",  # || true to ignore error
-                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/",
-                "mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/",
-                "cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini",
-                'echo "Custom output folder"',
-                'sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini',
-                r"""echo "{\"name\": \"erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json""",
-                r"""echo "{\"name\": \"openfisca_erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json""",
-                "cat ~/.config/openfisca-survey-manager/config.ini",
-                "#build-collection -c enquete_logement -d -m -s 2013",
-                "build-collection -c erfs_fpr -d -m -v",
-                'echo "Backup updated config"',
-                "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini",
-            ],
-            "when": "manual",
-        }
-    }
-    return build_collection
 
 
 def build_input_data(year: str, stage: str = "build_input_data_all"):
@@ -211,19 +94,6 @@ def make_test_by_year(year):
     }
 
 
-def make_test():
-    return {
-        "test": {
-            "stage": "test",
-            "image": "$CI_REGISTRY_IMAGE:latest",
-            "tags": ["openfisca"],
-            "script": [
-                "make test",
-            ],
-        }
-    }
-
-
 def get_erfs_years():
     """
     Read raw_data.ini to find all available years.
@@ -241,56 +111,20 @@ def get_erfs_years():
         raise KeyError
 
 
-def build_conda_package():
-    """
-    Build conda package
-    """
-    return {
-        "build_conda_package": {
-            "stage": "anaconda",
-            "before_script": [""],
-            "image": "continuumio/miniconda3",
-            "script": [
-                "conda install -y conda-build anaconda-client",
-                "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
-            ],
-            "except": ["master"],
-        }
-    }
-
-
-def build_and_deploy_conda_package():
-    """
-    Build and deploy conda package
-    """
-    return {
-        "build_and_deploy_conda_package": {
-            "stage": "anaconda",
-            "before_script": [""],
-            "image": "continuumio/miniconda3",
-            "script": [
-                "conda install -y conda-build anaconda-client",
-                "conda config --set anaconda_upload yes",
-                "conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda",
-            ],
-            "only": ["master"],
-        }
-    }
-
 
 def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
-    gitlab_ci += yaml.dump(make_test())
+    # gitlab_ci += yaml.dump(make_test())
     # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
-    gitlab_ci += yaml.dump(build_collections())
-    gitlab_ci += yaml.dump(build_input_data("2018", stage="build_input_data"))
-    gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates"))
+    # gitlab_ci += yaml.dump(build_collections())
+    gitlab_ci += yaml.dump(build_input_data("2019", stage="build_input_data"))
+    gitlab_ci += yaml.dump(aggregates("2019", stage="aggregates"))
 
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
         gitlab_ci += yaml.dump(build_input_data(year))
         gitlab_ci += yaml.dump(aggregates(year))
-    gitlab_ci += yaml.dump(build_conda_package())
+    # gitlab_ci += yaml.dump(build_conda_package())
     return gitlab_ci
 
 
@@ -300,7 +134,7 @@ def main():
     # For testing only some years
     # erfs_years = ["2016", "2017", "2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
-    with open(r".gitlab-ci.yml", mode="w") as file:
+    with open(r"./gitlab_ci/all_years_build_and_aggregates.yml", mode="w") as file:
         file.write(gitlab_ci)
     print("Done with success!")
 

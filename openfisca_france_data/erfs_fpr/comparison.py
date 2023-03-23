@@ -1,0 +1,91 @@
+"""Compare openfisca-france-data simulation to erfs-fpr."""
+
+
+import click
+import logging
+
+
+from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_france_data.comparator import AbstractComparator
+from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
+from openfisca_france_data.erfs_fpr.input_data_builder.step_01_preprocessing import build_table_by_name
+
+
+log = logging.getLogger(__name__)
+
+
+openfisca_by_erfs_fpr_variables = {
+    "chomage_i": "chomage_net",
+    "ident": "idmen_original",
+    "noindiv": "noindiv",
+    "rag_i": "rag_net",
+    "retraites_i": "retraite_nette",  # TODO: CHECk
+    "rev_fonciers_bruts": "f4ba",
+    "ric_i": "ric_net",
+    "rnc_i": "rnc_net",
+    "salaires_i": "salaire_net",
+    }
+
+
+class ErfsFprtoInputComparator(AbstractComparator):
+    name = "erfs_fpr"
+    period = None
+    default_target_variables = [
+        "chomage_net",
+        # "rag_net", TODO: does not exist in openfisca
+        "retraite_nette",
+        # "ric_net",  TODO: does not exist in openfisca
+        # "rnc_net", TODO: does not exist in openfisca
+        # "f4ba",
+       "salaire_net",
+        ]
+
+    def compute_test_dataframes(self):
+        erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
+        # infer names of the survey and data tables
+        assert self.period is not None
+        year = int(self.period)
+        table_by_name = build_table_by_name(year, erfs_fpr_survey_collection)
+
+        log.debug("Loading tables for year {} [{}]".format(year, table_by_name))
+
+        # load survey and tables
+        survey = erfs_fpr_survey_collection.get_survey(table_by_name['survey'])
+
+        fpr_individu = survey.get_values(table = table_by_name['fpr_individu'], ignorecase = True)
+        fpr_menage = survey.get_values(table = table_by_name['fpr_menage'], ignorecase = True)
+
+        openfisca_survey_collection = SurveyCollection.load(collection = "openfisca_erfs_fpr")
+        openfisca_survey = openfisca_survey_collection.get_survey(f"openfisca_erfs_fpr_{year}")
+        openfisca_individu = openfisca_survey.get_values(table = f"individu_{year}")
+        openfisca_menage = openfisca_survey.get_values(table = f"menage_{year}")
+
+        input_dataframe_by_entity = {
+            "individu": openfisca_individu,
+            "menage": openfisca_menage,
+            }
+        target_dataframe_by_entity = {
+            "individu": fpr_individu.rename(columns = openfisca_by_erfs_fpr_variables),
+            "menage": fpr_menage.rename(columns = openfisca_by_erfs_fpr_variables),
+            }
+
+        return input_dataframe_by_entity, target_dataframe_by_entity
+
+
+@click.command()
+@click.option('-b', '--browse', is_flag = True, help = "Browse results", default = False, show_default = True)
+@click.option('-l', '--load', is_flag = True, default = False, help = "Load backup results", show_default = True)
+@click.option('-v', '--verbose', is_flag = True, default = False, help = "Increase output verbosity", show_default = True)
+@click.option('-d', '--debug', is_flag = True, default = False, help = "Use python debugger", show_default = True)
+@click.option('-p', '--period', default = REFERENCE_YEAR, help = "period(s) to treat", show_default = True)
+@click.option('-t', '--target-variables', default = None, help = "target variables to inspect (None means all)", show_default = True)
+@click.option('-u', '--rebuild', is_flag = True, default = False, help = "Rebuild test data", show_default = True)
+@click.option('-s', '--summary', is_flag = True, default = False, help = "Produce summary figuress", show_default = True)
+def compare(browse = False, load = False, verbose = True, debug = True, target_variables = None, period = None, rebuild = False, summary = False):
+    """Compare openfisca-france-data simulation to erfs-fpr by generating comparison data and graphs.
+
+    Data can be explored using D-Tale and graphs are saved as pdf files.
+    """
+    comparator = ErfsFprtoInputComparator()
+    comparator.period = period
+    comparator.compare(browse, load, verbose, debug, target_variables, period, rebuild, summary)

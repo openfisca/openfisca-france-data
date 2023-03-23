@@ -1,4 +1,7 @@
-FROM python:3.7
+FROM python:3.9
+
+# Install useful packages
+RUN apt-get update && apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-latex-extra
 
 # Add user and group to Image to get output files with the host user ownership
 # ARG USER_ID=1001
@@ -25,7 +28,7 @@ COPY README.md .
 # RUN pip install --upgrade pip setuptools
 # RUN pip install --editable .[test] --upgrade
 RUN make install
-RUN pip install sas7bdat scipy
+RUN pip install sas7bdat scipy pandoc
 COPY . .
 # build-collection can get a path of file location in parameter but not openfisca_france_data.
 # That's why we create a symbolic link from the default location of config to our data path

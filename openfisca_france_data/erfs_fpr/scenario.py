@@ -53,6 +53,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "idfam_original",
         "idfoy_original",
         "idmen_original",
+        "noindiv",
         # 'rempli_obligation_scolaire',
         # 'ressortissant_eee',
         "wprm_init",

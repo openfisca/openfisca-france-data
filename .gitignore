@@ -87,3 +87,5 @@ openfisca_erfs_fpr.json
 # PyEnv
 .python-version
 .pytest_cache/
+
+figures_directory
