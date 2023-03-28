@@ -7,6 +7,7 @@ variables:
   # OUT_FOLDER: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA" # For branch-commit_id
   OUT_FOLDER: "$CI_COMMIT_REF_NAME" # For just branch
   ROOT_FOLDER: "/mnt/data-out/openfisca-france-data"
+#  GIT_DEPTH: 1000 # To be able to get last tag (default 50)
 
 cache:
   paths:
@@ -140,24 +141,25 @@ diagnostics:
   - openfisca
 
 check-version-and-changelog:
-  stage: diagnostics
+  # stage: diagnostics TODO: Put it back
+  stage: test
   before_script:
   - ''
   needs:
-  - input_data-2019
+  # - input_data-2019
+  - test
   script:
-  - .github/is-version-number-acceptable.sh
+  - ci-runner/is-version-number-acceptable.sh
 
-check-for-functional-changes:
-  stage: diagnostics
-  needs:
-  - check-version-and-changelog
-  before_script:
-  - ''
-  script:
-  - if `.github/has-functional-changes.sh` ; then echo "OK to build package" ; fi
-  when:
-  - master
+# check-for-functional-changes:
+#   stage: diagnostics
+#   needs:
+#   - check-version-and-changelog
+#   before_script:
+#   - ''
+#   script:
+#   - if `.github/has-functional-changes.sh` ; then echo "OK to build package" ; fi
+#   when: master
 
 
 run_on_all_years:
