@@ -139,6 +139,26 @@ diagnostics:
   tags:
   - openfisca
 
+check-version-and-changelog:
+  stage: diagnostics
+  before_script:
+  - ''
+  needs:
+  - input_data-2019
+  script:
+  - .github/is-version-number-acceptable.sh
+
+check-for-functional-changes:
+  stage: diagnostics
+  needs:
+  - check-version-and-changelog
+  before_script:
+  - ''
+  script:
+  - if `.github/has-functional-changes.sh` ; then echo "OK to build package" ; fi
+  when:
+  - master
+
 
 run_on_all_years:
   stage: run_on_all_years
