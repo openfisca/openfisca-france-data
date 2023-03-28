@@ -111,7 +111,6 @@ def get_erfs_years():
         raise KeyError
 
 
-
 def build_gitlab_ci(erfs_years):
     gitlab_ci = header()
     # gitlab_ci += yaml.dump(make_test())

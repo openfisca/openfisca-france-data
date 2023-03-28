@@ -127,6 +127,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         )
     log.debug("End of create_input_data_frame")
 
+
 def create_collectives_foyer_variables(individus, menages):
     menages_revenus_fonciers = menages[['idmen', 'rev_fonciers_bruts']].copy()
     idmens = menages_revenus_fonciers.query('(rev_fonciers_bruts > 0)')['idmen'].tolist()

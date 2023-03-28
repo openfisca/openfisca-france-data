@@ -134,8 +134,6 @@ diagnostics:
   - cat ~/.config/openfisca-france-data/config.ini
   - compare-erfs-fpr-input -u -s -v
   - cp -r /mnt/data-out/openfisca-france-data/$OUT_FOLDER/figures_directory .
-  - ls -alrth
-  - ls -alrth figures_directory
   - cp -r ./figures_directory $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: diagnostics
   tags:
