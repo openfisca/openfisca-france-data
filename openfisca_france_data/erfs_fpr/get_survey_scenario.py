@@ -2,11 +2,59 @@ from typing import Any, Optional
 
 from multipledispatch import dispatch  # type: ignore
 
+from openfisca_core.model_api import Variable, ADD, YEAR
 from openfisca_core.reforms import Reform  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 
+from openfisca_france.entities import Individu
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data import france_data_tax_benefit_system
+
+
+from openfisca_france_data.model.id_variables import (
+    idmen_original,
+    noindiv,
+    )
+
+variables_converted_to_annual = [
+    "salaire_net",
+    "chomage_net",
+    "retraite_nette",
+    "ppa",
+    ]
+
+
+class erfs_fpr_plugin(Reform):
+    name = "ERFS-FPR ids plugin"
+
+    def apply(self):
+
+        for variable in variables_converted_to_annual:
+            class_name =  f"{variable}_annuel"
+            label = f"{variable} sur l'année entière"
+
+            def formula_creator(variable):
+                def formula(individu, period):
+                    result = individu(variable, period, options = [ADD])
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = int,
+                entity = self.variables[variable].entity,
+                label = label,
+                definition_period = YEAR,
+                formula = formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+        self.add_variable(idmen_original)
+        self.add_variable(noindiv)
 
 
 def get_survey_scenario(
@@ -39,15 +87,6 @@ def get_survey_scenario(
     baseline_tax_benefit_system = get_baseline_tax_benefit_system(
         baseline_tax_benefit_system,
         )
-
-
-    from openfisca_france_data.model.id_variables import (
-        idmen_original,
-        noindiv,
-        )
-
-    tax_benefit_system.add_variable(idmen_original)
-    tax_benefit_system.add_variable(noindiv)
 
     if not use_marginal_tax_rate:
         survey_scenario = ErfsFprSurveyScenario.create(
@@ -114,7 +153,7 @@ def get_tax_benefit_system(
         tax_benefit_system: None,
         reform: Reform,
         ) -> TaxBenefitSystem:
-    return reform(france_data_tax_benefit_system)
+    return reform(erfs_fpr_plugin(france_data_tax_benefit_system))
 
 
 # Appelé quand *tax_benefit_system* et *reform* sont `None`
@@ -123,7 +162,7 @@ def get_tax_benefit_system(
         tax_benefit_system: None,
         reform: None,
         ) -> TaxBenefitSystem:
-    return france_data_tax_benefit_system
+    return erfs_fpr_plugin(france_data_tax_benefit_system)
 
 
 # Appelé quand *tax_benefit_system* est un :class:`TaxBenefitSystem`
@@ -139,4 +178,4 @@ def get_baseline_tax_benefit_system(
 def get_baseline_tax_benefit_system(
         tax_benefit_system: None,
         ) -> TaxBenefitSystem:
-    return france_data_tax_benefit_system
+    return erfs_fpr_plugin(france_data_tax_benefit_system)
