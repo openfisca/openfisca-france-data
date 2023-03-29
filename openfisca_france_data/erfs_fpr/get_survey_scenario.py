@@ -17,6 +17,9 @@ from openfisca_france_data.model.id_variables import (
     )
 
 variables_converted_to_annual = [
+    "salaire_imposable",
+    "chomage_imposable",
+    "retraite_imposable",
     "salaire_net",
     "chomage_net",
     "retraite_nette",

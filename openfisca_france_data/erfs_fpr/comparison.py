@@ -15,15 +15,15 @@ log = logging.getLogger(__name__)
 
 
 openfisca_by_erfs_fpr_variables = {
-    "chomage_i": "chomage_net",
+    "chomage_i": "chomage_imposable",
     "ident": "idmen_original",
     "noindiv": "noindiv",
-    "rag_i": "rag_net",
-    "retraites_i": "retraite_nette",  # TODO: CHECk
+    "rag_i": "rag",
+    "retraites_i": "retraite_imposable",  # TODO: CHECk
     "rev_fonciers_bruts": "f4ba",
-    "ric_i": "ric_net",
-    "rnc_i": "rnc_net",
-    "salaires_i": "salaire_net",
+    "ric_i": "ric",
+    "rnc_i": "rnc",
+    "salaires_i": "salaire_imposable",
     }
 
 
@@ -31,13 +31,13 @@ class ErfsFprtoInputComparator(AbstractComparator):
     name = "erfs_fpr"
     period = None
     default_target_variables = [
-        "chomage_net",
-        # "rag_net", TODO: does not exist in openfisca
-        "retraite_nette",
-        # "ric_net",  TODO: does not exist in openfisca
-        # "rnc_net", TODO: does not exist in openfisca
+        "chomage_imposable",
+        # "rag",
+        "retraite_imposable",
+        # "ric",
+        # "rnc",
         # "f4ba",
-       "salaire_net",
+       "salaire_imposable",
         ]
 
     def compute_test_dataframes(self):
