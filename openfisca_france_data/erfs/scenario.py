@@ -26,6 +26,7 @@ class ErfsSurveyScenario(AbstractErfsSurveyScenario):
         'nbN',
         'nbR',
         'pensions_alimentaires_percues',
+        'primes_fonction_publique',
         'rag',
         'retraite_brute',
         'retraite_imposable',
@@ -36,6 +37,7 @@ class ErfsSurveyScenario(AbstractErfsSurveyScenario):
         'statut_marital',
         'statut_occupation_logement',
         'taxe_habitation',
+        'traitement_indiciaire_brut',
         'zone_apl',
         ]
 
