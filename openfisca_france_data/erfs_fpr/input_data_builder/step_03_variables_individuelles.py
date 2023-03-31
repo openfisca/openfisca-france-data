@@ -90,6 +90,11 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
         revenu_type = revenu_type,
         tax_benefit_system = tax_benefit_system,
         )
+    create_traitement_indiciaire_brut(
+        individus,
+        period = period,
+        revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system)
 
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)

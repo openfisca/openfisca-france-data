@@ -16,6 +16,7 @@ warnings.filterwarnings("ignore", ".*is an invalid version and will not be suppo
 from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_01_preprocessing as preprocessing,
     # step_02_imputation_loyer as imputation_loyer,
+    step_02_menage as menage,
     step_03_variables_individuelles as variables_individuelles,
     step_04_famille as famille,
     step_05_foyer as foyer,
@@ -59,6 +60,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
     # imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
     log.info('\n [[[ Year {} - Step 2 / 6 SKIPPED ]]] \n'.format(year))
+    menage.build_variables_menage(year = year)
 
     # Step 03 : on commence par les variables indivuelles
     log.info('\n [[[ Year {} - Step 3 / 6 ]]] \n'.format(year))
@@ -72,10 +74,10 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # - On va faire de suppositions pour faire les foyers fiscaux
     log.info('\n [[[ Year {} - Step 4 / 6 ]]] \n'.format(year))
     famille.build_famille(year = year)
-    
+
     log.info('\n [[[ Year {} - Step 5 / 6 ]]] \n'.format(year))
     foyer.build_variables_foyers_fiscal(year = year)
-    
+
     # Affreux ! On injectait tout dans un même DataFrame !!!
     # C'est très moche !
     #

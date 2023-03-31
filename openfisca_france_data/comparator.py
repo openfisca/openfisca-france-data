@@ -159,10 +159,12 @@ def create_variable_distribution_figures(variable, result, bins = None, figures_
 
     unique_values_count = melted["value"].nunique()
 
-    bins == unique_values_count if unique_values_count < bins else bins
+    bins = unique_values_count if unique_values_count < bins else bins
     print(f"create_variable_distribution_figures (total): variable = {variable}, bins = {bins}")
 
     melted["value"] = melted["value"].clip(1, melted["value"].max())
+
+    log_scale = bins > 10
 
     sns_plot = sns.histplot(
         data = melted,
@@ -175,7 +177,7 @@ def create_variable_distribution_figures(variable, result, bins = None, figures_
         hue = "variable",
         linewidth = 0,
         x = "value",
-        log_scale = True,
+        log_scale = log_scale,
         )
 
     sns_plot.annotate(
