@@ -1,7 +1,7 @@
 
 ################################################
 # GENERATED FILE, DO NOT EDIT
-# Please visit ci-runner/README.md
+# Please visit .gitlab-ci/README.md
 ################################################
 
 input_data-2019:
@@ -9,8 +9,8 @@ input_data-2019:
   script:
   - echo "build_input_data-2019"
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini
-  - cat ~/.config/openfisca-survey-manager/config.ini
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    ~/.config/openfisca-survey-manager/config.ini
   - build-erfs-fpr -y 2019 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2019.h5
   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
   stage: build_input_data
