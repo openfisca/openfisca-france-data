@@ -1,4 +1,4 @@
-include: 'gitlab_ci/all_years_build_and_aggregates.yml'
+include: '.gitlab-ci/all_years_build_and_aggregates.yml'
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -30,7 +30,7 @@ stages:
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
-  - cp ./ci-runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+  - cp ./.gitlab-ci/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
   - echo "End of before_script"
 
 
@@ -79,7 +79,7 @@ build_collection:
   - rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
-  - cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+  - cp ./.gitlab-ci/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
   - echo "Custom output folder"
   - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
   - 'echo "{\"name\": \"erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json'
@@ -109,7 +109,7 @@ copy_previous_build_collections:
         cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
         sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
         cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
-        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
+        cp ./.gitlab-ci/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
     fi
   stage: build_collection
   tags:
@@ -129,7 +129,7 @@ diagnostics:
   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
     ~/.config/openfisca-survey-manager/config.ini
   - mkdir -p ~/.config/openfisca-france-data
-  - cp ./ci-runner/openfisca_france_data_config.ini
+  - cp ./.gitlab-ci/openfisca_france_data_config.ini
     ~/.config/openfisca-france-data/config.ini
   - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-france-data/config.ini
   - cat ~/.config/openfisca-france-data/config.ini
@@ -149,7 +149,7 @@ check-version-and-changelog:
   # - input_data-2019
   - test
   script:
-  - ci-runner/is-version-number-acceptable.sh
+  - .gitlab-ci/is-version-number-acceptable.sh
 
 # check-for-functional-changes:
 #   stage: diagnostics
