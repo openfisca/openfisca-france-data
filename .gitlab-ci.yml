@@ -26,13 +26,11 @@ stages:
   - aggregates_all
   - anaconda
 
-
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
   - cp ./.gitlab-ci/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
   - echo "End of before_script"
-
 
 build docker image:
   stage: docker
@@ -52,7 +50,6 @@ build docker image:
   # Build Docker is needed only if code as changed.
   when: manual
 
-
 test:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -60,7 +57,6 @@ test:
   stage: test
   tags:
   - openfisca
-
 
 clean_folder:
   before_script:
@@ -70,7 +66,6 @@ clean_folder:
   tags:
   - openfisca
   when: manual
-
 
 build_collection:
   image: $CI_REGISTRY_IMAGE:latest
@@ -94,7 +89,6 @@ build_collection:
   tags:
   - openfisca
   when: manual
-
 
 copy_previous_build_collections:
   before_script:
@@ -141,26 +135,13 @@ diagnostics:
   - openfisca
 
 check-version-and-changelog:
-  # stage: diagnostics TODO: Put it back
-  stage: test
+  stage: diagnostics
   before_script:
   - ''
   needs:
-  # - input_data-2019
-  - test
+  - input_data-2019
   script:
   - .gitlab-ci/is-version-number-acceptable.sh
-
-# check-for-functional-changes:
-#   stage: diagnostics
-#   needs:
-#   - check-version-and-changelog
-#   before_script:
-#   - ''
-#   script:
-#   - if `.github/has-functional-changes.sh` ; then echo "OK to build package" ; fi
-#   when: master
-
 
 run_on_all_years:
   stage: run_on_all_years
@@ -171,15 +152,26 @@ run_on_all_years:
     - echo "On ne fait rien"
   when: manual
 
-
-build_conda_package:
+check-for-functional-changes:
+  stage: anaconda
+  needs:
+  - check-version-and-changelog
   before_script:
   - ''
-  except:
+  script:
+  - if `.github/has-functional-changes.sh` ; then echo "OK to build package" ; fi
+  only: 
+  - master
+
+build_conda_package:
+  stage: anaconda
+  needs:
+  - check-for-functional-changes
+  before_script:
+  - ''
+  only:
   - master
   image: continuumio/miniconda3
   script:
   - conda install -y conda-build anaconda-client
-  - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca
-    .conda
-  stage: anaconda
+  - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda
