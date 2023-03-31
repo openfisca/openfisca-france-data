@@ -3,20 +3,20 @@ Create the file `.gitlab-ci.yml` that is read by Gitlab Runner to execute the CI
 
 Run in project root folder:
 
-python ci-runner/build_ci.py
+python .gitlab-ci/build_ci.py
 """
 import configparser
 import yaml
 
 # Config file use to get the available years
-CONFIG = "./ci-runner/openfisca_survey_manager_raw_data.ini"
+CONFIG = "./.gitlab-ci/openfisca_survey_manager_raw_data.ini"
 
 
 def header():
     return """
 ################################################
 # GENERATED FILE, DO NOT EDIT
-# Please visit ci-runner/README.md
+# Please visit .gitlab-ci/README.md
 ################################################
 
 """
@@ -133,7 +133,7 @@ def main():
     # For testing only some years
     # erfs_years = ["2016", "2017", "2018"]
     gitlab_ci = build_gitlab_ci(erfs_years)
-    with open(r"./gitlab_ci/all_years_build_and_aggregates.yml", mode="w") as file:
+    with open(r"./.gitlab-ci/all_years_build_and_aggregates.yml", mode="w") as file:
         file.write(gitlab_ci)
     print("Done with success!")
 
