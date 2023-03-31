@@ -56,11 +56,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
 # helpers
 
 def create_variables_individuelles(individus, year, survey_year = None, revenu_type = 'imposable'):
-    """Création des variables individuelles"""
+    """Création des variables individuelles."""
     period = periods.period(year)
     tax_benefit_system = openfisca_france_tax_benefit_system
 
-    # variables démographiques 
+    # variables démographiques
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
@@ -82,14 +82,15 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
         individus,
         period = period,
         revenu_type = revenu_type,
-        tax_benefit_system = tax_benefit_system
+        tax_benefit_system = tax_benefit_system,
         )
     create_traitement_indiciaire_brut(
-        individus, 
-        period = period, 
+        individus,
+        period = period,
         revenu_type = revenu_type,
-        tax_benefit_system = tax_benefit_system)   
-    
+        tax_benefit_system = tax_benefit_system,
+        )
+
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
@@ -900,7 +901,7 @@ def create_revenus_remplacement_bruts(individus):
     """
     Reconstitution des variables de retraite et chomage brut à partir des variables nettes et des variables de csg et crds
     """
-    
+
     # revenu_brut = revenu_net + csg_deductible + csg_non_deductible_crds
     individus['chomage_brut'] = individus.chomage_imposable + individus.csgchod_i #+ individus. csg_nd_crds_cho_i
     individus['retraite_brute'] =  individus.retraite_imposable + individus.csgrstd_i #+ individus.csg_nd_crds_ret_i

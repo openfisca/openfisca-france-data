@@ -16,9 +16,10 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
+    foyers_fiscaux = temporary_store['foyers_fiscaux_{}'.format(year)]
 
     # ici : variables à garder
-    variables = [
+    var_individus = [
         'activite',
         'age',
         'categorie_salarie',
@@ -39,12 +40,26 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'retraite_brute',
         'ric',
         'rnc',
-        'statut_marital',
-        # 'salaire_imposable',
         'salaire_de_base',
-        "traitement_indiciaire_brut",
+        'statut_marital',
         "primes_fonction_publique",
+        "traitement_indiciaire_brut",
         ]
+    var_foyers_fiscaux = [
+        'idfoy',
+        'rev_financier_prelev_lib_imputes',
+        'revenu_categoriel_foncier',
+        'revenus_capitaux_prelevement_forfaitaire_unique_ir',
+        ]
+
+    var_menages = [
+        'idmen',
+        'loyer',
+        'statut_occupation_logement',
+        'taxe_habitation',
+        'wprm',
+        'zone_apl',
+    ]
 
     # TODO: fix this simplistic inference
     individus.rename(columns = {
@@ -56,7 +71,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         )
 
     individus = create_ids_and_roles(individus)
-    individus = individus[variables].copy()
+    individus = individus[var_individus].copy()
     gc.collect()
 
     # This looks like it could have a sizeable impact
@@ -71,7 +86,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     menages = extract_menages_variables(menages)
 
-    individus = create_collectives_foyer_variables(individus, menages)
+    # individus = create_collectives_foyer_variables(individus, menages)
 
     idmens = individus.idmen.unique()
     menages = menages.loc[
@@ -92,11 +107,20 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     menages = menages.rename(columns = {'idmen':'idmen_original'})
     unique_idmen = individus[['idmen','idmen_original']].drop_duplicates()
     assert len(unique_idmen) == len(menages), "Number of idmen should be the same individus and menages tables."
-    menages = menages.merge(
-        unique_idmen,
-        how = 'inner',
-        on = 'idmen_original'
-        )
+
+    menages = menages.merge(unique_idmen,
+                            how = 'inner',
+                            on = 'idmen_original')
+
+    foyers_fiscaux = foyers_fiscaux.rename(columns = {'idfoy':'idfoy_original'})
+    unique_idfoy = individus[['idfoy','idfoy_original']].drop_duplicates()
+    assert len(unique_idmen) == len(menages), "Number of idfoy should be the same individus and foyers tables."
+
+    foyers_fiscaux = foyers_fiscaux.merge(unique_idfoy,
+                                          how = 'inner',
+                                          on = 'idfoy_original')
+
+    foyers_fiscaux = foyers_fiscaux[var_foyers_fiscaux]
 
     if export_flattened_df_filepath:
         supermerge = individus.merge(
@@ -117,6 +141,18 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         collection = "openfisca_erfs_fpr",
         survey_name = survey_name,
         )
+
+    foyers_fiscaux = foyers_fiscaux.sort_values(by = ['idfoy'])
+    log.debug(f"Saving entity 'foyers fiscaux' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
+    set_table_in_survey(
+        foyers_fiscaux,
+        entity = "foyer_fiscal",
+        period = year,
+        collection = "openfisca_erfs_fpr",
+        survey_name = survey_name,
+        )
+    log.debug("End of create_input_data_frame")
+
     menages = menages.sort_values(by = ['idmen'])
     log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
     set_table_in_survey(
@@ -184,7 +220,7 @@ def create_collectives_foyer_variables(individus, menages):
     assert set(foyers_revenus_fonciers.columns) == set(['idfoy', 'rev_fonciers_bruts', 'quifoy'])
     individus = individus.merge(foyers_revenus_fonciers, how = 'outer', on = ['idfoy', 'quifoy'])
     assert set(idmens) == set(individus .query('(rev_fonciers_bruts > 0)')['idmen'].tolist())
-    individus.rename(columns = {'rev_fonciers_bruts': 'f4ba'}, inplace = True)
+    individus.rename(columns = {'rev_fonciers_bruts': 'revenu_categoriel_foncier'}, inplace = True)
     return individus
 
 
@@ -229,16 +265,13 @@ def extract_menages_variables_from_store(temporary_store = None, year = None):
 
 
 def extract_menages_variables(menages):
-    variables = ['ident', 'wprm', 'taxe_habitation', 'rev_fonciers_bruts']
+    variables = ['ident', 'wprm', 'taxe_habitation']
     external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement']
     for external_variable in external_variables:
         if external_variable in menages.columns:
             log.debug("Found {} in menages table: we keep it".format(external_variable))
             variables.append(external_variable)
-    # TODO: 2007-2010 ont la variable rev_fonciers et non pas rev_fonciers_bruts. Est-ce la même?
-    menages = menages.rename(columns={'rev_fonciers': 'rev_fonciers_bruts'})
     menages = menages[variables].copy()
-
     menages.taxe_habitation = - menages.taxe_habitation  # taxes should be negative
     menages.rename(columns = dict(ident = 'idmen'), inplace = True)
     return menages
