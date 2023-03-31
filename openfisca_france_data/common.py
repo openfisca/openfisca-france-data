@@ -104,7 +104,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             if name not in target:
                 baremes_to_remove.append(name)
 
-        # We split since we cannot remove from dict while iterating
+        # We split since we cannot remove from dict while iterating
         for name in baremes_to_remove:
             del baremes_collection._children[name]
 
@@ -400,6 +400,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
 
     individus.chomage_imposable.fillna(0, inplace = True)
     individus.retraite_imposable.fillna(0, inplace = True)
+    individus.salaire_net.fillna(0, inplace = True)
 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
@@ -415,7 +416,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
             (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
             + (individus.taux_csg_remplacement >= 3) / (1 - taux_plein)
             )
-        )
+        ) - individus.salaire_net
     exonere_csg_chomage = (
         (individus.taux_csg_remplacement < 2)
         | (individus.chomage_imposable <= seuil_chomage_net_exoneration)
