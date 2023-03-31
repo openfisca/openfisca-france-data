@@ -6,7 +6,7 @@ from openfisca_core.model_api import Variable, ADD, YEAR
 from openfisca_core.reforms import Reform  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 
-from openfisca_france.entities import Individu
+from openfisca_france.entities import Individu, FoyerFiscal, Menage
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data import france_data_tax_benefit_system
 
@@ -27,6 +27,13 @@ variables_converted_to_annual = [
     ]
 
 
+menage_projected_variables = [
+    # "rev_financier_prelev_lib_imputes",
+    "revenu_categoriel_foncier",
+    "revenus_capitaux_prelevement_forfaitaire_unique_ir",
+    ]
+
+
 class erfs_fpr_plugin(Reform):
     name = "ERFS-FPR ids plugin"
 
@@ -36,7 +43,7 @@ class erfs_fpr_plugin(Reform):
             class_name =  f"{variable}_annuel"
             label = f"{variable} sur l'année entière"
 
-            def formula_creator(variable):
+            def annual_formula_creator(variable):
                 def formula(individu, period):
                     result = individu(variable, period, options = [ADD])
                     return result
@@ -46,15 +53,41 @@ class erfs_fpr_plugin(Reform):
                 return formula
 
             variable_instance = type(class_name, (Variable,), dict(
-                value_type = int,
+                value_type = float,
                 entity = self.variables[variable].entity,
                 label = label,
                 definition_period = YEAR,
-                formula = formula_creator(variable),
+                formula = annual_formula_creator(variable),
                 ))
 
             self.add_variable(variable_instance)
             del variable_instance
+
+        for variable in menage_projected_variables:
+            class_name =  f"{variable}_menage"
+            label = f"{variable} agrégée à l'échelle du ménage"
+
+            def projection_formula_creator(variable):
+                def formula(menage, period):
+                    result_i = menage.members.foyer_fiscal(variable, period, options = [ADD])
+                    result = menage.sum(result_i, role = FoyerFiscal.DECLARANT_PRINCIPAL)
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = Menage,
+                label = label,
+                definition_period = YEAR,
+                formula = projection_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
 
         self.add_variable(idmen_original)
         self.add_variable(noindiv)
@@ -111,6 +144,7 @@ def get_survey_scenario(
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
         input_data_table_by_entity = dict(
+            foyer_fiscal = f"foyer_fiscal_{year}",
             individu = f"individu_{year}",
             menage = f"menage_{year}",
             )
@@ -120,7 +154,6 @@ def get_survey_scenario(
 
         data = dict(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
-            # input_data_survey_prefix = "openfisca_erfs_fpr_data",
             survey = survey_name
             )
 
