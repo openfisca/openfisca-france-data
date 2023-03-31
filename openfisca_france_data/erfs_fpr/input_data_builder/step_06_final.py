@@ -80,9 +80,9 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         menages[k] = 0
 
     # Again artificially putting missing variables in their default state
-    menages["loyer"] = 0
-    menages["zone_apl"] = 2
-    menages["statut_occupation_logement"] = 0
+    #menages["loyer"] = 0
+    #menages["zone_apl"] = 2
+    #menages["statut_occupation_logement"] = 0
 
     menages = extract_menages_variables(menages)
 

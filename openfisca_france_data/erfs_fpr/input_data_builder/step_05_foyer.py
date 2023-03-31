@@ -54,8 +54,4 @@ def build_variables_foyers_fiscal(temporary_store = None, year = None):
     foyers_fiscaux['revenus_capitaux_prelevement_forfaitaire_unique_ir'] = foyers_fiscaux['rev_valeurs_mobilieres_bruts'] * foyers_fiscaux.idfoy.isin(idfoy)
     foyers_fiscaux['rev_financier_prelev_lib_imputes'] = foyers_fiscaux['rev_financier_prelev_lib_imputes'] * foyers_fiscaux.idfoy.isin(idfoy)
 
-    #assert sum(menages.wprm * menages.rev_fonciers_bruts) == sum(foyers_fiscaux.rev_fonciers_bruts * foyers_fiscaux.wprm)
-    #assert sum(menages.wprm * menages.rev_valeurs_mobilieres_bruts) == sum(foyers_fiscaux.rev_financier_prelev_lib_imputes * foyers_fiscaux.wprm)
-    #assert sum(menages.wprm * menages.rev_financier_prelev_lib_imputes) == sum(foyers_fiscaux.rev_valeurs_mobilieres_bruts * foyers_fiscaux.wprm)
-
     temporary_store[f"foyers_fiscaux_{year}"] = foyers_fiscaux

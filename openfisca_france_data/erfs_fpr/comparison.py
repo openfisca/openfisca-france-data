@@ -24,6 +24,7 @@ openfisca_by_erfs_fpr_variables = {
     "ric_i": "ric",
     "rnc_i": "rnc",
     "salaires_i": "salaire_imposable",
+    "logt": "statut_occupation_logement",
     "rev_fonciers_bruts": "revenu_categoriel_foncier_menage",
     "rev_valeurs_mobilieres_bruts": "revenus_capitaux_prelevement_forfaitaire_unique_ir_menage",
     "rev_financier_prelev_lib_imputes": "rev_financier_prelev_lib_imputes_menage",
@@ -35,12 +36,13 @@ class ErfsFprtoInputComparator(AbstractComparator):
     period = None
     default_target_variables = [
         "chomage_imposable",
+        "loyer",
         # "rag",
         "retraite_imposable",
         # "ric",
         # "rnc",
-        # "f4ba",
        "salaire_imposable",
+       "statut_occupation_logement",
         ]
 
     from openfisca_france_data.erfs_fpr.get_survey_scenario import menage_projected_variables
@@ -78,6 +80,9 @@ class ErfsFprtoInputComparator(AbstractComparator):
             "individu": openfisca_individu,
             "menage": openfisca_menage,
             }
+
+        fpr_menage.loyer = 12 * fpr_menage.loyer
+
         target_dataframe_by_entity = {
             "individu": fpr_individu.rename(columns = openfisca_by_erfs_fpr_variables),
             "menage": fpr_menage.rename(columns = openfisca_by_erfs_fpr_variables),
