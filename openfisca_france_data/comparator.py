@@ -23,18 +23,20 @@ from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenar
 log = logging.getLogger(__name__)
 
 
+def get_entity_original_id(survey_scenario, variable):
+    entity = survey_scenario.tax_benefit_system.variables[variable].entity.key
+    return "noindiv" if entity == "individu" else "idmen_original"
+
+
 def compute_result(variable, survey_scenario, target_dataframe):
     result = None
     stats = None
-
     entity = survey_scenario.tax_benefit_system.variables[variable].entity.key
-    entity_original_id = "noindiv" if entity == "individu" else "ident"
+    entity_original_id = get_entity_original_id(survey_scenario, variable)
     output_variables = [entity_original_id, variable]
-
     entity_dataframe = survey_scenario.create_data_frame_by_entity(
         variables = output_variables,
         )[entity]
-
     target = target_dataframe[output_variables].rename(columns = {variable: f"target_{variable}"})
 
     if f"target_{variable}" not in target:
@@ -47,12 +49,12 @@ def compute_result(variable, survey_scenario, target_dataframe):
         )
 
     result[f"diff_{variable}"] = result[variable] - result[f"target_{variable}"]
-    result_variables = ["noindiv", variable, f"diff_{variable}", f"target_{variable}"]
-    stats = compute_error_stats(result, variable)
+    result_variables = [entity_original_id, variable, f"diff_{variable}", f"target_{variable}"]
+    stats = compute_error_stats(result, variable, entity_original_id = entity_original_id)
     return result, stats
 
 
-def compute_confidence_interval(data, variable, width = .9):
+def compute_confidence_interval(data, variable, width = .9, entity_original_id = None):
     """
     Compute confidence interval
 
@@ -64,9 +66,10 @@ def compute_confidence_interval(data, variable, width = .9):
     Returns:
         [type]: [description]
     """
+    assert entity_original_id is not None
     df = pd.DataFrame({
         "signed_values": data[variable].values,
-        "noind": data["noindiv"].values
+        "noind": data[entity_original_id].values
         })
     df["abs_values"] = df.signed_values.abs()
     in_range_obs = ceil(width * len(df))
@@ -79,7 +82,8 @@ def compute_confidence_interval(data, variable, width = .9):
     return left, right, largest_errors
 
 
-def compute_error_stats(data, variable):
+def compute_error_stats(data, variable, entity_original_id):
+    assert entity_original_id is not None
     numerical = (
         isinstance(data[variable].values.flat[0], np.integer)
         or isinstance(data[variable].values.flat[0], np.floating)
@@ -89,13 +93,13 @@ def compute_error_stats(data, variable):
 
     df = data.loc[
         (data[variable].values != 0.0) | (data[f"target_{variable}"].values != 0.0),
-        [variable, f"target_{variable}", "noindiv"]
+        [variable, f"target_{variable}", entity_original_id]
         ].copy()
     df["relative_error"] = (df[variable] - df[f"target_{variable}"]) / (df[f"target_{variable}"] + (df[f"target_{variable}"] == 0.0) * df[variable])
     if df.empty:
         return
 
-    left, right, largest_errors = compute_confidence_interval(df, "relative_error")
+    left, right, largest_errors = compute_confidence_interval(df, "relative_error", entity_original_id = entity_original_id)
     less_than_5_pc_error = (df["relative_error"].abs() <= .05).sum() / len(df)
     less_than_20_pc_error = (df["relative_error"].abs() <= .2).sum() / len(df)
     more_than_80_pc_error = (df["relative_error"].abs() >= .8).sum() / len(df)
@@ -130,7 +134,8 @@ header-includes:
         )
 
 
-def create_variable_distribution_figures(variable, result, bins = None, figures_directory = None):
+def create_variable_distribution_figures(variable, result, bins = None, figures_directory = None, entity_original_id = None):
+    assert entity_original_id is not None
     log.debug(f"create_variable_distribution_figures: Examining {variable}")
     assert figures_directory is not None
     if bins is None:
@@ -139,11 +144,12 @@ def create_variable_distribution_figures(variable, result, bins = None, figures_
     non_both_zeroes = (result[f"{variable}"].fillna(0) != 0) | (result[f"target_{variable}"].fillna(0) != 0)
     non_both_zeroes_count = sum(non_both_zeroes)
     both_zeroes_count = len(result) - non_both_zeroes_count
+
     melted = result.loc[
         non_both_zeroes,
-        ["noindiv", variable, f"target_{variable}"]
+        [entity_original_id, variable, f"target_{variable}"]
         ].melt(
-            id_vars = ["noindiv"],
+            id_vars = [entity_original_id],
             value_vars = [f"{variable}", f"target_{variable}"]
             )
 
@@ -246,8 +252,8 @@ def create_variable_markdown_summary_section(variable, stats, figures_directory)
     return markdown_section
 
 
-def create_diff_variable_distribution_figures(variable, result, bins = None, figures_directory = None):
-
+def create_diff_variable_distribution_figures(variable, result, bins = None, figures_directory = None, entity_original_id = None):
+    assert entity_original_id is not None
     numerical = (
         isinstance(result[f"{variable}"].values.flat[0], np.integer)
         or isinstance(result[f"{variable}"].values.flat[0], np.floating)
@@ -475,8 +481,18 @@ class AbstractComparator(object):
                 )
 
             result_by_variable[variable] = result
-            variable_distribution_figures_created = create_variable_distribution_figures(variable, result, figures_directory = figures_directory)
-            diff_variable_distribution_figures_created = create_diff_variable_distribution_figures(variable, result, figures_directory = figures_directory)
+            variable_distribution_figures_created = create_variable_distribution_figures(
+                variable,
+                result,
+                figures_directory = figures_directory,
+                entity_original_id = get_entity_original_id(survey_scenario, variable),
+                )
+            diff_variable_distribution_figures_created = create_diff_variable_distribution_figures(
+                variable,
+                result,
+                figures_directory = figures_directory,
+                entity_original_id = get_entity_original_id(survey_scenario, variable)
+                )
             stats_by_variable[variable] = stats
 
             variable_markdown_section = create_variable_markdown_section(

@@ -24,6 +24,9 @@ openfisca_by_erfs_fpr_variables = {
     "ric_i": "ric",
     "rnc_i": "rnc",
     "salaires_i": "salaire_imposable",
+    "rev_fonciers_bruts": "revenu_categoriel_foncier_menage",
+    "rev_valeurs_mobilieres_bruts": "revenus_capitaux_prelevement_forfaitaire_unique_ir_menage",
+    "rev_financier_prelev_lib_imputes": "rev_financier_prelev_lib_imputes_menage",
     }
 
 
@@ -39,6 +42,17 @@ class ErfsFprtoInputComparator(AbstractComparator):
         # "f4ba",
        "salaire_imposable",
         ]
+
+    from openfisca_france_data.erfs_fpr.get_survey_scenario import menage_projected_variables
+
+    target_menage_projected_variables = [
+        f"{menage_projected_variable}_menage"
+        for menage_projected_variable
+        in menage_projected_variables
+        ]
+
+    default_target_variables += target_menage_projected_variables
+
 
     def compute_test_dataframes(self):
         erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
