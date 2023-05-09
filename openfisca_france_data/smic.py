@@ -130,7 +130,7 @@ for year in range(start_year, end_year+1):
         # this collects the data from openfisca-france/openfisca_france/parameters/marche_travail/salaire_minimum/smic/smic_b_horaire.yaml ?
         # if year < 1970: log.warning('SMIC before 1970 (SMIG) depends on zone. Which one to use is unclear. TBD.')
         # else : openfisca_france\parameters\marche_travail\salaire_minimum\smic\smic_b_horaire.yaml
-        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.smic_b_horaire
+        smic_horaire_brut[year] = openfisca_france_tax_benefit_system.parameters(periods.period(year).start).marche_travail.salaire_minimum.smic.smic_b_horaire
     except:
         continue
 
@@ -142,7 +142,7 @@ def smic_annuel_imposable_from_net(year, smic_hor_brut):
     try:
         # TODO: the formula is not 100 % flexible, I have hard-coded the 4 PSS cut-off; this could be improved in the future
         # then again, it seems not to be used at all for OFF-ERFS, just the smic_horaire_brut
-        params = openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start)
+        params = openfisca_france_tax_benefit_system.parameters(instant = periods.period(year).start)
         smic_net = smic_annuel_net_by_year[year]
         working_hours = params.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
         smic_brut = smic_hor_brut * working_hours * 12
@@ -176,13 +176,13 @@ smic_annuel_imposable_by_year = dict([
 
 
 smic_horaire_brut_by_year = dict([
-    (year, openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.smic_b_horaire)
+    (year, openfisca_france_tax_benefit_system.parameters(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.smic_b_horaire)
     for year in range(start_year, end_year)
     ])
 
 
 smic_annuel_brut_by_year = dict([
     (year,
-    smic_horaire_brut_by_year[year] * openfisca_france_tax_benefit_system.get_parameters_at_instant(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel * 12)
+    smic_horaire_brut_by_year[year] * openfisca_france_tax_benefit_system.parameters(instant = periods.period(year).start).marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel * 12)
     for year in range(start_year, end_year)
     ])

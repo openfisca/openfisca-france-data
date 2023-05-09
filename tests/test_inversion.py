@@ -10,7 +10,7 @@ from openfisca_core.formula_helpers import switch
 from openfisca_france import FranceTaxBenefitSystem
 
 from openfisca_france_data.felin.input_data_builder.create_variables_individuelles import create_taux_csg_remplacement
-from openfisca_france_data.common import create_revenus_remplacement_bruts, create_salaire_de_base
+from openfisca_france_data.common import create_revenus_remplacement_bruts, create_salaire_de_base, create_traitement_indiciaire_brut
 
 
 
@@ -65,20 +65,25 @@ assert len(fails_chomage) + len(fails_retraite) ==0, "Some tests have failed.\n"
 
 # Salaire
 
-cd = os.path.dirname(__file__)
+#cd = os.path.dirname(__file__)
+#cd = "/home/paul/Documents/projets/openfisca-france-data/tests/"
+cd = "C:/Users/p.dutronc/Documents/research/projets/openfisca-france-data/tests/"
 
-cd = "/home/paul/Documents/projets/openfisca-france-data/tests/"
-path = os.path.join(cd, "inversion", "salaire_2021.yaml")
+##### ##### ##### ##### ##### ##### ##### 
+##### Pre 2019 reform : inversion TAXIPP
+
+path = os.path.join(cd, "inversion", "salaire_2018.yaml")
 year = re.match(".*([0-9]{4}).yaml", path).group(1)
-
+    
 with open(path) as yaml:
     individus = pd.DataFrame.from_dict(load(yaml, Loader=SafeLoader))
-
+    
 ### Inverse incomes from net to gross : the tested functions
-
+    
 create_salaire_de_base(individus, p(year), revenu_type = "net", tax_benefit_system=tax_benefit_system)
+create_traitement_indiciaire_brut(individus, p(year), revenu_type = "net", tax_benefit_system=tax_benefit_system)
 
-### Test against chomage_brut_test
+### Test against salaire_de_base_test
 
 fails = [i for i in individus.index if abs(individus.loc[i]["salaire_de_base"]-individus.loc[i]["salaire_de_base_test"])>=margin]
 
@@ -87,3 +92,28 @@ message = "".join(
     )
 
 assert len(fails) == 0, "Some tests have failed.\n" + message
+
+##### ##### ##### ##### ##### ##### ##### 
+##### Post 2019 reform : let's anticipate (and help LexImpact ?)
+
+path = os.path.join(cd, "inversion", "salaire_2021.yaml")
+year = re.match(".*([0-9]{4}).yaml", path).group(1)
+    
+with open(path) as yaml:
+    individus = pd.DataFrame.from_dict(load(yaml, Loader=SafeLoader))
+    
+### Inverse incomes from net to gross : the tested functions
+    
+create_salaire_de_base(individus, p(year), revenu_type = "net", tax_benefit_system=tax_benefit_system)
+
+### Test against salaire_de_base_test
+
+fails = [i for i in individus.index if abs(individus.loc[i]["salaire_de_base"]-individus.loc[i]["salaire_de_base_test"])>=margin]
+
+message = "".join(
+    ["For test {}, found {} for salaire_de_base, tested against {}.\n".format(i,individus.loc[i]["salaire_de_base"],individus.loc[i]["salaire_de_base_test"]) for i in fails]
+    )
+
+assert len(fails) == 0, "Some tests have failed.\n" + message
+
+### Problem with the CET 2019 : non barem like (due on all tax base, but only if tax base > 1 PSS)

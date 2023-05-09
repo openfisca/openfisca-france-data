@@ -1,0 +1,34 @@
+- name: "Salaire salarié privé non-cadre temps plein, 1 PSS"
+  salaire_net: 31118.076
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 0
+  salaire_de_base_test: 39732 
+
+- name: "Salaire salarié privé cadre temps plein, 1 PSS"
+  salaire_net: 30667.9896
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 1
+  salaire_de_base_test: 39732 
+
+- name: "Salaire fonc pub Etat temps plein, 1 PSS"
+  salaire_net: 38994.42
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 2
+  traitement_brut_test: 39732 
+
+- name: "Salaire salarié privé non-cadre temps plein, 4 PSS"
+  salaire_net: 130193.424
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 0
+  salaire_de_base_test: 158928
+
+- name: "Salaire salarié privé cadre temps plein, 4 PSS"
+  salaire_net: 126849.75
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 1
+  salaire_de_base_test: 158928

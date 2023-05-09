@@ -270,9 +270,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')
-        crds.add_bracket(0, taux_csg * (1 - taux_abattement))
+        crds.add_bracket(0, taux_crds * (1 - taux_abattement))
         if seuil_abattement is not None:
-            crds.add_bracket(seuil_abattement, taux_csg)
+            crds.add_bracket(seuil_abattement, taux_crds)
 
     # Check baremes
     target = dict()
@@ -315,7 +315,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
 
     # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
-    whours = parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
+    whours = legislation.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
 
     if period.unit == 'year':
         plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
