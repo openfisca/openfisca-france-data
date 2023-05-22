@@ -87,6 +87,12 @@ This should not display any error and end with:
 
 `Successfully installed OpenFisca-France-Data...`
 
+### Specifics due to Windows' handling of long paths
+
+On a Windows machine, the installation of Openfisca-France-Data may run into problems due to long path names, which Windows, by default, does not handle. These long paths are mostly inherited from the OpenFisca-France parameters, which are stored in a sometimes deeply nested folder.
+
+A possible workaround on Windows >= 10 is to lift the maximum path length limitation (as [indicated here](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation?tabs=registry#enable-long-paths-in-windows-10-version-1607-and-later)).
+
 ## Execution
 
 Let's say that you would like to format `ERFS-FPR` survey data into OpenFisca formatted data.
