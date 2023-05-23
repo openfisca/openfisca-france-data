@@ -25,7 +25,9 @@ scenario = tax_benefit_system.new_scenario()
 
 ### Data creation
 
-cd = os.path.dirname(__file__)
+# cd = os.path.dirname(__file__)
+
+cd = "/home/paul/Documents/projets/openfisca-france-data/tests/" 
 path = os.path.join(cd, "inversion", "remplacement_2021.yaml")
 year = re.match(".*([0-9]{4}).yaml", path).group(1)
 
@@ -34,8 +36,8 @@ with open(path) as yaml:
 
 ### Inverse incomes from net to gross : the tested functions
 
-create_taux_csg_remplacement(individus, period(year), tax_benefit_system)
-create_revenus_remplacement_bruts(individus, period(year), tax_benefit_system)
+create_taux_csg_remplacement(individus, p(year), tax_benefit_system)
+create_revenus_remplacement_bruts(individus, p(year), tax_benefit_system)
 
 ### Test against chomage_brut_test
 
@@ -67,7 +69,6 @@ assert len(fails_chomage) + len(fails_retraite) ==0, "Some tests have failed.\n"
 
 #cd = os.path.dirname(__file__)
 #cd = "/home/paul/Documents/projets/openfisca-france-data/tests/"
-cd = "C:/Users/p.dutronc/Documents/research/projets/openfisca-france-data/tests/"
 
 ##### ##### ##### ##### ##### ##### ##### 
 ##### Pre 2019 reform : inversion TAXIPP
@@ -85,7 +86,9 @@ create_traitement_indiciaire_brut(individus, p(year), revenu_type = "net", tax_b
 
 ### Test against salaire_de_base_test
 
-fails = [i for i in individus.index if abs(individus.loc[i]["salaire_de_base"]-individus.loc[i]["salaire_de_base_test"])>=margin]
+fails = [i for i in individus.index if 
+         (abs(individus.loc[i]["salaire_de_base"]-individus.loc[i]["salaire_de_base_test"])>=margin)
+         or (abs(individus.loc[i]["traitement_indiciaire_brut"]-individus.loc[i]["traitement_brut_test"])>=margin)]
 
 message = "".join(
     ["For test {}, found {} for salaire_de_base, tested against {}.\n".format(i,individus.loc[i]["salaire_de_base"],individus.loc[i]["salaire_de_base_test"]) for i in fails]
