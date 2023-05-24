@@ -146,11 +146,13 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             ]
 
         computed_variables_used_as_input =  [
-            # 'chomage_brut',
             "chomage_imposable",
+            "primes_fonction_publique",
             "retraite_brute",
             "retraite_imposable",
             "salaire_de_base",
+            "traitement_indiciaire_brut",
+            # 'chomage_brut',
             ]
 
         three_year_span_variables = input_variables + computed_variables_used_as_input
@@ -193,13 +195,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
     def custom_input_data_frame(self, input_data_frame, **kwargs):
         if "loyer" in input_data_frame:
             input_data_frame["loyer"] = 12 * input_data_frame.loyer
-
-        if "categorie_salarie" in input_data_frame:
-            log.debug("Setting categorie_salarie to 0 and 1 only")
-            input_data_frame.loc[
-                input_data_frame.categorie_salarie.isin(range(2, 7)),
-                "categorie_salarie",
-                ] = 1
 
         for variable in ["quifam", "quifoy", "quimen"]:
             if variable in input_data_frame:

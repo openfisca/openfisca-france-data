@@ -2,11 +2,95 @@ from typing import Any, Optional
 
 from multipledispatch import dispatch  # type: ignore
 
+from openfisca_core.model_api import Variable, ADD, YEAR
 from openfisca_core.reforms import Reform  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 
+from openfisca_france.entities import Individu, FoyerFiscal, Menage
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data import france_data_tax_benefit_system
+
+
+from openfisca_france_data.model.id_variables import (
+    idmen_original,
+    noindiv,
+    )
+
+variables_converted_to_annual = [
+    "salaire_imposable",
+    "chomage_imposable",
+    "retraite_imposable",
+    "salaire_net",
+    "chomage_net",
+    "retraite_nette",
+    "ppa",
+    ]
+
+
+menage_projected_variables = [
+    # "rev_financier_prelev_lib_imputes",
+    "revenu_categoriel_foncier",
+    "revenus_capitaux_prelevement_forfaitaire_unique_ir",
+    ]
+
+
+class erfs_fpr_plugin(Reform):
+    name = "ERFS-FPR ids plugin"
+
+    def apply(self):
+
+        for variable in variables_converted_to_annual:
+            class_name =  f"{variable}_annuel"
+            label = f"{variable} sur l'année entière"
+
+            def annual_formula_creator(variable):
+                def formula(individu, period):
+                    result = individu(variable, period, options = [ADD])
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = self.variables[variable].entity,
+                label = label,
+                definition_period = YEAR,
+                formula = annual_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+        for variable in menage_projected_variables:
+            class_name =  f"{variable}_menage"
+            label = f"{variable} agrégée à l'échelle du ménage"
+
+            def projection_formula_creator(variable):
+                def formula(menage, period):
+                    result_i = menage.members.foyer_fiscal(variable, period, options = [ADD])
+                    result = menage.sum(result_i, role = FoyerFiscal.DECLARANT_PRINCIPAL)
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = Menage,
+                label = label,
+                definition_period = YEAR,
+                formula = projection_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+
+        self.add_variable(idmen_original)
+        self.add_variable(noindiv)
 
 
 def get_survey_scenario(
@@ -40,15 +124,6 @@ def get_survey_scenario(
         baseline_tax_benefit_system,
         )
 
-
-    from openfisca_france_data.model.id_variables import (
-        idmen_original,
-        noindiv,
-        )
-
-    tax_benefit_system.add_variable(idmen_original)
-    tax_benefit_system.add_variable(noindiv)
-
     if not use_marginal_tax_rate:
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
@@ -69,6 +144,7 @@ def get_survey_scenario(
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
         input_data_table_by_entity = dict(
+            foyer_fiscal = f"foyer_fiscal_{year}",
             individu = f"individu_{year}",
             menage = f"menage_{year}",
             )
@@ -78,7 +154,6 @@ def get_survey_scenario(
 
         data = dict(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
-            # input_data_survey_prefix = "openfisca_erfs_fpr_data",
             survey = survey_name
             )
 
@@ -114,7 +189,7 @@ def get_tax_benefit_system(
         tax_benefit_system: None,
         reform: Reform,
         ) -> TaxBenefitSystem:
-    return reform(france_data_tax_benefit_system)
+    return reform(erfs_fpr_plugin(france_data_tax_benefit_system))
 
 
 # Appelé quand *tax_benefit_system* et *reform* sont `None`
@@ -123,7 +198,7 @@ def get_tax_benefit_system(
         tax_benefit_system: None,
         reform: None,
         ) -> TaxBenefitSystem:
-    return france_data_tax_benefit_system
+    return erfs_fpr_plugin(france_data_tax_benefit_system)
 
 
 # Appelé quand *tax_benefit_system* est un :class:`TaxBenefitSystem`
@@ -139,4 +214,4 @@ def get_baseline_tax_benefit_system(
 def get_baseline_tax_benefit_system(
         tax_benefit_system: None,
         ) -> TaxBenefitSystem:
-    return france_data_tax_benefit_system
+    return erfs_fpr_plugin(france_data_tax_benefit_system)

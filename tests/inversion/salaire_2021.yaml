@@ -1,0 +1,34 @@
+- name: "Salaire salarié privé non-cadre temps plein, 1 PSS"
+  salaire_net: 32505
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 0
+  salaire_de_base_test: 41136 
+  # assiette_cotisation        41136
+  # assiette_csg               41136
+  # csg_deductible             6.8
+  # csg_imposable              2.4
+  # crds                       0.5
+  # cotisations_sociales
+  ##  agff                     0
+  ##  agirc_arrco              3.15
+  ##  asf                      0
+  ##  arrco                    0
+  ##  ceg                      0.86
+  ##  cet2019                  0.14
+  ##  chomage                  0
+  ##  vieillesse_deplafonnee   0.4
+  ##  vieillesse_plafonnee     6.9
+
+  # soit (6.8 + 2.4 + 0.5) * 0.9825 + 3.15 + 0.86 + 0.4 + 6.9
+  # 20.84025
+
+- name: "Salaire salarié privé non-cadre temps plein, juste au dessus d'un PSS"
+  salaire_net: 32515.1772
+  heures_remunerees_volume: 1820.04
+  contrat_de_travail: 0
+  categorie_salarie: 0
+  salaire_de_base_test: 41148
+
+  # soit (6.8 + 2.4 + 0.5) * 0.9825 + 3.15 + 0.86 + 0.14 + 0.4 + 6.9
+  # 20.98025

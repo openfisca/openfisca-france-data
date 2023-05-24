@@ -10,7 +10,9 @@ import gc
 import os
 
 
+
 from openfisca_france_data import france_data_tax_benefit_system
+from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.aggregates import FranceAggregates as Aggregates
 
@@ -76,7 +78,7 @@ def test_erfs_fpr_aggregates_reform():
 
 
 @click.command()
-@click.option('-y', '--year', 'year', default = 2018, help = "ERFS-FPR year", show_default = True,
+@click.option('-y', '--year', 'year', default = REFERENCE_YEAR, help = "ERFS-FPR year", show_default = True,
     type = int, required = True)
 @click.option('-c', '--configfile', default = None,
     help = 'raw_data.ini path to read years to process.', show_default = True)

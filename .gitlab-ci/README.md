@@ -7,7 +7,7 @@ This folder contains files needed for the CI.
 To separate the different years and survey files we have a script that build the CI script.
 
 ```
-python ci-runner/build_ci.py
+python .gitlab-ci/build_ci.py
 ```
 
 It will create the file `.gitlab-ci.yml` that is read by Gitlab Runner to execute the CI.
@@ -31,8 +31,8 @@ All following steps is run with this docker image.
 It is a manual step because it does not to be build each time and took a very long time : between 2 and 4 hours. It use the `build-collection` command from [OpenFisca-Survey-Manager](https://github.com/openfisca/openfisca-survey-manager).
 
 Input :
-- [../ci-runner/openfisca_survey_manager_config.ini](ci-runner/openfisca_survey_manager_config.ini)
-- [../ci-runner/openfisca_survey_manager_raw_data.ini](ci-runner/openfisca_survey_manager_raw_data.ini)
+- [../.gitlab-ci/openfisca_survey_manager_config.ini](.gitlab-ci/openfisca_survey_manager_config.ini)
+- [../.gitlab-ci/openfisca_survey_manager_raw_data.ini](.gitlab-ci/openfisca_survey_manager_raw_data.ini)
 - All survey's files located in `/mnt/data-in/erfs-fpr/` folder that is accessible to the CI Runner.
 
 Output :

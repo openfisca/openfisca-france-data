@@ -104,7 +104,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             if name not in target:
                 baremes_to_remove.append(name)
 
-        # We split since we cannot remove from dict while iterating
+        # We split since we cannot remove from dict while iterating
         for name in baremes_to_remove:
             del baremes_collection._children[name]
 
@@ -230,15 +230,15 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    legislation = tax_benefit_system.parameters(period.start)
+    parameters = tax_benefit_system.parameters(period.start)
 
-    salarie = legislation.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = legislation.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
-    legislation_csg_deductible = legislation.prelevements_sociaux.contributions_sociales.csg.activite.deductible
-    taux_csg = legislation_csg_deductible.taux
-    taux_abattement = legislation_csg_deductible.abattement.rates[0]
+    salarie = parameters.cotsoc.cotisations_salarie
+    plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
+    parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
+    taux_csg = parameters_csg_deductible.taux
+    taux_abattement = parameters_csg_deductible.abattement.rates[0]
     try:
-        seuil_abattement = legislation_csg_deductible.abattement.thresholds[1]
+        seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
     except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
         seuil_abattement = None
     csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
@@ -250,11 +250,11 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # Cas des revenus nets:
         # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
         # 1. csg imposable
-        legislation_csg_imposable = legislation.prelevements_sociaux.contributions_sociales.csg.activite.imposable
-        taux_csg = legislation_csg_imposable.taux
-        taux_abattement = legislation_csg_imposable.abattement.rates[0]
+        parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
+        taux_csg = parameters_csg_imposable.taux
+        taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
-            seuil_abattement = legislation_csg_imposable.abattement.thresholds[1]
+            seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
@@ -262,17 +262,17 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
-        legislation_crds = legislation.prelevements_sociaux.contributions_sociales.crds.activite
-        taux_csg = legislation_crds.taux
-        taux_abattement = legislation_crds.abattement.rates[0]
+        parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
+        taux_crds = parameters_crds.taux
+        taux_abattement = parameters_crds.abattement.rates[0]
         try:
-            seuil_abattement = legislation_crds.abattement.thresholds[1]
+            seuil_abattement = parameters_crds.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')
-        crds.add_bracket(0, taux_csg * (1 - taux_abattement))
+        crds.add_bracket(0, taux_crds * (1 - taux_abattement))
         if seuil_abattement is not None:
-            crds.add_bracket(seuil_abattement, taux_csg)
+            crds.add_bracket(seuil_abattement, taux_crds)
 
     # Check baremes
     target = dict()
@@ -404,6 +404,9 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
     csg_deductible_chomage = csg.remplacement.allocations_chomage.deductible
+    pss = parameters.prelevements_sociaux.pss.plafond_securite_sociale_annuel
+    taux_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.rates[0]
+    seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.thresholds[1]
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
     seuil_chomage_net_exoneration = (
@@ -417,12 +420,23 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
         (individus.taux_csg_remplacement < 2)
         | (individus.chomage_imposable <= seuil_chomage_net_exoneration)
         )
+    taux_csg_chomage = np.where(
+        individus.taux_csg_remplacement < 2,
+        0,
+        (individus.taux_csg_remplacement == 2) * taux_reduit
+        + (individus.taux_csg_remplacement >= 3) * taux_plein
+        )
+    threshold = seuil_abattement_csg_chomage * pss * (1 - (taux_csg_chomage * (1 - taux_abattement_csg_chomage)))
+    base_csg_chomage = np.where(
+        individus.chomage_imposable <= threshold,
+        individus.chomage_imposable * (1 - taux_abattement_csg_chomage) / (1 - (taux_csg_chomage * (1 - taux_abattement_csg_chomage))),
+        (individus.chomage_imposable - seuil_abattement_csg_chomage * taux_abattement_csg_chomage) / (1 - taux_csg_chomage)
+        )
     individus['chomage_brut'] = np.where(
         exonere_csg_chomage,
         individus.chomage_imposable,
-        (individus.taux_csg_remplacement == 2) * individus.chomage_imposable / (1 - taux_reduit)
-        + (individus.taux_csg_remplacement >= 3) * individus.chomage_imposable / (1 - taux_plein)
-        )
+        individus.chomage_imposable + (base_csg_chomage * taux_csg_chomage)
+    )
     assert individus['chomage_brut'].notnull().all()
 
     csg_deductible_retraite = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.pensions_retraite_invalidite.deductible
