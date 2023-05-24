@@ -315,7 +315,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
 
     # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
-    whours = parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
+    whours = legislation.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
 
     if period.unit == 'year':
         plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
