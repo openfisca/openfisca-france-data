@@ -263,7 +263,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
         parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
-        taux_csg = parameters_crds.taux
+        taux_crds = parameters_crds.taux
         taux_abattement = parameters_crds.abattement.rates[0]
         try:
             seuil_abattement = parameters_crds.abattement.thresholds[1]
@@ -315,7 +315,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         baremes_collection['rafp'].multiply_rates(TAUX_DE_PRIME, inplace = True)
 
     # On ajoute la CSG déductible et on proratise par le plafond de la sécurité sociale
-    whours = legislation.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
+    whours = parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
 
     if period.unit == 'year':
         plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
