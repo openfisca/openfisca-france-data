@@ -104,7 +104,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             if name not in target:
                 baremes_to_remove.append(name)
 
-        # We split since we cannot remove from dict while iterating
+        # We split since we cannot remove from dict while iterating
         for name in baremes_to_remove:
             del baremes_collection._children[name]
 
