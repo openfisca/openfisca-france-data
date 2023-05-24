@@ -7,7 +7,7 @@
 
 - name: "Salaire salarié privé non-cadre temps partiel, 1 PSS"
   salaire_net: 31475.5572
-  heures_remunerees_volume: 960.02
+  heures_remunerees_volume: 910.02
   contrat_de_travail: 1
   categorie_salarie: 0
   salaire_de_base_test: 39732
