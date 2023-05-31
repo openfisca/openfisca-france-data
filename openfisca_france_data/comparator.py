@@ -456,8 +456,7 @@ class AbstractComparator(object):
             else None
             )
 
-        survey_scenario = get_survey_scenario(
-            year = str(self.period),
+        survey_scenario = self.get_survey_scenario(
             data = data,
             survey_name = f'openfisca_erfs_fpr_{period}'
             )
@@ -562,6 +561,14 @@ Filtres appliqués:
             log_message = f"Applying filter '{label}': dropping {obs_before - obs_after}, keeping {obs_after} observations."
             log.info(log_message)
             self.messages.append(log_message + "\n")
+
+    def get_survey_scenario(self, data = None, survey_name = None):
+
+        return get_survey_scenario(
+            year = str(self.period),
+            data = data,
+            survey_name = f'openfisca_erfs_fpr_{self.period}' if survey_name is None else survey_name,
+            )
 
     def _load_test_dataframes(self, noindivs = None, idents = None):
         name = self.get_name()

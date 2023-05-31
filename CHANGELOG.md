@@ -1,15 +1,17 @@
 # Changelog
 
+
+### 0.25 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Amélioration du comparateur pour permettre de définir le survey_scenario
+
 ### 0.24 [#215](https://github.com/openfisca/openfisca-france-data/pull/215)
 
 * Technical changes
-  - Ajout d'un comparatuer ERFS-FPR vs simulation oepnfisca
+  - Ajout d'un comparateur ERFS-FPR vs simulation oepnfisca
     - produit des graphes diagnostics
     - produit de un tableur ouvert dans dtale pour rechercher les cas les plus problématiques
-
-  - Amélioration de la CI GitLab :
-    - Ajout d'une étape manuelle pour initialiser les bases de la branche à partir de la dernière CI de master.
-    - Ajout d'une étape manuelle pour faire tourner sur toutes les branches.
 
 ### 0.23.1 [#213](https://github.com/openfisca/openfisca-france-data/pull/213)
 
