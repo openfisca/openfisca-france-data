@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.25.1 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Change la version de flake8
 
 ### 0.25 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
 

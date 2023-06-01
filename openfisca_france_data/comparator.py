@@ -563,7 +563,6 @@ Filtres appliqués:
             self.messages.append(log_message + "\n")
 
     def get_survey_scenario(self, data = None, survey_name = None):
-
         return get_survey_scenario(
             year = str(self.period),
             data = data,
