@@ -11,6 +11,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "activite",
         "autonomie_financiere",
         "categorie_salarie",
+        "categorie_non_salarie",
         "chomage_brut",
         "chomage_imposable",
         "contrat_de_travail",
