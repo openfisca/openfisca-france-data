@@ -31,10 +31,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
     openfisca_by_erfs_variable = {
         'chomage_i': 'chomage_imposable',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
-        'rag_i': 'rag_net',
+        'pens_invalidite_i': 'pensions_invalidite',
+        'rag_i': 'rag',
         'retraites_i': 'retraite_imposable',
-        'ric_i': 'ric_net',
-        'rnc_i': 'rnc_net',
+        'ric_i': 'ric',
+        'rnc_i': 'rnc',
         'salaires_i': 'salaire_imposable',
         }
 
@@ -45,6 +46,10 @@ def build_variables_individuelles(temporary_store = None, year = None):
         columns = openfisca_by_erfs_variable,
         inplace = True,
         )
+
+
+    individus['rpns_imposables'] = individus['rag'] + individus['ric'] + individus['rnc']
+
     create_variables_individuelles(individus, year)
     assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     assert 'traitement_indiciaire_brut' in individus.columns , 'traitement indiciaire brut not in individus'

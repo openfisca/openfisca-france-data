@@ -24,7 +24,7 @@ logging.basicConfig(level = logging.INFO, stream = sys.stdout,
 )
 
 
-def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
+def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
     np.seterr(all = 'raise')
     tax_benefit_system = france_data_tax_benefit_system
@@ -123,6 +123,7 @@ def main(year, configfile = None, verbose = False):
         print(aggregates.to_markdown())
         aggregates.to_html(f'aggregates_erfs_fpr_{year}.html')
 
+        continue
         survey_scenario._set_used_as_input_variables_by_entity()
 
         mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = target_variable, period = year, use_baseline = True)

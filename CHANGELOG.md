@@ -1,16 +1,22 @@
 # Changelog
 
-### 0.25.1 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+## 0.26 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
 
 * Technical changes
+  - Utilise les cibles de taxipp dans les agrégats
+
+
+### 0.25.1 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Minor change
   - Change la version de flake8
 
-### 0.25 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+## 0.25 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
 
 * Technical changes
   - Amélioration du comparateur pour permettre de définir le survey_scenario
 
-### 0.24 [#215](https://github.com/openfisca/openfisca-france-data/pull/215)
+## 0.24 [#215](https://github.com/openfisca/openfisca-france-data/pull/215)
 
 * Technical changes
   - Ajout d'un comparateur ERFS-FPR vs simulation oepnfisca

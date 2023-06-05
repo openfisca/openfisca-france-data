@@ -33,6 +33,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'idmen',
         'noindiv',
         'pensions_alimentaires_percues',
+        'pensions_invalidite',
         'quifam',
         'quifoy',
         'quimen',
@@ -40,6 +41,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'retraite_brute',
         'ric',
         'rnc',
+        'rpns_imposables',
         'salaire_de_base',
         'statut_marital',
         "primes_fonction_publique",
@@ -61,15 +63,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'zone_apl',
     ]
 
-    # TODO: fix this simplistic inference
-    individus.rename(columns = {
-        'ric_net': 'ric',
-        'rag_net': 'rag',
-        'rnc_net': 'rnc',
-        },
-        inplace = True
-        )
-
     individus = create_ids_and_roles(individus)
     individus = individus[var_individus].copy()
     gc.collect()
@@ -79,10 +72,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     for k in missingvariablesmenages:
         menages[k] = 0
 
-    # Again artificially putting missing variables in their default state
-    #menages["loyer"] = 0
-    #menages["zone_apl"] = 2
-    #menages["statut_occupation_logement"] = 0
 
     menages = extract_menages_variables(menages)
 

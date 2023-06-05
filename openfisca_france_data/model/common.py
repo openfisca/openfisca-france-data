@@ -51,10 +51,66 @@ class assiette_csg_chomage(Variable):
     label = "Assiette CSG chomage"
     definition_period = MONTH
 
-    def formula(individu, period, parameters):
+    def formula(individu, period):
         chomage_brut = individu('chomage_brut', period)
         taux_csg_remplacement = individu('taux_csg_remplacement', period)
         return chomage_brut * (taux_csg_remplacement >= 2)
+
+
+class csg_salaire(Variable):
+    value_type = float
+    entity = Individu
+    label = "CSG salaire"
+    definition_period = MONTH
+
+    def formula(individu, period):
+        return  (
+            individu('csg_deductible_salaire', period)
+            + individu('csg_imposable_salaire', period)
+            )
+
+
+class csg_non_salarie(Variable):
+    value_type = float
+    entity = Individu
+    label = "CSG non salarié"
+    definition_period = YEAR
+
+    def formula(individu, period):
+        return  (
+            individu('csg_deductible_non_salarie', period)
+            + individu('csg_imposable_non_salarie', period)
+            )
+
+
+class csg_remplacement(Variable):
+    value_type = float
+    entity = Individu
+    label = "CSG sur les revenus de remplacement"
+    definition_period = MONTH
+
+    def formula(individu, period):
+        return  (
+            individu('csg_imposable_retraite', period)
+            + individu('csg_deductible_retraite', period)
+            + individu('csg_imposable_chomage', period)
+            + individu('csg_deductible_chomage', period)
+            )
+
+
+class impot_revenu(Variable):
+    value_type = float
+    entity = FoyerFiscal
+    label = "Impôt sur le revenu"
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        return  (
+            foyer_fiscal('irpp_economique', period)
+            + foyer_fiscal('prelevement_forfaitaire_liberatoire', period)
+            + foyer_fiscal('prelevement_forfaitaire_unique_ir', period)
+            + foyer_fiscal('ir_pv_immo', period)
+            )
 
 
 class decile(Variable):
@@ -237,3 +293,39 @@ class pauvre60(Variable):
         percentile, values = mark_weighted_percentiles(nivvie, labels, wprm * menage_ordinaire, method, return_quantiles = True)
         threshold = .6 * values[1]
         return (nivvie <= threshold) * menage_ordinaire
+
+
+class salaire_brut(Variable):
+    value_type = int
+    entity = Individu
+    label = u"Salaire brut (y compris fonction publique)"
+    set_input = set_input_divide_by_period
+    definition_period = MONTH
+
+    def formula(individu, period):
+        salaire_de_base = individu('salaire_de_base', period)
+        primes_salaires = individu('primes_salaires', period)
+        primes_fonction_publique = individu('primes_fonction_publique', period)
+        indemnite_residence = individu('indemnite_residence', period)
+        supplement_familial_traitement = individu('supplement_familial_traitement', period)
+        remuneration_principale = individu('remuneration_principale', period)
+        indemnite_fin_contrat = individu('indemnite_fin_contrat', period)
+        complementaire_sante_salarie = individu('complementaire_sante_salarie', period)
+        indemnite_compensatrice_csg = individu('indemnite_compensatrice_csg', period)
+
+        # Revenu du foyer fiscal projeté sur le demandeur
+        rev_microsocial = individu.foyer_fiscal('rev_microsocial', period, options = [DIVIDE])
+        rev_microsocial_declarant1 = rev_microsocial * individu.has_role(FoyerFiscal.DECLARANT_PRINCIPAL)
+
+        return (
+            salaire_de_base
+            + primes_salaires
+            + remuneration_principale
+            + primes_fonction_publique
+            + indemnite_residence
+            + supplement_familial_traitement
+            + rev_microsocial_declarant1
+            + indemnite_fin_contrat
+            + complementaire_sante_salarie
+            + indemnite_compensatrice_csg
+            )

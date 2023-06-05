@@ -63,7 +63,7 @@ class ErfsFprtoInputComparator(AbstractComparator):
         year = int(self.period)
         table_by_name = build_table_by_name(year, erfs_fpr_survey_collection)
 
-        log.debug("Loading tables for year {} [{}]".format(year, table_by_name))
+        log.debug(f"Loading tables for year {year} [{table_by_name.values()}]")
 
         # load survey and tables
         survey = erfs_fpr_survey_collection.get_survey(table_by_name['survey'])

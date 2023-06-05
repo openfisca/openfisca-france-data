@@ -2,14 +2,12 @@ import collections
 from datetime import datetime
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pkg_resources
 
-try:
-    from ipp_macro_series_parser.config import Config  # type: ignore
-except ImportError:
-    Config = None
 
 from openfisca_survey_manager.aggregates import AbstractAggregates
 from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
@@ -37,73 +35,46 @@ class FranceAggregates(AbstractAggregates):
 
     def load_actual_data(self, year = None):
         assert year is not None
-
-        if not Config:
-            log.info("No actual data available")
+        taxipp_aggregates_file = Path(
+            pkg_resources.get_distribution("openfisca-france_data").location,
+            "openfisca_france_data",
+            "assets",
+            "agregats_tests_taxipp_2_0.xlsx"
+            )
+        df = (
+            pd.read_excel(
+                taxipp_aggregates_file,
+                # "https://gitlab.com/ipp/partage-public-ipp/taxipp/-/blob/master/simulation/assets/agregats_tests_taxipp_2_0.xlsx",
+                # engine = 'openpyxl'
+                )
+            .rename(columns = str.lower)
+            .rename(columns = {"unnamed: 0": "description"})
+            .dropna(subset = ["annee 2019", "annee 2018", "annee 2017", "annee 2016"], how = "all")
+            )
+        if f"annee {year}" not in df:
             return
 
-        parser = Config()
-
-        # Cotisations CSG -CRDS
-        try:
-            directory = os.path.join(
-                parser.get('data', 'prelevements_sociaux_directory'),
-                'clean',
-                )
-            csg_crds_amounts = pd.read_csv(
-                os.path.join(directory, 'recette_csg_crds.csv'),
-                index_col = 0
-                ).rename(
-                    dict(
-                        recette_csg = 'csg',
-                        recette_crds = 'crds',
-                        )
-                    ) / 1e6
-            csg_by_type_amounts = pd.read_csv(
-                os.path.join(directory, 'recette_csg_by_type.csv'),
-                index_col = 0,
-                ).drop(
-                    ['source']
-                    ).astype(float) / 1e6
-            assiette_csg_by_type_amounts = pd.read_csv(
-                os.path.join(directory, 'assiette_csg_by_type.csv'),
-                index_col = 0,
-                ) / 1e6
-        except Exception:
-            assiette_csg_by_type_amounts = None
-            csg_by_type_amounts = None
-            csg_crds_amounts = None
-            pass
-        # Prestations sociales
-        directory = os.path.join(
-            parser.get('data', 'prestations_sociales_directory'),
-            'clean',
-            )
-        amounts_csv = os.path.join(directory, 'historique_depenses.csv')
-        beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires.csv')
-        prestations_sociales_amounts = pd.read_csv(amounts_csv, index_col = 0)
-        prestations_sociales_beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
-        # Minimum vieillesses
-        minimum_vieillesse_beneficiaries_csv = os.path.join(
-            directory, 'historique_beneficiaires_minimum_vieillesse.csv')
-        if os.path.exists(minimum_vieillesse_beneficiaries_csv):
-            minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
-
-        amounts = pd.concat(
-            [
-                assiette_csg_by_type_amounts,
-                csg_by_type_amounts,
-                csg_crds_amounts,
-                prestations_sociales_amounts,
-                ],
-            sort = True,
-            )
-        beneficiaries = pd.concat(
-            [minimum_vieillesse_beneficiaries, prestations_sociales_beneficiaries],
-            sort = True,
+        df = (
+            df[["variable_openfisca", f"annee {year}"]]
+            .dropna()
+            .rename(columns = {
+                "variable_openfisca": "variable",
+                f"annee {year}": year,
+                })
             )
 
-        return pd.DataFrame(data = {
-            "actual_amount": amounts[str(year)],
-            "actual_beneficiaries": beneficiaries[str(year)],
-            })
+        beneficiaries = (
+            df.loc[df.variable.str.startswith("nombre")]
+            .set_index("variable")
+            .rename(index = lambda x : x.replace("nombre_", ""))
+            .rename(columns = {year: "actual_beneficiaries"})
+            ) / self.beneficiaries_unit
+
+        amounts = (
+            df.loc[~df.variable.str.startswith("nombre")]
+            .set_index("variable")
+            .rename(columns = {year: "actual_amount"})
+            ) / self.amount_unit
+
+        result = amounts.merge(beneficiaries, on = "variable", how = "outer").drop("PAS SIMULE")
+        return result
