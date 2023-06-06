@@ -23,6 +23,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'activite',
         'age',
         'categorie_salarie',
+        'categorie_non_salarie',
         'chomage_brut',
         'contrat_de_travail',
         'date_naissance',

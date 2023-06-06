@@ -489,6 +489,7 @@ def create_categorie_non_salarie(individus):
     commercant = individus.cstot.isin([22])
     chef_entreprise = individus.cstot.isin([23])
     profession_liberale = individus.cstot.isin([31])
+    individus['categorie_non_salarie'] = 0
     individus.loc[
         agriculteur | artisan,
         'categorie_non_salarie'
@@ -501,6 +502,12 @@ def create_categorie_non_salarie(individus):
         profession_liberale,
         'categorie_non_salarie'
         ] = 3
+    #fix un peu crade : cstot ne semble pas recouvrir tout le champ des personnes qui ont du rpns
+    # on met par défaut ces gens là en chef d'entreprise
+    individus.loc[
+        ((individus['rpns_imposables'] != 0) & (individus['categorie_non_salarie'] == 0)),
+        'categorie_non_salarie'
+        ] = 2  
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
