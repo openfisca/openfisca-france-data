@@ -21,7 +21,13 @@ def build_variables_menage(temporary_store = None, year = None):
         menages['statut_occupation_logement'] = menages['logt'].copy()
 
     if year >= 2018:
-        menages['zone_apl'] = 2
+        menages['zone_apl'] = 3
+        menages.loc[menages['tau2010'] == 10,'zone_apl'] = 1
+        menages.loc[menages['tau2010'] == 9,'zone_apl'] = 2
+        #menages.loc[menages['tau2010'] == 8,'zone_apl'] = 2
         # pour l'instant on met tout le monde à 2 mais à améliorer, peut être en fonction de la taille de l'aire urbaine ?
         menages.loc[(menages.statut_occupation_logement == 7), 'statut_occupation_logement'] = 2
+        menages['logement_conventionne'] = False
+        menages.loc[menages['statut_occupation_logement'] == 3 ,'logement_conventionne'] = True
         temporary_store['menages_{}'.format(year)] = menages
+

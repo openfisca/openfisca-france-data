@@ -62,6 +62,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'taxe_habitation',
         'wprm',
         'zone_apl',
+        'logement_conventionne',
     ]
 
     individus = create_ids_and_roles(individus)
@@ -81,14 +82,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     idmens = individus.idmen.unique()
     menages = menages.loc[
         menages.idmen.isin(idmens),
-        [
-            'idmen',
-            'loyer',
-            'statut_occupation_logement',
-            'taxe_habitation',
-            'wprm',
-            'zone_apl',
-            ]
+        var_menages
         ].copy()
     survey_name = 'openfisca_erfs_fpr_' + str(year)
 
@@ -256,7 +250,7 @@ def extract_menages_variables_from_store(temporary_store = None, year = None):
 
 def extract_menages_variables(menages):
     variables = ['ident', 'wprm', 'taxe_habitation']
-    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement']
+    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement','logement_conventionne']
     for external_variable in external_variables:
         if external_variable in menages.columns:
             log.debug("Found {} in menages table: we keep it".format(external_variable))

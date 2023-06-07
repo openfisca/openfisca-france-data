@@ -20,6 +20,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "effectif_entreprise",
         "f4ba",
         "heures_remunerees_volume",
+        "logement_conventionne",
         "loyer",
         "pensions_alimentaires_percues",
         "pensions_invalidite",
