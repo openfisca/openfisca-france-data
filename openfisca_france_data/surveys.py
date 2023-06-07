@@ -193,9 +193,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
-        if "loyer" in input_data_frame:
-            input_data_frame["loyer"] = 12 * input_data_frame.loyer
-
         for variable in ["quifam", "quifoy", "quimen"]:
             if variable in input_data_frame:
                 log.debug(input_data_frame[variable].value_counts(dropna = False))

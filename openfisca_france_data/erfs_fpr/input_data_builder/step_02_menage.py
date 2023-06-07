@@ -12,12 +12,15 @@ log = logging.getLogger(__name__)
 
 @temporary_store_decorator(file_name = 'erfs_fpr')
 def build_variables_menage(temporary_store = None, year = None):
+    menages = temporary_store[f'menages_{year}']
+
+    if "loyer" in menages.columns:
+        menages['loyer'] = menages['loyer'] * 12
+
     if year == 2018:
-        menages = temporary_store[f'menages_{year}']
         menages['statut_occupation_logement'] = menages['so'].copy()
 
     if year == 2019:  # SO ne fonctionne pas en 2019 bcp de 0 = non-renseigné
-        menages = temporary_store[f'menages_{year}']
         menages['statut_occupation_logement'] = menages['logt'].copy()
 
     if year >= 2018:
