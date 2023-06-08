@@ -152,7 +152,10 @@ france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_bene
 CountryTaxBenefitSystem = lambda: france_data_tax_benefit_system  # noqa analysis:ignore
 
 AGGREGATES_DEFAULT_VARS = [
-    'cotisations_non_contributives',
+    "cotisation_salariales",
+    "cotisations_employeur",
+    "cotisation_non_salarie",
+    "allegement_fillon",
     "salaire_brut",
     "retraite_brute",
     "chomage_brut",
@@ -166,7 +169,10 @@ AGGREGATES_DEFAULT_VARS = [
     'csg',
     'crds',
     'impot_revenu',
-    "taxe_habitation",
+    'irpp',
+    'prelevement_forfaitaire_unique_ir',
+    'prelevement_forfaitaire_liberatoire',
+    'taxe_habitation',
     'ppe',
     'ppe_brute',
     'af',
@@ -176,25 +182,24 @@ AGGREGATES_DEFAULT_VARS = [
     'cf',
     'paje_base',
     'paje_naissance',
-    'paje_clca',
+    'paje_prepare',
     'paje_cmg',
     'ars',
     'aeeh',
     'asf',
     'aspa',
-    # 'minimum_vieillesse',
     'aah',
     'caah',
     'rsa',
-    'rsa_activite',
+    'ppa',
     'aefa',
     'api',
-    # 'majo_rsa',
     'psa',
     'aides_logement',
     'alf',
     'als',
     'apl',
+    'garantie_jeunes'
     ]
 #  ajouter csgd pour le calcul des agrégats erfs
 #  ajouter rmi pour le calcul des agrégats erfs
