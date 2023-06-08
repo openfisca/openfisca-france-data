@@ -306,6 +306,9 @@ class AbstractComparator(object):
     messages = list()
     survey_name = None
 
+    def compute_aggregates_comparison(self, input_dataframe_by_entity = None):
+        pass
+
     def get_name(self):
         return self.name + "_" + str(self.period)
 
@@ -352,6 +355,8 @@ class AbstractComparator(object):
         if not figures_directory.exists():
             figures_directory.mkdir(parents = True, exist_ok = True)
 
+        self.figures_directory = figures_directory
+
         if target_variables is not None and isinstance(target_variables, str):
             target_variables = [target_variables]
 
@@ -386,19 +391,21 @@ class AbstractComparator(object):
 
             log.debug(f"Test data has been prepared in {datetime.datetime.now() - start_time}")
 
-            # specific_figures_directory = PurePath.joinpath(figures_directory, self.name)
-            specific_figures_directory = figures_directory
-            specific_figures_directory.mkdir(parents = True, exist_ok = True)
+            self.compute_aggregates_comparison(
+                input_dataframe_by_entity = input_dataframe_by_entity,
+                )
 
             result_by_variable = self.compute_divergence(
                 # input_dataframe_by_entity,
-                None,  # To force load the data_table from hdf file
-                target_dataframe_by_entity,
-                specific_figures_directory,
+                input_dataframe_by_entity = None,  # To force load the data_table from hdf file
+                target_dataframe_by_entity = target_dataframe_by_entity,
                 target_variables = target_variables,
                 period = period,
                 summary = summary,
                 )
+
+            if result_by_variable is None:
+                return
 
             result = pd.concat(result_by_variable, ignore_index = True)
 
@@ -434,7 +441,8 @@ class AbstractComparator(object):
                 pdb.post_mortem(sys.exc_info()[2])
             raise error
 
-    def compute_divergence(self, input_dataframe_by_entity, target_dataframe_by_entity, figures_directory, target_variables = None, period = None, summary = False):
+    def compute_divergence(self, input_dataframe_by_entity, target_dataframe_by_entity,
+            target_variables = None, period = None, summary = False):
         """
         Compare openfisca-france-data computation with data targets.
 
@@ -443,7 +451,7 @@ class AbstractComparator(object):
             target_dataframe_by_period (dict): Targets to macth
             figures_directory (path): Where to store the figures
         """
-        figures_directory = figures_directory.resolve()
+        figures_directory = self.figures_directory.resolve()
         assert Path.exists(figures_directory)
 
         if target_variables is None:
@@ -505,7 +513,6 @@ class AbstractComparator(object):
                 markdown_section_by_variable[variable] = variable_markdown_section
 
             if summary:
-                # create_stats_by_period_figure(variable, result, period, figures_directory = figures_directory)
                 variable_markdown_summary_section = create_variable_markdown_summary_section(
                     variable,
                     stats,
