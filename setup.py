@@ -61,5 +61,5 @@ setup(
             "toolz >= 0.9.0, < 1.0.0",
             ],
         },
-    packages = find_packages(exclude = ("docs", "tests")),
+    packages = find_namespace_packages(exclude = ("docs", "tests")),
     )
