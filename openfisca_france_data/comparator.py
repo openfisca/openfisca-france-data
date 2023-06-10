@@ -395,14 +395,17 @@ class AbstractComparator(object):
                 input_dataframe_by_entity = input_dataframe_by_entity,
                 )
 
-            result_by_variable = self.compute_divergence(
-                # input_dataframe_by_entity,
+            result_by_variable, markdown_section_by_variable, markdown_summary_section_by_variable = self.compute_divergence(
                 input_dataframe_by_entity = None,  # To force load the data_table from hdf file
                 target_dataframe_by_entity = target_dataframe_by_entity,
                 target_variables = target_variables,
                 period = period,
                 summary = summary,
                 )
+
+            # Deal with markdown_section
+
+            self.create_report(markdown_section_by_variable, markdown_summary_section_by_variable)
 
             if result_by_variable is None:
                 return
@@ -411,6 +414,8 @@ class AbstractComparator(object):
 
             log.debug(f"Eveyrthing has been computed in {datetime.datetime.now() - start_time}")
             del input_dataframe_by_entity, target_dataframe_by_entity
+
+
             if browse:
                 start_browsing_time = datetime.datetime.now()
                 result = result.dropna(axis = 1, how = 'all')
@@ -456,7 +461,7 @@ class AbstractComparator(object):
 
         if target_variables is None:
             log.info(f"No target variables. Exiting divergence computation.")
-            return
+            return None, None, None
 
         data = (
             dict(input_dataframe_by_entity = input_dataframe_by_entity)
@@ -521,38 +526,49 @@ class AbstractComparator(object):
                 if variable_markdown_summary_section is not None:
                     markdown_summary_section_by_variable[variable] = variable_markdown_summary_section
 
-        messages_markdown_section = """
+        return result_by_variable, markdown_section_by_variable, markdown_summary_section_by_variable
+
+    def compute_test_dataframes(self):
+        NotImplementedError
+
+    def create_report(self, markdown_section_by_variable, markdown_summary_section_by_variable):
+        figures_directory = self.figures_directory
+
+        if self.messages:
+            messages_markdown_section = """
 Filtres appliqués:
 
 """ + "\n".join(f"- {message}" for message in self.messages) + """
 """
-        with open(figures_directory / "filters.md", "w", encoding = 'utf-8') as filters_md_file:
-            filters_md_file.write(messages_markdown_section)
+        else:
+            messages_markdown_section = ""
 
-        markdown_sections = list(filter(
-            lambda x: x is not None,
-            [messages_markdown_section] + list(markdown_section_by_variable.values()),
-            ))
-        create_output_files(
-            markdown_sections,
-            figures_directory,
-            "variables",
-            )
-        if summary:
-            markdown_sections = list(filter(
-                lambda x: x is not None,
-                [messages_markdown_section] + list(markdown_summary_section_by_variable.values()),
-                ))
+        table_agregats_markdown = None
+        if PurePath.joinpath(figures_directory, "table_agregats.md").exists():
+            with open(figures_directory / "table_agregats.md", "r", encoding = 'utf-8') as table_agregats_md_file:
+                table_agregats_markdown = table_agregats_md_file.read()
+
+        front_sections = [messages_markdown_section, table_agregats_markdown]
+        sections_by_filename = {
+            "variables": markdown_section_by_variable,
+            "summary_variables": markdown_summary_section_by_variable
+            }
+
+        for filename, section_by_variable in sections_by_filename.items():
+            if section_by_variable is not None:
+                markdown_sections = list(filter(
+                    lambda x: x is not None,
+                    front_sections + list(section_by_variable.values()),
+                    ))
+            else:
+                markdown_sections = list(filter(
+                    lambda x: x is not None,front_sections
+                    ))
             create_output_files(
                 markdown_sections,
                 figures_directory,
-                "summary_variables",
+                filename,
                 )
-
-        return result_by_variable
-
-    def compute_test_dataframes(self):
-        NotImplementedError
 
     def filter(self, data_frame):
         for label, filter_expr in self.filter_expr_by_label.items():
