@@ -49,7 +49,7 @@ setup(
             "ipython >= 7.5.0, < 8.0.0",
             "mypy >= 0.670, < 1.0.0",
             "pypandoc",
-            # "pytest",
+            'pytest >= 7.2.2, < 8.0',
             # "pytest-cov >= 2.6.0, < 3.0.0",
             "scipy >= 1.2.1, < 2.0.0",
             "toolz >= 0.9.0, < 1.0.0",
