@@ -104,6 +104,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
+      - run: pip install .[test]
       - run: make test
 
   check-version-and-changelog:
