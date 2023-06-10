@@ -91,7 +91,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ "ubuntu-20.04" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.8.9", "3.9.9"]
+        python-version: ["3.9.9", "3.10.6"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
