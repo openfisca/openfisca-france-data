@@ -23,12 +23,9 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
-     package_data = [
-        (
-            'openfisca_france_data/assets',
-            ['openfisca_france_data/assets/agregats_tests_taxipp_2_0.xlsx'],
-            ),
-        ],
+     package_data = {
+        'openfisca_france_data/assets': ['openfisca_france_data/assets/agregats_tests_taxipp_2_0.xlsx'],
+        },
     entry_points = {
         'console_scripts': [
             'build-erfs-fpr=openfisca_france_data.erfs_fpr.input_data_builder:main',
