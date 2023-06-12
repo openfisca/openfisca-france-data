@@ -36,7 +36,7 @@ class FranceAggregates(AbstractAggregates):
     def load_actual_data(self, year = None):
         assert year is not None
         taxipp_aggregates_file = Path(
-            pkg_resources.get_distribution("openfisca-france_data").location,
+            pkg_resources.get_distribution("openfisca-france-data").location,
             "openfisca_france_data",
             "assets",
             "agregats_tests_taxipp_2_0.xlsx"
