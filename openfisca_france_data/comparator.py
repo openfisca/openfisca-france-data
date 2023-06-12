@@ -309,6 +309,10 @@ class AbstractComparator(object):
     def compute_aggregates_comparison(self, input_dataframe_by_entity = None):
         pass
 
+    def compute_distibution_comparison(self, input_dataframe_by_entity = None):
+        pass
+
+
     def get_name(self):
         return self.name + "_" + str(self.period)
 
