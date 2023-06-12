@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-20.04"]  # On peut ajouter "macos-latest" si besoin
+        os: ["ubuntu-20.04"]
         python-version: ["3.9.9", "3.10.6"]
     steps:
       - name: Checkout
