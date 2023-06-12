@@ -1,12 +1,17 @@
 # Changelog
 
-## 0.26 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+## 0.27 [#223](https://github.com/openfisca/openfisca-france-data/pull/223)
+
+* Technical changes
+  - Utilise les version Python >= 3.9 des dépendances liées à openfisca
+  - Contient les versions précédentes non concernées par une PR sur github
+
+## 0.26
 
 * Technical changes
   - Utilise les cibles de taxipp dans les agrégats
 
-
-### 0.25.1 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+### 0.25.1
 
 * Minor change
   - Change la version de flake8
