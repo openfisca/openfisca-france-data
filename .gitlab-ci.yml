@@ -159,7 +159,7 @@ check-for-functional-changes:
   before_script:
   - ''
   script:
-  - if `.github/has-functional-changes.sh` ; then echo "OK to build package" ; fi
+  - if `.gitlab-ci/has-functional-changes.sh` ; then echo "OK to build package" ; fi
   only: 
   - master
 
