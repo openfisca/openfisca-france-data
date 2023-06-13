@@ -1,4 +1,4 @@
-include: 'gitlab_ci/all_years_build_and_aggregates.yml'
+include: '.gitlab-ci/all_years_build_and_aggregates.yml'
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -7,6 +7,7 @@ variables:
   # OUT_FOLDER: "$CI_COMMIT_REF_NAME-$CI_COMMIT_SHORT_SHA" # For branch-commit_id
   OUT_FOLDER: "$CI_COMMIT_REF_NAME" # For just branch
   ROOT_FOLDER: "/mnt/data-out/openfisca-france-data"
+#  GIT_DEPTH: 1000 # To be able to get last tag (default 50)
 
 cache:
   paths:
@@ -25,13 +26,11 @@ stages:
   - aggregates_all
   - anaconda
 
-
 before_script:
   # To be sure we are up to date even if we do not rebuild docker image
   - make install
-  - cp ./ci-runner/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
+  - cp ./.gitlab-ci/openfisca_survey_manager_raw_data.ini ~/.config/openfisca-survey-manager/raw_data.ini
   - echo "End of before_script"
-
 
 build docker image:
   stage: docker
@@ -51,7 +50,6 @@ build docker image:
   # Build Docker is needed only if code as changed.
   when: manual
 
-
 test:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -59,7 +57,6 @@ test:
   stage: test
   tags:
   - openfisca
-
 
 clean_folder:
   before_script:
@@ -70,7 +67,6 @@ clean_folder:
   - openfisca
   when: manual
 
-
 build_collection:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -78,7 +74,7 @@ build_collection:
   - rm -rf $ROOT_FOLDER/$OUT_FOLDER || true
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_collections/
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/data_output/
-  - cp ./ci-runner/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+  - cp ./.gitlab-ci/openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
   - echo "Custom output folder"
   - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-survey-manager/config.ini
   - 'echo "{\"name\": \"erfs_fpr\", \"surveys\": {}}" > $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json'
@@ -94,7 +90,6 @@ build_collection:
   - openfisca
   when: manual
 
-
 copy_previous_build_collections:
   before_script:
     - ''
@@ -108,7 +103,7 @@ copy_previous_build_collections:
         cp $ROOT_FOLDER/master/openfisca_survey_manager_config-after-build-collection.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
         sed -i "s/master/$OUT_FOLDER/" $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
         cp $ROOT_FOLDER/master/data_collections/erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/erfs_fpr.json
-        cp ./ci-runner/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
+        cp ./.gitlab-ci/empty_openfisca_erfs_fpr.json $ROOT_FOLDER/$OUT_FOLDER/data_collections/openfisca_erfs_fpr.json
     fi
   stage: build_collection
   tags:
@@ -128,19 +123,25 @@ diagnostics:
   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
     ~/.config/openfisca-survey-manager/config.ini
   - mkdir -p ~/.config/openfisca-france-data
-  - cp ./ci-runner/openfisca_france_data_config.ini
+  - cp ./.gitlab-ci/openfisca_france_data_config.ini
     ~/.config/openfisca-france-data/config.ini
   - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-france-data/config.ini
   - cat ~/.config/openfisca-france-data/config.ini
   - compare-erfs-fpr-input -u -s -v
   - cp -r /mnt/data-out/openfisca-france-data/$OUT_FOLDER/figures_directory .
-  - ls -alrth
-  - ls -alrth figures_directory
   - cp -r ./figures_directory $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: diagnostics
   tags:
   - openfisca
 
+check-version-and-changelog:
+  stage: diagnostics
+  before_script:
+  - ''
+  needs:
+  - input_data-2019
+  script:
+  - .gitlab-ci/is-version-number-acceptable.sh
 
 run_on_all_years:
   stage: run_on_all_years
@@ -151,15 +152,26 @@ run_on_all_years:
     - echo "On ne fait rien"
   when: manual
 
-
-build_conda_package:
+check-for-functional-changes:
+  stage: anaconda
+  needs:
+  - check-version-and-changelog
   before_script:
   - ''
-  except:
+  script:
+  - if `.gitlab-ci/has-functional-changes.sh` ; then echo "OK to build package" ; fi
+  only: 
+  - master
+
+build_conda_package:
+  stage: anaconda
+  needs:
+  - check-for-functional-changes
+  before_script:
+  - ''
+  only:
   - master
   image: continuumio/miniconda3
   script:
   - conda install -y conda-build anaconda-client
-  - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca
-    .conda
-  stage: anaconda
+  - conda build -c conda-forge -c openfisca --token $ANACONDA_TOKEN --user OpenFisca .conda

@@ -15,15 +15,19 @@ log = logging.getLogger(__name__)
 
 
 openfisca_by_erfs_fpr_variables = {
-    "chomage_i": "chomage_net",
+    "chomage_i": "chomage_imposable",
     "ident": "idmen_original",
     "noindiv": "noindiv",
-    "rag_i": "rag_net",
-    "retraites_i": "retraite_nette",  # TODO: CHECk
+    "rag_i": "rag",
+    "retraites_i": "retraite_imposable",  # TODO: CHECk
     "rev_fonciers_bruts": "f4ba",
-    "ric_i": "ric_net",
-    "rnc_i": "rnc_net",
-    "salaires_i": "salaire_net",
+    "ric_i": "ric",
+    "rnc_i": "rnc",
+    "salaires_i": "salaire_imposable",
+    "logt": "statut_occupation_logement",
+    "rev_fonciers_bruts": "revenu_categoriel_foncier_menage",
+    "rev_valeurs_mobilieres_bruts": "revenus_capitaux_prelevement_forfaitaire_unique_ir_menage",
+    "rev_financier_prelev_lib_imputes": "rev_financier_prelev_lib_imputes_menage",
     }
 
 
@@ -31,14 +35,26 @@ class ErfsFprtoInputComparator(AbstractComparator):
     name = "erfs_fpr"
     period = None
     default_target_variables = [
-        "chomage_net",
-        # "rag_net", TODO: does not exist in openfisca
-        "retraite_nette",
-        # "ric_net",  TODO: does not exist in openfisca
-        # "rnc_net", TODO: does not exist in openfisca
-        # "f4ba",
-       "salaire_net",
+        "chomage_imposable",
+        "loyer",
+        # "rag",
+        "retraite_imposable",
+        # "ric",
+        # "rnc",
+       "salaire_imposable",
+       "statut_occupation_logement",
         ]
+
+    from openfisca_france_data.erfs_fpr.get_survey_scenario import menage_projected_variables
+
+    target_menage_projected_variables = [
+        f"{menage_projected_variable}_menage"
+        for menage_projected_variable
+        in menage_projected_variables
+        ]
+
+    default_target_variables += target_menage_projected_variables
+
 
     def compute_test_dataframes(self):
         erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
@@ -47,7 +63,7 @@ class ErfsFprtoInputComparator(AbstractComparator):
         year = int(self.period)
         table_by_name = build_table_by_name(year, erfs_fpr_survey_collection)
 
-        log.debug("Loading tables for year {} [{}]".format(year, table_by_name))
+        log.debug(f"Loading tables for year {year} [{table_by_name.values()}]")
 
         # load survey and tables
         survey = erfs_fpr_survey_collection.get_survey(table_by_name['survey'])
@@ -64,6 +80,9 @@ class ErfsFprtoInputComparator(AbstractComparator):
             "individu": openfisca_individu,
             "menage": openfisca_menage,
             }
+
+        fpr_menage.loyer = 12 * fpr_menage.loyer
+
         target_dataframe_by_entity = {
             "individu": fpr_individu.rename(columns = openfisca_by_erfs_fpr_variables),
             "menage": fpr_menage.rename(columns = openfisca_by_erfs_fpr_variables),

@@ -7,7 +7,6 @@ from openfisca_france_data import select_to_match_target
 from openfisca_france_data.common import (
     create_salaire_de_base,
     create_traitement_indiciaire_brut,
-    create_revenus_remplacement_bruts,
     )
 from openfisca_france_data import openfisca_france_tax_benefit_system
 from openfisca_france_data.smic import (
@@ -30,13 +29,14 @@ def build_variables_individuelles(temporary_store = None, year = None):
     individus = temporary_store['individus_{}_post_01'.format(year)]
 
     openfisca_by_erfs_variable = {
-        'chomage_i': 'chomage_net',
+        'chomage_i': 'chomage_imposable',
         'pens_alim_recue_i': 'pensions_alimentaires_percues',
-        'rag_i': 'rag_net',
-        'retraites_i': 'retraite_nette',
-        'ric_i': 'ric_net',
-        'rnc_i': 'rnc_net',
-        'salaires_i': 'salaire_net',
+        'pens_invalidite_i': 'pensions_invalidite',
+        'rag_i': 'rag',
+        'retraites_i': 'retraite_imposable',
+        'ric_i': 'ric',
+        'rnc_i': 'rnc',
+        'salaires_i': 'salaire_imposable',
         }
 
     for variable in openfisca_by_erfs_variable.keys():
@@ -46,104 +46,65 @@ def build_variables_individuelles(temporary_store = None, year = None):
         columns = openfisca_by_erfs_variable,
         inplace = True,
         )
+
+
+    individus['rpns_imposables'] = individus['rag'] + individus['ric'] + individus['rnc']
+
     create_variables_individuelles(individus, year)
     assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
+    assert 'traitement_indiciaire_brut' in individus.columns , 'traitement indiciaire brut not in individus'
+    assert 'primes_fonction_publique' in individus.columns , 'primes fonction publique not in individus'
     temporary_store['individus_{}'.format(year)] = individus
     return individus
 
 
 # helpers
 
-def create_variables_individuelles(individus, year, survey_year = None):
-    """Création des variables individuelles"""
+def create_variables_individuelles(individus, year, survey_year = None, revenu_type = 'imposable'):
+    """Création des variables individuelles."""
+    period = periods.period(year)
+    tax_benefit_system = openfisca_france_tax_benefit_system
 
+    # variables démographiques
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
+    # Base pour constituer les familles, foyers, etc.
+    create_statut_matrimonial(individus)
+
+    # variable d'activite
     create_activite(individus)
-    revenu_type = 'net'
-    period = periods.period(year)
-    create_revenus(individus, revenu_type = revenu_type)
     create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
 
-    # Il faut que la base d'input se fasse au millésime des données
-    # On fait ça car, aussi bien le TaxBenefitSystem et celui réformé peuvent être des réformes
-    # Par exemple : si je veux calculer le diff entre le PLF2019 et un ammendement,
-    # je besoin d'un droit courant comme même du droit courrant pour l'année des données
-    tax_benefit_system = openfisca_france_tax_benefit_system
-
-    # On n'a pas le salaire brut mais le salaire net ou imposable, on doit l'inverser
+    # inversion des revenus pour retrouver le brut
+    # pour les revenus de remplacement on a la csg et la crds dans l'erfs-fpr donc on peut avoir le brut directement
+    create_revenus_remplacement_bruts(individus)
+    # On n'a pas le salaire et le traitement_indiciaire brut, on doit l'inverser
+    # comme on a la crds et la csg non déductible on recalcule l'imposable puis on inverse l'imposable pour avoir le brut
+    #individus['salaire_imposable'] = individus.salaire_net + individus.csg_nd_crds_sal_i
     create_salaire_de_base(
         individus,
         period = period,
         revenu_type = revenu_type,
-        tax_benefit_system = tax_benefit_system
+        tax_benefit_system = tax_benefit_system,
         )
+    create_traitement_indiciaire_brut(
+        individus,
+        period = period,
+        revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system,
+        )
+    create_traitement_indiciaire_brut(
+        individus,
+        period = period,
+        revenu_type = revenu_type,
+        tax_benefit_system = tax_benefit_system)
 
     # Pour les cotisations patronales qui varient avec la taille de l'entreprise'
     create_effectif_entreprise(individus, period = period, survey_year = survey_year)
 
-    # Base pour constituer les familles, foyers, etc.
-    create_statut_matrimonial(individus)
-    assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     return individus
-
-
-def create_individu_variables_brutes(individus, revenu_type = None, period = None,
-        tax_benefit_system = None, mass_by_categorie_salarie = None,
-        calibration_eec = False):
-    """
-    Crée les variables brutes de revenus:
-      - salaire_de_base
-      - traitement_indiciaire_brut
-      - primes_fonction_publique
-      - retraite_bruite
-      - chomage_brut
-    à partir des valeurs nettes ou imposables de ces revenus
-    et d'autres information individuelles
-    """
-    assert revenu_type in ['imposable', 'net']
-    assert period is not None
-    assert tax_benefit_system is not None
-
-    assert 'age' in individus.columns
-
-    created_variables = []
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
-    created_variables.append('contrat_de_travail')
-    created_variables.append('heures_remunerees_volume')
-
-    create_categorie_salarie(individus, period = period)
-    created_variables.append('categorie_salarie')
-    create_categorie_non_salarie(individus)
-    created_variables.append('categorie_non_salarie')
-
-    # FIXME: categorie_non_salarie modifie aussi categorie_salarie  !!
-    if (mass_by_categorie_salarie is not None) & (calibration_eec is True):
-        calibrate_categorie_salarie(individus, year = None, mass_by_categorie_salarie = mass_by_categorie_salarie)
-
-    create_salaire_de_base(individus, period = period, revenu_type = revenu_type, tax_benefit_system = tax_benefit_system)
-    created_variables.append('salaire_de_base')
-
-    create_effectif_entreprise(individus, period = period)
-    created_variables.append('effectif_entreprise')
-
-    create_traitement_indiciaire_brut(individus, period = period, revenu_type = revenu_type,
-        tax_benefit_system = tax_benefit_system)
-    created_variables.append('traitement_indiciaire_brut')
-    created_variables.append('primes_fonction_publique')
-
-    create_taux_csg_remplacement(individus, period, tax_benefit_system)
-    created_variables.append('taux_csg_remplacement')
-    created_variables.append('taux_csg_remplacement_n_1')
-    created_variables.append('rfr_special_csg_n')
-    created_variables.append('rfr_special_csg_n_1')
-
-    create_revenus_remplacement_bruts(individus, period, tax_benefit_system)
-    created_variables.append('chomage_brut')
-    created_variables.append('retraite_brute')
-    return created_variables
 
 
 def create_activite(individus):
@@ -540,31 +501,6 @@ def create_categorie_non_salarie(individus):
         profession_liberale,
         'categorie_non_salarie'
         ] = 3
-    # Correction fonction publique
-    individus.loc[
-        (
-            (individus.categorie_salarie == 0)
-            & (individus.cstot.isin([31, 33, 34, 35, 37, 38,]))
-            ),
-        'categorie_salarie'
-        ] = 1
-
-    # Correction encadrement
-    individus.loc[
-        (
-            (individus.categorie_salarie == 0)
-            & (individus.cstot.isin([31, 34, 35, 37 ,38]))  # Cadres hors FP
-            ),
-        'categorie_salarie'
-        ] = 1
-    # Correction fonction publique
-    individus.loc[
-        (
-            (individus.categorie_salarie.isin([0, 1, 7]))
-            & (individus.cstot == 53) # Policiers et militaires reversé dans titulaire état
-            ),
-        'categorie_salarie'
-        ] = 2
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
@@ -971,74 +907,14 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
             individus.effectif_entreprise.value_counts(dropna = False)))
 
 
-def create_revenus(individus, revenu_type = 'imposable'):
-    """Création des plusieurs variablesde revenu.
-
-    Ces variables sont:
-        chomage_net,
-        pensions_alimentaires_percues,
-        rag_net,
-        retraite_nette,
-        ric_net,
-        rnc_net,
-    et éventuellement, si revenus_type = 'imposable' des variables:
-        chomage_imposable,
-        rag,
-        retraite_imposable,
-        ric,
-        rnc,
-        salaire_imposable,
+def create_revenus_remplacement_bruts(individus):
     """
-    individus['chomage_brut'] = individus.csgchod_i + individus.chomage_net
-    individus['retraite_brute'] = individus.csgrstd_i + individus.retraite_nette
+    Reconstitution des variables de retraite et chomage brut à partir des variables nettes et des variables de csg et crds
+    """
 
-    if revenu_type == 'imposable':
-        variables = [
-            # 'pension_alimentaires_percues',
-            'chomage_imposable',
-            'retraite_imposable',
-            ]
-        for variable in variables:
-            assert variable in individus.columns.tolist(), "La variable {} n'est pas présente".format(variable)
-
-        for variable in variables:
-            if (individus[variable] < 0).any():
-
-                negatives_values = individus[variable].value_counts().loc[individus[variable].value_counts().index < 0]
-                log.debug("La variable {} contient {} valeurs négatives\n {}".format(
-                    variable,
-                    negatives_values.sum(),
-                    negatives_values,
-                    )
-                )
-
-    # csg des revenus de replacement
-    # 0 - Non renseigné/non pertinent
-    # 1 - Exonéré
-    # 2 - Taux réduit
-    # 3 - Taux plein
-    taux = pd.concat(
-        [
-            individus.csgrstd_i / individus.retraite_brute,
-            individus.csgchod_i / individus.chomage_brut,
-            ],
-        axis = 1
-        ).max(axis = 1)
-
-    # taux.loc[(0 < taux) & (taux < .1)].hist(bins = 100)
-    individus['taux_csg_remplacement'] = np.select(
-        [
-            taux.isnull(),
-            taux.notnull() & (taux < 0.021),
-            taux.notnull() & (taux > 0.021) & (taux < 0.0407),
-            taux.notnull() & (taux > 0.0407)
-            ],
-        [0, 1, 2, 3]
-        )
-    for value in [0, 1, 2, 3]:
-        assert (individus.taux_csg_remplacement == value).any(), \
-            "taux_csg_remplacement ne prend jamais la valeur {}".format(value)
-    assert individus.taux_csg_remplacement.isin(range(4)).all()
+    # revenu_brut = revenu_net + csg_deductible + csg_non_deductible_crds
+    individus['chomage_brut'] = individus.chomage_imposable + individus.csgchod_i #+ individus. csg_nd_crds_cho_i
+    individus['retraite_brute'] =  individus.retraite_imposable + individus.csgrstd_i #+ individus.csg_nd_crds_ret_i
 
 
 def create_statut_matrimonial(individus):

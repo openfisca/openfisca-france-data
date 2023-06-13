@@ -10,7 +10,9 @@ import gc
 import os
 
 
+
 from openfisca_france_data import france_data_tax_benefit_system
+from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.aggregates import FranceAggregates as Aggregates
 
@@ -22,7 +24,7 @@ logging.basicConfig(level = logging.INFO, stream = sys.stdout,
 )
 
 
-def test_erfs_fpr_survey_simulation_aggregates(year = 2014, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
+def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
     np.seterr(all = 'raise')
     tax_benefit_system = france_data_tax_benefit_system
@@ -76,7 +78,7 @@ def test_erfs_fpr_aggregates_reform():
 
 
 @click.command()
-@click.option('-y', '--year', 'year', default = 2018, help = "ERFS-FPR year", show_default = True,
+@click.option('-y', '--year', 'year', default = REFERENCE_YEAR, help = "ERFS-FPR year", show_default = True,
     type = int, required = True)
 @click.option('-c', '--configfile', default = None,
     help = 'raw_data.ini path to read years to process.', show_default = True)
@@ -121,6 +123,7 @@ def main(year, configfile = None, verbose = False):
         print(aggregates.to_markdown())
         aggregates.to_html(f'aggregates_erfs_fpr_{year}.html')
 
+        continue
         survey_scenario._set_used_as_input_variables_by_entity()
 
         mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = target_variable, period = year, use_baseline = True)

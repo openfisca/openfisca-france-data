@@ -9,7 +9,7 @@ from openfisca_core import reforms  # type: ignore
 import openfisca_france  # type: ignore
 
 # Load input variables and output variables into entities
-from openfisca_france_data.model import common, survey_variables, id_variables  # noqa analysis:ignore
+from openfisca_france_data.model import common, survey_variables  # noqa analysis:ignore
 from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 
@@ -153,9 +153,20 @@ CountryTaxBenefitSystem = lambda: france_data_tax_benefit_system  # noqa analysi
 
 AGGREGATES_DEFAULT_VARS = [
     'cotisations_non_contributives',
+    "salaire_brut",
+    "retraite_brute",
+    "chomage_brut",
+    "salaire_imposable",
+    "retraite_imposable",
+    "chomage_imposable",
+    "csg_salaire",
+    "csg_non_salarie",
+    "csg_remplacement",
+    "csg_revenus_capital",
     'csg',
     'crds',
-    'irpp',
+    'impot_revenu',
+    "taxe_habitation",
     'ppe',
     'ppe_brute',
     'af',
@@ -170,8 +181,8 @@ AGGREGATES_DEFAULT_VARS = [
     'ars',
     'aeeh',
     'asf',
-    # 'aspa',
-    'minimum_vieillesse',
+    'aspa',
+    # 'minimum_vieillesse',
     'aah',
     'caah',
     'rsa',

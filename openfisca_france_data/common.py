@@ -230,15 +230,15 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     contrat_de_travail = individus.contrat_de_travail
     heures_remunerees_volume = individus.heures_remunerees_volume
 
-    legislation = tax_benefit_system.parameters(period.start)
+    parameters = tax_benefit_system.parameters(period.start)
 
-    salarie = legislation.cotsoc.cotisations_salarie
-    plafond_securite_sociale_mensuel = legislation.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
-    legislation_csg_deductible = legislation.prelevements_sociaux.contributions_sociales.csg.activite.deductible
-    taux_csg = legislation_csg_deductible.taux
-    taux_abattement = legislation_csg_deductible.abattement.rates[0]
+    salarie = parameters.cotsoc.cotisations_salarie
+    plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
+    parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
+    taux_csg = parameters_csg_deductible.taux
+    taux_abattement = parameters_csg_deductible.abattement.rates[0]
     try:
-        seuil_abattement = legislation_csg_deductible.abattement.thresholds[1]
+        seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
     except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
         seuil_abattement = None
     csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
@@ -250,11 +250,11 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # Cas des revenus nets:
         # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
         # 1. csg imposable
-        legislation_csg_imposable = legislation.prelevements_sociaux.contributions_sociales.csg.activite.imposable
-        taux_csg = legislation_csg_imposable.taux
-        taux_abattement = legislation_csg_imposable.abattement.rates[0]
+        parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
+        taux_csg = parameters_csg_imposable.taux
+        taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
-            seuil_abattement = legislation_csg_imposable.abattement.thresholds[1]
+            seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
@@ -262,11 +262,11 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
-        legislation_crds = legislation.prelevements_sociaux.contributions_sociales.crds.activite
-        taux_csg = legislation_crds.taux
-        taux_abattement = legislation_crds.abattement.rates[0]
+        parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
+        taux_csg = parameters_crds.taux
+        taux_abattement = parameters_crds.abattement.rates[0]
         try:
-            seuil_abattement = legislation_crds.abattement.thresholds[1]
+            seuil_abattement = parameters_crds.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')

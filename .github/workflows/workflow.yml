@@ -12,7 +12,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-20.04"]
-        python-version: ["3.8.9", "3.9.9"]
+        python-version: ["3.9.9", "3.10.6"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
@@ -33,7 +33,7 @@ jobs:
         run: make build
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
@@ -51,7 +51,7 @@ jobs:
           python-version: 3.9.9
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
@@ -91,7 +91,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ "ubuntu-20.04" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.8.9", "3.9.9"]
+        python-version: ["3.9.9", "3.10.6"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -104,6 +104,7 @@ jobs:
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
+      - run: pip install .[test]
       - run: make test
 
   check-version-and-changelog:
@@ -116,7 +117,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.8.9
+          python-version: 3.9.9
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
@@ -157,13 +158,13 @@ jobs:
           python-version: 3.9.9
       - name: Cache build
         id: restore-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ env.pythonLocation }}
           key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
       - name: Cache release
         id: restore-release
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: dist
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
