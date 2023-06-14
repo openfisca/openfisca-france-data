@@ -313,10 +313,6 @@ class salaire_brut(Variable):
         complementaire_sante_salarie = individu('complementaire_sante_salarie', period)
         indemnite_compensatrice_csg = individu('indemnite_compensatrice_csg', period)
 
-        # Revenu du foyer fiscal projeté sur le demandeur
-        rev_microsocial = individu.foyer_fiscal('rev_microsocial', period, options = [DIVIDE])
-        rev_microsocial_declarant1 = rev_microsocial * individu.has_role(FoyerFiscal.DECLARANT_PRINCIPAL)
-
         return (
             salaire_de_base
             + primes_salaires
@@ -324,7 +320,6 @@ class salaire_brut(Variable):
             + primes_fonction_publique
             + indemnite_residence
             + supplement_familial_traitement
-            + rev_microsocial_declarant1
             + indemnite_fin_contrat
             + complementaire_sante_salarie
             + indemnite_compensatrice_csg
