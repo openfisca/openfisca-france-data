@@ -1,5 +1,14 @@
 # Changelog
 
+# 1.0.0 [#224](https://github.com/openfisca/openfisca-france-data/pull/224)
+
+* Breaking changes
+- dans model/common.py/salaire_brut:
+  - Retire rev_microsocial
+
+- Détails
+  - rev_microsocial n'était pas un salaire mais un CA net des cotisations sociales pour les micro-entrepreneurs optant pour le  versement libératoire de l'IR. Elle était donc à tort dans salaire_brut, d'autant plus qu'il n'y a pas d'autres rpns qui y  sont répertoriés.
+
 ## 0.27 [#223](https://github.com/openfisca/openfisca-france-data/pull/223)
 
 * Technical changes
