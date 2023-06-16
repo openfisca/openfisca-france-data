@@ -31,12 +31,14 @@ class FranceAggregates(AbstractAggregates):
         ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
         ))
     aggregate_variables = AGGREGATES_DEFAULT_VARS
+    target_source = None
 
-    def load_actual_data(self, year = None, source_cible = None):
-        assert source_cible in ["cibles_ines", "taxipp"], "les options possible pour source_cible sont cibles_ines ou taxipp"
+    def load_actual_data(self, year = None):
+        target_source = self.target_source
+        assert target_source in ["cibles_ines", "taxipp"], "les options possible pour source_cible sont cibles_ines ou taxipp"
         assert year is not None
         
-        if source_cible == "taxipp":
+        if target_source == "taxipp":
             taxipp_aggregates_file = Path(
                 pkg_resources.get_distribution("openfisca-france_data").location,
                 "openfisca_france_data",
@@ -82,7 +84,7 @@ class FranceAggregates(AbstractAggregates):
 
             result = amounts.merge(beneficiaries, on = "variable", how = "outer").drop("PAS SIMULE")
         
-        elif source_cible == "cibles_ines":
+        elif target_source == "cibles_ines":
             ines_aggregates_file = Path(
                 pkg_resources.get_distribution("openfisca-france_data").location,
                 "openfisca_france_data",
