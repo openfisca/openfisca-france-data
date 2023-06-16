@@ -19,7 +19,6 @@ from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_02_menage as menage,
     step_03_variables_individuelles as variables_individuelles,
     step_04_famille as famille,
-    step_05_foyer as foyer,
     step_06_final as final,
     )
 
