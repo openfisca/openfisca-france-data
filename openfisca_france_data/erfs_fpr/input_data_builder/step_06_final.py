@@ -63,6 +63,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'wprm',
         'zone_apl',
         'logement_conventionne',
+        'prest_precarite_hand' # on récupère la variable de montant de aah / caah pour pouvoir faire une imputation du handicap
     ]
 
     individus = create_ids_and_roles(individus)
@@ -250,7 +251,7 @@ def extract_menages_variables_from_store(temporary_store = None, year = None):
 
 def extract_menages_variables(menages):
     variables = ['ident', 'wprm', 'taxe_habitation']
-    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement','logement_conventionne']
+    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement','logement_conventionne', 'prest_precarite_hand']
     for external_variable in external_variables:
         if external_variable in menages.columns:
             log.debug("Found {} in menages table: we keep it".format(external_variable))
