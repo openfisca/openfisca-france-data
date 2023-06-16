@@ -16,7 +16,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
-    foyers_fiscaux = temporary_store['foyers_fiscaux_{}'.format(year)]
+    # foyers_fiscaux = temporary_store['foyers_fiscaux_{}'.format(year)]
 
     # ici : variables à garder
     var_individus = [
@@ -48,12 +48,12 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         "primes_fonction_publique",
         "traitement_indiciaire_brut",
         ]
-    var_foyers_fiscaux = [
-        'idfoy',
-        'rev_financier_prelev_lib_imputes',
-        'revenu_categoriel_foncier',
-        'revenus_capitaux_prelevement_forfaitaire_unique_ir',
-        ]
+    # var_foyers_fiscaux = [
+    #     'idfoy',
+    #     'rev_financier_prelev_lib_imputes',
+    #     'revenu_categoriel_foncier',
+    #     'revenus_capitaux_prelevement_forfaitaire_unique_ir',
+    #     ]
 
     var_menages = [
         'idmen',
@@ -97,15 +97,15 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
                             how = 'inner',
                             on = 'idmen_original')
 
-    foyers_fiscaux = foyers_fiscaux.rename(columns = {'idfoy':'idfoy_original'})
-    unique_idfoy = individus[['idfoy','idfoy_original']].drop_duplicates()
+    # foyers_fiscaux = foyers_fiscaux.rename(columns = {'idfoy':'idfoy_original'})
+    # unique_idfoy = individus[['idfoy','idfoy_original']].drop_duplicates()
     assert len(unique_idmen) == len(menages), "Number of idfoy should be the same individus and foyers tables."
 
-    foyers_fiscaux = foyers_fiscaux.merge(unique_idfoy,
-                                          how = 'inner',
-                                          on = 'idfoy_original')
+    # foyers_fiscaux = foyers_fiscaux.merge(unique_idfoy,
+    #                                       how = 'inner',
+    #                                       on = 'idfoy_original')
 
-    foyers_fiscaux = foyers_fiscaux[var_foyers_fiscaux]
+    # foyers_fiscaux = foyers_fiscaux[var_foyers_fiscaux]
 
     if export_flattened_df_filepath:
         supermerge = individus.merge(
@@ -127,16 +127,16 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         survey_name = survey_name,
         )
 
-    foyers_fiscaux = foyers_fiscaux.sort_values(by = ['idfoy'])
-    log.debug(f"Saving entity 'foyers fiscaux' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
-    set_table_in_survey(
-        foyers_fiscaux,
-        entity = "foyer_fiscal",
-        period = year,
-        collection = "openfisca_erfs_fpr",
-        survey_name = survey_name,
-        )
-    log.debug("End of create_input_data_frame")
+    # foyers_fiscaux = foyers_fiscaux.sort_values(by = ['idfoy'])
+    # log.debug(f"Saving entity 'foyers fiscaux' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
+    # set_table_in_survey(
+    #     foyers_fiscaux,
+    #     entity = "foyer_fiscal",
+    #     period = year,
+    #     collection = "openfisca_erfs_fpr",
+    #     survey_name = survey_name,
+    #     )
+    # log.debug("End of create_input_data_frame")
 
     menages = menages.sort_values(by = ['idmen'])
     log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
