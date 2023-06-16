@@ -76,7 +76,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     famille.build_famille(year = year)
 
     log.info('\n [[[ Year {} - Step 5 / 6 ]]] \n'.format(year))
-    foyer.build_variables_foyers_fiscal(year = year)
+    # foyer.build_variables_foyers_fiscal(year = year)
 
     # Affreux ! On injectait tout dans un même DataFrame !!!
     # C'est très moche !
