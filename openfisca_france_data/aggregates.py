@@ -33,6 +33,10 @@ class FranceAggregates(AbstractAggregates):
     aggregate_variables = AGGREGATES_DEFAULT_VARS
     target_source = None
 
+    def __init__(self, survey_scenario = None, target_source = None):
+        self.__init__(self, survey_scenario = survey_scenario)
+        self.target_source = target_source
+
     def load_actual_data(self, year = None):
         target_source = self.target_source
         assert target_source in ["cibles_ines", "taxipp"], "les options possible pour source_cible sont cibles_ines ou taxipp"

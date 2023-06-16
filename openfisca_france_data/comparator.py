@@ -304,7 +304,7 @@ class AbstractComparator(object):
     filter_expr_by_label = None
     period = None
     messages = list()
-    survey_name = f'openfisca_erfs_fpr_{period}'
+    survey_name = None
 
     def get_name(self):
         return self.name + "_" + str(self.period)
