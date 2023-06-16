@@ -304,6 +304,7 @@ class AbstractComparator(object):
     filter_expr_by_label = None
     period = None
     messages = list()
+    survey_name = f'openfisca_erfs_fpr_{period}'
 
     def get_name(self):
         return self.name + "_" + str(self.period)
@@ -338,8 +339,7 @@ class AbstractComparator(object):
                 }
         return input_dataframe_by_entity, target_dataframe_by_entity
 
-    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, 
-                rebuild = False, summary = False, collection = "openfisca_erfs_fpr", survey_name = None):
+    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False,):
         """Compare actual data with openfisca-france-data computation."""
         log.setLevel(level = logging.DEBUG if verbose else logging.WARNING)
 
@@ -395,8 +395,6 @@ class AbstractComparator(object):
                 None,  # To force load the data_table from hdf file
                 target_dataframe_by_entity,
                 specific_figures_directory,
-                collection = collection,
-                survey_name = survey_name,
                 target_variables = target_variables,
                 period = period,
                 summary = summary,
@@ -436,8 +434,7 @@ class AbstractComparator(object):
                 pdb.post_mortem(sys.exc_info()[2])
             raise error
 
-    def compute_divergence(self, input_dataframe_by_entity, target_dataframe_by_entity, figures_directory,
-            collection, survey_name, target_variables = None, period = None, summary = False):
+    def compute_divergence(self, input_dataframe_by_entity, target_dataframe_by_entity, figures_directory, target_variables = None, period = None, summary = False):
         """
         Compare openfisca-france-data computation with data targets.
 
@@ -460,9 +457,7 @@ class AbstractComparator(object):
             )
 
         survey_scenario = self.get_survey_scenario(
-            collection = collection,
-            data = data,
-            survey_name = f'openfisca_erfs_fpr_{self.period}' if survey_name is None else survey_name,
+            data = data
             )
 
         tax_benefit_system = survey_scenario.tax_benefit_system
@@ -566,7 +561,8 @@ Filtres appliqués:
             log.info(log_message)
             self.messages.append(log_message + "\n")
 
-    def get_survey_scenario(self, collection, data = None, survey_name = None):
+    def get_survey_scenario(self, data = None):
+        survey_name = self.survey_name
         return get_survey_scenario(
             year = str(self.period),
             data = data,
