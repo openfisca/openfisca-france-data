@@ -22,7 +22,7 @@ def test_erfs_survey_simulation(survey_scenario, fake_input_data, year: int = 20
     survey_scenario.init_from_data(data = dict(input_data_frame = input_data))
 
     # On calcule les agrégats
-    aggregates = Aggregates(survey_scenario = survey_scenario)
+    aggregates = Aggregates(survey_scenario = survey_scenario, target_source = 'taxipp')
     aggregates.compute_aggregates(use_baseline = False)
     return aggregates.base_data_frame
 
