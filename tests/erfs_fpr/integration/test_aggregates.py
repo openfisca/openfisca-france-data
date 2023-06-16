@@ -38,7 +38,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_in
         varying_variable = varying_variable,
         survey_name = survey_name,
         )
-    aggregates = Aggregates(survey_scenario = survey_scenario)
+    aggregates = Aggregates(survey_scenario = survey_scenario, target_source = 'taxipp')
 
     if False:
         mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = 'revenu_disponible', period = year, use_baseline = True)

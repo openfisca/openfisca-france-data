@@ -42,6 +42,6 @@ def test_erfs_fpr_aggregates_reform(fake_input_data, year:int = 2013):
     # On initialise le survey scenario
     survey_scenario.init_from_data(data = dict(input_data_frame = input_data))
 
-    aggregates = Aggregates(survey_scenario = survey_scenario)
+    aggregates = Aggregates(survey_scenario = survey_scenario, target_source = 'taxipp')
     base_data_frame = aggregates.compute_aggregates()
     return aggregates, base_data_frame
