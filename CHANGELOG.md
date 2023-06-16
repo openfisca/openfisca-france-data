@@ -1,5 +1,13 @@
 # Changelog
 
+# 1.1.0 [#225](https://github.com/openfisca/openfisca-france-data/pull/225)
+
+
+* Technical changes
+- Ajoute des variables concernant le calcul des aides au logement, des non salariés et du handicap dans le builder de openfisca-france-data
+
+
+
 # 1.0.0 [#224](https://github.com/openfisca/openfisca-france-data/pull/224)
 
 * Breaking changes
