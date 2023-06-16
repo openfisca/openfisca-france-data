@@ -13,7 +13,7 @@ from openfisca_france_data.erfs_fpr.scenario import (  # type: ignore
     )
 def test_erfs_survey_simulation(survey_scenario, fake_input_data, year: int = 2009):
     # On ititialise le survey scenario
-    survey_scenario = survey_scenario(year)
+    survey_scenario = ErfsFprSurveyScenario.create(year)
 
     # On charge les données
     input_data = fake_input_data(year)
