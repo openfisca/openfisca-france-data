@@ -304,14 +304,24 @@ class AbstractComparator(object):
     filter_expr_by_label = None
     period = None
     messages = list()
-    survey_name = None
+    survey_scenario = None
+
+    def __init__(self):
+        name = self.get_name()
+        assert name is not None and isinstance(name, str)
+
+        figures_directory = Path(config.get("paths", "figures_directory")) / name
+
+        if not figures_directory.exists():
+            figures_directory.mkdir(parents = True, exist_ok = True)
+
+        self.figures_directory = figures_directory
 
     def compute_aggregates_comparison(self, input_dataframe_by_entity = None):
         pass
 
     def compute_distibution_comparison(self, input_dataframe_by_entity = None):
         pass
-
 
     def get_name(self):
         return self.name + "_" + str(self.period)
@@ -350,17 +360,6 @@ class AbstractComparator(object):
         """Compare actual data with openfisca-france-data computation."""
         log.setLevel(level = logging.DEBUG if verbose else logging.WARNING)
 
-        name = self.get_name()
-
-        assert name is not None and isinstance(name, str)
-
-        figures_directory = Path(config.get("paths", "figures_directory")) / name
-
-        if not figures_directory.exists():
-            figures_directory.mkdir(parents = True, exist_ok = True)
-
-        self.figures_directory = figures_directory
-
         if target_variables is not None and isinstance(target_variables, str):
             target_variables = [target_variables]
 
@@ -374,7 +373,7 @@ class AbstractComparator(object):
 
         backup_directory = PurePath.joinpath(Path(config.get("paths", "backup")))
         backup_directory.mkdir(parents = True, exist_ok = True)
-
+        name = self.name
         backup_path = PurePath.joinpath(backup_directory, f"{name}_backup.h5")
 
         if load:
@@ -398,6 +397,8 @@ class AbstractComparator(object):
             self.compute_aggregates_comparison(
                 input_dataframe_by_entity = input_dataframe_by_entity,
                 )
+
+            self.compute_distibution_comparison(input_dataframe_by_entity = input_dataframe_by_entity)
 
             result_by_variable, markdown_section_by_variable, markdown_summary_section_by_variable = self.compute_divergence(
                 input_dataframe_by_entity = None,  # To force load the data_table from hdf file
@@ -552,7 +553,11 @@ Filtres appliqués:
             with open(figures_directory / "table_agregats.md", "r", encoding = 'utf-8') as table_agregats_md_file:
                 table_agregats_markdown = table_agregats_md_file.read()
 
-        front_sections = [messages_markdown_section, table_agregats_markdown]
+        if PurePath.joinpath(figures_directory, "distribution_comparison_md").exists():
+            with open(figures_directory / "distribution_comparison_md", "r", encoding = 'utf-8') as distribution_comparison_md_file:
+                distribution_comparison_markdown = distribution_comparison_md_file.read()
+
+        front_sections = [messages_markdown_section, table_agregats_markdown, distribution_comparison_markdown]
         sections_by_filename = {
             "variables": markdown_section_by_variable,
             "summary_variables": markdown_summary_section_by_variable
@@ -588,8 +593,11 @@ Filtres appliqués:
             log.info(log_message)
             self.messages.append(log_message + "\n")
 
-    def get_survey_scenario(self, data = None):
-        survey_name = self.survey_name
+    def get_survey_scenario(self, data = None, survey_name = None):
+
+        if self.survey_scenario is not None:
+            return self.survey_scenario
+
         return get_survey_scenario(
             year = str(self.period),
             data = data,
