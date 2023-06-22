@@ -34,14 +34,14 @@ class FranceAggregates(AbstractAggregates):
     target_source = None
 
     def __init__(self, survey_scenario = None, target_source = None):
-        self.__init__(self, survey_scenario = survey_scenario)
+        super().__init__(survey_scenario = survey_scenario)
         self.target_source = target_source
 
     def load_actual_data(self, year = None):
         target_source = self.target_source
         assert target_source in ["cibles_ines", "taxipp"], "les options possible pour source_cible sont cibles_ines ou taxipp"
         assert year is not None
-        
+
         if target_source == "taxipp":
             taxipp_aggregates_file = Path(
                 pkg_resources.get_distribution("openfisca-france_data").location,
@@ -87,7 +87,7 @@ class FranceAggregates(AbstractAggregates):
                 ) / self.amount_unit
 
             result = amounts.merge(beneficiaries, on = "variable", how = "outer").drop("PAS SIMULE")
-        
+
         elif target_source == "cibles_ines":
             ines_aggregates_file = Path(
                 pkg_resources.get_distribution("openfisca-france_data").location,
