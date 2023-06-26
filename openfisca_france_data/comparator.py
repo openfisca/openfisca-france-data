@@ -553,6 +553,7 @@ Filtres appliqués:
             with open(figures_directory / "table_agregats.md", "r", encoding = 'utf-8') as table_agregats_md_file:
                 table_agregats_markdown = table_agregats_md_file.read()
 
+        distribution_comparison_markdown = None
         if PurePath.joinpath(figures_directory, "distribution_comparison_md").exists():
             with open(figures_directory / "distribution_comparison_md", "r", encoding = 'utf-8') as distribution_comparison_md_file:
                 distribution_comparison_markdown = distribution_comparison_md_file.read()
