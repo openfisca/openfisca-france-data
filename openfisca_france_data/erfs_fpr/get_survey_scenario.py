@@ -28,10 +28,8 @@ variables_converted_to_annual = [
 
 
 menage_projected_variables = [
-    # "rev_financier_prelev_lib_imputes",
-    "revenu_categoriel_foncier",
-    "revenus_capitaux_prelevement_forfaitaire_unique_ir",
-    ]
+
+]
 
 
 class erfs_fpr_plugin(Reform):
@@ -144,7 +142,6 @@ def get_survey_scenario(
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
         input_data_table_by_entity = dict(
-            foyer_fiscal = f"foyer_fiscal_{year}",
             individu = f"individu_{year}",
             menage = f"menage_{year}",
             )
