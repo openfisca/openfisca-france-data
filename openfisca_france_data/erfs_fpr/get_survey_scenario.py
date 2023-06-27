@@ -27,6 +27,11 @@ variables_converted_to_annual = [
     ]
 
 
+menage_projected_variables = [
+
+]
+
+
 class erfs_fpr_plugin(Reform):
     name = "ERFS-FPR ids plugin"
 
@@ -55,6 +60,32 @@ class erfs_fpr_plugin(Reform):
 
             self.add_variable(variable_instance)
             del variable_instance
+
+        for variable in menage_projected_variables:
+            class_name =  f"{variable}_menage"
+            label = f"{variable} agrégée à l'échelle du ménage"
+
+            def projection_formula_creator(variable):
+                def formula(menage, period):
+                    result_i = menage.members.foyer_fiscal(variable, period, options = [ADD])
+                    result = menage.sum(result_i, role = FoyerFiscal.DECLARANT_PRINCIPAL)
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = Menage,
+                label = label,
+                definition_period = YEAR,
+                formula = projection_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
 
         self.add_variable(idmen_original)
         self.add_variable(noindiv)
