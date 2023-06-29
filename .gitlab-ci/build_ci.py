@@ -40,8 +40,8 @@ def build_input_data(year: str, stage: str = "build_input_data_all"):
                 "cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini ~/.config/openfisca-survey-manager/config.ini",
                 f"build-erfs-fpr -y {year} -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_{year}.h5",
                 "cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-"
-                + year
-                + ".ini",
+                    + year
+                    + ".ini",
             ],
         }
     }
@@ -73,8 +73,12 @@ def aggregates(year, stage: str = "aggregates_all"):
                 "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output",
             ],
             "artifacts": {"paths": ["./*.html", "./*.csv"]},
+            "environment": {
+                "name": f"Aggregates {year}",
+                "url": f"https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_{year}.html",
+                }
+            }
         }
-    }
 
 
 # Warning : not used yet : test are independant for now.
@@ -118,6 +122,8 @@ def build_gitlab_ci(erfs_years):
     # gitlab_ci += yaml.dump(build_collections())
     gitlab_ci += yaml.dump(build_input_data("2019", stage="build_input_data"))
     gitlab_ci += yaml.dump(aggregates("2019", stage="aggregates"))
+    gitlab_ci += yaml.dump(build_input_data("2018", stage="build_input_data"))
+    gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates"))
 
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
