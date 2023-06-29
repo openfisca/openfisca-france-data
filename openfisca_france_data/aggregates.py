@@ -39,7 +39,7 @@ class FranceAggregates(AbstractAggregates):
 
     def load_actual_data(self, year = None):
         target_source = self.target_source
-        assert target_source in ["cibles_ines", "taxipp"], "les options possible pour source_cible sont cibles_ines ou taxipp"
+        assert target_source in ["ines", "taxipp"], "les options possible pour source_cible sont ines ou taxipp"
         assert year is not None
 
         if target_source == "taxipp":
@@ -88,14 +88,14 @@ class FranceAggregates(AbstractAggregates):
 
             result = amounts.merge(beneficiaries, on = "variable", how = "outer").drop("PAS SIMULE")
 
-        elif target_source == "cibles_ines":
+        elif target_source == "ines":
             ines_aggregates_file = Path(
                 pkg_resources.get_distribution("openfisca-france_data").location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
                 "ines",
-                f"cibles_ines_{year}.json"
+                f"ines_{year}.json"
                 )
 
             with open(ines_aggregates_file, 'r') as f:
