@@ -69,7 +69,6 @@ def aggregates(year, stage: str = "aggregates_all", env = False):
                 f"cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-{year}.ini ~/.config/openfisca-survey-manager/config.ini",
                 f"python tests/erfs_fpr/integration/test_aggregates.py --year {year}",
                 "mkdir -p $ROOT_FOLDER/$OUT_FOLDER",
-                "cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output",
                 "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output",
             ],
             "artifacts": {"paths": ["./*.csv"]},

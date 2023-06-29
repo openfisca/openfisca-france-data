@@ -32,7 +32,6 @@ aggregates-2019:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates
   tags:
@@ -64,7 +63,6 @@ agg-1996:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1996
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -96,7 +94,6 @@ agg-1997:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1997
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -128,7 +125,6 @@ agg-1998:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1998
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -160,7 +156,6 @@ agg-1999:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1999
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -192,7 +187,6 @@ agg-2000:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2000
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -224,7 +218,6 @@ agg-2001:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2001
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -256,7 +249,6 @@ agg-2002:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2002
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -288,7 +280,6 @@ agg-2003:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2003
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -320,7 +311,6 @@ agg-2004:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2004
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -352,7 +342,6 @@ agg-2005:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2005
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -384,7 +373,6 @@ agg-2006:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2006
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -416,7 +404,6 @@ agg-2007:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2007
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -448,7 +435,6 @@ agg-2008:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2008
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -480,7 +466,6 @@ agg-2009:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2009
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -512,7 +497,6 @@ agg-2010:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2010
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -544,7 +528,6 @@ agg-2011:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2011
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -576,7 +559,6 @@ agg-2012:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2012
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -608,7 +590,6 @@ agg-2013:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2013
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -640,7 +621,6 @@ agg-2014:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2014
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -672,7 +652,6 @@ agg-2015:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2015
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -704,7 +683,6 @@ agg-2016:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2016
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -736,7 +714,6 @@ agg-2017:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2017
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -768,7 +745,6 @@ agg-2018:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -800,7 +776,6 @@ agg-2019:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
