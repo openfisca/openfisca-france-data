@@ -77,7 +77,7 @@ def aggregates(year, stage: str = "aggregates_all", env = False):
         }
 
     if env:
-        entry["environment"] = {
+        entry[prefix + year]["environment"] = {
             "name": f"Aggregates {year}",
             "url": f"https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_{year}.csv",
             }
