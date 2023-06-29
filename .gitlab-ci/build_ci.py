@@ -125,8 +125,6 @@ def build_gitlab_ci(erfs_years):
     # gitlab_ci += yaml.dump(build_collections())
     gitlab_ci += yaml.dump(build_input_data("2019", stage="build_input_data"))
     gitlab_ci += yaml.dump(aggregates("2019", stage="aggregates", env = True))
-    gitlab_ci += yaml.dump(build_input_data("2018", stage="build_input_data"))
-    gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates", env = True))
 
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
