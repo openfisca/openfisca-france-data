@@ -21,6 +21,9 @@ aggregates-2019:
     paths:
     - ./*.html
     - ./*.csv
+  environment:
+    name: Aggregates 2019
+    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2019.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - input_data-2019
@@ -35,9 +38,6 @@ aggregates-2019:
   stage: aggregates
   tags:
   - openfisca
-environment:
-  name: Aggregates 2019
-  url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2019.csv
 input_data-2018:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -55,6 +55,9 @@ aggregates-2018:
     paths:
     - ./*.html
     - ./*.csv
+  environment:
+    name: Aggregates 2018
+    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2018.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - input_data-2018
@@ -69,9 +72,6 @@ aggregates-2018:
   stage: aggregates
   tags:
   - openfisca
-environment:
-  name: Aggregates 2018
-  url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2018.csv
 in_dt-1996:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
