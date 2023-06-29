@@ -54,7 +54,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_in
 
         np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
 
-    return survey_scenario, aggregates_taxipp, aggregates_ines
+    return survey_scenario, aggregates_taxipp.get_data_frame(), aggregates_ines.get_data_frame()
 
 
 def test_erfs_fpr_aggregates_reform():
