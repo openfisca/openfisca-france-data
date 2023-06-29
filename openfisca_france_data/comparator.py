@@ -356,7 +356,7 @@ class AbstractComparator(object):
                 }
         return input_dataframe_by_entity, target_dataframe_by_entity
 
-    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False):
+    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False, compute_divergence = False):
         """Compare actual data with openfisca-france-data computation."""
         log.setLevel(level = logging.DEBUG if verbose else logging.WARNING)
 
@@ -367,6 +367,8 @@ class AbstractComparator(object):
 
         if target_variables is None:
             target_variables = self.default_target_variables
+
+        self.target_variables = target_variables   
 
         if period is not None:
             period = int(period)
@@ -400,22 +402,25 @@ class AbstractComparator(object):
 
             self.compute_distibution_comparison(input_dataframe_by_entity = input_dataframe_by_entity)
 
-            result_by_variable, markdown_section_by_variable, markdown_summary_section_by_variable = self.compute_divergence(
-                input_dataframe_by_entity = None,  # To force load the data_table from hdf file
-                target_dataframe_by_entity = target_dataframe_by_entity,
-                target_variables = target_variables,
-                period = period,
-                summary = summary,
-                )
+            if compute_divergence:
+                result_by_variable, markdown_section_by_variable, markdown_summary_section_by_variable = self.compute_divergence(
+                    input_dataframe_by_entity = None,  # To force load the data_table from hdf file
+                    target_dataframe_by_entity = target_dataframe_by_entity,
+                    target_variables = target_variables,
+                    period = period,
+                    summary = summary,
+                    )
 
             # Deal with markdown_section
 
-            self.create_report(markdown_section_by_variable, markdown_summary_section_by_variable)
+                self.create_report(markdown_section_by_variable, markdown_summary_section_by_variable)
 
-            if result_by_variable is None:
-                return
+                if result_by_variable is None:
+                    return
 
-            result = pd.concat(result_by_variable, ignore_index = True)
+                result = pd.concat(result_by_variable, ignore_index = True)
+            else:
+                self.create_report(None,None)
 
             log.debug(f"Eveyrthing has been computed in {datetime.datetime.now() - start_time}")
             del input_dataframe_by_entity, target_dataframe_by_entity
