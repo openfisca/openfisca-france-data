@@ -50,14 +50,14 @@ def build_input_data(year: str, stage: str = "build_input_data_all"):
     return step
 
 
-def aggregates(year, stage: str = "aggregates_all"):
+def aggregates(year, stage: str = "aggregates_all", env = False):
     if stage == "aggregates_all":
         prefix = "agg-"
         prefix_input_data = "in_dt-"
     else:
         prefix = "aggregates-"
         prefix_input_data = "input_data-"
-    return {
+    entry = {
         prefix
         + year: {
             "stage": stage,
@@ -73,13 +73,16 @@ def aggregates(year, stage: str = "aggregates_all"):
                 "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output",
             ],
             "artifacts": {"paths": ["./*.html", "./*.csv"]},
-            "environment": {
-                "name": f"Aggregates {year}",
-                "url": f"https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_{year}.html",
-                }
             }
         }
 
+    if env:
+        entry["environment"] = {
+            "name": f"Aggregates {year}",
+            "url": f"https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_{year}.csv",
+            }
+
+    return entry
 
 # Warning : not used yet : test are independant for now.
 def make_test_by_year(year):
@@ -121,9 +124,9 @@ def build_gitlab_ci(erfs_years):
     # gitlab_ci += yaml.dump(build_and_deploy_conda_package())
     # gitlab_ci += yaml.dump(build_collections())
     gitlab_ci += yaml.dump(build_input_data("2019", stage="build_input_data"))
-    gitlab_ci += yaml.dump(aggregates("2019", stage="aggregates"))
+    gitlab_ci += yaml.dump(aggregates("2019", stage="aggregates", env = True))
     gitlab_ci += yaml.dump(build_input_data("2018", stage="build_input_data"))
-    gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates"))
+    gitlab_ci += yaml.dump(aggregates("2018", stage="aggregates", env = True))
 
     for year in erfs_years:
         print("\t ERFS : Building for year", year)
