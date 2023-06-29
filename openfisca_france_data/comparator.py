@@ -339,7 +339,7 @@ class AbstractComparator(object):
                 }
         return input_dataframe_by_entity, target_dataframe_by_entity
 
-    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False,):
+    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False):
         """Compare actual data with openfisca-france-data computation."""
         log.setLevel(level = logging.DEBUG if verbose else logging.WARNING)
 
