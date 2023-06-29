@@ -72,7 +72,7 @@ def aggregates(year, stage: str = "aggregates_all", env = False):
                 "cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output",
                 "cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output",
             ],
-            "artifacts": {"paths": ["./*.html", "./*.csv"]},
+            "artifacts": {"paths": ["./*.csv"]},
             }
         }
 

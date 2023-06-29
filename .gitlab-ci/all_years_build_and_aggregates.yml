@@ -19,7 +19,6 @@ input_data-2019:
 aggregates-2019:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   environment:
     name: Aggregates 2019
@@ -53,7 +52,6 @@ input_data-2018:
 aggregates-2018:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   environment:
     name: Aggregates 2018
@@ -89,7 +87,6 @@ in_dt-1996:
 agg-1996:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -122,7 +119,6 @@ in_dt-1997:
 agg-1997:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -155,7 +151,6 @@ in_dt-1998:
 agg-1998:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -188,7 +183,6 @@ in_dt-1999:
 agg-1999:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -221,7 +215,6 @@ in_dt-2000:
 agg-2000:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -254,7 +247,6 @@ in_dt-2001:
 agg-2001:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -287,7 +279,6 @@ in_dt-2002:
 agg-2002:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -320,7 +311,6 @@ in_dt-2003:
 agg-2003:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -353,7 +343,6 @@ in_dt-2004:
 agg-2004:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -386,7 +375,6 @@ in_dt-2005:
 agg-2005:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -419,7 +407,6 @@ in_dt-2006:
 agg-2006:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -452,7 +439,6 @@ in_dt-2007:
 agg-2007:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -485,7 +471,6 @@ in_dt-2008:
 agg-2008:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -518,7 +503,6 @@ in_dt-2009:
 agg-2009:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -551,7 +535,6 @@ in_dt-2010:
 agg-2010:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -584,7 +567,6 @@ in_dt-2011:
 agg-2011:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -617,7 +599,6 @@ in_dt-2012:
 agg-2012:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -650,7 +631,6 @@ in_dt-2013:
 agg-2013:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -683,7 +663,6 @@ in_dt-2014:
 agg-2014:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -716,7 +695,6 @@ in_dt-2015:
 agg-2015:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -749,7 +727,6 @@ in_dt-2016:
 agg-2016:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -782,7 +759,6 @@ in_dt-2017:
 agg-2017:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -815,7 +791,6 @@ in_dt-2018:
 agg-2018:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -848,7 +823,6 @@ in_dt-2019:
 agg-2019:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
