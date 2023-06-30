@@ -153,7 +153,7 @@ CountryTaxBenefitSystem = lambda: france_data_tax_benefit_system  # noqa analysi
 
 AGGREGATES_DEFAULT_VARS = [
     "cotisation_salariales",
-    "cotisations_employeur",
+    #"cotisations_employeur",
     "cotisation_non_salarie",
     "salaire_brut",
     "retraite_brute",
@@ -172,8 +172,8 @@ AGGREGATES_DEFAULT_VARS = [
     'prelevement_forfaitaire_unique_ir',
     'prelevement_forfaitaire_liberatoire',
     'taxe_habitation',
-    'ppe',
-    'ppe_brute',
+    #'ppe',
+    #'ppe_brute',
     'af',
     'af_base',
     'af_majoration',
@@ -184,21 +184,21 @@ AGGREGATES_DEFAULT_VARS = [
     'paje_prepare',
     'paje_cmg',
     'ars',
-    'aeeh',
+    #'aeeh',
     'asf',
     'aspa',
     'aah',
     'caah',
     'rsa',
     'ppa',
-    'aefa',
-    'api',
-    'psa',
+    #'aefa',
+    #'api',
+    #'psa',
     'aides_logement',
     'alf',
     'als',
     'apl',
-    'garantie_jeunes'
+    #'garantie_jeunes'
     ]
 #  ajouter csgd pour le calcul des agrégats erfs
 #  ajouter rmi pour le calcul des agrégats erfs
