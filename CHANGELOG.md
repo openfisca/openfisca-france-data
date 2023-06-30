@@ -1,12 +1,14 @@
 # Changelog
 
-# 1.1.0 [#225](https://github.com/openfisca/openfisca-france-data/pull/225)
+# 1.2.0 [#226](https://github.com/openfisca/openfisca-france-data/pull/226)
+* Technical changes
+- Adapte le comparator pour permettre de changer les agrégats cibles.
+- Ajoute les agrégats de la note de validation d'INES
 
+# 1.1.0 [#225](https://github.com/openfisca/openfisca-france-data/pull/225)
 
 * Technical changes
 - Ajoute des variables concernant le calcul des aides au logement, des non salariés et du handicap dans le builder de openfisca-france-data
-
-
 
 # 1.0.0 [#224](https://github.com/openfisca/openfisca-france-data/pull/224)
 

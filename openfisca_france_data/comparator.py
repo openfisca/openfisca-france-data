@@ -304,6 +304,7 @@ class AbstractComparator(object):
     filter_expr_by_label = None
     period = None
     messages = list()
+    survey_name = None
 
     def get_name(self):
         return self.name + "_" + str(self.period)
@@ -433,8 +434,7 @@ class AbstractComparator(object):
                 pdb.post_mortem(sys.exc_info()[2])
             raise error
 
-    def compute_divergence(self, input_dataframe_by_entity, target_dataframe_by_entity, figures_directory,
-            target_variables = None, period = None, summary = False):
+    def compute_divergence(self, input_dataframe_by_entity, target_dataframe_by_entity, figures_directory, target_variables = None, period = None, summary = False):
         """
         Compare openfisca-france-data computation with data targets.
 
@@ -457,8 +457,7 @@ class AbstractComparator(object):
             )
 
         survey_scenario = self.get_survey_scenario(
-            data = data,
-            survey_name = f'openfisca_erfs_fpr_{period}'
+            data = data
             )
 
         tax_benefit_system = survey_scenario.tax_benefit_system
@@ -562,7 +561,8 @@ Filtres appliqués:
             log.info(log_message)
             self.messages.append(log_message + "\n")
 
-    def get_survey_scenario(self, data = None, survey_name = None):
+    def get_survey_scenario(self, data = None):
+        survey_name = self.survey_name
         return get_survey_scenario(
             year = str(self.period),
             data = data,

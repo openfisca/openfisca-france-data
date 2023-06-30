@@ -38,7 +38,8 @@ def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_in
         varying_variable = varying_variable,
         survey_name = survey_name,
         )
-    aggregates = Aggregates(survey_scenario = survey_scenario)
+    aggregates_taxipp = Aggregates(survey_scenario = survey_scenario, target_source = 'taxipp')
+    aggregates_ines = Aggregates(survey_scenario = survey_scenario, target_source = 'ines')
 
     if False:
         mtr_rd = survey_scenario.compute_marginal_tax_rate(target_variable = 'revenu_disponible', period = year, use_baseline = True)
@@ -53,7 +54,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_in
 
         np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
 
-    return survey_scenario, aggregates
+    return survey_scenario, aggregates_taxipp.get_data_frame(), aggregates_ines.get_data_frame()
 
 
 def test_erfs_fpr_aggregates_reform():
@@ -111,7 +112,7 @@ def main(year, configfile = None, verbose = False):
         years = [year]
 
     for year in years:
-        survey_scenario, aggregates = test_erfs_fpr_survey_simulation_aggregates(
+        survey_scenario, aggregates_taxipp, aggregates_ines = test_erfs_fpr_survey_simulation_aggregates(
             year = year,
             rebuild_input_data = False,
             use_marginal_tax_rate = True,
@@ -119,9 +120,11 @@ def main(year, configfile = None, verbose = False):
             varying_variable = varying_variable
             )
 
-        aggregates.to_csv(f'aggregates_erfs_fpr_{year}.csv')
-        print(aggregates.to_markdown())
-        aggregates.to_html(f'aggregates_erfs_fpr_{year}.html')
+        df = pd.concat({
+            "taxipp": aggregates_taxipp,
+            "ines": aggregates_ines,
+            })
+        df.to_csv(f'aggregates_erfs_fpr_{year}.csv')
 
         continue
         survey_scenario._set_used_as_input_variables_by_entity()
