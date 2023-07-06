@@ -41,7 +41,7 @@ setup(
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
         "OpenFisca-France >=150.0.0, <154.0.0",
-        "openFisca-survey-manager >= 1.1.5, < 2.0.0",
+        "openFisca-survey-manager  @ git+https://git@github.com/openfisca/openfisca-survey-manager@modularize_scenario#egg=openfisca-survey-manager",
         "wquantiles >=0.3.0, <1.0.0",  # To compute weighted quantiles
         ],
     extras_require = {
