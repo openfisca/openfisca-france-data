@@ -1,5 +1,11 @@
 # Changelog
 
+# 1.3.0 [#227](https://github.com/openfisca/openfisca-france-data/pull/227)
+* Technical changes
+- Adapte le comparator pour effectuer plus de tests en distribution
+- Permet l'utilisation d'un SurveyScenario facilement personnalisable
+
+
 # 1.2.0 [#226](https://github.com/openfisca/openfisca-france-data/pull/226)
 * Technical changes
 - Adapte le comparator pour permettre de changer les agrégats cibles.
