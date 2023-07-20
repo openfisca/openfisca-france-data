@@ -23,8 +23,9 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
-     package_data = {
-        'openfisca_france_data/assets': ['openfisca_france_data/assets/agregats_tests_taxipp_2_0.xlsx'],
+    package_data = {
+        'openfisca_france_data': ['assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
+                                  'assets/aggregats/ines/ines_2019.json'],
         },
     entry_points = {
         'console_scripts': [
