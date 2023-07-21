@@ -24,8 +24,10 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
     package_data = {
-        'openfisca_france_data': ['assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
-                                  'assets/aggregats/ines/ines_2019.json'],
+        'openfisca_france_data': [
+            'assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
+            'assets/aggregats/ines/ines_2019.json'
+            ],
         },
     entry_points = {
         'console_scripts': [
@@ -40,7 +42,7 @@ setup(
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
         "openFisca-france >= 149.0.0, < 150.0.0",
-        "openFisca-survey-manager >= 1, < 2.0.0",
+        "openFisca-survey-manager >= 1.1.3, < 2.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
     extras_require = {
