@@ -5,12 +5,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import pkg_resources
-import os
-from datetime import datetime
 
 from openfisca_survey_manager.aggregates import AbstractAggregates
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
+from openfisca_france_data import openfisca_france_data_location, AGGREGATES_DEFAULT_VARS  # type: ignore
 
 
 log = logging.getLogger(__name__)
@@ -45,7 +42,7 @@ class FranceAggregates(AbstractAggregates):
 
         if target_source == "taxipp":
             taxipp_aggregates_file = Path(
-                pkg_resources.get_distribution("openfisca-france_data").location,
+                openfisca_france_data_location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
@@ -91,7 +88,7 @@ class FranceAggregates(AbstractAggregates):
 
         elif target_source == "ines":
             ines_aggregates_file = Path(
-                pkg_resources.get_distribution("openfisca-france_data").location,
+                openfisca_france_data_location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
@@ -128,7 +125,7 @@ class FranceAggregates(AbstractAggregates):
             result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
 
         return result
-    
+
     def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Saves the table to csv."""
