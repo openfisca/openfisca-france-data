@@ -1,5 +1,11 @@
 # Changelog
 
+# 1.3.1 [#228](https://github.com/openfisca/openfisca-france-data/pull/228)
+* Technical changes
+- Ajoute de deux jeux de données utilisées pour les tests au paquet : 
+    -  'assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx' 
+    - `'assets/aggregats/ines/ines_2019.json'
+
 # 1.3.0 [#227](https://github.com/openfisca/openfisca-france-data/pull/227)
 * Technical changes
 - Adapte le comparator pour effectuer plus de tests en distribution

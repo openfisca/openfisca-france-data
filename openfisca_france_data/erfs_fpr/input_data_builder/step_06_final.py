@@ -48,16 +48,24 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         "traitement_indiciaire_brut",
         ]
 
-    var_menages = [
-        'idmen',
-        'loyer',
-        'statut_occupation_logement',
-        'taxe_habitation',
-        'wprm',
-        'zone_apl',
-        'logement_conventionne',
-        'prest_precarite_hand' # on récupère la variable de montant de aah / caah pour pouvoir faire une imputation du handicap
-    ]
+    if year >= 2018:
+        var_menages = [
+            'idmen',
+            'loyer',
+            'statut_occupation_logement',
+            'taxe_habitation',
+            'wprm',
+            'zone_apl',
+            'logement_conventionne',
+            'prest_precarite_hand' # on récupère la variable de montant de aah / caah pour pouvoir faire une imputation du handicap
+        ]
+    else:
+        var_menages = [
+            'idmen',
+            'loyer',
+            'taxe_habitation',
+            'wprm',
+            ]
 
     individus = create_ids_and_roles(individus)
     individus = individus[var_individus].copy()
