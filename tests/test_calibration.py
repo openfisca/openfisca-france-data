@@ -1,14 +1,16 @@
-import pkg_resources
 import os
 
 import pytest
 
 from openfisca_survey_manager.calibration import Calibration  # type: ignore
+from openfisca_france_data import openfisca_france_data_location
+
+
 
 
 @pytest.fixture
 def location() -> str:
-    return pkg_resources.get_distribution("openfisca-france-data").location
+    return openfisca_france_data_location
 
 
 def test_calibration(survey_scenario, fake_input_data, location, year: int = 2009):
@@ -34,4 +36,3 @@ def test_calibration(survey_scenario, fake_input_data, location, year: int = 200
     pre_cal_weight = survey_scenario.calculate_variable("wprm", period = year)
     calibration.set_calibrated_weights()
     assert pre_cal_weight * 1.123 == survey_scenario.calculate_variable("wprm", period = year)
-

@@ -1,8 +1,9 @@
 import inspect
+import importlib
 import logging
 import os
-import pkg_resources
 import pandas
+from pathlib import Path
 
 from openfisca_core import reforms  # type: ignore
 
@@ -11,6 +12,11 @@ import openfisca_france  # type: ignore
 # Load input variables and output variables into entities
 from openfisca_france_data.model import common, survey_variables  # noqa analysis:ignore
 from openfisca_france_data.model.base import * # noqa  analysis:ignore
+
+
+openfisca_france_data_location = Path(
+    importlib.metadata.distribution('openfisca-survey-manager').files[0]
+    ).parent
 
 
 log = logging.getLogger(__name__)
@@ -206,7 +212,7 @@ AGGREGATES_DEFAULT_VARS = [
 
 COUNTRY_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(
-    pkg_resources.get_distribution('openfisca-france-data').location,
+    openfisca_france_data_location,
     'openfisca_france_data',
     'plugins',
     'aggregates',
