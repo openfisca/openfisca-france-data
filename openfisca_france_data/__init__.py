@@ -1,5 +1,5 @@
 import inspect
-import importlib
+from importlib import metadata
 import logging
 import os
 import pandas
@@ -15,7 +15,7 @@ from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 
 openfisca_france_data_location = Path(
-    importlib.metadata.distribution('openfisca-survey-manager').files[0]
+    metadata.distribution('openfisca-survey-manager').files[0]
     ).parent
 
 
