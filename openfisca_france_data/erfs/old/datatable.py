@@ -1,5 +1,4 @@
 import os
-import pkg_resources
 import sys
 import gc
 
@@ -18,8 +17,9 @@ except Exception:
 
 #from openfisca_france.data.sources.config import DATA_DIR
 
-openfisca_france_location = pkg_resources.get_distribution('openfisca-france-data').location
-CONFIG_DIR = os.path.join(openfisca_france_location)
+from openfisca_france_data import openfisca_france_data_location
+
+CONFIG_DIR = os.path.join(openfisca_france_data_location)
 
 #ERF_HDF5_DATA_DIR = os.path.join(SRC_PATH,'countries','france','data', 'erf')
 

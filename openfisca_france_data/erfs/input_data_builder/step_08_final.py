@@ -10,6 +10,7 @@ import os
 
 
 from openfisca_survey_manager.temporary import temporary_store_decorator
+from openfisca_france_data import openfisca_france_data_location
 from openfisca_france_data.utils import (
     check_structure,
     control,
@@ -19,6 +20,7 @@ from openfisca_france_data.utils import (
     rectify_dtype,
     set_variables_default_value,
     )
+
 
 log = logging.getLogger(__name__)
 
@@ -202,8 +204,6 @@ def final(temporary_store = None, year = None, check = True):
     print_id(final2)
 # # TODO: merging with patrimoine
     log.info('    traitement des zones apl')
-    import pkg_resources
-    openfisca_france_data_location = pkg_resources.get_distribution('openfisca-france-data').location
     zone_apl_imputation_data_file_path = os.path.join(
         openfisca_france_data_location,
         'openfisca_france_data',
