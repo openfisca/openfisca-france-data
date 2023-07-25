@@ -42,7 +42,7 @@ setup(
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
         "openFisca-france >= 149.0.0, < 150.0.0",
-        "openFisca-survey-manager >= 1.1.3, < 2.0.0",
+        "openFisca-survey-manager >= 1.1.5rc0, < 2.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
     extras_require = {
