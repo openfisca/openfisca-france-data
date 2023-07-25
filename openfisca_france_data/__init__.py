@@ -14,9 +14,7 @@ from openfisca_france_data.model import common, survey_variables  # noqa analysi
 from openfisca_france_data.model.base import * # noqa  analysis:ignore
 
 
-openfisca_france_data_location = Path(
-    metadata.distribution('openfisca-survey-manager').files[0]
-    ).parent
+openfisca_france_data_location = Path(__file__).parent.parent
 
 
 log = logging.getLogger(__name__)
