@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "1.3.1",
+    version = "2.0.0",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -20,7 +20,9 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
     package_data = {
@@ -34,12 +36,12 @@ setup(
             'create-test-erfs-fpr=openfisca_france_data.erfs_fpr.test_case_creation:create_test',
             ],
         },
-    python_requires = ">= 3.7",
+    python_requires = ">= 3.9",
     install_requires = [
         "click >= 8.0.0, < 9.0.0",
         "matplotlib >= 3.1.1, < 4.0.0",
         "multipledispatch >= 0.6.0, < 1.0.0",
-        "openFisca-france >= 149.0.0, < 150.0.0",
+        "openFisca-france >= 150.0.0, < 151.0.0",
         "openFisca-survey-manager >= 1, < 2.0.0",
         "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
         ],
