@@ -1,9 +1,13 @@
 # Changelog
 
+# 2.0.0 [#229](https://github.com/openfisca/openfisca-france-data/pull/229)
+* Technical changes
+- Met à jour Python dans le setup pour compatibilité conda
+
 # 1.3.1 [#228](https://github.com/openfisca/openfisca-france-data/pull/228)
 * Technical changes
-- Ajoute de deux jeux de données utilisées pour les tests au paquet : 
-    -  'assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx' 
+- Ajout de deux jeux de données utilisées pour les tests au paquet :
+    -  'assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx'
     - `'assets/aggregats/ines/ines_2019.json'
 
 # 1.3.0 [#227](https://github.com/openfisca/openfisca-france-data/pull/227)
