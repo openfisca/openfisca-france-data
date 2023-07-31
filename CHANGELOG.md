@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.0.1 [#232](https://github.com/openfisca/openfisca-france-data/pull/232)
+* Technical changes
+- Fix de #230 qui se produit quand le wokflow de CI a tourné deux fois pour le même commit, ce qui arrive quand on crée la PR. La solution est de limiter la recherche de l’artefact aux workflows lancés par un push.
+
 # 2.0.0 [#229](https://github.com/openfisca/openfisca-france-data/pull/229)
 * Technical changes
 - Met à jour Python dans le setup pour compatibilité conda
