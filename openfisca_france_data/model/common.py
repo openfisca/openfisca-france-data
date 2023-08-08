@@ -191,7 +191,7 @@ class decile_rfr(Variable):
         menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
         labels = arange(1, 11)
         method = 2
-        decile, values = mark_weighted_percentiles(niveau_de_vie, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, method, return_quantiles = True)
+        decile, values = mark_weighted_percentiles(rfr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, method, return_quantiles = True)
         # Alternative method
         # decile, values = weighted_quantiles(rfr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, return_quantiles = True)
         return decile
