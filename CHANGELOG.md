@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.0.2 [#234](https://github.com/openfisca/openfisca-france-data/pull/234)
+* Technical changes
+- Update autopep8 et flake8 pour avoir des requirements compatibles avec les dernières versions d'openfisca-france et openfisca-survey-manager
+
 ### 2.0.1 [#232](https://github.com/openfisca/openfisca-france-data/pull/232)
 * Technical changes
 - Fix de #230 qui se produit quand le wokflow de CI a tourné deux fois pour le même commit, ce qui arrive quand on crée la PR. La solution est de limiter la recherche de l’artefact aux workflows lancés par un push.
