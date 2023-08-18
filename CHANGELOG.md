@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.0.3 [#235](https://github.com/openfisca/openfisca-france-data/pull/235)
+* Technical changes
+- Passe conda dep en Jinja en suivant Openfisca-France
+
 ### 2.0.2 [#234](https://github.com/openfisca/openfisca-france-data/pull/234)
 * Technical changes
 - Update autopep8 et flake8 pour avoir des requirements compatibles avec les dernières versions d'openfisca-france et openfisca-survey-manager
