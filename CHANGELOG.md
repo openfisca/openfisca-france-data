@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.0.4 [#237](https://github.com/openfisca/openfisca-france-data/pull/237)
+* Technical changes
+- Deplace click en dependance de test
+
 ### 2.0.3 [#235](https://github.com/openfisca/openfisca-france-data/pull/235)
 * Technical changes
 - Passe conda dep en Jinja en suivant Openfisca-France
