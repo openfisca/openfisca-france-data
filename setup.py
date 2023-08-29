@@ -38,7 +38,6 @@ setup(
         },
     python_requires = ">=3.9",
     install_requires = [
-        "matplotlib >=3.1.1, <4.0.0",
         "multipledispatch >=0.6.0, <1.0.0",
         "openFisca-france >=150.0.0, <151.0.0",
         "openFisca-survey-manager >=1, <2.0.0",
