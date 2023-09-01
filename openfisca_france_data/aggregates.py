@@ -107,4 +107,23 @@ class FranceAggregates(AbstractAggregates):
 
             result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
 
+        elif target_source == "france_entiere":
+            ines_aggregates_file = Path(
+                pkg_resources.get_distribution("openfisca-france_data").location,
+                "openfisca_france_data",
+                "assets",
+                "aggregats",
+                "france_entiere",
+                f"france_entiere_{year}.json"
+                )
+
+            with open(ines_aggregates_file, 'r') as f:
+                data = json.load(f)
+
+            result = pd.DataFrame(data['data']).drop(['source', 'notes'], axis = 1)
+            result['actual_beneficiaries'] = result. actual_beneficiaries / self.beneficiaries_unit
+            result['actual_amount'] = result. actual_amount / self.amount_unit
+
+            result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
+
         return result
