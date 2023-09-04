@@ -215,10 +215,10 @@ def famille_1(indivi = None, kind = 'erfs_fpr', enfants_a_naitre = None, skip_en
 
     if kind == 'erfs_fpr':
         base['salaire_de_base'].fillna(0, inplace = True)
-        base['smic55'] = base.salaire_de_base >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
+        base['smic55'] = base.salaire_de_base >= (smic * 151 * 12 * 0.55)  # 55% du smic mensuel brut
     else:
         base['ztsai'].fillna(0, inplace = True)
-        base['smic55'] = base.ztsai >= (smic * 12 * 0.55)  # 55% du smic mensuel brut
+        base['smic55'] = base.ztsai >= (smic * 151 * 12 * 0.55)  # 55% du smic mensuel brut
 
     base['famille'] = 0
     base['kid'] = False
@@ -630,7 +630,7 @@ def famille_5(base = None, famille = None, kind = 'erfs_fpr', year = None):
         fip['moins_de_15_ans_inclus'] = (fip.agepf < 16)
         fip['jeune_non_eligible_rsa'] = ((fip.agepf >= 16) & (fip.agepf < AGE_RSA))
         fip['jeune_eligible_rsa'] = (fip.agepf >= AGE_RSA)
-        fip['smic55'] = (fip.ztsai >= smic * 12 * 0.55)
+        fip['smic55'] = (fip.ztsai >= smic * 151 * 12 * 0.55)
         fip['famille'] = 0
         fip['kid'] = False
         for series_name in ['kid', 'moins_de_15_ans_inclus', 'jeune_non_eligible_rsa', 'jeune_eligible_rsa', 'smic55']:

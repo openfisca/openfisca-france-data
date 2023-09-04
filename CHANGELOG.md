@@ -1,5 +1,9 @@
 # Changelog
 
+### 2.0.5 [#238(https://github.com/openfisca/openfisca-france-data/pull/238)
+* Technical changes
+- Corrige le calcul du smic annuel en fonction du smic horaire dans openfisca_france_data/erfs_fpr/input_data_builder/step_04_famille.py
+
 ### 2.0.4 [#237](https://github.com/openfisca/openfisca-france-data/pull/237)
 * Technical changes
 - Deplace click en dependance de test
