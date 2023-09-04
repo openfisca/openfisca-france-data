@@ -100,7 +100,7 @@ class csg_remplacement(Variable):
 class csg_retraite(Variable):
     value_type = float
     entity = Individu
-    label = 'Contribution sociale généralisée sur les non salariés'
+    label = 'CSG sur les retraites'
     definition_period = YEAR
     def formula(individu, period):
         csg_imposable_retraite = individu('csg_imposable_retraite', period, options = [ADD])
@@ -110,7 +110,7 @@ class csg_retraite(Variable):
 class csg_chomage(Variable):
     value_type = float
     entity = Individu
-    label = 'Contribution sociale généralisée sur les non salariés'
+    label = 'CSG sur le chomage'
     definition_period = YEAR
     def formula(individu, period):
         csg_imposable_chomage = individu('csg_imposable_chomage', period, options = [ADD])

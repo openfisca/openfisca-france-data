@@ -111,8 +111,8 @@
         },
         {
             "variable":"apl",
-            "actual_beneficiaries": 6743703175,
-            "actual_amount": 0,
+            "actual_beneficiaries": 0,
+            "actual_amount": 6743703175,
             "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
         },
         {

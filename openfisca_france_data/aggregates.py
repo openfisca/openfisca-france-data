@@ -6,7 +6,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pkg_resources
-
+import os
+from datetime import datetime
 
 from openfisca_survey_manager.aggregates import AbstractAggregates
 from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
@@ -39,7 +40,7 @@ class FranceAggregates(AbstractAggregates):
 
     def load_actual_data(self, year = None):
         target_source = self.target_source
-        assert target_source in ["ines", "taxipp"], "les options possible pour source_cible sont ines ou taxipp"
+        assert target_source in ["ines", "taxipp", "france_entiere"], "les options possible pour source_cible sont ines, taxipp ou france_entiere"
         assert year is not None
 
         if target_source == "taxipp":
@@ -120,10 +121,31 @@ class FranceAggregates(AbstractAggregates):
             with open(ines_aggregates_file, 'r') as f:
                 data = json.load(f)
 
-            result = pd.DataFrame(data['data']).drop(['source', 'notes'], axis = 1)
+            result = pd.DataFrame(data['data']).drop(['source'], axis = 1)
             result['actual_beneficiaries'] = result. actual_beneficiaries / self.beneficiaries_unit
             result['actual_amount'] = result. actual_amount / self.amount_unit
 
             result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
 
         return result
+    
+    def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+            relative = True, target = "reform"):
+        """Saves the table to csv."""
+        assert path is not None
+
+        if os.path.isdir(path):
+            now = datetime.now()
+            file_path = os.path.join(path, 'Aggregates_%s_%s_%s.%s' % (self.target_source,self.year,now.strftime('%d-%m-%Y'), "csv"))
+        else:
+            file_path = path
+
+        df = self.get_data_frame(
+            absolute = absolute,
+            amount = amount,
+            beneficiaries = beneficiaries,
+            default = default,
+            relative = relative,
+            target = target,
+            )
+        df.to_csv(file_path, index = False, header = True)
