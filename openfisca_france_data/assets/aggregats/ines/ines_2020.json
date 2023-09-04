@@ -134,8 +134,8 @@
         {
             "variable":"irpp",
             "actual_beneficiaries":0,
-            "actual_amount":0,
-            "notes":"somme de prélèvement à la source réalisés en 2019 sur revenus 2019 (note 2019) 69,2 + impot résiduel sur le revenu dû au titre des revenus 2019, net de crédits et réduction (note 2020) -8.1 sans prendre en compte le crédit d'impôt de prélèvement forfaitaire non libératoire de N-1 de 3,4 soit 3.4 - 8.1 + 69.2 "
+            "actual_amount":73900000000,
+            "notes":"Impot payé en 2020, en parti sur revenus 2020 et 2019"
         },
         {
             "variable":"prelevement_forfaitaire_unique_ir",

@@ -120,8 +120,9 @@
         },
         {
             "variable":"aspa",
-            "actual_beneficiaries":0,
-            "actual_amount": 0
+            "actual_beneficiaries":600000,
+            "actual_amount": 3500000000,
+            "source": "Panorama DREES les retraites et les retraités, édition 2021"
         },
         {
             "variable":"asi",

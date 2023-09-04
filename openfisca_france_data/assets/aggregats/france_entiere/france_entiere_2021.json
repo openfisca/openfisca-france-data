@@ -64,7 +64,7 @@
         {
             "variable":"asf",
             "actual_beneficiaries": 0,
-            "actual_amount": 174000000,
+            "actual_amount": 1740000000,
             "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
         },
         {
@@ -117,8 +117,9 @@
         },
         {
             "variable":"aspa",
-            "actual_beneficiaries":0,
-            "actual_amount": 0
+            "actual_beneficiaries":660000,
+            "actual_amount": 3600000000,
+            "source": "Panorama DREES les retraites et les retraités, édition 2023"
         },
         {
             "variable":"asi",
