@@ -10,7 +10,6 @@ def modify_parameters(parameters):
     reform_year = 2013
     reform_period = period(reform_year)
 
-    print(dir_path)
     file_path = os.path.join(dir_path, 'plf2015.yaml')
     reform_parameters_subtree = load_parameter_file(name='plf2015', file_path=file_path)
     parameters.add_child('plf2015', reform_parameters_subtree)
