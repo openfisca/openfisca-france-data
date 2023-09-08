@@ -7,7 +7,7 @@ from openfisca_core import periods  # type: ignore
 from openfisca_core.tools import assert_near  # type: ignore
 from openfisca_france_data.erfs.scenario import ErfsSurveyScenario  # type: ignore
 from openfisca_survey_manager.calibration import Calibration  # type: ignore
-from openfisca_france.reforms.plf2015 import plf2015  # type: ignore
+from openfisca_france_data.reforms.old_openfisca_france_reforms.plf2015 import plf2015  # type: ignore
 
 
 @pytest.fixture
