@@ -1,6 +1,6 @@
 import os
 
-from ..model.base import *
+from openfisca_france.model.base import *
 
 
 dir_path = os.path.join(os.path.dirname(__file__), 'parameters')

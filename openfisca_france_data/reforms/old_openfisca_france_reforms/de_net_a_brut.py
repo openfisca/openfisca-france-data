@@ -5,8 +5,8 @@ try:
 except ImportError:
     fsolve = None
 
-from .. import entities
-from ..model.base import *
+from openfisca_france import entities
+from openfisca_france.model.base import *
 
 
 def calculate_net_from(salaire_de_base, individu, period):

@@ -2,7 +2,7 @@ import os
 
 from openfisca_france.model.base import *
 
-from .. import entities
+from openfisca_france import entities
 
 
 dir_path = os.path.join(os.path.dirname(__file__), 'parameters')
