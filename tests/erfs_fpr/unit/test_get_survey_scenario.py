@@ -3,7 +3,7 @@ import pytest
 from openfisca_core.reforms import Reform  # type: ignore
 from openfisca_france import FranceTaxBenefitSystem as TaxBenefitSystem  # type: ignore
 
-from openfisca_france.reforms.plf2015 import plf2015  # type: ignore
+from openfisca_france_data.reforms.old_openfisca_france_reforms.plf2015 import plf2015  # type: ignore
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr.get_survey_scenario import (

@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "2.0.5",
+    version = "2.0.6",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -27,7 +27,8 @@ setup(
         ],
     package_data = {
         'openfisca_france_data': ['assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
-                                  'assets/aggregats/ines/ines_2019.json'],
+                                  'assets/aggregats/ines/ines_2019.json',
+                                  'reforms/old_openfisca_france_reforms/parameters/*.yaml'],
         },
     entry_points = {
         'console_scripts': [
@@ -39,7 +40,7 @@ setup(
     python_requires = ">=3.9",
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
-        "openFisca-france >=150.0.0, <151.0.0",
+        "OpenFisca-France >=150.0.0, <154.0.0",
         "openFisca-survey-manager >=1, <2.0.0",
         "wquantiles >=0.3.0, <1.0.0",  # To compute weighted quantiles
         ],

@@ -61,7 +61,7 @@ def test_erfs_fpr_aggregates_reform():
     """Tests aggregates value with data.
 
     :param year: year of data and simulation to test agregates
-    :param reform: optional argument, put an openfisca_france.refoms object, default None
+    :param reform: optional argument, put an openfisca_france_data.refoms.old_openfisca_france_reforms object, default None
     """
     tax_benefit_system = france_data_tax_benefit_system
     year = 2014
