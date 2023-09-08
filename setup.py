@@ -39,7 +39,7 @@ setup(
     python_requires = ">=3.9",
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
-        "openFisca-france >=150.0.0, <151.0.0",
+        "OpenFisca-France >=150.0.0, <154.0.0",
         "openFisca-survey-manager >=1, <2.0.0",
         "wquantiles >=0.3.0, <1.0.0",  # To compute weighted quantiles
         ],
