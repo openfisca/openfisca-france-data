@@ -27,7 +27,8 @@ setup(
         ],
     package_data = {
         'openfisca_france_data': ['assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
-                                  'assets/aggregats/ines/ines_2019.json'],
+                                  'assets/aggregats/ines/ines_2019.json',
+                                  'reforms/old_openfisca_france_reforms/parameters/*.yaml'],
         },
     entry_points = {
         'console_scripts': [
