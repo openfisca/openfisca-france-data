@@ -208,7 +208,7 @@ class decile_rfr_par_part(Variable):
         weight_foyers = foyer_fiscal('weight_foyers', period)
         menage_ordinaire_foyers_fiscaux = foyer_fiscal('menage_ordinaire_foyers_fiscaux', period)
         labels = arange(1, 11)
-        # method = 2
+        method = 2
         decile, values = mark_weighted_percentiles(
             rfr / nbptr, labels, weight_foyers * menage_ordinaire_foyers_fiscaux, method, return_quantiles = True)
         return decile
