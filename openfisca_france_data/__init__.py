@@ -6,6 +6,7 @@ import pandas
 from pathlib import Path
 
 from openfisca_core import reforms  # type: ignore
+from openfisca_core.errors import VariableNameConflictError
 
 import openfisca_france  # type: ignore
 
@@ -145,7 +146,8 @@ class openfisca_france_data(reforms.Reform):
                 continue
             try:
                 self.add_variable(variable)
-            except AttributeError:
+            except VariableNameConflictError:
+                log.warning(f"{variable.__name__} has been updated")
                 self.update_variable(variable)
 
 
