@@ -147,7 +147,7 @@ class openfisca_france_data(reforms.Reform):
             try:
                 self.add_variable(variable)
             except VariableNameConflictError:
-                log.warning(f"{variable.__name__} has been updated")
+                # log.debug(f"{variable.__name__} has been updated in openfisca-france-data")
                 self.update_variable(variable)
 
 
