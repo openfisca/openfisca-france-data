@@ -96,6 +96,26 @@ class csg_remplacement(Variable):
             + individu('csg_imposable_chomage', period)
             + individu('csg_deductible_chomage', period)
             )
+    
+class csg_retraite(Variable):
+    value_type = float
+    entity = Individu
+    label = 'CSG sur les retraites'
+    definition_period = YEAR
+    def formula(individu, period):
+        csg_imposable_retraite = individu('csg_imposable_retraite', period, options = [ADD])
+        csg_deductible_retraite = individu('csg_deductible_retraite', period, options = [ADD])
+        return csg_deductible_retraite + csg_imposable_retraite
+    
+class csg_chomage(Variable):
+    value_type = float
+    entity = Individu
+    label = 'CSG sur le chomage'
+    definition_period = YEAR
+    def formula(individu, period):
+        csg_imposable_chomage = individu('csg_imposable_chomage', period, options = [ADD])
+        csg_deductible_chomage = individu('csg_deductible_chomage', period, options = [ADD])
+        return csg_deductible_chomage + csg_imposable_chomage
 
 
 class impot_revenu(Variable):
