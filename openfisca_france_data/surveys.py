@@ -7,7 +7,7 @@ from openfisca_core import periods  # type: ignore
 from openfisca_core.model_api import Enum  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import base_survey as base  # type: ignore
-from openfisca_survey_manager.scenarios import AbstractSurveyScenario  # type: ignore
+from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario  # type: ignore
 
 log = logging.getLogger(__name__)
 
