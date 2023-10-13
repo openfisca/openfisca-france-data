@@ -24,15 +24,14 @@ def test_calibration(survey_scenario, fake_input_data, location, year: int = 200
     survey_scenario.init_from_data(data = dict(input_data_frame = input_data))
 
     # On fait la calibration
-    calibration = Calibration(survey_scenario)
-    calibration.parameters["method"] = "linear"
-    calibration.total_population = calibration.initial_total_population * 1.123
+    parameters = dict(
+        method = "logit",
+        invlo = 3,
+        up = 3,
+        )
 
-    calibration.set_parameters("invlo", 3)
-    calibration.set_parameters("up", 3)
-    calibration.set_parameters("method", "logit")
-
-    calibration.calibrate()
     pre_cal_weight = survey_scenario.calculate_variable("wprm", period = year)
-    calibration.set_calibrated_weights()
+    target_entity_count = pre_cal_weight.sum() * 1.123
+    survey_scenario.calibrate(target_entity_count = target_entity_count, entity = "menage", parameters = parameters, period = year)
+
     assert pre_cal_weight * 1.123 == survey_scenario.calculate_variable("wprm", period = year)

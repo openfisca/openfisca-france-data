@@ -7,12 +7,13 @@ from openfisca_core import periods  # type: ignore
 from openfisca_core.model_api import Enum  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import base_survey as base  # type: ignore
-from openfisca_survey_manager.scenarios.abstract_scenario import AbstractSurveyScenario  # type: ignore
+from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario  # type: ignore
+
 
 log = logging.getLogger(__name__)
 
 
-class AbstractErfsSurveyScenario(AbstractSurveyScenario):
+class AbstractErfsSurveyScenario(ReformScenario):
     """
     Parties communes entre ERFS et ERFS PFR
 
@@ -116,10 +117,15 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
         else:
             survey_scenario = cls(year = year)
 
-        survey_scenario.set_tax_benefit_systems(
-            tax_benefit_system = tax_benefit_system,
-            baseline_tax_benefit_system = baseline_tax_benefit_system,
-            )
+        if baseline_tax_benefit_system:
+            survey_scenario.set_tax_benefit_systems(dict(
+                reform = tax_benefit_system,
+                baseline = baseline_tax_benefit_system,
+                ))
+        else:
+            survey_scenario.set_tax_benefit_systems(dict(
+                baseline = tax_benefit_system,
+                ))
 
         survey_scenario.year = year
         survey_scenario.period = year
@@ -162,7 +168,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             assert variable in self.used_as_input_variables, \
                 f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
-            if self.tax_benefit_system.variables[variable].value_type == Enum:
+            if simulation.tax_benefit_system.variables[variable].value_type == Enum:
                 permanent_value = simulation.calculate(
                     variable,
                     period = periods.period(self.year).first_month,
