@@ -43,7 +43,7 @@ setup(
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
         "OpenFisca-France >=150.0.0, <154.0.0",
-        "openFisca-survey-manager  @ git+https://git@github.com/openfisca/openfisca-survey-manager@refacto-scenario#egg=openfisca-survey-manager",
+        "openFisca-survey-manager @ git+https://git@github.com/openfisca/openfisca-survey-manager@refacto-scenario#egg=openfisca-survey-manager",
         ],
     extras_require = {
         "test": [
