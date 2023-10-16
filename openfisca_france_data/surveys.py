@@ -189,7 +189,6 @@ class AbstractErfsSurveyScenario(ReformScenario):
                 except ValueError as e:
                     log.debug(f"Dealing with: {e}")
                     if sum(simulation.calculate_add(variable, simulation_period.offset(offset))) != sum(permanent_value):
-                        use_baseline = self.baseline_simulation == simulation
                         simulation.delete_arrays(variable, simulation_period.offset(offset))
                         simulation.set_input(
                             variable,
