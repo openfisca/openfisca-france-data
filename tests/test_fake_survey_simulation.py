@@ -98,7 +98,6 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
             "impo",
             ],
         )
-    BIM
     return data_frame_by_entity, simulation
 
 
