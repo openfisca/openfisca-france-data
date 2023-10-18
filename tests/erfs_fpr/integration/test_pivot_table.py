@@ -60,4 +60,4 @@ def get_survey_scenario(kind = 'erfs_fpr', year = None):
         year = 2009
         SurveyScenario = ErfsSurveyScenario
 
-    return SurveyScenario.create(year = year)
+    return SurveyScenario.create(period = year)

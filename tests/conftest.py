@@ -35,7 +35,7 @@ def survey_scenario(tax_benefit_system: TaxBenefitSystem):
     def _survey_scenario(year: int) -> ErfsFprSurveyScenario:
         return ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
-            year = year,
+            period = year,
             )
 
     return _survey_scenario

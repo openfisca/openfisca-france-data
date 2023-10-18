@@ -62,7 +62,7 @@ class AbstractErfsSurveyScenario(ReformScenario):
             )
 
         array_by_variable = dict()
-        period = periods.period(str(self.year))
+        period = periods.period(str(self.period))
 
         for variable in self.used_as_input_variables:
             array_by_variable[variable] = simulation.calculate_add(
@@ -88,10 +88,10 @@ class AbstractErfsSurveyScenario(ReformScenario):
             input_data_type = None,
             reform = None,
             reform_key = None,
-            year: int = None,
+            period: int = None,
             ):
 
-        assert year is not None
+        assert period is not None
         assert not ((reform is not None) and (reform_key is not None))
 
         reform_is_provided = (reform is not None) or (reform_key is not None)
@@ -112,10 +112,10 @@ class AbstractErfsSurveyScenario(ReformScenario):
             tax_benefit_system = reform
 
         if input_data_type is not None:
-            survey_scenario = cls(input_data_type = input_data_type, year = year)
+            survey_scenario = cls(input_data_type = input_data_type, period = period)
 
         else:
-            survey_scenario = cls(year = year)
+            survey_scenario = cls(period = period)
 
         if baseline_tax_benefit_system:
             survey_scenario.set_tax_benefit_systems(dict(
@@ -127,8 +127,7 @@ class AbstractErfsSurveyScenario(ReformScenario):
                 baseline = tax_benefit_system,
                 ))
 
-        survey_scenario.year = year
-        survey_scenario.period = year
+        survey_scenario.period = period
 
         return survey_scenario
 
@@ -156,27 +155,27 @@ class AbstractErfsSurveyScenario(ReformScenario):
             "primes_fonction_publique",
             "retraite_brute",
             "retraite_imposable",
-            "salaire_de_base",
+            "salaire_imposable",
             "traitement_indiciaire_brut",
             # 'chomage_brut',
             ]
 
-        three_year_span_variables = input_variables + computed_variables_used_as_input
+        three_period_span_variables = input_variables + computed_variables_used_as_input
 
-        simulation_period = periods.period(self.year)
-        for variable in three_year_span_variables:
+        simulation_period = periods.period(self.period)
+        for variable in three_period_span_variables:
             assert variable in self.used_as_input_variables, \
                 f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
             if simulation.tax_benefit_system.variables[variable].value_type == Enum:
                 permanent_value = simulation.calculate(
                     variable,
-                    period = periods.period(self.year).first_month,
+                    period = periods.period(self.period).first_month,
                     )
             else:
                 permanent_value = simulation.calculate_add(
                     variable,
-                    period = self.year,
+                    period = self.period,
                     )
 
             for offset in [-1, -2]:

@@ -126,14 +126,14 @@ def get_survey_scenario(
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
-            year = year,
+            period = year,
             )
     else:
         assert varying_variable is not None, "You need to specify the varying variable."
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
-            year = year,
+            period = year,
             )
         # taux marginaux !!
         survey_scenario.variation_factor = variation_factor

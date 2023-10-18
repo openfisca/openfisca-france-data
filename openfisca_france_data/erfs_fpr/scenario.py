@@ -63,8 +63,9 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "wprm_init",
         ]
 
-    def __init__(self, year: int) -> None:
-        self.year = year
+    def __init__(self, period: int) -> None:
+        # self.year = period
+        self.period = period
 
     @classmethod
     def build_input_data(cls, year: int) -> None:
