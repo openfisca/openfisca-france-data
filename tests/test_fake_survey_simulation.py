@@ -44,14 +44,14 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
     assert age[0] == 77
     assert age[1] == 37
 
-    sal_2003 = simulation.calculate_add("salaire_imposable", period = 2003)
-    sal_2004 = simulation.calculate_add("salaire_imposable", period = 2004)
-    sal_2005 = simulation.calculate_add("salaire_imposable", period = 2005)
-    sal_2006 = simulation.calculate_add("salaire_imposable", period = 2006)
+    retraite_2003 = simulation.calculate_add("retraite_imposable", period = 2003)
+    retraite_2004 = simulation.calculate_add("retraite_imposable", period = 2004)
+    retraite_2005 = simulation.calculate_add("retraite_imposable", period = 2005)
+    retraite_2006 = simulation.calculate_add("retraite_imposable", period = 2006)
 
-    assert (sal_2003 == 0).all()
-    assert (sal_2004 == sal_2006).all()
-    assert (sal_2005 == sal_2006).all()
+    assert (retraite_2003 == 0).all()
+    assert (retraite_2004 == retraite_2006).all()
+    assert (retraite_2005 == retraite_2006).all()
 
     for year, month in itertools.product(range(2003, 2004), range(1, 13)):
         if month < 10:
@@ -61,7 +61,7 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
 
         assert (
             simulation
-            .calculate_add("salaire_imposable", period = period) == 0
+            .calculate_add("retraite_imposable", period = period) == 0
             ).all()
 
     for year, month in itertools.product(range(2004, 2007), range(1, 13)):
@@ -71,7 +71,7 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
             period = f"{year}-{month}"
 
         assert (
-            simulation.calculate("salaire_imposable", period = period) == sal_2006 / 12
+            simulation.calculate("retraite_imposable", period = period) == retraite_2006 / 12
             ).all()
 
     data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
@@ -80,6 +80,7 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
             "activite",
             "rsa_base_ressources_i",
             "menage_ordinaire_individus",
+            "retraite_imposable",
             "salaire_imposable",
             "salaire_net",
             "autonomie_financiere",
@@ -97,7 +98,7 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
             "impo",
             ],
         )
-
+    BIM
     return data_frame_by_entity, simulation
 
 
