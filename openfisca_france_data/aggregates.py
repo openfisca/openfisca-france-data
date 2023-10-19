@@ -107,7 +107,7 @@ class FranceAggregates(AbstractAggregates):
 
         elif target_source == "france_entiere":
             ines_aggregates_file = Path(
-                pkg_resources.get_distribution("openfisca-france_data").location,
+                openfisca_france_data_location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
