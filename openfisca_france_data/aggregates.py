@@ -3,7 +3,7 @@ import logging
 import json
 from pathlib import Path
 
-import numpy as np
+import os
 import pandas as pd
 
 from openfisca_survey_manager.aggregates import AbstractAggregates
