@@ -121,9 +121,13 @@ class FranceAggregates(AbstractAggregates):
 
             result = pd.DataFrame(data['data']).drop(['source'], axis = 1)
             result['actual_beneficiaries'] = result. actual_beneficiaries / self.beneficiaries_unit
-            result['actual_amount'] = result. actual_amount / self.amount_unit
+            result['actual_amount'] = result.actual_amount / self.amount_unit
 
-            result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
+            result = result[[
+                "variable",
+                "actual_amount",
+                "actual_beneficiaries",
+                ]].set_index("variable")
 
         return result
 
