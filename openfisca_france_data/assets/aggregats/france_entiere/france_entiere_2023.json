@@ -46,14 +46,14 @@
         {
             "variable":"af",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 13414000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"paje_prepare",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 755000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"aeeh",
@@ -64,38 +64,38 @@
         {
             "variable":"asf",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 3024000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
            },
         {
             "variable":"paje_base",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 2997000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"paje_naissance",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 516000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"cf",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 2448000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"ars",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 2116000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"paje_cmg",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 7093000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"aides_logement",
