@@ -3,14 +3,12 @@ import logging
 import json
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-import pkg_resources
 import os
 from datetime import datetime
+import pandas as pd
 
 from openfisca_survey_manager.aggregates import AbstractAggregates
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
+from openfisca_france_data import openfisca_france_data_location, AGGREGATES_DEFAULT_VARS  # type: ignore
 
 
 log = logging.getLogger(__name__)
@@ -38,14 +36,14 @@ class FranceAggregates(AbstractAggregates):
         super().__init__(survey_scenario = survey_scenario)
         self.target_source = target_source
 
-    def load_actual_data(self, year = None):
+    def load_actual_data(self, period = None):
         target_source = self.target_source
         assert target_source in ["ines", "taxipp", "france_entiere"], "les options possible pour source_cible sont ines, taxipp ou france_entiere"
-        assert year is not None
+        assert period is not None
 
         if target_source == "taxipp":
             taxipp_aggregates_file = Path(
-                pkg_resources.get_distribution("openfisca-france_data").location,
+                openfisca_france_data_location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
@@ -62,15 +60,15 @@ class FranceAggregates(AbstractAggregates):
                 .rename(columns = {"unnamed: 0": "description"})
                 .dropna(subset = ["annee 2019", "annee 2018", "annee 2017", "annee 2016"], how = "all")
                 )
-            if f"annee {year}" not in df:
+            if f"annee {period}" not in df:
                 return
 
             df = (
-                df[["variable_openfisca", f"annee {year}"]]
+                df[["variable_openfisca", f"annee {period}"]]
                 .dropna()
                 .rename(columns = {
                     "variable_openfisca": "variable",
-                    f"annee {year}": year,
+                    f"annee {period}": period,
                     })
                 )
 
@@ -78,25 +76,25 @@ class FranceAggregates(AbstractAggregates):
                 df.loc[df.variable.str.startswith("nombre")]
                 .set_index("variable")
                 .rename(index = lambda x : x.replace("nombre_", ""))
-                .rename(columns = {year: "actual_beneficiaries"})
+                .rename(columns = {period: "actual_beneficiaries"})
                 ) / self.beneficiaries_unit
 
             amounts = (
                 df.loc[~df.variable.str.startswith("nombre")]
                 .set_index("variable")
-                .rename(columns = {year: "actual_amount"})
+                .rename(columns = {period: "actual_amount"})
                 ) / self.amount_unit
 
             result = amounts.merge(beneficiaries, on = "variable", how = "outer").drop("PAS SIMULE")
 
         elif target_source == "ines":
             ines_aggregates_file = Path(
-                pkg_resources.get_distribution("openfisca-france_data").location,
+                openfisca_france_data_location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
                 "ines",
-                f"ines_{year}.json"
+                f"ines_{period}.json"
                 )
 
             with open(ines_aggregates_file, 'r') as f:
@@ -110,12 +108,12 @@ class FranceAggregates(AbstractAggregates):
 
         elif target_source == "france_entiere":
             ines_aggregates_file = Path(
-                pkg_resources.get_distribution("openfisca-france_data").location,
+                openfisca_france_data_location,
                 "openfisca_france_data",
                 "assets",
                 "aggregats",
                 "france_entiere",
-                f"france_entiere_{year}.json"
+                f"france_entiere_{period}.json"
                 )
 
             with open(ines_aggregates_file, 'r') as f:
@@ -123,12 +121,16 @@ class FranceAggregates(AbstractAggregates):
 
             result = pd.DataFrame(data['data']).drop(['source'], axis = 1)
             result['actual_beneficiaries'] = result. actual_beneficiaries / self.beneficiaries_unit
-            result['actual_amount'] = result. actual_amount / self.amount_unit
+            result['actual_amount'] = result.actual_amount / self.amount_unit
 
-            result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
+            result = result[[
+                "variable",
+                "actual_amount",
+                "actual_beneficiaries",
+                ]].set_index("variable")
 
         return result
-    
+
     def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
             relative = True, target = "reform"):
         """Saves the table to csv."""
@@ -136,7 +138,7 @@ class FranceAggregates(AbstractAggregates):
 
         if os.path.isdir(path):
             now = datetime.now()
-            file_path = os.path.join(path, 'Aggregates_%s_%s_%s.%s' % (self.target_source,self.year,now.strftime('%d-%m-%Y'), "csv"))
+            file_path = os.path.join(path, 'Aggregates_%s_%s_%s.%s' % (self.target_source, self.period, now.strftime('%d-%m-%Y'), "csv"))
         else:
             file_path = path
 

@@ -1,5 +1,13 @@
 # Changelog
 
+### 3.0.0 [#241](https://github.com/openfisca/openfisca-france-data/pull/241)
+- Breaking changes
+
+Adapte le dépôt au passage à openfisca-survey-manager 2.0.0 qui constitue une refactorisation de l'objet survey-scenario et des simulations qui sont dedans. Cela concerne donc les parties de ce dépôts qui héritent d'objets d'openfisca-survey-manager :
+- `openfisca_france_data/aggregates.py`
+- `openfisca_france_data/surveys.py`
+Les autres modifications sont des adaptions syntaxique mineurs du fait de cette adaptation
+
 ### 2.0.7 [#239](https://github.com/openfisca/openfisca-france-data/pull/239/files)
 * New features
 - Ajoute des nouveaux agrégats pour FranceAggregates

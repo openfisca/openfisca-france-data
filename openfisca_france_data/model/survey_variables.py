@@ -4,7 +4,7 @@ from openfisca_france_data.model.base import * # noqa  analysis:ignore
 class menage_ordinaire(Variable):
     value_type = int
     is_period_size_independent = True
-    default_value = True
+    default_value = 1
     entity = Menage
     definition_period = YEAR
 

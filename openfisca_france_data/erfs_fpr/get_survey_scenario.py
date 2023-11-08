@@ -10,6 +10,7 @@ from openfisca_france.entities import Individu, FoyerFiscal, Menage
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data import france_data_tax_benefit_system
 
+from openfisca_survey_manager import default_config_files_directory
 
 from openfisca_france_data.model.id_variables import (
     idmen_original,
@@ -102,6 +103,7 @@ def get_survey_scenario(
         variation_factor: float = 0.03,
         varying_variable: str = None,
         survey_name: str = "input",
+        config_files_directory : str = default_config_files_directory,
         ) -> ErfsFprSurveyScenario:
     """Helper pour créer un `ErfsFprSurveyScenario`.
 
@@ -126,14 +128,14 @@ def get_survey_scenario(
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
-            year = year,
+            period = year,
             )
     else:
         assert varying_variable is not None, "You need to specify the varying variable."
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
-            year = year,
+            period = year,
             )
         # taux marginaux !!
         survey_scenario.variation_factor = variation_factor
@@ -153,6 +155,8 @@ def get_survey_scenario(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
             survey = survey_name
             )
+        data["config_files_directory"] = config_files_directory
+        
 
     # Les données peuvent venir en différents formats :
     #
