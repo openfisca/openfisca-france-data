@@ -166,7 +166,7 @@
             "source": "Comptes de la sécurité sociale, résultats 2019 et prévision 2020 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/CCSS/2020/RAPPORT%20CCSS%20JUIN%202020.pdf)"
         },
         {
-            "variable":"irpp",
+            "variable":"impot_revenu_restant_a_payer",
             "actual_beneficiaries":39332000,
             "actual_amount":76911000000,
             "source": "Statistiques DGFIP, Impôt sur le revenu : répartition par région (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"

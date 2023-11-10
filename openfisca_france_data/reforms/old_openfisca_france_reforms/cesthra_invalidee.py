@@ -31,7 +31,7 @@ class cesthra(Variable):
         return foyer_fiscal.sum(cesthra_i)
 
 
-class irpp(Variable):
+class impot_revenu_restant_a_payer(Variable):
     label = 'Impôt sur le revenu des personnes physiques (réformée pour intégrer la cesthra)'
     definition_period = YEAR
 
@@ -62,5 +62,5 @@ class cesthra_invalidee(Reform):
 
     def apply(self):
         self.add_variable(cesthra)
-        self.update_variable(irpp)
+        self.update_variable(impot_revenu_restant_a_payer)
         self.modify_parameters(modifier_function = modify_parameters)

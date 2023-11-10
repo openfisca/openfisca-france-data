@@ -10,7 +10,7 @@ def test_pivot_table_1d_mean():
     survey_scenario = get_survey_scenario(kind = 'erfs_fpr', year = year)
     pivot_table = survey_scenario.compute_pivot_table(
         columns = ['decile_rfr'],
-        values = ['irpp'],
+        values = ['impot_revenu_restant_a_payer'],
         period = year,
         )
     return pivot_table
@@ -22,7 +22,7 @@ def test_pivot_table_1d_sum():
     pivot_table = survey_scenario.compute_pivot_table(
         aggfunc = 'sum',
         columns = ['decile_rfr'],
-        values = ['irpp'],
+        values = ['impot_revenu_restant_a_payer'],
         period = year,
         )
     return pivot_table
@@ -34,7 +34,7 @@ def test_pivot_table_1d_count():
     pivot_table = survey_scenario.compute_pivot_table(
         aggfunc = 'count',
         columns = ['decile_rfr'],
-        values = ['irpp'],
+        values = ['impot_revenu_restant_a_payer'],
         period = year,
         )
     return pivot_table
@@ -46,7 +46,7 @@ def test_pivot_table_2d_2values():
     pivot_table = survey_scenario.compute_pivot_table(
         columns = ['decile_rfr'],
         index = ['nbptr'],
-        values = ['irpp', 'rfr'],
+        values = ['impot_revenu_restant_a_payer', 'rfr'],
         period = year,
         )
     return pivot_table

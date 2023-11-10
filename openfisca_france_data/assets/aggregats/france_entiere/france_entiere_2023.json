@@ -158,7 +158,7 @@
             "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
         },
         {
-            "variable":"irpp",
+            "variable":"impot_revenu_restant_a_payer",
             "actual_beneficiaries": 0,
             "actual_amount": 0,
             "source": ""

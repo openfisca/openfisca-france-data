@@ -174,7 +174,7 @@ AGGREGATES_DEFAULT_VARS = [
     'csg',
     'crds',
     'impot_revenu',
-    'irpp',
+    'impot_revenu_restant_a_payer',
     'prelevement_forfaitaire_unique_ir',
     'prelevement_forfaitaire_liberatoire',
     'taxe_habitation',

@@ -132,7 +132,7 @@
             "actual_amount":19000000000
         },
         {
-            "variable":"irpp",
+            "variable":"impot_revenu_restant_a_payer",
             "actual_beneficiaries":0,
             "actual_amount":73900000000,
             "notes":"Impot payé en 2020, en parti sur revenus 2020 et 2019"
