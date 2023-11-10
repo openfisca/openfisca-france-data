@@ -1,5 +1,9 @@
 # Changelog
 
+### 3.0.1 [#242](https://github.com/openfisca/openfisca-france-data/pull/242)
+* Technical changes:
+- Passage à Openfsca-France >= 155.0.0
+
 ### 3.0.0 [#241](https://github.com/openfisca/openfisca-france-data/pull/241)
 - Breaking changes
 

@@ -221,7 +221,7 @@ def test_calculate_irpp_before_and_after_plf2015(
 
     # IRPP avant la réforme
     assert_near(
-        survey_scenario.calculate_variable("irpp", use_baseline = True, period = year),
+        survey_scenario.calculate_variable("impot_revenu_restant_a_payer", use_baseline = True, period = year),
         [-10124, -869],
         error_margin,
         )
@@ -229,7 +229,7 @@ def test_calculate_irpp_before_and_after_plf2015(
     # IRPP après la réforme
     # -911.4 + (1135 - 911.4) = -686.8
     assert_near(
-        survey_scenario.calculate_variable("irpp", period = year),
+        survey_scenario.calculate_variable("impot_revenu_restant_a_payer", period = year),
         [-10118, -911.4 + (1135 - 911.4)],
         error_margin,
         )

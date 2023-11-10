@@ -165,7 +165,7 @@
             "source": "Comptes de la sécurité sociale, résultats 2020, prévisions 2021 et 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/CCSS/2021/Rapport%20CCSS-Septembre2021.pdf)"
         },
         {
-            "variable":"irpp",
+            "variable":"impot_revenu_restant_a_payer",
             "actual_beneficiaries":39888000,
             "actual_amount":73979000000,
             "source": "Statistiques DGFIP, Impôt sur le revenu : répartition par région (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
