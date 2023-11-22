@@ -100,19 +100,31 @@
         {
             "variable":"aides_logement",
             "actual_beneficiaries": 0,
-            "actual_amount": 15262994463,
-            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+            "actual_amount": 15602974660,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
+        },
+        {
+            "variable":"apl",
+            "actual_beneficiaries": 0,
+            "actual_amount": 6897920894,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
+        },
+        {
+            "variable":"alf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 3565671170,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
+        },
+        {
+            "variable":"als",
+            "actual_beneficiaries": 0,
+            "actual_amount": 5109934933,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
         },
         {
             "variable":"aah",
             "actual_beneficiaries": 0,
             "actual_amount":11222712959,
-            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
-        },
-        {
-            "variable":"apl",
-            "actual_beneficiaries": 0,
-            "actual_amount": 6743703175,
             "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
         },
         {
