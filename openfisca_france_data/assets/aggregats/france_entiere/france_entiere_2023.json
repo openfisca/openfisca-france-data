@@ -100,8 +100,26 @@
         {
             "variable":"aides_logement",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 16315000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
+        },
+        {
+            "variable":"apl",
+            "actual_beneficiaries": 0,
+            "actual_amount": 7227000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
+        },
+        {
+            "variable":"alf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 3578000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
+        },
+        {
+            "variable":"als",
+            "actual_beneficiaries": 0,
+            "actual_amount": 5190000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
         },
         {
             "variable":"aah",
