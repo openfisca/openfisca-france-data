@@ -43,8 +43,7 @@ setup(
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
         "OpenFisca-France >=155.0.0, <156.0.0",
-        # 'some-pkg @ git+ssh://git@github.com/someorgname/pkg-repo-name@v1.1#egg=some-pkg',
-        "openFisca-survey-manager @ git+ssh://git@github.com/openfisca/openfisca-survey-manager.git@275-support-parquet-file-format",
+        "openFisca-survey-manager @ git+https://github.com/openfisca/openfisca-survey-manager.git@275-support-parquet-file-format",
         # "openFisca-survey-manager >=2.0.0, <2.1.0",
         ],
     extras_require = {
