@@ -2,6 +2,11 @@ import unittest
 import pandas as pd
 import os
 import logging
+import random
+import gc
+import warnings
+from time import time
+from multiprocessing import Pool
 
 from openfisca_core import periods
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -13,6 +18,8 @@ from openfisca_survey_manager.surveys import NoMoreDataError
 
 tax_benefit_system = france_data_tax_benefit_system
 logger = logging.getLogger(__name__)
+# Suppress warnings
+warnings.filterwarnings("ignore")
 
 
 class TestParquetPote(unittest.TestCase):
@@ -22,8 +29,10 @@ class TestParquetPote(unittest.TestCase):
     os.makedirs(data_dir, exist_ok=True)
     collection_name = "test_parquet_collection"
     survey_name = "test_parquet_survey"
+    nombre_de_foyers = 60_000_000
 
     def test_write_fake_pote(self):
+        self.nombre_de_foyers = 4
         # key = 'individu',
         individus = pd.DataFrame(
             {
@@ -58,6 +67,45 @@ class TestParquetPote(unittest.TestCase):
         foyers.to_parquet(
             os.path.join(self.data_dir, "foyer_fiscal.parquet"), index=False
             )
+
+    def write_big_fake_pote(self):
+        start = time()
+        logger.debug(f"Writing big fake pote with {self.nombre_de_foyers} foyers")
+        foyer_fiscal_ids = list(range(self.nombre_de_foyers))
+        revenus = [random.randint(0, 100_000) for _ in range(self.nombre_de_foyers)]
+        zeros = [0 for _ in range(self.nombre_de_foyers)]
+        individus = pd.DataFrame(
+            {
+                "foyer_fiscal_id": foyer_fiscal_ids,
+                "famille_id": foyer_fiscal_ids,
+                "menage_id": foyer_fiscal_ids,
+                "age": [random.randint(18, 100) for _ in range(self.nombre_de_foyers)],
+                "salaire_de_base": revenus,
+                "retraite_imposable": revenus,
+                "famille_role_index": zeros,
+                "foyer_fiscal_role_index": zeros,
+                "menage_role_index": zeros,
+                # "date_naissance": [
+                #     f"{random.randint(1920, 2000)}-01-01" for _ in range(self.nombre_de_foyers)
+                #     ],
+                }
+            )
+        individus.to_parquet(
+            os.path.join(self.data_dir, "individu.parquet"), index=False
+            )
+        del individus
+        # key = 'foyer_fiscal',
+        foyers = pd.DataFrame(
+            {
+                "foyer_fiscal_id": foyer_fiscal_ids,
+                "revenus_capitaux_prelevement_forfaitaire_unique_ir": revenus,
+                }
+            )
+        foyers.to_parquet(
+            os.path.join(self.data_dir, "foyer_fiscal.parquet"), index=False
+            )
+        del foyers
+        logger.debug(f"Writing big fake pote done in {time() - start:.2f} seconds.")
 
     def test_add_collection(self):
         # Create a file config.ini in the current directory
@@ -123,7 +171,73 @@ tmp_directory = /tmp
             config_files_directory=self.data_dir,
             )
 
+
+    def process_one_batch(self, survey_scenario, period, batch_size, batch_index):
+        start = time()
+        try:
+            results = {
+                "salaire_imposable": [],
+                "irpp_economique": [],
+                "csg_deductible_salaire": [],
+                "revenus_capitaux_prelevement_forfaitaire_unique_ir": [],
+                }
+            data = {
+                "collection": "test_parquet_collection",
+                "survey": "test_parquet_collection_2020",
+                "input_data_table_by_entity_by_period": {
+                    period: {
+                        "foyer_fiscal": "foyer_fiscal",
+                        "individu": "individu",
+                        "batch_size": batch_size,
+                        "batch_index": batch_index,
+                        }
+                    },
+                "config_files_directory": self.data_dir,
+                }
+            survey_scenario.init_from_data(data=data)
+
+            simulation = survey_scenario.simulations["baseline"]
+            sim_res = (
+                simulation.calculate("irpp_economique", period.this_year)
+                .flatten()
+                .tolist()
+                )
+            results["irpp_economique"] += sim_res
+            sim_res = (
+                simulation.calculate("salaire_imposable", period).flatten().tolist()
+                )
+            results["salaire_imposable"] += sim_res
+            sim_res = (
+                simulation.calculate("csg_deductible_salaire", period)
+                .flatten()
+                .tolist()
+                )
+            results["csg_deductible_salaire"] += sim_res
+            sim_res = (
+                simulation.calculate(
+                    "revenus_capitaux_prelevement_forfaitaire_unique_ir", period
+                    )
+                .flatten()
+                .tolist()
+                )
+            results["revenus_capitaux_prelevement_forfaitaire_unique_ir"] += sim_res
+
+            df_tmp = pd.DataFrame(results)
+            df_tmp.to_parquet(
+                os.path.join(self.data_dir, f"/tmp/results-{batch_index}.parquet"),
+                index=False,
+                )
+        except NoMoreDataError:
+            logger.debug(f"No more data for {batch_index}")
+        finally:
+            # Free memory
+            del results
+            del simulation
+            gc.collect()
+            logger.debug(f"------------------- batch {batch_index} done in { time() - start:.2f} seconds -------------------")
+
     def test_load_parquet(self):
+        temps_debut = time()
         # Create survey scenario
         survey_scenario = AbstractSurveyScenario()
         survey_scenario.set_tax_benefit_systems(dict(baseline=tax_benefit_system))
@@ -134,75 +248,21 @@ tmp_directory = /tmp
             ]
         survey_scenario.collection = self.collection_name
         period = periods.period("2020-01")
-        results = {
-            "salaire_imposable": [],
-            "irpp_economique": [],
-            "csg_deductible_salaire": [],
-            "revenus_capitaux_prelevement_forfaitaire_unique_ir": [],
-            }
-        batch_size = 2
-        batch_index = 0
-        while True:
-            try:
-                data = {
-                    "collection": "test_parquet_collection",
-                    "survey": "test_parquet_collection_2020",
-                    "input_data_table_by_entity_by_period": {
-                        period: {
-                            "foyer_fiscal": "foyer_fiscal",
-                            "individu": "individu",
-                            "batch_size": batch_size,
-                            "batch_index": batch_index,
-                            }
-                        },
-                    "config_files_directory": self.data_dir,
-                    }
-                survey_scenario.init_from_data(data=data)
 
-                simulation = survey_scenario.simulations["baseline"]
-                sim_res = (
-                    simulation.calculate("irpp_economique", period.this_year)
-                    .flatten()
-                    .tolist()
-                    )
-                results["irpp_economique"] += sim_res
-                sim_res = (
-                    simulation.calculate("salaire_imposable", period).flatten().tolist()
-                    )
-                results["salaire_imposable"] += sim_res
-                sim_res = (
-                    simulation.calculate("csg_deductible_salaire", period)
-                    .flatten()
-                    .tolist()
-                    )
-                results["csg_deductible_salaire"] += sim_res
-                sim_res = (
-                    simulation.calculate(
-                        "revenus_capitaux_prelevement_forfaitaire_unique_ir", period
-                        )
-                    .flatten()
-                    .tolist()
-                    )
-                results["revenus_capitaux_prelevement_forfaitaire_unique_ir"] += sim_res
-                logger.debug("------------------- Next batch -------------------")
-                batch_index += 1
-            except NoMoreDataError:
-                logger.debug("No more data")
-                break
-        logger.debug(f"{results=}")
-        # assert len(results["salaire_imposable"]) == 4
-        # assert (
-        #     results["salaire_imposable"]
-        #     == input_data_frame_by_entity["salaire_imposable"]
-        # ).all()
-        # assert results["irpp_economique"] == [500.0, 1000.0, 1500.0, 2000.0]
-        # assert results["salaire_imposable"] == [
-        #     195.00001525878906,
-        #     3.0,
-        #     510.0000305175781,
-        #     600.0,
-        #     750.0,
-        # ]
+        batch_size = 20_000
+        total_batch = (self.nombre_de_foyers // batch_size) + 10
+        logger.debug(f"Lancement en paralèlle de {total_batch=} process !")
+        # Create a Pool with 4 processes
+        with Pool(4) as p:
+            results = p.starmap(self.process_one_batch, [(survey_scenario, period, batch_size, batch_index) for batch_index in range(total_batch)])
+        logger.debug(f"Temps total : {(time() - temps_debut)/60:.2f} minutes pour {self.nombre_de_foyers} foyers.")
+        results = pd.read_parquet(
+            os.path.join(self.data_dir, "/tmp/results-*.parquet")
+            )
+        logger.debug(f"Nombre d'éléments : {len(results)=}")
+        assert len(results["salaire_imposable"]) == self.nombre_de_foyers
+        logger.debug(f"Temps total : {(time() - temps_debut)/60:.2f} minutes pour {self.nombre_de_foyers} foyers.")
+
 
     def test_clean(self):
         os.remove(os.path.join(self.data_dir, "individu.parquet"))
@@ -228,15 +288,10 @@ if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
     for handler in logger.handlers:
         handler.setLevel(logging.DEBUG)
-    print(logger.getEffectiveLevel())
-    for handler in logger.handlers:
-        print(handler.level)
-    logger.info("INFO msg")
-    logger.debug("DEBUG msg")
-    logger.warning("WARNING msg")
-    t.test_write_fake_pote()
-    t.test_add_collection()
-    t.test_build_collection()
+    # t.test_write_fake_pote()
+    # t.write_big_fake_pote()
+    # t.test_add_collection()
+    # t.test_build_collection()
     t.test_load_parquet()
     # t.test_clean()
     logger.info("Done")
