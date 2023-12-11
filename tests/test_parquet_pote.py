@@ -7,6 +7,7 @@ import gc
 import warnings
 from time import time
 from multiprocessing import Pool
+import pytest
 
 from openfisca_core import periods
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -107,6 +108,7 @@ class TestParquetPote(unittest.TestCase):
         del foyers
         logger.debug(f"Writing big fake pote done in {time() - start:.2f} seconds.")
 
+    @pytest.mark.order(after="test_write_fake_pote")
     def test_add_collection(self):
         # Create a file config.ini in the current directory
         config = os.path.join(
@@ -157,6 +159,7 @@ tmp_directory = /tmp
         logger.warning(ordered_dict)
         assert self.survey_name in list(ordered_dict["surveys"].keys())
 
+    @pytest.mark.order(after="test_add_collection")
     def test_build_collection(self):
         collection_name = self.collection_name
         data_directory_path_by_survey_suffix = {
@@ -236,6 +239,7 @@ tmp_directory = /tmp
             gc.collect()
             logger.debug(f"------------------- batch {batch_index} done in { time() - start:.2f} seconds -------------------")
 
+    @pytest.mark.order(after="test_build_collection")
     def test_load_parquet(self):
         temps_debut = time()
         # Create survey scenario
