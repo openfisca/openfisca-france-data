@@ -52,7 +52,7 @@ class TestParquetPote(unittest.TestCase):
                 "famille_id": [0, 1, 1, 2, 3],
                 "menage_id": [0, 1, 1, 2, 3],
                 "age": [26, 77, 37, 80, 33],
-                "salaire_de_base": [22_000, 10_000, 40_000, 0, 30_000],  # 112 000
+                "salaire_de_base": [22_000, 10_000, 40_000, 0, 30_000],  # 102_000
                 "retraite_imposable": [0, 0, 0, 10_000, 0],
                 "famille_role_index": [0, 0, 1, 0, 0],
                 "foyer_fiscal_role_index": [0, 0, 1, 0, 0],
@@ -73,7 +73,7 @@ class TestParquetPote(unittest.TestCase):
         foyers = pd.DataFrame(
             {
                 "foyer_fiscal_id": [0,1, 2, 3],
-                "revenus_capitaux_prelevement_forfaitaire_unique_ir": [0, 0, 0, 0], # 50 000
+                "revenus_capitaux_prelevement_forfaitaire_unique_ir": [0, 0, 50_000, 0],
                 }
             )
         foyers.to_parquet(
@@ -323,9 +323,9 @@ tmp_directory = /tmp
         self.assertEqual(len(df_ind["salaire_imposable"]), self.nombre_d_individus)
         self.assertEqual(len(df_foy["irpp_economique"]), self.nombre_de_foyers)
         self.assertAlmostEqual(df_foy["revenus_capitaux_prelevement_forfaitaire_unique_ir"].sum(), 50_000, delta=1)
-        self.assertAlmostEqual(df_ind["salaire_de_base"].sum(), 112_000, delta=1)
-        self.assertAlmostEqual(df_ind["salaire_imposable"].sum(), 96_328, delta=1)
-        self.assertAlmostEqual(df_foy["irpp_economique"].sum(), -15_509, delta=1)
+        self.assertAlmostEqual(df_ind["salaire_de_base"].sum(), 102_000, delta=1)
+        self.assertAlmostEqual(df_ind["salaire_imposable"].sum(), 86_051, delta=1)
+        self.assertAlmostEqual(df_foy["irpp_economique"].sum(), -9_483, delta=1)
 
 
     @pytest.mark.order(after="test_build_collection")
@@ -345,7 +345,7 @@ tmp_directory = /tmp
         total_batch = (self.nombre_de_foyers // batch_size) + 1
         logger.debug(f"Lancement en paralèlle de {total_batch=} process !")
         # Create a Pool with 4 processes
-        with Pool(1) as p:
+        with Pool(4) as p:
             results = p.starmap(self.process_one_batch, [(batch_size, batch_index) for batch_index in range(total_batch)])
         logger.debug(f"Temps total : {(time() - temps_debut)/60:.2f} minutes pour {self.nombre_de_foyers} foyers.")
         self._verify_results()
