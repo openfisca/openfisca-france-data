@@ -1,5 +1,9 @@
 # Changelog
 
+### 3.0.3 [#244](https://github.com/openfisca/openfisca-france-data/pull/244)
+* Technical changes:
+- Correction dees liens des paramètres dans la fonction create_taux_csg_remplacement
+
 ### 3.0.2 [#243](https://github.com/openfisca/openfisca-france-data/pull/243)
 * Technical changes:
 - Ajoute la possibilité d'utiliser un tax and benefit system plus en aval dans les fonctions de utils.py
