@@ -1,18 +1,14 @@
 import collections
-from datetime import datetime
 import logging
-import os
+import json
+from pathlib import Path
 
-import numpy as np
+import os
+from datetime import datetime
 import pandas as pd
 
-try:
-    from ipp_macro_series_parser.config import Config  # type: ignore
-except ImportError:
-    Config = None
-
 from openfisca_survey_manager.aggregates import AbstractAggregates
-from openfisca_france_data import AGGREGATES_DEFAULT_VARS  # type: ignore
+from openfisca_france_data import openfisca_france_data_location, AGGREGATES_DEFAULT_VARS  # type: ignore
 
 
 log = logging.getLogger(__name__)
@@ -34,76 +30,124 @@ class FranceAggregates(AbstractAggregates):
         ('beneficiaries_relative_difference', "Diff. relative\nBénéficiaires"),
         ))
     aggregate_variables = AGGREGATES_DEFAULT_VARS
+    target_source = None
 
-    def load_actual_data(self, year = None):
-        assert year is not None
+    def __init__(self, survey_scenario = None, target_source = None):
+        super().__init__(survey_scenario = survey_scenario)
+        self.target_source = target_source
 
-        if not Config:
-            log.info("No actual data available")
-            return
+    def load_actual_data(self, period = None):
+        target_source = self.target_source
+        assert target_source in ["ines", "taxipp", "france_entiere"], "les options possible pour source_cible sont ines, taxipp ou france_entiere"
+        assert period is not None
 
-        parser = Config()
-
-        # Cotisations CSG -CRDS
-        try:
-            directory = os.path.join(
-                parser.get('data', 'prelevements_sociaux_directory'),
-                'clean',
+        if target_source == "taxipp":
+            taxipp_aggregates_file = Path(
+                openfisca_france_data_location,
+                "openfisca_france_data",
+                "assets",
+                "aggregats",
+                "taxipp",
+                "agregats_tests_taxipp_2_0.xlsx"
                 )
-            csg_crds_amounts = pd.read_csv(
-                os.path.join(directory, 'recette_csg_crds.csv'),
-                index_col = 0
-                ).rename(
-                    dict(
-                        recette_csg = 'csg',
-                        recette_crds = 'crds',
-                        )
-                    ) / 1e6
-            csg_by_type_amounts = pd.read_csv(
-                os.path.join(directory, 'recette_csg_by_type.csv'),
-                index_col = 0,
-                ).drop(
-                    ['source']
-                    ).astype(float) / 1e6
-            assiette_csg_by_type_amounts = pd.read_csv(
-                os.path.join(directory, 'assiette_csg_by_type.csv'),
-                index_col = 0,
-                ) / 1e6
-        except Exception:
-            assiette_csg_by_type_amounts = None
-            csg_by_type_amounts = None
-            csg_crds_amounts = None
-            pass
-        # Prestations sociales
-        directory = os.path.join(
-            parser.get('data', 'prestations_sociales_directory'),
-            'clean',
-            )
-        amounts_csv = os.path.join(directory, 'historique_depenses.csv')
-        beneficiaries_csv = os.path.join(directory, 'historique_beneficiaires.csv')
-        prestations_sociales_amounts = pd.read_csv(amounts_csv, index_col = 0)
-        prestations_sociales_beneficiaries = pd.read_csv(beneficiaries_csv, index_col = 0)
-        # Minimum vieillesses
-        minimum_vieillesse_beneficiaries_csv = os.path.join(
-            directory, 'historique_beneficiaires_minimum_vieillesse.csv')
-        if os.path.exists(minimum_vieillesse_beneficiaries_csv):
-            minimum_vieillesse_beneficiaries = pd.read_csv(minimum_vieillesse_beneficiaries_csv, index_col = 0)
+            df = (
+                pd.read_excel(
+                    taxipp_aggregates_file,
+                    # "https://gitlab.com/ipp/partage-public-ipp/taxipp/-/blob/master/simulation/assets/agregats_tests_taxipp_2_0.xlsx",
+                    # engine = 'openpyxl'
+                    )
+                .rename(columns = str.lower)
+                .rename(columns = {"unnamed: 0": "description"})
+                .dropna(subset = ["annee 2019", "annee 2018", "annee 2017", "annee 2016"], how = "all")
+                )
+            if f"annee {period}" not in df:
+                return
 
-        amounts = pd.concat(
-            [
-                assiette_csg_by_type_amounts,
-                csg_by_type_amounts,
-                csg_crds_amounts,
-                prestations_sociales_amounts,
-                ],
-            sort = True,
-            )
-        beneficiaries = pd.concat(
-            [minimum_vieillesse_beneficiaries, prestations_sociales_beneficiaries],
-            sort = True,
-            )
+            df = (
+                df[["variable_openfisca", f"annee {period}"]]
+                .dropna()
+                .rename(columns = {
+                    "variable_openfisca": "variable",
+                    f"annee {period}": period,
+                    })
+                )
 
-        return pd.DataFrame(data = {
-            "actual_amount": amounts[str(year)],
-            "actual_beneficiaries": beneficiaries[str(year)],
-            })
+            beneficiaries = (
+                df.loc[df.variable.str.startswith("nombre")]
+                .set_index("variable")
+                .rename(index = lambda x : x.replace("nombre_", ""))
+                .rename(columns = {period: "actual_beneficiaries"})
+                ) / self.beneficiaries_unit
+
+            amounts = (
+                df.loc[~df.variable.str.startswith("nombre")]
+                .set_index("variable")
+                .rename(columns = {period: "actual_amount"})
+                ) / self.amount_unit
+
+            result = amounts.merge(beneficiaries, on = "variable", how = "outer").drop("PAS SIMULE")
+
+        elif target_source == "ines":
+            ines_aggregates_file = Path(
+                openfisca_france_data_location,
+                "openfisca_france_data",
+                "assets",
+                "aggregats",
+                "ines",
+                f"ines_{period}.json"
+                )
+
+            with open(ines_aggregates_file, 'r') as f:
+                data = json.load(f)
+
+            result = pd.DataFrame(data['data']).drop('notes', axis = 1)
+            result['actual_beneficiaries'] = result. actual_beneficiaries / self.beneficiaries_unit
+            result['actual_amount'] = result. actual_amount / self.amount_unit
+
+            result = result[["variable","actual_amount","actual_beneficiaries"]].set_index("variable")
+
+        elif target_source == "france_entiere":
+            ines_aggregates_file = Path(
+                openfisca_france_data_location,
+                "openfisca_france_data",
+                "assets",
+                "aggregats",
+                "france_entiere",
+                f"france_entiere_{period}.json"
+                )
+
+            with open(ines_aggregates_file, 'r') as f:
+                data = json.load(f)
+
+            result = pd.DataFrame(data['data']).drop(['source'], axis = 1)
+            result['actual_beneficiaries'] = result. actual_beneficiaries / self.beneficiaries_unit
+            result['actual_amount'] = result.actual_amount / self.amount_unit
+
+            result = result[[
+                "variable",
+                "actual_amount",
+                "actual_beneficiaries",
+                ]].set_index("variable")
+
+        return result
+
+    def to_csv(self, path = None, absolute = True, amount = True, beneficiaries = True, default = 'actual',
+            relative = True, target = "reform"):
+        """Saves the table to csv."""
+        assert path is not None
+
+        if os.path.isdir(path):
+            now = datetime.now()
+            file_path = os.path.join(path, 'Aggregates_%s_%s_%s.%s' % (self.target_source, self.period, now.strftime('%d-%m-%Y'), "csv"))
+        else:
+            file_path = path
+
+        df = self.get_data_frame(
+            absolute = absolute,
+            amount = amount,
+            beneficiaries = beneficiaries,
+            default = default,
+            relative = relative,
+            target = target,
+            )
+        df.to_csv(file_path, index = False, header = True)

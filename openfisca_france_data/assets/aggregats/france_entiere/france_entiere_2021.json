@@ -1,0 +1,177 @@
+{
+    "documentation":"Pour les prestations sociales, les cotisations et prélèvements sociaux, note de validation INES 2019, pour l'ir note de validation 2019 et 2020",
+    "data":[
+        {
+            "variable":"salaire_imposable",
+            "actual_beneficiaries": 23622000,
+            "actual_amount": 685645000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"chomage_imposable",
+            "actual_beneficiaries": 5601000,
+            "actual_amount": 37876000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"retraite_imposable",
+            "actual_beneficiaries": 14967000,
+            "actual_amount": 341810000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"rpns_imposables",
+            "actual_beneficiaries": 3476000,
+            "actual_amount": 85747000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"revenu_categoriel_foncier",
+            "actual_beneficiaries": 5045000,
+            "actual_amount": 30261000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"revenu_categoriel_capital",
+            "actual_beneficiaries": 15511000,
+            "actual_amount": 45881000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"revenu_categoriel_plus_values",
+            "actual_beneficiaries": 216000,
+            "actual_amount": 216000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"af",
+            "actual_beneficiaries": 0,
+            "actual_amount": 12660000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"paje_prepare",
+            "actual_beneficiaries": 0,
+            "actual_amount": 770000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"aeeh",
+            "actual_beneficiaries": 0,
+            "actual_amount": 1225000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"asf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 1740000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"paje_base",
+            "actual_beneficiaries": 0,
+            "actual_amount": 2986000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"paje_naissance",
+            "actual_beneficiaries": 0,
+            "actual_amount": 729000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"cf",
+            "actual_beneficiaries": 0,
+            "actual_amount":2361000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"ars",
+            "actual_beneficiaries": 0,
+            "actual_amount": 2047000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"paje_cmg",
+            "actual_beneficiaries": 0,
+            "actual_amount":5909000000,
+            "source": "Dossier statistique des prestations familiales de la DSS, 2022 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2022/Cahier_stat_Prestations_familiales_2022.pdf)"
+        },
+        {
+            "variable":"aides_logement",
+            "actual_beneficiaries": 0,
+            "actual_amount": 15262994463,
+            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+        },
+        {
+            "variable":"aah",
+            "actual_beneficiaries": 0,
+            "actual_amount":11222712959,
+            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+        },
+        {
+            "variable":"apl",
+            "actual_beneficiaries": 0,
+            "actual_amount": 6743703175,
+            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+        },
+        {
+            "variable":"aspa",
+            "actual_beneficiaries":660000,
+            "actual_amount": 3600000000,
+            "source": "Panorama DREES les retraites et les retraités, édition 2023"
+        },
+        {
+            "variable":"asi",
+            "actual_beneficiaries":0,
+            "actual_amount":0
+        },
+        {
+            "variable":"rsa",
+            "actual_beneficiaries": 0,
+            "actual_amount":10849396420,
+            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+        },
+        {
+            "variable":"ppa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 9468691928 ,
+            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+        },
+        {
+            "variable":"csg_salaire",
+            "actual_beneficiaries": 0,
+            "actual_amount": 78091000000,
+            "source": "Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_non_salarie",
+            "actual_beneficiaries": 0,
+            "actual_amount": 14527000000,
+            "source": "Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_retraite",
+            "actual_beneficiaries":0,
+            "actual_amount":21414000000,
+            "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_chomage",
+            "actual_beneficiaries":0,
+            "actual_amount":973000000,
+            "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"impot_revenu_restant_a_payer",
+            "actual_beneficiaries":40257000,
+            "actual_amount":80826000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition par région (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
+        },
+        {
+            "variable":"ifi",
+            "actual_beneficiaries":0,
+            "actual_amount":0
+        }
+    ] 
+}

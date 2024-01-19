@@ -16,13 +16,13 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
 
     individus = temporary_store['individus_{}'.format(year)]
     menages = temporary_store['menages_{}'.format(year)]
-    foyers_fiscaux = temporary_store['foyers_fiscaux_{}'.format(year)]
 
     # ici : variables à garder
     var_individus = [
         'activite',
         'age',
         'categorie_salarie',
+        'categorie_non_salarie',
         'chomage_brut',
         'contrat_de_travail',
         'date_naissance',
@@ -33,6 +33,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'idmen',
         'noindiv',
         'pensions_alimentaires_percues',
+        'pensions_invalidite',
         'quifam',
         'quifoy',
         'quimen',
@@ -40,35 +41,30 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'retraite_brute',
         'ric',
         'rnc',
+        'rpns_imposables',
         'salaire_de_base',
         'statut_marital',
         "primes_fonction_publique",
         "traitement_indiciaire_brut",
         ]
-    var_foyers_fiscaux = [
-        'idfoy',
-        'rev_financier_prelev_lib_imputes',
-        'revenu_categoriel_foncier',
-        'revenus_capitaux_prelevement_forfaitaire_unique_ir',
+    if year >= 2018:
+        var_menages = [
+            'idmen',
+            'loyer',
+            'statut_occupation_logement',
+            'taxe_habitation',
+            'wprm',
+            'zone_apl',
+            'logement_conventionne',
+            'prest_precarite_hand' # on récupère la variable de montant de aah / caah pour pouvoir faire une imputation du handicap
         ]
-
-    var_menages = [
-        'idmen',
-        'loyer',
-        'statut_occupation_logement',
-        'taxe_habitation',
-        'wprm',
-        'zone_apl',
-    ]
-
-    # TODO: fix this simplistic inference
-    individus.rename(columns = {
-        'ric_net': 'ric',
-        'rag_net': 'rag',
-        'rnc_net': 'rnc',
-        },
-        inplace = True
-        )
+    else:
+        var_menages = [
+            'idmen',
+            'loyer',
+            'taxe_habitation',
+            'wprm',
+            ]
 
     individus = create_ids_and_roles(individus)
     individus = individus[var_individus].copy()
@@ -79,10 +75,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     for k in missingvariablesmenages:
         menages[k] = 0
 
-    # Again artificially putting missing variables in their default state
-    #menages["loyer"] = 0
-    #menages["zone_apl"] = 2
-    #menages["statut_occupation_logement"] = 0
 
     menages = extract_menages_variables(menages)
 
@@ -91,14 +83,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     idmens = individus.idmen.unique()
     menages = menages.loc[
         menages.idmen.isin(idmens),
-        [
-            'idmen',
-            'loyer',
-            'statut_occupation_logement',
-            'taxe_habitation',
-            'wprm',
-            'zone_apl',
-            ]
+        var_menages
         ].copy()
     survey_name = 'openfisca_erfs_fpr_' + str(year)
 
@@ -111,16 +96,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
     menages = menages.merge(unique_idmen,
                             how = 'inner',
                             on = 'idmen_original')
-
-    foyers_fiscaux = foyers_fiscaux.rename(columns = {'idfoy':'idfoy_original'})
-    unique_idfoy = individus[['idfoy','idfoy_original']].drop_duplicates()
-    assert len(unique_idmen) == len(menages), "Number of idfoy should be the same individus and foyers tables."
-
-    foyers_fiscaux = foyers_fiscaux.merge(unique_idfoy,
-                                          how = 'inner',
-                                          on = 'idfoy_original')
-
-    foyers_fiscaux = foyers_fiscaux[var_foyers_fiscaux]
 
     if export_flattened_df_filepath:
         supermerge = individus.merge(
@@ -141,17 +116,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         collection = "openfisca_erfs_fpr",
         survey_name = survey_name,
         )
-
-    foyers_fiscaux = foyers_fiscaux.sort_values(by = ['idfoy'])
-    log.debug(f"Saving entity 'foyers fiscaux' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
-    set_table_in_survey(
-        foyers_fiscaux,
-        entity = "foyer_fiscal",
-        period = year,
-        collection = "openfisca_erfs_fpr",
-        survey_name = survey_name,
-        )
-    log.debug("End of create_input_data_frame")
 
     menages = menages.sort_values(by = ['idmen'])
     log.debug(f"Saving entity 'menage' in collection 'openfisca_erfs_fpr' and survey name '{survey_name}' with set_table_in_survey")
@@ -266,7 +230,7 @@ def extract_menages_variables_from_store(temporary_store = None, year = None):
 
 def extract_menages_variables(menages):
     variables = ['ident', 'wprm', 'taxe_habitation']
-    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement']
+    external_variables = ['loyer', 'zone_apl', 'statut_occupation_logement','logement_conventionne', 'prest_precarite_hand']
     for external_variable in external_variables:
         if external_variable in menages.columns:
             log.debug("Found {} in menages table: we keep it".format(external_variable))

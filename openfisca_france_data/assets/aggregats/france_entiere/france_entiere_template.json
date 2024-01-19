@@ -1,0 +1,184 @@
+{
+    "documentation":"",
+    "data":[
+        {
+            "variable":"af",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"paje_prepare",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aeeh",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"asf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+           },
+        {
+            "variable":"paje_base",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"paje_naissance",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"cf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ars",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"paje_cmg",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aides_logement",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aah",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aspa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"asi",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"garantie_jeunes",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"rsa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ppa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"cotisations_salariales",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"cotisations_non_salarie",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"cotisations_employeur",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"allegement_fillon",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"csg_salaire",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"csg_non_salarie",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"csg_remplacement",
+            "actual_beneficiaries":0,
+            "actual_amount":24017000000
+        },
+        {
+            "variable":"crds_salaire",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"crds_non_salarie",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"crds_remplacement",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"impot_revenu_restant_a_payer",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"prelevement_forfaitaire_unique_ir",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"prelevement_forfaitaire_liberatoire",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ifi",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        }
+    ] 
+}

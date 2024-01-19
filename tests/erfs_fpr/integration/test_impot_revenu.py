@@ -5,7 +5,7 @@ survey_scenario = get_survey_scenario(year = 2014, reform = inversion_directe_sa
 
 data_frame_by_entity = survey_scenario.create_data_frame_by_entity(
     variables = [
-        'irpp',
+        'impot_revenu_restant_a_payer',
         'maries_ou_pacses',
         'nbptr',
         'rfr',
@@ -31,8 +31,8 @@ foyer_fiscal.groupby('nbptr')['weight_foyers'].sum() / 1e6
 
 assert 25e6 < (foyer_fiscal.weight_foyers).sum()
 
-print(foyer_fiscal.groupby('nbptr').apply(lambda x: (x.irpp.astype('float') * x.weight_foyers.astype('float')).sum()))
-print((foyer_fiscal.irpp.astype('float') * foyer_fiscal.weight_foyers.astype('float')).sum() / 1e9)
+print(foyer_fiscal.groupby('nbptr').apply(lambda x: (x.impot_revenu_restant_a_payer.astype('float') * x.weight_foyers.astype('float')).sum()))
+print((foyer_fiscal.impot_revenu_restant_a_payer.astype('float') * foyer_fiscal.weight_foyers.astype('float')).sum() / 1e9)
 
 # survey_scenario.summarize_variable('salaire_imposable')
 # salaire_imposable: 1 periods * 127126 cells * item size 4 (float32, default = 0) = 496.6K

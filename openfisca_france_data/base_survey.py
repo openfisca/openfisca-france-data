@@ -5,7 +5,7 @@ from openfisca_core.reforms import Reform
 from openfisca_france.entities import Famille
 from openfisca_france_data import france_data_tax_benefit_system
 
-from openfisca_france.reforms import (
+from openfisca_france_data.reforms.old_openfisca_france_reforms import (
     allocations_familiales_imposables,
     cesthra_invalidee,
     # inversion_directe_salaires, # We use a custom inversion_directe_salaires, not merged in the openfisca-france yet
@@ -37,7 +37,7 @@ except ImportError:
     scipy = None
 
 if scipy is not None:
-    from openfisca_france.reforms import de_net_a_brut
+    from openfisca_france_data.reforms.old_openfisca_france_reforms import de_net_a_brut
     reform_list['de_net_a_brut'] = de_net_a_brut.de_net_a_brut
 
 reform_by_full_key = {}

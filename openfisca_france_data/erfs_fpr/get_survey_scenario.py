@@ -10,6 +10,87 @@ from openfisca_france.entities import Individu, FoyerFiscal, Menage
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data import france_data_tax_benefit_system
 
+from openfisca_survey_manager import default_config_files_directory
+
+from openfisca_france_data.model.id_variables import (
+    idmen_original,
+    noindiv,
+    )
+
+variables_converted_to_annual = [
+    "salaire_imposable",
+    "chomage_imposable",
+    "retraite_imposable",
+    "salaire_net",
+    "chomage_net",
+    "retraite_nette",
+    "ppa",
+    ]
+
+
+menage_projected_variables = [
+
+]
+
+
+class erfs_fpr_plugin(Reform):
+    name = "ERFS-FPR ids plugin"
+
+    def apply(self):
+
+        for variable in variables_converted_to_annual:
+            class_name =  f"{variable}_annuel"
+            label = f"{variable} sur l'année entière"
+
+            def annual_formula_creator(variable):
+                def formula(individu, period):
+                    result = individu(variable, period, options = [ADD])
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = self.variables[variable].entity,
+                label = label,
+                definition_period = YEAR,
+                formula = annual_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+        for variable in menage_projected_variables:
+            class_name =  f"{variable}_menage"
+            label = f"{variable} agrégée à l'échelle du ménage"
+
+            def projection_formula_creator(variable):
+                def formula(menage, period):
+                    result_i = menage.members.foyer_fiscal(variable, period, options = [ADD])
+                    result = menage.sum(result_i, role = FoyerFiscal.DECLARANT_PRINCIPAL)
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = Menage,
+                label = label,
+                definition_period = YEAR,
+                formula = projection_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+
+        self.add_variable(idmen_original)
+        self.add_variable(noindiv)
+
 
 from openfisca_france_data.model.id_variables import (
     idmen_original,
@@ -104,6 +185,7 @@ def get_survey_scenario(
         variation_factor: float = 0.03,
         varying_variable: str = None,
         survey_name: str = "input",
+        config_files_directory : str = default_config_files_directory,
         ) -> ErfsFprSurveyScenario:
     """Helper pour créer un `ErfsFprSurveyScenario`.
 
@@ -128,14 +210,14 @@ def get_survey_scenario(
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
-            year = year,
+            period = year,
             )
     else:
         assert varying_variable is not None, "You need to specify the varying variable."
         survey_scenario = ErfsFprSurveyScenario.create(
             tax_benefit_system = tax_benefit_system,
             baseline_tax_benefit_system = baseline_tax_benefit_system,
-            year = year,
+            period = year,
             )
         # taux marginaux !!
         survey_scenario.variation_factor = variation_factor
@@ -156,6 +238,8 @@ def get_survey_scenario(
             input_data_table_by_entity_by_period = input_data_table_by_entity_by_period,
             survey = survey_name
             )
+        data["config_files_directory"] = config_files_directory
+        
 
     # Les données peuvent venir en différents formats :
     #

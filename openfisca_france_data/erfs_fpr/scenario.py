@@ -11,6 +11,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "activite",
         "autonomie_financiere",
         "categorie_salarie",
+        "categorie_non_salarie",
         "chomage_brut",
         "chomage_imposable",
         "contrat_de_travail",
@@ -19,8 +20,10 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "effectif_entreprise",
         "f4ba",
         "heures_remunerees_volume",
+        "logement_conventionne",
         "loyer",
         "pensions_alimentaires_percues",
+        "pensions_invalidite",
         "primes_fonction_publique",
         "rag",
         "retraite_brute",
@@ -30,6 +33,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "revenus_capitaux_prelevement_forfaitaire_unique_ir",
         "ric",
         "rnc",
+        "rpns_imposables",
         "salaire_de_base",
         "statut_marital",
         "statut_occupation_logement",
@@ -62,8 +66,9 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
         "wprm_init",
         ]
 
-    def __init__(self, year: int) -> None:
-        self.year = year
+    def __init__(self, period: int) -> None:
+        # self.year = period
+        self.period = period
 
     @classmethod
     def build_input_data(cls, year: int) -> None:

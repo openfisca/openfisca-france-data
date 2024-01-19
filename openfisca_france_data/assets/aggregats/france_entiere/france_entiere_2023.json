@@ -1,0 +1,173 @@
+{
+    "documentation":"",
+    "data":[
+        {
+            "variable":"salaire_imposable",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"chomage_imposable",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"retraite_imposable",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"rpns_imposables",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"revenu_categoriel_foncier",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"revenu_categoriel_capital",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"revenu_categoriel_plus_values",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"af",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"paje_prepare",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aeeh",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"asf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+           },
+        {
+            "variable":"paje_base",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"paje_naissance",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"cf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ars",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"paje_cmg",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aides_logement",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aah",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"aspa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"asi",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"rsa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ppa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"csg_salaire",
+            "actual_beneficiaries": 0,
+            "actual_amount": 88313000000,
+            "source": "Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_non_salarie",
+            "actual_beneficiaries": 0,
+            "actual_amount": 16292000000,
+            "source": "Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_retraite",
+            "actual_beneficiaries":0,
+            "actual_amount":23600000000,
+            "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_chomage",
+            "actual_beneficiaries":0,
+            "actual_amount":614000000,
+            "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"impot_revenu_restant_a_payer",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ifi",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        }
+    ] 
+}

@@ -231,8 +231,7 @@ def check_structure(dataframe):
         return False, erroneous_ids_by_entity
 
 
-def build_cerfa_fields_by_column_name(year, sections_cerfa):
-    tax_benefit_system = openfisca_france_tax_benefit_system
+def build_cerfa_fields_by_column_name(year, sections_cerfa, tax_benefit_system = openfisca_france_tax_benefit_system):
     cerfa_fields_by_column_name = dict()
     for name, column in tax_benefit_system.variables.items():
         for section_cerfa in sections_cerfa:
@@ -248,8 +247,7 @@ def build_cerfa_fields_by_column_name(year, sections_cerfa):
     return cerfa_fields_by_column_name
 
 
-def build_cerfa_fields_by_variable(year):
-    tax_benefit_system = openfisca_france_tax_benefit_system
+def build_cerfa_fields_by_variable(year, tax_benefit_system = openfisca_france_tax_benefit_system):
     cerfa_fields_by_variable = dict()
     for name, variable in sorted(tax_benefit_system.variables.items()):
         if variable.cerfa_field is None:
@@ -318,8 +316,7 @@ def normalizes_roles_in_entity(dataframe, entity_id_name, entity_role_name):
     dataframe[entity_role_name] = dataframe[entity_role_name].astype('int')
 
 
-def set_variables_default_value(dataframe, year):
-    tax_benefit_system = openfisca_france_tax_benefit_system
+def set_variables_default_value(dataframe, year, tax_benefit_system = openfisca_france_tax_benefit_system):
 
     for column_name, column in tax_benefit_system.variables.items():
         if column_name in dataframe.columns:

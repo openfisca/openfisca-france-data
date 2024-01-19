@@ -1,0 +1,179 @@
+{
+    "documentation":"",
+    "data":[
+        {
+            "variable":"salaire_imposable",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"chomage_imposable",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"retraite_imposable",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"rpns_imposables",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"revenu_categoriel_foncier",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"revenu_categoriel_capital",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"revenu_categoriel_plus_values",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"af",
+            "actual_beneficiaries": 0,
+            "actual_amount": 13038682622,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"paje_prepare",
+            "actual_beneficiaries": 0,
+            "actual_amount": 757550577,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"aeeh",
+            "actual_beneficiaries": 0,
+            "actual_amount": 1311533249,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"asf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 2012315236,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+           },
+        {
+            "variable":"paje_base",
+            "actual_beneficiaries": 0,
+            "actual_amount": 3004670266,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"paje_naissance",
+            "actual_beneficiaries": 0,
+            "actual_amount": 535273024,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"cf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 2401233483,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"ars",
+            "actual_beneficiaries": 0,
+            "actual_amount": 2131128426,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"paje_cmg",
+            "actual_beneficiaries": 0,
+            "actual_amount": 6756309799,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"aides_logement",
+            "actual_beneficiaries": 0,
+            "actual_amount": 15075235808,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"apl",
+            "actual_beneficiaries": 0,
+            "actual_amount": 6693675898,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"aah",
+            "actual_beneficiaries": 0,
+            "actual_amount": 11937472725,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"aspa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"asi",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"rsa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 9914084209,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"ppa",
+            "actual_beneficiaries": 0,
+            "actual_amount": 9655667966,
+            "source": "Le rapport du Directeur comptable et financier de la CNAF, exercice 2022(https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/Textes%20de%20r%C3%A9f%C3%A9rence/comptes%20et%20financements/Point%203%20Rapport%20du%20Dcf%20sur%20les%20comptes%202022.pdf)"
+        },
+        {
+            "variable":"csg_salaire",
+            "actual_beneficiaries": 0,
+            "actual_amount": 84090000000,
+            "source": "Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_non_salarie",
+            "actual_beneficiaries": 0,
+            "actual_amount": 16102000000,
+            "source": "Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_retraite",
+            "actual_beneficiaries":0,
+            "actual_amount":22639000000,
+            "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"csg_chomage",
+            "actual_beneficiaries":0,
+            "actual_amount":576000000,
+            "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
+        },
+        {
+            "variable":"impot_revenu_restant_a_payer",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        },
+        {
+            "variable":"ifi",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0,
+            "source": ""
+        }
+    ] 
+}

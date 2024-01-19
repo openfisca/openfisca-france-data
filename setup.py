@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 
 with open('README.md') as file:
@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "0.24",
+    version = "3.0.3",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -20,9 +20,18 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
+    package_data = {
+        'openfisca_france_data': ['assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
+                                  'assets/aggregats/ines/ines_2019.json',
+                                  'reforms/old_openfisca_france_reforms/parameters/*.yaml',
+                                  'assets/aggregats/ines/ines_2020.json',
+                                  'assets/aggregats/france_entiere/*.json'],
+        },
     entry_points = {
         'console_scripts': [
             'build-erfs-fpr=openfisca_france_data.erfs_fpr.input_data_builder:main',
@@ -30,32 +39,27 @@ setup(
             'create-test-erfs-fpr=openfisca_france_data.erfs_fpr.test_case_creation:create_test',
             ],
         },
-    python_requires = ">= 3.7",
+    python_requires = ">=3.9",
     install_requires = [
-        "click >= 8.0.0, < 9.0.0",
-        "matplotlib >= 3.1.1, < 4.0.0",
-        "multipledispatch >= 0.6.0, < 1.0.0",
-        # "openFisca-france >= 145.0.0, < 146.0.0",
-        "OpenFisca-France @ git+https://github.com/openfisca/openfisca-france.git@version_leap",
-        # "openFisca-survey-manager >= 0.47.2, < 1.0.0",
-        "OpenFisca-Survey-Manager @ git+https://github.com/openfisca/openfisca-survey-manager.git@version_leap",
-        "wquantiles >= 0.3.0, < 1.0.0",  # To compute weighted quantiles
+        "multipledispatch >=0.6.0, <1.0.0",
+        "OpenFisca-France >=155.0.0, <156.0.0",
+        "openFisca-survey-manager >=2.0.0, <2.1.0",
         ],
     extras_require = {
         "test": [
-            "autopep8 >= 1.4.0, < 1.5.0",
-            "bumpver >= 2022.1120",
+            "click >=8.0.0, <9.0.0",
+            "autopep8 >=2.0.2, <3",
+            "bumpver >=2022.1120",
             "dtale",
-            "flake8 >= 3.7.0, < 3.8.0",
+            "flake8 >=6.0.0, <7.0.0",
             "ipdb >=0.13, <1.0",
-            "ipython >= 7.5.0, < 8.0.0",
-            "mypy >= 0.670, < 1.0.0",
+            "ipython >=7.5.0, <8.0.0",
+            "mypy >=0.670, <1.0.0",
             "pypandoc",
-            # "pytest",
-            # "pytest-cov >= 2.6.0, < 3.0.0",
-            "scipy >= 1.2.1, < 2.0.0",
-            "toolz >= 0.9.0, < 1.0.0",
+            'pytest >=7.2.2, <8.0',
+            "scipy >=1.2.1, <2.0.0",
+            "toolz >=0.9.0, <1.0.0",
             ],
         },
-    packages = find_packages(exclude = ("docs", "tests")),
+    packages = find_namespace_packages(exclude = ("docs", "tests")),
     )

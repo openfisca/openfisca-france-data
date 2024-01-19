@@ -19,7 +19,6 @@ from openfisca_france_data.erfs_fpr.input_data_builder import (
     step_02_menage as menage,
     step_03_variables_individuelles as variables_individuelles,
     step_04_famille as famille,
-    step_05_foyer as foyer,
     step_06_final as final,
     )
 
@@ -59,7 +58,7 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
     # stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
     # imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
-    log.info('\n [[[ Year {} - Step 2 / 6 SKIPPED ]]] \n'.format(year))
+    log.info('\n [[[ Year {} - Step 2 / 5 SKIPPED ]]] \n'.format(year))
     menage.build_variables_menage(year = year)
 
     # Step 03 : on commence par les variables indivuelles

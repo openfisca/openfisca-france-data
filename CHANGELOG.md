@@ -1,15 +1,115 @@
 # Changelog
 
-### 0.24 [#215](https://github.com/openfisca/openfisca-france-data/pull/215)
+### 3.0.3 [#244](https://github.com/openfisca/openfisca-france-data/pull/244)
+* Technical changes:
+- Correction dees liens des paramètres dans la fonction create_taux_csg_remplacement
+
+### 3.0.2 [#243](https://github.com/openfisca/openfisca-france-data/pull/243)
+* Technical changes:
+- Ajoute la possibilité d'utiliser un tax and benefit system plus en aval dans les fonctions de utils.py
+
+### 3.0.1 [#242](https://github.com/openfisca/openfisca-france-data/pull/242)
+* Technical changes:
+- Passage à Openfsca-France >= 155.0.0
+
+### 3.0.0 [#241](https://github.com/openfisca/openfisca-france-data/pull/241)
+- Breaking changes
+
+Adapte le dépôt au passage à openfisca-survey-manager 2.0.0 qui constitue une refactorisation de l'objet survey-scenario et des simulations qui sont dedans. Cela concerne donc les parties de ce dépôts qui héritent d'objets d'openfisca-survey-manager :
+- `openfisca_france_data/aggregates.py`
+- `openfisca_france_data/surveys.py`
+Les autres modifications sont des adaptions syntaxique mineurs du fait de cette adaptation
+
+### 2.0.7 [#239](https://github.com/openfisca/openfisca-france-data/pull/239/files)
+* New features
+- Ajoute des nouveaux agrégats pour FranceAggregates
+
+### 2.0.6 [#240](https://github.com/openfisca/openfisca-france-data/pull/240)
+* Technical changes
+- Rapatrie certaines réformes qui ont été supprimés dans openfisca france par la (PR 2177)[https://github.com/Supprime vieilles réformes non utilisées openfisca-france#2177] mais qui sont encore utilisées dans ce dépôt
+
+### 2.0.5 [#238](https://github.com/openfisca/openfisca-france-data/pull/238)
+* Technical changes
+- Corrige le calcul du smic annuel en fonction du smic horaire dans openfisca_france_data/erfs_fpr/input_data_builder/step_04_famille.py
+
+### 2.0.4 [#237](https://github.com/openfisca/openfisca-france-data/pull/237)
+* Technical changes
+- Deplace click en dependance de test
+
+### 2.0.3 [#235](https://github.com/openfisca/openfisca-france-data/pull/235)
+* Technical changes
+- Passe conda dep en Jinja en suivant Openfisca-France
+
+### 2.0.2 [#234](https://github.com/openfisca/openfisca-france-data/pull/234)
+* Technical changes
+- Update autopep8 et flake8 pour avoir des requirements compatibles avec les dernières versions d'openfisca-france et openfisca-survey-manager
+
+### 2.0.1 [#232](https://github.com/openfisca/openfisca-france-data/pull/232)
+* Technical changes
+- Fix de #230 qui se produit quand le wokflow de CI a tourné deux fois pour le même commit, ce qui arrive quand on crée la PR. La solution est de limiter la recherche de l’artefact aux workflows lancés par un push.
+
+# 2.0.0 [#229](https://github.com/openfisca/openfisca-france-data/pull/229)
+* Technical changes
+- Met à jour Python dans le setup pour compatibilité conda
+
+# 1.3.1 [#228](https://github.com/openfisca/openfisca-france-data/pull/228)
+* Technical changes
+- Ajout de deux jeux de données utilisées pour les tests au paquet :
+    -  'assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx'
+    - `'assets/aggregats/ines/ines_2019.json'
+
+# 1.3.0 [#227](https://github.com/openfisca/openfisca-france-data/pull/227)
+* Technical changes
+- Adapte le comparator pour effectuer plus de tests en distribution
+- Permet l'utilisation d'un SurveyScenario facilement personnalisable
+
+
+# 1.2.0 [#226](https://github.com/openfisca/openfisca-france-data/pull/226)
+* Technical changes
+- Adapte le comparator pour permettre de changer les agrégats cibles.
+- Ajoute les agrégats de la note de validation d'INES
+
+# 1.1.0 [#225](https://github.com/openfisca/openfisca-france-data/pull/225)
 
 * Technical changes
-  - Ajout d'un comparatuer ERFS-FPR vs simulation oepnfisca
+- Ajoute des variables concernant le calcul des aides au logement, des non salariés et du handicap dans le builder de openfisca-france-data
+
+# 1.0.0 [#224](https://github.com/openfisca/openfisca-france-data/pull/224)
+
+* Breaking changes
+- dans model/common.py/salaire_brut:
+  - Retire rev_microsocial
+
+- Détails
+  - rev_microsocial n'était pas un salaire mais un CA net des cotisations sociales pour les micro-entrepreneurs optant pour le  versement libératoire de l'IR. Elle était donc à tort dans salaire_brut, d'autant plus qu'il n'y a pas d'autres rpns qui y  sont répertoriés.
+
+## 0.27 [#223](https://github.com/openfisca/openfisca-france-data/pull/223)
+
+* Technical changes
+  - Utilise les version Python >= 3.9 des dépendances liées à openfisca
+  - Contient les versions précédentes non concernées par une PR sur github
+
+## 0.26
+
+* Technical changes
+  - Utilise les cibles de taxipp dans les agrégats
+
+### 0.25.1
+
+* Minor change
+  - Change la version de flake8
+
+## 0.25 [#XXX](https://github.com/openfisca/openfisca-france-data/pull/XXX)
+
+* Technical changes
+  - Amélioration du comparateur pour permettre de définir le survey_scenario
+
+## 0.24 [#215](https://github.com/openfisca/openfisca-france-data/pull/215)
+
+* Technical changes
+  - Ajout d'un comparateur ERFS-FPR vs simulation oepnfisca
     - produit des graphes diagnostics
     - produit de un tableur ouvert dans dtale pour rechercher les cas les plus problématiques
-
-  - Amélioration de la CI GitLab :
-    - Ajout d'une étape manuelle pour initialiser les bases de la branche à partir de la dernière CI de master.
-    - Ajout d'une étape manuelle pour faire tourner sur toutes les branches.
 
 ### 0.23.1 [#213](https://github.com/openfisca/openfisca-france-data/pull/213)
 

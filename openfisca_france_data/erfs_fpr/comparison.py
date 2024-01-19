@@ -20,7 +20,7 @@ openfisca_by_erfs_fpr_variables = {
     "noindiv": "noindiv",
     "rag_i": "rag",
     "retraites_i": "retraite_imposable",  # TODO: CHECk
-    "rev_fonciers_bruts": "f4ba",
+    #"rev_fonciers_bruts": "f4ba",
     "ric_i": "ric",
     "rnc_i": "rnc",
     "salaires_i": "salaire_imposable",
@@ -28,6 +28,16 @@ openfisca_by_erfs_fpr_variables = {
     "rev_fonciers_bruts": "revenu_categoriel_foncier_menage",
     "rev_valeurs_mobilieres_bruts": "revenus_capitaux_prelevement_forfaitaire_unique_ir_menage",
     "rev_financier_prelev_lib_imputes": "rev_financier_prelev_lib_imputes_menage",
+    "ppa": "ppa_menage",
+    "nivviem": "niveau_de_vie",
+    "prest_fam_autres": "prestations_familiales_autres_menage",
+    "prest_fam_petite_enfance": "paje_menage",
+    "prest_logement": "aides_logement_menage",
+    "prest_precarite_rsa": "rsa_menage",
+    "prest_precarite_hand": "aah_menage",
+    "prest_precarite_vieil": 'aspa_menage',
+    "revdispm": "revenu_disponible",
+    "nb_uci": "unites_consommation",
     }
 
 
@@ -63,7 +73,7 @@ class ErfsFprtoInputComparator(AbstractComparator):
         year = int(self.period)
         table_by_name = build_table_by_name(year, erfs_fpr_survey_collection)
 
-        log.debug("Loading tables for year {} [{}]".format(year, table_by_name))
+        log.debug(f"Loading tables for year {year} [{table_by_name.values()}]")
 
         # load survey and tables
         survey = erfs_fpr_survey_collection.get_survey(table_by_name['survey'])

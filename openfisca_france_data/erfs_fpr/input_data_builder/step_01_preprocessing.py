@@ -28,6 +28,11 @@ def build_table_by_name(year, erfs_fpr_survey_collection):
         "fpr_menage": f"fpr_menage_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_menage_{year}"
         }
 
+    capitalized_table_by_name_stata = dict(
+        (name, table.upper())
+        for name, table in table_by_name_stata.items()
+        )
+
     table_by_name_sas = {
         "eec_individu": "IRF",
         "eec_menage": "MRF",
@@ -38,11 +43,19 @@ def build_table_by_name(year, erfs_fpr_survey_collection):
     if tables == set(table_by_name_stata.values()):
         table_by_name = table_by_name_stata.copy()
 
+    elif tables == set(capitalized_table_by_name_stata.values()):
+        table_by_name = capitalized_table_by_name_stata.copy()
+
     elif tables == set(table_by_name_sas.values()):
         table_by_name = table_by_name_sas.copy()
 
     else:
-        raise ValueError("No incorrect table pattern: {tables}")
+        raise ValueError(f"""
+Incorrect table pattern: {tables} differs from:
+    - stata: {set(table_by_name_stata.values())}
+    - capitalized_stata: {set(capitalized_table_by_name_stata.values())}
+    - sas: {set(table_by_name_sas.values())}
+""")
 
     table_by_name["survey"] = f"erfs_fpr_{year}"
 

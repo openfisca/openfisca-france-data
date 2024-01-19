@@ -19,8 +19,10 @@ input_data-2019:
 aggregates-2019:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
+  environment:
+    name: Aggregates 2019
+    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2019.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - input_data-2019
@@ -30,7 +32,6 @@ aggregates-2019:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates
   tags:
@@ -52,7 +53,6 @@ in_dt-1996:
 agg-1996:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -63,7 +63,6 @@ agg-1996:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1996
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -85,7 +84,6 @@ in_dt-1997:
 agg-1997:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -96,7 +94,6 @@ agg-1997:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1997
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -118,7 +115,6 @@ in_dt-1998:
 agg-1998:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -129,7 +125,6 @@ agg-1998:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1998
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -151,7 +146,6 @@ in_dt-1999:
 agg-1999:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -162,7 +156,6 @@ agg-1999:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 1999
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -184,7 +177,6 @@ in_dt-2000:
 agg-2000:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -195,7 +187,6 @@ agg-2000:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2000
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -217,7 +208,6 @@ in_dt-2001:
 agg-2001:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -228,7 +218,6 @@ agg-2001:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2001
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -250,7 +239,6 @@ in_dt-2002:
 agg-2002:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -261,7 +249,6 @@ agg-2002:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2002
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -283,7 +270,6 @@ in_dt-2003:
 agg-2003:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -294,7 +280,6 @@ agg-2003:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2003
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -316,7 +301,6 @@ in_dt-2004:
 agg-2004:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -327,7 +311,6 @@ agg-2004:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2004
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -349,7 +332,6 @@ in_dt-2005:
 agg-2005:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -360,7 +342,6 @@ agg-2005:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2005
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -382,7 +363,6 @@ in_dt-2006:
 agg-2006:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -393,7 +373,6 @@ agg-2006:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2006
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -415,7 +394,6 @@ in_dt-2007:
 agg-2007:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -426,7 +404,6 @@ agg-2007:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2007
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -448,7 +425,6 @@ in_dt-2008:
 agg-2008:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -459,7 +435,6 @@ agg-2008:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2008
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -481,7 +456,6 @@ in_dt-2009:
 agg-2009:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -492,7 +466,6 @@ agg-2009:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2009
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -514,7 +487,6 @@ in_dt-2010:
 agg-2010:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -525,7 +497,6 @@ agg-2010:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2010
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -547,7 +518,6 @@ in_dt-2011:
 agg-2011:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -558,7 +528,6 @@ agg-2011:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2011
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -580,7 +549,6 @@ in_dt-2012:
 agg-2012:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -591,7 +559,6 @@ agg-2012:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2012
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -613,7 +580,6 @@ in_dt-2013:
 agg-2013:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -624,7 +590,6 @@ agg-2013:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2013
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -646,7 +611,6 @@ in_dt-2014:
 agg-2014:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -657,7 +621,6 @@ agg-2014:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2014
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -679,7 +642,6 @@ in_dt-2015:
 agg-2015:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -690,7 +652,6 @@ agg-2015:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2015
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -712,7 +673,6 @@ in_dt-2016:
 agg-2016:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -723,7 +683,6 @@ agg-2016:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2016
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -745,7 +704,6 @@ in_dt-2017:
 agg-2017:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -756,7 +714,6 @@ agg-2017:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2017
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -778,7 +735,6 @@ in_dt-2018:
 agg-2018:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -789,7 +745,6 @@ agg-2018:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2018
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:
@@ -811,7 +766,6 @@ in_dt-2019:
 agg-2019:
   artifacts:
     paths:
-    - ./*.html
     - ./*.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
@@ -822,7 +776,6 @@ agg-2019:
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.html $ROOT_FOLDER/$OUT_FOLDER/data_output
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
   stage: aggregates_all
   tags:

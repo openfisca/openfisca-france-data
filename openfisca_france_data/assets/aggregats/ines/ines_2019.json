@@ -1,0 +1,158 @@
+{
+    "documentation":"Note de validation INES 2019",
+    "data":[
+        {
+            "variable":"af",
+                "actual_beneficiaries": 5100000,
+                "actual_amount": 12000000000
+        },
+        {
+            "variable":"paje_prepare",
+            "actual_beneficiaries": 500000,
+            "actual_amount": 90000000
+        },
+        {
+            "variable":"aeeh",
+            "actual_beneficiaries": 300000,
+            "actual_amount": 1000000000
+        },
+        {
+            "variable":"asf",
+            "actual_beneficiaries": 900000,
+            "actual_amount": 1500000000
+        },
+        {
+            "variable":"paje_base",
+            "actual_beneficiaries": 2000000,
+            "actual_amount": 3200000000
+        },
+        {
+            "variable":"paje_naissance",
+            "actual_beneficiaries": 500000,
+            "actual_amount": 500000
+        },
+        {
+            "variable":"cf",
+            "actual_beneficiaries": 1000000,
+            "actual_amount":2200000000
+        },
+        {
+            "variable":"ars",
+            "actual_beneficiaries": 2900000,
+            "actual_amount": 1900000000
+        },
+        {
+            "variable":"paje_cmg",
+            "actual_beneficiaries": 1200000,
+            "actual_amount":6200000000
+        },
+        {
+            "variable":"aides_logement",
+            "actual_beneficiaries": 6600000,
+            "actual_amount": 14000000000
+        },
+        {
+            "variable":"aah",
+            "actual_beneficiaries": 1100000,
+            "actual_amount":8600000000
+        },
+        {
+            "variable":"aspa",
+            "actual_beneficiaries":0,
+            "actual_amount": 2500000000
+        },
+        {
+            "variable":"asi",
+            "actual_beneficiaries":0,
+            "actual_amount":200000000
+        },
+        {
+            "variable":"garantie_jeunes",
+            "actual_beneficiaries": 100000,
+            "actual_amount":300000000
+        },
+        {
+            "variable":"rsa",
+            "actual_beneficiaries": 1900000,
+            "actual_amount":7900000000
+        },
+        {
+            "variable":"ppa",
+            "actual_beneficiaries": 5800000,
+            "actual_amount": 8900000000
+        },
+        {
+            "variable":"cotisations_salariales",
+            "actual_beneficiaries":0,
+            "actual_amount": 78600000000
+        },
+        {
+            "variable":"cotisations_non_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":22900000000
+        },
+        {
+            "variable":"cotisations_employeur",
+            "actual_beneficiaries":0,
+            "actual_amount":221800000000
+        },
+        {
+            "variable":"allegement_fillon",
+            "actual_beneficiaries":0,
+            "actual_amount":26400000000
+        },
+        {
+            "variable":"csg_salaire",
+            "actual_beneficiaries":0,
+            "actual_amount":74400000000
+        },
+        {
+            "variable":"csg_non_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":10800000000
+        },
+        {
+            "variable":"csg_remplacement",
+            "actual_beneficiaries":0,
+            "actual_amount":21100000000
+        },
+        {
+            "variable":"crds_salaire",
+            "actual_beneficiaries":0,
+            "actual_amount":4100000000
+        },
+        {
+            "variable":"crds_non_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":600000000
+        },
+        {
+            "variable":"crds_remplacement",
+            "actual_beneficiaries":0,
+            "actual_amount":17000000000
+        },
+        {
+            "variable":"impot_revenu_restant_a_payer",
+            "actual_beneficiaries":0,
+            "actual_amount":69400000000,
+            "notes":"Impot payé en 2019, en parti sur revenus 2019 et 2018"
+        },
+        {
+            "variable":"prelevement_forfaitaire_unique_ir",
+            "actual_beneficiaries":0,
+            "actual_amount":4800000000,
+            "notes":"prélèvement forfaitaire unique libératoire sur revenus 2019 (note 2020)"
+        },
+        {
+            "variable":"prelevement_forfaitaire_liberatoire",
+            "actual_beneficiaries":0,
+            "actual_amount":100000000,
+            "notes":"prélèvement forfaitaire libératoire sur revenus 2019 (note 2019)"
+        },
+        {
+            "variable":"ifi",
+            "actual_beneficiaries":0,
+            "actual_amount":1100000000
+        }
+    ] 
+}

@@ -7,12 +7,13 @@ from openfisca_core import periods  # type: ignore
 from openfisca_core.model_api import Enum  # type: ignore
 from openfisca_core.taxbenefitsystems import TaxBenefitSystem  # type: ignore
 from openfisca_france_data import base_survey as base  # type: ignore
-from openfisca_survey_manager.scenarios import AbstractSurveyScenario  # type: ignore
+from openfisca_survey_manager.scenarios.reform_scenario import ReformScenario  # type: ignore
+
 
 log = logging.getLogger(__name__)
 
 
-class AbstractErfsSurveyScenario(AbstractSurveyScenario):
+class AbstractErfsSurveyScenario(ReformScenario):
     """
     Parties communes entre ERFS et ERFS PFR
 
@@ -61,7 +62,7 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             )
 
         array_by_variable = dict()
-        period = periods.period(str(self.year))
+        period = periods.period(str(self.period))
 
         for variable in self.used_as_input_variables:
             array_by_variable[variable] = simulation.calculate_add(
@@ -87,10 +88,10 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             input_data_type = None,
             reform = None,
             reform_key = None,
-            year: int = None,
+            period: int = None,
             ):
 
-        assert year is not None
+        assert period is not None
         assert not ((reform is not None) and (reform_key is not None))
 
         reform_is_provided = (reform is not None) or (reform_key is not None)
@@ -111,18 +112,22 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             tax_benefit_system = reform
 
         if input_data_type is not None:
-            survey_scenario = cls(input_data_type = input_data_type, year = year)
+            survey_scenario = cls(input_data_type = input_data_type, period = period)
 
         else:
-            survey_scenario = cls(year = year)
+            survey_scenario = cls(period = period)
 
-        survey_scenario.set_tax_benefit_systems(
-            tax_benefit_system = tax_benefit_system,
-            baseline_tax_benefit_system = baseline_tax_benefit_system,
-            )
+        if baseline_tax_benefit_system:
+            survey_scenario.set_tax_benefit_systems(dict(
+                reform = tax_benefit_system,
+                baseline = baseline_tax_benefit_system,
+                ))
+        else:
+            survey_scenario.set_tax_benefit_systems(dict(
+                baseline = tax_benefit_system,
+                ))
 
-        survey_scenario.year = year
-        survey_scenario.period = year
+        survey_scenario.period = period
 
         return survey_scenario
 
@@ -155,22 +160,22 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
             # 'chomage_brut',
             ]
 
-        three_year_span_variables = input_variables + computed_variables_used_as_input
+        three_period_span_variables = input_variables + computed_variables_used_as_input
 
-        simulation_period = periods.period(self.year)
-        for variable in three_year_span_variables:
+        simulation_period = periods.period(self.period)
+        for variable in three_period_span_variables:
             assert variable in self.used_as_input_variables, \
                 f"{variable} is not a in the input_varaibles to be used {self.used_as_input_variables}"  # noqa: E501
 
-            if self.tax_benefit_system.variables[variable].value_type == Enum:
+            if simulation.tax_benefit_system.variables[variable].value_type == Enum:
                 permanent_value = simulation.calculate(
                     variable,
-                    period = periods.period(self.year).first_month,
+                    period = periods.period(self.period).first_month,
                     )
             else:
                 permanent_value = simulation.calculate_add(
                     variable,
-                    period = self.year,
+                    period = self.period,
                     )
 
             for offset in [-1, -2]:
@@ -183,7 +188,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
                 except ValueError as e:
                     log.debug(f"Dealing with: {e}")
                     if sum(simulation.calculate_add(variable, simulation_period.offset(offset))) != sum(permanent_value):
-                        use_baseline = self.baseline_simulation == simulation
                         simulation.delete_arrays(variable, simulation_period.offset(offset))
                         simulation.set_input(
                             variable,
@@ -193,9 +197,6 @@ class AbstractErfsSurveyScenario(AbstractSurveyScenario):
 
 
     def custom_input_data_frame(self, input_data_frame, **kwargs):
-        if "loyer" in input_data_frame:
-            input_data_frame["loyer"] = 12 * input_data_frame.loyer
-
         for variable in ["quifam", "quifoy", "quimen"]:
             if variable in input_data_frame:
                 log.debug(input_data_frame[variable].value_counts(dropna = False))

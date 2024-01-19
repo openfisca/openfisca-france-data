@@ -41,5 +41,5 @@ class ErfsSurveyScenario(AbstractErfsSurveyScenario):
         'zone_apl',
         ]
 
-    def __init__(self, year: int) -> None:
-        self.year = year
+    def __init__(self, period: int) -> None:
+        self.period = period
