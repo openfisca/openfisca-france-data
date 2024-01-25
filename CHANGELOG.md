@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.0.4 [#246](https://github.com/openfisca/openfisca-france-data/pull/246)
+* Technical changes
+- Augmente la version d'openfisca-france exigée en dépendance
+
+
 ### 3.0.3 [#244](https://github.com/openfisca/openfisca-france-data/pull/244)
 * Technical changes:
 - Correction dees liens des paramètres dans la fonction create_taux_csg_remplacement
