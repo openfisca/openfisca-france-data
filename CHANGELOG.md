@@ -1,5 +1,9 @@
 # Changelog
 
+### 3.0.6 [#248](https://github.com/openfisca/openfisca-france-data/pull/248)
+* Technical changes
+- Correction d'une typo dans la PR précédente
+
 ### 3.0.5 [#247](https://github.com/openfisca/openfisca-france-data/pull/247)
 * Technical changes
 - Pour corriger la publication de la librairie sur PyPi, passe à une authentification PyPi via un token
