@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.0.5 [#247](https://github.com/openfisca/openfisca-france-data/pull/247)
+* Technical changes
+- Pour corriger la publication de la librairie sur PyPi, passe à une authentification PyPi via un token
+
+
 ### 3.0.4 [#246](https://github.com/openfisca/openfisca-france-data/pull/246)
 * Technical changes
 - Augmente la version d'openfisca-france exigée en dépendance
