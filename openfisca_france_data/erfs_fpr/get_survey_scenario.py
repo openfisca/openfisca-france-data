@@ -92,6 +92,88 @@ class erfs_fpr_plugin(Reform):
         self.add_variable(noindiv)
 
 
+from openfisca_france_data.model.id_variables import (
+    idmen_original,
+    noindiv,
+    )
+
+variables_converted_to_annual = [
+    "salaire_imposable",
+    "chomage_imposable",
+    "retraite_imposable",
+    "salaire_net",
+    "chomage_net",
+    "retraite_nette",
+    "ppa",
+    ]
+
+
+menage_projected_variables = [
+    # "rev_financier_prelev_lib_imputes",
+    "revenu_categoriel_foncier",
+    "revenus_capitaux_prelevement_forfaitaire_unique_ir",
+    ]
+
+
+class erfs_fpr_plugin(Reform):
+    name = "ERFS-FPR ids plugin"
+
+    def apply(self):
+
+        for variable in variables_converted_to_annual:
+            class_name =  f"{variable}_annuel"
+            label = f"{variable} sur l'année entière"
+
+            def annual_formula_creator(variable):
+                def formula(individu, period):
+                    result = individu(variable, period, options = [ADD])
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = self.variables[variable].entity,
+                label = label,
+                definition_period = YEAR,
+                formula = annual_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+        for variable in menage_projected_variables:
+            class_name =  f"{variable}_menage"
+            label = f"{variable} agrégée à l'échelle du ménage"
+
+            def projection_formula_creator(variable):
+                def formula(menage, period):
+                    result_i = menage.members.foyer_fiscal(variable, period, options = [ADD])
+                    result = menage.sum(result_i, role = FoyerFiscal.DECLARANT_PRINCIPAL)
+                    return result
+
+                formula.__name__ = 'formula'
+
+                return formula
+
+            variable_instance = type(class_name, (Variable,), dict(
+                value_type = float,
+                entity = Menage,
+                label = label,
+                definition_period = YEAR,
+                formula = projection_formula_creator(variable),
+                ))
+
+            self.add_variable(variable_instance)
+            del variable_instance
+
+
+        self.add_variable(idmen_original)
+        self.add_variable(noindiv)
+
+
 def get_survey_scenario(
         year: int = None,
         rebuild_input_data: bool = False,
@@ -144,6 +226,7 @@ def get_survey_scenario(
     # S'il n'y a pas de données, on sait où les trouver.
     if data is None:
         input_data_table_by_entity = dict(
+            foyer_fiscal = f"foyer_fiscal_{year}",
             individu = f"individu_{year}",
             menage = f"menage_{year}",
             )

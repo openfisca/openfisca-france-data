@@ -77,6 +77,7 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
     create_categorie_non_salarie(individus)
+
     # inversion des revenus pour retrouver le brut
     # pour les revenus de remplacement on a la csg et la crds dans l'erfs-fpr donc on peut avoir le brut directement
     create_revenus_remplacement_bruts(individus)

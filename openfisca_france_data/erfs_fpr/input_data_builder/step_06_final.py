@@ -47,7 +47,6 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         "primes_fonction_publique",
         "traitement_indiciaire_brut",
         ]
-
     if year >= 2018:
         var_menages = [
             'idmen',

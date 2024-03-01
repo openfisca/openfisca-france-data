@@ -55,6 +55,17 @@ class ErfsFprtoInputComparator(AbstractComparator):
        "statut_occupation_logement",
         ]
 
+    from openfisca_france_data.erfs_fpr.get_survey_scenario import menage_projected_variables
+
+    target_menage_projected_variables = [
+        f"{menage_projected_variable}_menage"
+        for menage_projected_variable
+        in menage_projected_variables
+        ]
+
+    default_target_variables += target_menage_projected_variables
+
+
     def compute_test_dataframes(self):
         erfs_fpr_survey_collection = SurveyCollection.load(collection = "erfs_fpr")
         # infer names of the survey and data tables
