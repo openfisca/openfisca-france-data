@@ -28,7 +28,7 @@
     - id: "enfant2"
       age_en_mois:
         2015-01: 9 * 12
-  output:
+  output_variables:
     autonomie_financiere:
       2015-01:
         - false

@@ -1,12 +1,5 @@
 # Changelog
 
-## 3.1.0 [#209](https://github.com/openfisca/openfisca-france-data/pull/209)
-
-New features
-    Introduce testing for income "inversion" (deduce gross from net)
-Update features
-    Corrects the inversion functions + extends the inversion of unemployment benefit's taxation
-
 ### 3.0.6 [#248](https://github.com/openfisca/openfisca-france-data/pull/248)
 * Technical changes
 - Correction d'une typo dans la PR précédente
