@@ -6,6 +6,7 @@ import pandas as pd
 
 from openfisca_survey_manager.temporary import temporary_store_decorator
 
+
 log = logging.getLogger(__name__)
 
 

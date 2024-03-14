@@ -1,5 +1,9 @@
 # Changelog
 
+# 3.1.2 [#250](https://github.com/openfisca/openfisca-france-data/pull/250)
+
+* Reverts #209
+
 # 3.1.1 [#249](https://github.com/openfisca/openfisca-france-data/pull/249)
 
 * Technical changes
