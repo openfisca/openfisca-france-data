@@ -410,8 +410,9 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.thresholds[1]
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
+    part_annuelle = period.this_year.days/period.days
     seuil_chomage_net_exoneration = (
-        (35 * 52) * smic_horaire_brut[period.start.year]
+        (35 * 52) * smic_horaire_brut[period.start.year]/part_annuelle
         * (
             (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
             + (individus.taux_csg_remplacement >= 3) / (1 - taux_plein)
