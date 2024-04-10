@@ -2,6 +2,7 @@ import numpy as np
 import logging
 
 from openfisca_core import periods
+from openfisca_core.periods.date_unit import DateUnit
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_core.formula_helpers import switch
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
@@ -9,6 +10,7 @@ from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotis
     cotisations_salarie_by_categorie_salarie,
     )
 from openfisca_france_data.smic import smic_horaire_brut
+from openfisca_france_data import openfisca_france_tax_benefit_system
 
 
 log = logging.getLogger(__name__)
@@ -58,7 +60,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     taux_abattement = parameters_csg_deductible.abattement.rates[0]
     try:
         seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
-    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
         seuil_abattement = None
     csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
     csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
@@ -72,7 +74,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
             seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
         csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
@@ -84,7 +86,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         taux_abattement = parameters_crds.abattement.rates[0]
         try:
             seuil_abattement = parameters_crds.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')
         crds.add_bracket(0, taux_csg * (1 - taux_abattement))
@@ -209,7 +211,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable',
             tax_benefit_system = None):
     """
-    Calcule le tratement indiciaire brut à partir du salaire imposable ou du salaire net.
+    Calcule le traitement indiciaire brut à partir du salaire imposable ou du salaire net.
     Note : le supplément familial de traitement est imposable. Pas géré
     """
     assert period is not None
@@ -410,9 +412,15 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.thresholds[1]
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
-    part_annuelle = period.this_year.days / period.days
+    liste_smic_mensuel = []
+    for month in period.get_subperiods(DateUnit.MONTH):
+        smic_horaire_mois = openfisca_france_tax_benefit_system.parameters.marche_travail.salaire_minimum.smic.smic_b_horaire(month)
+        nb_heures_mois = openfisca_france_tax_benefit_system.parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel(month)
+        smic_mensuel = smic_horaire_mois * nb_heures_mois
+        liste_smic_mensuel.append(smic_mensuel)
+
     seuil_chomage_net_exoneration = (
-        (35 * 52) * smic_horaire_brut[period.start.year] / part_annuelle
+        sum(liste_smic_mensuel)
         * (
             (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
             + (individus.taux_csg_remplacement >= 3) / (1 - taux_plein)
