@@ -123,13 +123,13 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     whours = parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
 
     if period.unit == 'year':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
-        heures_temps_plein = whours * 12
+        nb_mois = 12
     elif period.unit == 'month':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
-        heures_temps_plein = whours * period.size
+        nb_mois = period.size
     else:
         raise
+    plafond_securite_sociale = plafond_securite_sociale_mensuel * nb_mois
+    heures_temps_plein = whours * nb_mois
 
     if revenu_type == 'imposable':
         salaire_pour_inversion = individus.salaire_imposable
@@ -154,11 +154,10 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         )
 
     def add_agirc_gmp_to_agirc(agirc, parameters):
-        plafond_securite_sociale_annuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel * 12
-        salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
-        cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle.part_salariale * 12
-        n = (cotisation + 1) * 12
-        agirc.add_bracket(n / plafond_securite_sociale_annuel, 0)
+        salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel * (nb_mois / 12) / plafond_securite_sociale
+        cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle.part_salariale * nb_mois
+        n = (cotisation + 1) * 12 # pour permettre la mensualisation en cas d'inversion, en évitant un taux 12 fois plus élevé sur une tranche 12 fois plus étroite
+        agirc.add_bracket(n / plafond_securite_sociale, 0)
         agirc.rates[0] = cotisation / n
         agirc.thresholds[2] = salaire_charniere
 
