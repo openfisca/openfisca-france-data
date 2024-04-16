@@ -1,20 +1,20 @@
 # Changelog
 
-# 3.1.3 [#254](https://github.com/openfisca/openfisca-france-data/pull/254)
+### 3.1.3 [#254](https://github.com/openfisca/openfisca-france-data/pull/254)
 
 * Technical changes
   - Met à jour la version d'openfisca france dans les dépendances
 
-# 3.1.2 [#250](https://github.com/openfisca/openfisca-france-data/pull/250)
+### 3.1.2 [#250](https://github.com/openfisca/openfisca-france-data/pull/250)
 
 * Reverts #209
 
-# 3.1.1 [#249](https://github.com/openfisca/openfisca-france-data/pull/249)
+### 3.1.1 [#249](https://github.com/openfisca/openfisca-france-data/pull/249)
 
 * Technical changes
   - Met à jour la version d'openfisca france dans les dépendances
 
-## 3.1.0 [#209](https://github.com/openfisca/openfisca-france-data/pull/209)
+### 3.1.0 [#209](https://github.com/openfisca/openfisca-france-data/pull/209)
 
 New features
     Introduce testing for income "inversion" (deduce gross from net)
