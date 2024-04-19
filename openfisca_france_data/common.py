@@ -392,7 +392,10 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
             log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
             log.debug('bareme direct: {}'.format(bareme))
 
-    individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
+    if period.start.year>2017:
+        individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut / 1.0076 # Pour prendre en compte l'indemnité compensatrce de csg
+    else:
+        individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 
