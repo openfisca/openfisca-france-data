@@ -646,7 +646,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         (individus.salaire < smic)
         )
 
-    # assert (individus.loc[temps_plein_sous_smic].part_salariat_annee_connue == 1).all()
+    assert (individus.loc[temps_plein_sous_smic].part_salariat_annee_connue == 1).all()
     # il n'y a bien que des individus qu'on a pas pu mettre à temps partiel du fait de la part salariat dans l'année connue
 
     individus.loc[
@@ -822,11 +822,9 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     # 2.3.3 On attribue des heures rémunérées aux individus à temps partiel qui ont un
     # salaire strictement positif mais un nombre d'heures travaillées nul
     salaire_sans_heures = (individus.contrat_de_travail == 1) & ~(individus.heures_remunerees_volume > 0)
-    print("XXXXXXXXXXXXXXXXXXXXX")
-    print(individus.loc[(individus.contrat_de_travail == 1)].loc[~(individus.heures_remunerees_volume > 0),'heures_remunerees_volume'])
-    print(f"Nombre de lignes de salaire sans heures : {sum(salaire_sans_heures)}")
+
     assert (individus.loc[salaire_sans_heures, 'salaire'] > 0).all()
-    assert (individus.loc[salaire_sans_heures, 'duhab'] == 1).all(), f"Lignes concernées : {print(individus.loc[salaire_sans_heures & (individus.duhab == 1), 'duhab'])}"
+    assert (individus.loc[salaire_sans_heures, 'duhab'] == 1).all()
     # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic.
     # On leur attribue donc un nombre d'heures travaillées égal à 15.
     individus.loc[
@@ -840,6 +838,9 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].min()
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
+
+     # On arrondit les heures supplémentaires à l'entier inférieur, et mon met 1 si en dessous de 1
+    individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume'] = np.maximum(1,individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume'])
     # On vérifie que l'on n'a pas fait d'erreurs
     assert (individus.salaire >= 0).all(), "Des salaires sont negatifs: {}".format(
             individus.loc[~(individus.salaire >= 0), 'salaire']
