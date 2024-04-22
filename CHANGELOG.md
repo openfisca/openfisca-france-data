@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.2.0 [#255](https://github.com/openfisca/openfisca-france-data/pull/255)
+
+* New features
+  - Améliore la construction des variables `contrat_de_travail` et `heures_remunerees_volumes` avec l'erfs_fpr
+    - Utilisations des variables `sp00` à `sp12` qui décrivent le statut d'activité sur les douze derniers mois pour prendre en compte la part de travail connue dans l'année
+
 ### 3.1.3 [#254](https://github.com/openfisca/openfisca-france-data/pull/254)
 
 * Technical changes
