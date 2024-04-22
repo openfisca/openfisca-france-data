@@ -58,29 +58,29 @@ def build(year: int, export_flattened_df_filepath: str = None) -> None:
     # stata_directory = openfisca_survey_collection.config.get('data', 'stata_directory')
     # stata_file = os.path.join(stata_directory, 'log_men_ERFS.dta')
     # imputation_loyer.merge_imputation_loyer(stata_file = stata_file, year = year)
-    # log.info('\n [[[ Year {} - Step 2 / 5 SKIPPED ]]] \n'.format(year))
-    # menage.build_variables_menage(year = year)
+    log.info('\n [[[ Year {} - Step 2 / 5 SKIPPED ]]] \n'.format(year))
+    menage.build_variables_menage(year = year)
 
     # Step 03 : on commence par les variables indivuelles
     log.info('\n [[[ Year {} - Step 3 / 5 ]]] \n'.format(year))
     variables_individuelles.build_variables_individuelles(year = year)
 
-    # # Step 04 : ici on va constituer foyer et famille à partir d'invididu et ménage
-    # #
-    # # - On fait individu/ménage pour pouvoir faire des familles (foyers sociaux)
-    # # - On va faire des suppositions pour faire les familles
-    # # - On va faire les foyers fiscaux à partir des familles
-    # # - On va faire de suppositions pour faire les foyers fiscaux
-    # log.info('\n [[[ Year {} - Step 4 / 5 ]]] \n'.format(year))
-    # famille.build_famille(year = year)
+    # Step 04 : ici on va constituer foyer et famille à partir d'invididu et ménage
+    #
+    # - On fait individu/ménage pour pouvoir faire des familles (foyers sociaux)
+    # - On va faire des suppositions pour faire les familles
+    # - On va faire les foyers fiscaux à partir des familles
+    # - On va faire de suppositions pour faire les foyers fiscaux
+    log.info('\n [[[ Year {} - Step 4 / 5 ]]] \n'.format(year))
+    famille.build_famille(year = year)
 
-    # # Affreux ! On injectait tout dans un même DataFrame !!!
-    # # C'est très moche !
-    # #
-    # # On crée une df par entité par période.
-    # # Elles sont stockées dans un fichier h5
-    # log.info('\n [[[ Year {} - Step 5 / 5 ]]] \n'.format(year))
-    # final.create_input_data_frame(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
+    # Affreux ! On injectait tout dans un même DataFrame !!!
+    # C'est très moche !
+    #
+    # On crée une df par entité par période.
+    # Elles sont stockées dans un fichier h5
+    log.info('\n [[[ Year {} - Step 5 / 5 ]]] \n'.format(year))
+    final.create_input_data_frame(year = year, export_flattened_df_filepath = export_flattened_df_filepath)
 
 
 @click.command()
