@@ -839,8 +839,6 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
 
-     # On arrondit les heures supplémentaires à l'entier inférieur, et mon met 1 si en dessous de 1
-    individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume'] = np.maximum(1,individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume'])
     # On vérifie que l'on n'a pas fait d'erreurs
     assert (individus.salaire >= 0).all(), "Des salaires sont negatifs: {}".format(
             individus.loc[~(individus.salaire >= 0), 'salaire']
@@ -875,6 +873,9 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     else:
         log.error('Wrong period {}. Should be month or year'.format(period))
         raise
+
+     # On arrondit les heures supplémentaires à l'entier inférieur, et mon met 1 si en dessous de 1
+    individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume'] = np.maximum(1,np.round(individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume']))
 
     del individus['salaire']
 
