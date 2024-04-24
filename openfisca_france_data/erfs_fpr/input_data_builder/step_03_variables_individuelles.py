@@ -580,7 +580,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         smic = period.size * smic / 12
 
     # etape preliminaire : construction d'une variable pour avoir une estimation de la part de l'année connue en emploi
-    # l'idée est d'utiliser les variables sp00-sp12 qui décrivent la situation principale pour chaque mois du mois de l'enquête (sp00) à 12 mois en arrièvre (sp12)
+    # l'idée est d'utiliser les variables sp00-sp12 qui décrivent la situation principale pour chaque mois, du mois de l'enquête (sp00) à 12 mois en arrièvre (sp12).
     # cela permet de compenser le fait que sinon on ne regarde la situation de l'emploi que pour la semaine de référence alors qu'on a des revenus annuels
 
     # d abord on recupere le mois de l'enquete
