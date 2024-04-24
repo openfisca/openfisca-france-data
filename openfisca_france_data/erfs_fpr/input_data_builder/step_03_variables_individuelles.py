@@ -598,7 +598,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     # # si sp est nan un mois donnée, le mois est considéré comme non travaillé
 
     individus['part_salariat_annee_connue'] = individus['nb_mois_salariat_annee'] / individus['mois_enquete']
-    individus['part_salariat_annee_connue'] = np.where(individus['part_salariat_annee_connue'] == 0,1,individus['part_salariat_annee_connue'])
+    individus['part_salariat_annee_connue'] = np.where(individus['part_salariat_annee_connue'] == 0, 1, individus['part_salariat_annee_connue'])
     # s'il n'y a aucun mois travaillé dans l'année on met à 1 comme ça on ne l'utilise pas
 
 
