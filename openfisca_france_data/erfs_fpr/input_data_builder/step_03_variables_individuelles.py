@@ -590,7 +590,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     # # on ne prend que les mois de l'année en cours donc on n'a pas le même nombre de mois connus selon le mois de l'enquête
 
     individus['nb_mois_salariat_annee'] = 0
-    for i in ["00","01","02","03","04","05","06","07","08","09","10","11"]:
+    for i in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]:
         individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'],np.where((individus[f"sp{i}"] == 1),1,0),0)
         individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'],np.where((individus[f"sp{i}"] == 2),1,0),0)
 
