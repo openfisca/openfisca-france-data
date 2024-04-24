@@ -624,13 +624,12 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         ] = 1
 
     # on met à temps partiel les personnes qui se déclarent en temps plein au moment de l'enquète mais qui ont des périodes d'inactivité dans l'année
-    temps_plein_to_switch = (
+    passage_temps_plein_temps_partiel = (
         (individus.contrat_de_travail == 0) &
         (individus.salaire > 0) &
         (individus.part_salariat_annee_connue < 1)
     )
-    individus.loc[temps_plein_to_switch, 'contrat_de_travail'] = 1
-
+    individus.loc[passage_temps_plein_temps_partiel, 'contrat_de_travail'] = 1
     assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
     assert (individus.query('contrat_de_travail == 0').part_salariat_annee_connue == 1).all()
     # 2. On traite les salaires horaires inféreurs au SMIC
@@ -665,8 +664,8 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
 
     # 2.2 Pour les temps partiel on prends les heures hhc
     individus.loc[(individus.hhc > 35) & (individus.hhc.notnull()) & (individus.contrat_de_travail == 1),'hhc'] = 35
-    individus.loc[(temps_plein_to_switch) & (individus.hhc.isnull()), 'hhc'] = 35
-    del temps_plein_to_switch
+    individus.loc[(passage_temps_plein_temps_partiel) & (individus.hhc.isnull()), 'hhc'] = 35
+    del passage_temps_plein_temps_partiel
     # on met 35h aux individus qui étaient à temps plein et qu'on a basculé en temps partiel pour la part salarié dans l'année
 
     # On vérfie que celles qu'on a créées jusqu'ici sont correctes
