@@ -592,7 +592,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus['nb_mois_salariat_annee'] = 0
     for i in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]:
         individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'], np.where((individus[f"sp{i}"] == 1), 1, 0), 0)
-        individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'],np.where((individus[f"sp{i}"] == 2),1,0),0)
+        individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'], np.where((individus[f"sp{i}"] == 2), 1, 0), 0)
 
     # # normalement sp == 2 c'est de l'emploi non salarié mais possible que ce soit des statuts micro ou autre imposé dans assimilé salaire donc qu'on voit en salaire
     # # si sp est nan un mois donnée, le mois est considéré comme non travaillé
