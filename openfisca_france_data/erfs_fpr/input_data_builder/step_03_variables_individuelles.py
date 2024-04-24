@@ -507,7 +507,7 @@ def create_categorie_non_salarie(individus):
     individus.loc[
         ((individus['rpns_imposables'] != 0) & (individus['categorie_non_salarie'] == 0)),
         'categorie_non_salarie'
-        ] = 2  
+        ] = 2
 
 
 def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
@@ -579,6 +579,29 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     if period.unit == 'month':
         smic = period.size * smic / 12
 
+    # Etape préliminaire : construction d'une variable pour avoir une estimation de la part de l'année connue en emploi.
+    # l'idée est d'utiliser les variables sp00-sp12 qui décrivent la situation principale pour chaque mois, du mois de l'enquête (sp00) à 12 mois en arrièvre (sp12).
+    # Cela permet de compenser le fait que sinon on ne regarde la situation de l'emploi que pour la semaine de référence alors qu'on a des revenus annuels.
+
+    # d abord on recupere le mois de l'enquete
+    individus['mois_enquete'] = [int(str(i)[4:6]) for i in individus.datdeb]
+    assert (individus.mois_enquete.isin(range(9, 13))).all()
+
+    # # on ne prend que les mois de l'année en cours donc on n'a pas le même nombre de mois connus selon le mois de l'enquête
+
+    individus['nb_mois_salariat_annee'] = 0
+    for i in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]:
+        individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'], np.where((individus[f"sp{i}"] == 1), 1, 0), 0)
+        individus['nb_mois_salariat_annee'] = individus.nb_mois_salariat_annee + np.where(int(i) < individus['mois_enquete'], np.where((individus[f"sp{i}"] == 2), 1, 0), 0)
+
+    # # normalement sp == 2 c'est de l'emploi non salarié mais possible que ce soit des statuts micro ou autre imposé dans assimilé salaire donc qu'on voit en salaire
+    # # si sp est nan un mois donnée, le mois est considéré comme non travaillé
+
+    individus['part_salariat_annee_connue'] = individus['nb_mois_salariat_annee'] / individus['mois_enquete']
+    individus['part_salariat_annee_connue'] = np.where(individus['part_salariat_annee_connue'] == 0, 1, individus['part_salariat_annee_connue'])
+    # s'il n'y a aucun mois travaillé dans l'année on met à 1 comme ça on ne l'utilise pas
+
+
     # 0 On élimine les individus avec un salaire_net nul des salariés
     # 1. utilisation de tppred et durhab
     # 1.1  temps_plein
@@ -599,7 +622,16 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
             ),
         'contrat_de_travail'
         ] = 1
+
+    # on met à temps partiel les personnes qui se déclarent en temps plein au moment de l'enquète mais qui ont des périodes d'inactivité dans l'année
+    passage_temps_plein_temps_partiel = (
+        (individus.contrat_de_travail == 0) &
+        (individus.salaire > 0) &
+        (individus.part_salariat_annee_connue < 1)
+    )
+    individus.loc[passage_temps_plein_temps_partiel, 'contrat_de_travail'] = 1
     assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
+    assert (individus.query('contrat_de_travail == 0').part_salariat_annee_connue == 1).all()
     # 2. On traite les salaires horaires inféreurs au SMIC
     # 2.1 temps plein
     temps_plein = individus.query('(contrat_de_travail == 0) & (salaire > 0)')
@@ -612,6 +644,10 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         (individus.salaire > 0) &
         (individus.salaire < smic)
         )
+
+    assert (individus.loc[temps_plein_sous_smic].part_salariat_annee_connue == 1).all()
+    # il n'y a bien que des individus qu'on a pas pu mettre à temps partiel du fait de la part salariat dans l'année connue
+
     individus.loc[
         temps_plein_sous_smic,
         'contrat_de_travail'] = 1
@@ -625,35 +661,55 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     assert (individus.loc[temps_plein_sous_smic, 'heures_remunerees_volume'] > 0).all()
     assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
     del temps_plein, temps_plein_sous_smic
+
     # 2.2 Pour les temps partiel on prends les heures hhc
+    individus.loc[(individus.hhc > 35) & (individus.hhc.notnull()) & (individus.contrat_de_travail == 1),'hhc'] = 35
+    individus.loc[(passage_temps_plein_temps_partiel) & (individus.hhc.isnull()), 'hhc'] = 35
+    del passage_temps_plein_temps_partiel
+    # on met 35h aux individus qui étaient à temps plein et qu'on a basculé en temps partiel pour la part salarié dans l'année
+
     # On vérfie que celles qu'on a créées jusqu'ici sont correctes
     assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
     assert (individus.query('(contrat_de_travail == 1) & (salaire > 0)').heures_remunerees_volume < 35).all()
-    #
+
     axes = (individus.query('(contrat_de_travail == 1) & (salaire > 0)').hhc).hist(bins=100)
     axes.set_title("Heures (hhc)")
     # individus.query('(contrat_de_travail == 1) & (salaire > 0)').hhc.isnull().sum() = 489
     # 2.2.1 On abaisse le nombre d'heures pour que les gens touchent au moins le smic horaire
     temps_partiel = (individus.contrat_de_travail == 1) & (individus.salaire > 0)
     moins_que_smic_horaire_hhc = (
-        ((individus.salaire / individus.hhc) < (smic / 35)) &
-        individus.hhc.notnull()
+        ((individus.salaire / (individus.hhc * individus.part_salariat_annee_connue)) < (smic / 35)) # on adapte le nombre d'heure en fonction de la part travaillée observée dans l'année
         )
+    hhc_positif = (individus.hhc.notnull() & (individus.hhc > 0))
     # Si on dispose de la variable hhc on l'utilise
+    # Si moins que le SMIC on met au SMIC
     individus.loc[
-        temps_partiel & moins_que_smic_horaire_hhc,
+        temps_partiel & moins_que_smic_horaire_hhc & hhc_positif,
         'heures_remunerees_volume'
         ] = individus.loc[
-            temps_partiel & moins_que_smic_horaire_hhc,
+            temps_partiel & moins_que_smic_horaire_hhc & hhc_positif,
             'salaire'
             ] / smic * 35
+    # Sinon on met le nombre d'heures renseignées au proratat du temps de travail dans l'année
     individus.loc[
-        temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
+        temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif,
         'heures_remunerees_volume'
         ] = individus.loc[
-            temps_partiel & (~moins_que_smic_horaire_hhc) & individus.hhc.notnull(),
+            temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif,
             'hhc'
-            ]
+            ] * individus.loc[
+            temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif,
+            'part_salariat_annee_connue'
+            ] # on adapte le nombre d'heure en fonction de la part travaillée observée dans l'année
+
+    assert (individus.loc[temps_partiel & moins_que_smic_horaire_hhc & hhc_positif, 'heures_remunerees_volume'] < 35).all()
+    assert (individus.loc[temps_partiel & moins_que_smic_horaire_hhc & hhc_positif, 'heures_remunerees_volume'] > 0).all()
+    assert (individus.loc[temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif, 'heures_remunerees_volume'] <= 35).all()
+    assert (individus.loc[temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif, 'heures_remunerees_volume'] > 0).all()
+
+    individus.loc[temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif & (individus.heures_remunerees_volume == 35),'contrat_de_travail'] = 0
+    individus.loc[temps_partiel & (~moins_que_smic_horaire_hhc) & hhc_positif & (individus.heures_remunerees_volume == 35),'heures_remunerees_volume'] = 0
+
     axes = (
         individus
         .loc[temps_partiel]
@@ -664,7 +720,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     axes.set_title("Heures (heures_remunerees_volume)")
     # 2.2.2 Il reste à ajuster le nombre d'heures pour les salariés à temps partiel qui n'ont pas de hhc
     # et qui disposent de moins que le smic_horaire ou de les basculer en temps plein sinon
-    moins_que_smic_horaire_sans_hhc = (individus.salaire < smic) & individus.hhc.isnull()
+    moins_que_smic_horaire_sans_hhc = (individus.salaire < smic * (individus.part_salariat_annee_connue)) & individus.hhc.isnull()
     individus.loc[
         temps_partiel & moins_que_smic_horaire_sans_hhc,
         'heures_remunerees_volume'
@@ -672,18 +728,31 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
             temps_partiel & moins_que_smic_horaire_sans_hhc,
             'salaire'
             ] / smic * 35
-    plus_que_smic_horaire_sans_hhc = (
-        (individus.salaire >= smic) &
-        individus.hhc.isnull()
+
+    plus_que_smic_horaire_sans_hhc_temps_plein = (
+        (individus.salaire >= smic * (individus.part_salariat_annee_connue)) &
+        individus.hhc.isnull() &
+        (individus.part_salariat_annee_connue == 1)
         )
     individus.loc[
-        temps_partiel & plus_que_smic_horaire_sans_hhc,
+        temps_partiel & plus_que_smic_horaire_sans_hhc_temps_plein,
         'contrat_de_travail'
         ] = 0
     individus.loc[
-        temps_partiel & plus_que_smic_horaire_sans_hhc,
+        temps_partiel & plus_que_smic_horaire_sans_hhc_temps_plein,
         'heures_remunerees_volume'
         ] = 0
+
+    plus_que_smic_horaire_sans_hhc_temps_partiel = (
+        (individus.salaire >= smic * (individus.part_salariat_annee_connue)) &
+        individus.hhc.isnull() &
+        (individus.part_salariat_annee_connue < 1)
+        )
+    individus.loc[
+        temps_partiel & plus_que_smic_horaire_sans_hhc_temps_partiel,
+        'heures_remunerees_volume'
+        ] = 35 * individus.part_salariat_annee_connue
+
     # 2.2.3 On repasse en temps plein ceux qui ont plus de 35 heures par semaine
     temps_partiel_bascule_temps_plein = (
         temps_partiel &
@@ -697,7 +766,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         temps_partiel_bascule_temps_plein,
         'heures_remunerees_volume',
         ] = 0
-    del temps_partiel, temps_partiel_bascule_temps_plein, moins_que_smic_horaire_hhc, moins_que_smic_horaire_sans_hhc
+    del temps_partiel, temps_partiel_bascule_temps_plein, moins_que_smic_horaire_hhc#, moins_que_smic_horaire_sans_hhc
     assert (individus.query('contrat_de_travail == 0').heures_remunerees_volume == 0).all()
     assert (individus.query('contrat_de_travail == 1').heures_remunerees_volume < 35).all()
     assert (individus.query('salaire == 0').contrat_de_travail == 6).all()
@@ -708,10 +777,11 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         (individus.salaire > 0) &
         ~individus.contrat_de_travail.isin([0, 1])
         )
-    # 2.3.1 On passe à temps plein ceux qui ont un salaire supérieur au SMIC annuel
+    # 2.3.1 On passe à temps plein ceux qui ont un salaire supérieur au SMIC annuel et qui ont travaillé toute l'année jusqu'à l'enquête
     individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire >= smic),
+        (individus.salaire >= smic) &
+        (individus.part_salariat_annee_connue == 1),
         'contrat_de_travail'
         ] = 0
     assert (individus.loc[
@@ -719,24 +789,39 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         (individus.salaire >= smic),
         'heures_remunerees_volume'
         ] == 0).all()
-    # 2.3.2 On passe à temps partiel ceux qui ont un salaire inférieur au SMIC annuel
+    # on passe à temps partiel ceux qui sont supérieur au smic mais qui ont une part travaillée inférieur à 1.
+    # On leur attribut un nombre d'heure au proratat de la durée travaillée
     individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire < smic),
+        (individus.salaire >= smic * individus.part_salariat_annee_connue) &
+        (individus.part_salariat_annee_connue < 1),
         'contrat_de_travail'
         ] = 1
     individus.loc[
         salarie_sans_contrat_de_travail &
-        (individus.salaire < smic),
+        (individus.salaire >= smic * individus.part_salariat_annee_connue) &
+        (individus.part_salariat_annee_connue < 1),
+        'heures_remunerees_volume'
+        ] = 35 * individus.part_salariat_annee_connue
+    # 2.3.2 On passe à temps partiel ceux qui ont un salaire inférieur au SMIC annuel
+    individus.loc[
+        salarie_sans_contrat_de_travail &
+        (individus.salaire < smic * individus.part_salariat_annee_connue),
+        'contrat_de_travail'
+        ] = 1
+    individus.loc[
+        salarie_sans_contrat_de_travail &
+        (individus.salaire < smic * individus.part_salariat_annee_connue),
         'heures_remunerees_volume'
         ] = individus.loc[
             salarie_sans_contrat_de_travail &
-            (individus.salaire < smic),
+            (individus.salaire < smic * individus.part_salariat_annee_connue),
             'salaire'
             ] / smic * 35
     # 2.3.3 On attribue des heures rémunérées aux individus à temps partiel qui ont un
     # salaire strictement positif mais un nombre d'heures travaillées nul
     salaire_sans_heures = (individus.contrat_de_travail == 1) & ~(individus.heures_remunerees_volume > 0)
+
     assert (individus.loc[salaire_sans_heures, 'salaire'] > 0).all()
     assert (individus.loc[salaire_sans_heures, 'duhab'] == 1).all()
     # Cela concerne peu de personnes qui ont par ailleurs duhab = 1 et un salaire supérieur au smic.
@@ -752,6 +837,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].min()
     individus.loc[salarie_sans_contrat_de_travail, 'salaire'].hist(bins = 1000)
     del salarie_sans_contrat_de_travail
+
     # On vérifie que l'on n'a pas fait d'erreurs
     assert (individus.salaire >= 0).all(), "Des salaires sont negatifs: {}".format(
             individus.loc[~(individus.salaire >= 0), 'salaire']
@@ -786,6 +872,9 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     else:
         log.error('Wrong period {}. Should be month or year'.format(period))
         raise
+
+     # On arrondit les heures supplémentaires à l'entier inférieur, et mon met 1 si en dessous de 1
+    individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume'] = np.maximum(1,np.round(individus.loc[individus.contrat_de_travail == 1, 'heures_remunerees_volume']))
 
     del individus['salaire']
 
