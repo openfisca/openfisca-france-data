@@ -585,7 +585,7 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
 
     # d abord on recupere le mois de l'enquete
     individus['mois_enquete'] = [int(str(i)[4:6]) for i in individus.datdeb]
-    assert (individus.mois_enquete.isin(range(9,13))).all()
+    assert (individus.mois_enquete.isin(range(9, 13))).all()
 
     # # on ne prend que les mois de l'année en cours donc on n'a pas le même nombre de mois connus selon le mois de l'enquête
 
