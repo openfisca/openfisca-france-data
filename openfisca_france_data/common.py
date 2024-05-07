@@ -385,17 +385,26 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
                 1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
                 }
             )
-        traitement_indiciaire_brut += (
-            (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
-            )
+
+        if period.start.year>2017:
+            parametre = parameters.cotsoc.cotisations_employeur[categorie]
+            if categorie == "public_titulaire_etat":
+                liste_cotis = ["famille", "ati", "financement_organisations_syndicales", "csa", "fnal_contributions_plus_de_20_salariés"]
+            else:
+                liste_cotis = ["famille", "atiacl", "financement_organisations_syndicales", "csa", "fnal_contributions_plus_de_20_salariés"]
+            taux_indemnite_exo_cotisation = sum([parametre[cotis].rates[0] for cotis in liste_cotis]) # L'indemnité compensatrice de csg n'est pas soumise à la plupart des cotisations
+            traitement_indiciaire_brut += (
+                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut / (1 + 0.0076 * (1 - taux_indemnite_exo_cotisation))
+                ) # Prise en compte de l'indemnité compensatrice de csg, qui sera recalculée. Prise en compte imparfaite des cotisations (PSS notamment)
+        else:
+            traitement_indiciaire_brut += (
+                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
+                )
         if (categorie_salarie == TypesCategorieSalarie[categorie].index).any():
             log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
             log.debug('bareme direct: {}'.format(bareme))
 
-    if period.start.year>2017:
-        individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut / 1.0076 # Pour prendre en compte l'indemnité compensatrce de csg
-    else:
-        individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
+    individus['traitement_indiciaire_brut'] = traitement_indiciaire_brut
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 
