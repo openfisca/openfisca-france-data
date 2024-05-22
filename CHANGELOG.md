@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.3.1 [#256](https://github.com/openfisca/openfisca-france-data/pull/256)
+
+* Technical changes
+  - Met à jour la version d'Openfisca France dans les dépendances
+
+
 ### 3.3.0 [#251](https://github.com/openfisca/openfisca-france-data/pull/251)
 
 * New features
