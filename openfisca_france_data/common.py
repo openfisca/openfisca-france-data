@@ -386,16 +386,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
                 }
             )
 
-        if period.start.year>2017:
-            parametre = parameters.cotsoc.cotisations_employeur[categorie]
-            if categorie == "public_titulaire_etat":
-                liste_cotis = ["famille", "ati", "financement_organisations_syndicales", "csa", "fnal_contributions_plus_de_20_salariés"]
-            else:
-                liste_cotis = ["famille", "atiacl", "financement_organisations_syndicales", "csa", "fnal_contributions_plus_de_20_salariés"]
-            taux_indemnite_exo_cotisation = sum([parametre[cotis].rates[0] for cotis in liste_cotis]) # L'indemnité compensatrice de csg n'est pas soumise à la plupart des cotisations
-            traitement_indiciaire_brut += (
-                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut / (1 + 0.0076 * (1 - taux_indemnite_exo_cotisation))
-                ) # Prise en compte de l'indemnité compensatrice de csg, qui sera recalculée. Prise en compte imparfaite des cotisations (PSS notamment)
+        if period.start.year>2017:traitement_indiciaire_brut += (
+                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut / (1 + 0.0076)
+                ) # Prise en compte de l'indemnité compensatrice de csg, qui sera recalculée. Non prise en compte des exonérations de cotisation sur cette indemnité
         else:
             traitement_indiciaire_brut += (
                 (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
