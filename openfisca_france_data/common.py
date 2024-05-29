@@ -408,12 +408,18 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 
-def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
+def create_revenus_remplacement_bruts(individus, period, tax_benefit_system, revenu_type = 'imposable'):
     assert 'taux_csg_remplacement' in individus
 
     individus.chomage_imposable.fillna(0, inplace = True)
     individus.retraite_imposable.fillna(0, inplace = True)
-    individus.salaire_net.fillna(0, inplace = True)
+    if revenu_type == 'imposable':
+        assert 'salaire_imposable' in individus.columns
+        salaire_pour_inversion = individus.salaire_imposable
+    else:
+        assert 'salaire_net' in individus.columns
+        salaire_pour_inversion = individus.salaire_net
+    salaire_pour_inversion.fillna(0, inplace = True)
 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
@@ -436,7 +442,7 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
             (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
             + (individus.taux_csg_remplacement >= 3) / (1 - taux_plein)
             )
-        ) - individus.salaire_net
+        ) - salaire_pour_inversion # théoriquement, il s'agit du net pour salaire et rpns, mais il n'est pas toujours disponible en pratique
     exonere_csg_chomage = (
         (individus.taux_csg_remplacement < 2)
         | (individus.chomage_imposable <= seuil_chomage_net_exoneration)
