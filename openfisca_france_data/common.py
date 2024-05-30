@@ -153,7 +153,14 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             }
         )
 
-    def add_agirc_gmp_to_agirc(agirc, parameters):
+    def add_agirc_gmp_to_agirc(agirc, parameters, period):
+        if period.unit == 'year':
+            nb_mois = 12
+        elif period.unit == 'month':
+            nb_mois = period.size
+        else:
+            raise
+        plafond_securite_sociale = plafond_securite_sociale_mensuel * nb_mois
         salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel * (nb_mois / 12) / plafond_securite_sociale
         cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle.part_salariale * nb_mois
         n = (cotisation + 1) * 12 # pour permettre la mensualisation en cas d'inversion, en évitant un taux 12 fois plus élevé sur une tranche 12 fois plus étroite
@@ -165,7 +172,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         if categorie == 'prive_cadre' and "agirc" in salarie[categorie]._children:
             print("adding GMP")
-            add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
+            add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters, period)
 
         bareme = combine_tax_scales(salarie[categorie])
         bareme.add_tax_scale(csg_deductible)
@@ -401,7 +408,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 
-def create_revenus_remplacement_bruts(individus, period, tax_benefit_system, revenu_type = 'imposable'):
+def create_revenus_remplacement_bruts(individus, period, tax_benefit_system, revenu_type = 'net'):
     assert 'taux_csg_remplacement' in individus
 
     individus.chomage_imposable.fillna(0, inplace = True)
@@ -409,9 +416,11 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system, rev
     if revenu_type == 'imposable':
         assert 'salaire_imposable' in individus.columns
         salaire_pour_inversion = individus.salaire_imposable
-    else:
+    elif revenu_type == 'net':
         assert 'salaire_net' in individus.columns
         salaire_pour_inversion = individus.salaire_net
+    else :
+        raise Exception("revenu_type not implemented")
     salaire_pour_inversion.fillna(0, inplace = True)
 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
