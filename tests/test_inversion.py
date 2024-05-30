@@ -29,7 +29,7 @@ with open(path) as yaml:
 # Inverse incomes from net to gross : the tested functions
 
 create_taux_csg_remplacement(individus, period(year), tax_benefit_system)
-create_revenus_remplacement_bruts(individus, period(year), tax_benefit_system)
+create_revenus_remplacement_bruts(individus, period(year), tax_benefit_system, revenu_type = 'net')
 
 # Test against chomage_brut_test
 

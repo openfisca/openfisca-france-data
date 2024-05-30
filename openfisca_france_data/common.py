@@ -2,6 +2,7 @@ import numpy as np
 import logging
 
 from openfisca_core import periods
+from openfisca_core.periods.date_unit import DateUnit
 from openfisca_core.taxscales import MarginalRateTaxScale, combine_tax_scales
 from openfisca_core.formula_helpers import switch
 from openfisca_france.model.base import TypesCategorieSalarie, TAUX_DE_PRIME
@@ -9,6 +10,7 @@ from openfisca_france.model.prelevements_obligatoires.prelevements_sociaux.cotis
     cotisations_salarie_by_categorie_salarie,
     )
 from openfisca_france_data.smic import smic_horaire_brut
+from openfisca_france_data import openfisca_france_tax_benefit_system
 
 
 log = logging.getLogger(__name__)
@@ -58,7 +60,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     taux_abattement = parameters_csg_deductible.abattement.rates[0]
     try:
         seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
-    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+    except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
         seuil_abattement = None
     csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
     csg_deductible.add_bracket(0, taux_csg * (1 - taux_abattement))
@@ -72,7 +74,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         taux_abattement = parameters_csg_imposable.abattement.rates[0]
         try:
             seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
         csg_imposable.add_bracket(0, taux_csg * (1 - taux_abattement))
@@ -84,7 +86,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         taux_abattement = parameters_crds.abattement.rates[0]
         try:
             seuil_abattement = parameters_crds.abattement.thresholds[1]
-        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
+        except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')
         crds.add_bracket(0, taux_csg * (1 - taux_abattement))
@@ -121,13 +123,13 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     whours = parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
 
     if period.unit == 'year':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * 12
-        heures_temps_plein = whours * 12
+        nb_mois = 12
     elif period.unit == 'month':
-        plafond_securite_sociale = plafond_securite_sociale_mensuel * period.size
-        heures_temps_plein = whours * period.size
+        nb_mois = period.size
     else:
         raise
+    plafond_securite_sociale = plafond_securite_sociale_mensuel * nb_mois
+    heures_temps_plein = whours * nb_mois
 
     if revenu_type == 'imposable':
         salaire_pour_inversion = individus.salaire_imposable
@@ -151,12 +153,18 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
             }
         )
 
-    def add_agirc_gmp_to_agirc(agirc, parameters):
-        plafond_securite_sociale_annuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel * 12
-        salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel / plafond_securite_sociale_annuel
-        cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle.part_salariale * 12
-        n = (cotisation + 1) * 12
-        agirc.add_bracket(n / plafond_securite_sociale_annuel, 0)
+    def add_agirc_gmp_to_agirc(agirc, parameters, period):
+        if period.unit == 'year':
+            nb_mois = 12
+        elif period.unit == 'month':
+            nb_mois = period.size
+        else:
+            raise
+        plafond_securite_sociale = plafond_securite_sociale_mensuel * nb_mois
+        salaire_charniere = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.salaire_charniere_annuel * (nb_mois / 12) / plafond_securite_sociale
+        cotisation = parameters.prelevements_sociaux.regimes_complementaires_retraite_secteur_prive.gmp.cotisation_forfaitaire_mensuelle.part_salariale * nb_mois
+        n = (cotisation + 1) * 12 # pour permettre la mensualisation en cas d'inversion, en évitant un taux 12 fois plus élevé sur une tranche 12 fois plus étroite
+        agirc.add_bracket(n / plafond_securite_sociale, 0)
         agirc.rates[0] = cotisation / n
         agirc.thresholds[2] = salaire_charniere
 
@@ -164,7 +172,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     for categorie in ['prive_non_cadre', 'prive_cadre', 'public_non_titulaire']:
         if categorie == 'prive_cadre' and "agirc" in salarie[categorie]._children:
             print("adding GMP")
-            add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters)
+            add_agirc_gmp_to_agirc(salarie[categorie].agirc, parameters, period)
 
         bareme = combine_tax_scales(salarie[categorie])
         bareme.add_tax_scale(csg_deductible)
@@ -209,7 +217,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'imposable',
             tax_benefit_system = None):
     """
-    Calcule le tratement indiciaire brut à partir du salaire imposable ou du salaire net.
+    Calcule le traitement indiciaire brut à partir du salaire imposable ou du salaire net.
     Note : le supplément familial de traitement est imposable. Pas géré
     """
     assert period is not None
@@ -384,9 +392,14 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
                 1: brut_proratise * (heures_remunerees_volume / (heures_temps_plein)),
                 }
             )
-        traitement_indiciaire_brut += (
-            (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
-            )
+
+        if period.start.year>2017:traitement_indiciaire_brut += (
+                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut / (1 + 0.0076)
+                ) # Prise en compte de l'indemnité compensatrice de csg, qui sera recalculée. Non prise en compte des exonérations de cotisation sur cette indemnité
+        else:
+            traitement_indiciaire_brut += (
+                (categorie_salarie == TypesCategorieSalarie[categorie].index) * brut
+                )
         if (categorie_salarie == TypesCategorieSalarie[categorie].index).any():
             log.debug("Pour {} : brut = {}".format(TypesCategorieSalarie[categorie].index, brut))
             log.debug('bareme direct: {}'.format(bareme))
@@ -395,12 +408,20 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     individus['primes_fonction_publique'] = TAUX_DE_PRIME * traitement_indiciaire_brut
 
 
-def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
+def create_revenus_remplacement_bruts(individus, period, tax_benefit_system, revenu_type = 'net'):
     assert 'taux_csg_remplacement' in individus
 
     individus.chomage_imposable.fillna(0, inplace = True)
     individus.retraite_imposable.fillna(0, inplace = True)
-    individus.salaire_net.fillna(0, inplace = True)
+    if revenu_type == 'imposable':
+        assert 'salaire_imposable' in individus.columns
+        salaire_pour_inversion = individus.salaire_imposable
+    elif revenu_type == 'net':
+        assert 'salaire_net' in individus.columns
+        salaire_pour_inversion = individus.salaire_net
+    else :
+        raise Exception("revenu_type not implemented")
+    salaire_pour_inversion.fillna(0, inplace = True)
 
     parameters = tax_benefit_system.get_parameters_at_instant(period.start)
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
@@ -410,13 +431,20 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system):
     seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.thresholds[1]
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
+    liste_smic_mensuel = []
+    for month in period.get_subperiods(DateUnit.MONTH):
+        smic_horaire_mois = openfisca_france_tax_benefit_system.parameters.marche_travail.salaire_minimum.smic.smic_b_horaire(month)
+        nb_heures_mois = openfisca_france_tax_benefit_system.parameters.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel(month)
+        smic_mensuel = smic_horaire_mois * nb_heures_mois
+        liste_smic_mensuel.append(smic_mensuel)
+
     seuil_chomage_net_exoneration = (
-        (35 * 52) * smic_horaire_brut[period.start.year]
+        sum(liste_smic_mensuel)
         * (
             (individus.taux_csg_remplacement == 2) / (1 - taux_reduit)
             + (individus.taux_csg_remplacement >= 3) / (1 - taux_plein)
             )
-        ) - individus.salaire_net
+        ) - salaire_pour_inversion # théoriquement, il s'agit du net pour salaire et rpns, mais il n'est pas toujours disponible en pratique
     exonere_csg_chomage = (
         (individus.taux_csg_remplacement < 2)
         | (individus.chomage_imposable <= seuil_chomage_net_exoneration)

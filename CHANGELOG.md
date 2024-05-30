@@ -1,5 +1,12 @@
 # Changelog
 
+### 3.4.0 [#252](https://github.com/openfisca/openfisca-france-data/pull/252)
+
+* New features
+  - Rend l'inversion plus robuste pour permettre de la faire de manière mois par mois
+  - En particulier, donne un seuil d'exonération sur le chômage net dépendant de la période.
+  - Ajoute dans l'inversion la prise en compte de l'indemnité compensatrice de csg
+
 ### 3.3.1 [#256](https://github.com/openfisca/openfisca-france-data/pull/256)
 
 * Technical changes

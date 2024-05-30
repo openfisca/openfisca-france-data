@@ -47,7 +47,7 @@ def create_individu_variables_brutes(
     create_taux_csg_remplacement(individus, period, tax_benefit_system)
     created_variables.append('taux_csg_remplacement')
 
-    create_revenus_remplacement_bruts(individus, period, tax_benefit_system)
+    create_revenus_remplacement_bruts(individus, period, tax_benefit_system, revenu_type = revenu_type)
     created_variables.append('chomage_brut')
     created_variables.append('retraite_brute')
 
