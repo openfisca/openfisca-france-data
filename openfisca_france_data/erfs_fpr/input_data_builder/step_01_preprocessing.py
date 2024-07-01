@@ -21,25 +21,30 @@ def build_table_by_name(year, erfs_fpr_survey_collection):
     survey = erfs_fpr_survey_collection.get_survey(f"erfs_fpr_{year}")
     tables = set(survey.tables.keys())
 
-    table_by_name_stata = {
+    table_by_name_stata = {  
         "eec_individu": f"fpr_irf{yr}e{yr}t4" if year >= 2002 else f"fpr_irf{yr}e{yr1}",
         "eec_menage": f"fpr_mrf{yr}e{yr}t4" if year >= 2002 else f"fpr_mrf{yr}e{yr1}",
         "fpr_individu": f"fpr_indiv_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_indiv_{year}",
         "fpr_menage": f"fpr_menage_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_menage_{year}"
         }
-
+    
     capitalized_table_by_name_stata = dict(
         (name, table.upper())
         for name, table in table_by_name_stata.items()
         )
 
-    table_by_name_sas = {
+    table_by_name_sas = { # en 2019 les données étaient en csv (non sas) et les noms correspondaient => changer le nom de la variable ?
         "eec_individu": "IRF",
         "eec_menage": "MRF",
         "fpr_individu": "Individu",
         "fpr_menage": "Menage"
         }
-
+    
+    table_by_name_2021 = {
+        "fpr_individu": f"fpr_indiv_2021",
+        "fpr_menage": f"fpr_menage_2021"
+        }
+    
     if tables == set(table_by_name_stata.values()):
         table_by_name = table_by_name_stata.copy()
 
@@ -49,15 +54,20 @@ def build_table_by_name(year, erfs_fpr_survey_collection):
     elif tables == set(table_by_name_sas.values()):
         table_by_name = table_by_name_sas.copy()
 
+    elif tables == set(table_by_name_2021.values()):
+        table_by_name = table_by_name_2021.copy()
+
     else:
         raise ValueError(f"""
 Incorrect table pattern: {tables} differs from:
     - stata: {set(table_by_name_stata.values())}
     - capitalized_stata: {set(capitalized_table_by_name_stata.values())}
     - sas: {set(table_by_name_sas.values())}
+    - 2021: {set(table_by_name_2021.values())}
 """)
 
     table_by_name["survey"] = f"erfs_fpr_{year}"
+    print(table_by_name)
 
     return table_by_name
 
@@ -77,22 +87,34 @@ def build_merged_dataframes(temporary_store = None, year = None):
     # load survey and tables
     survey = erfs_fpr_survey_collection.get_survey(table_by_name['survey'])
 
-    eec_individu = survey.get_values(table = table_by_name['eec_individu'], ignorecase= True)
-    eec_menage = survey.get_values(table = table_by_name['eec_menage'], ignorecase=True)
+    if 'eec_individu' in table_by_name:
+        eec_individu = survey.get_values(table = table_by_name['eec_individu'], ignorecase= True)
+    if 'eec_menage' in table_by_name:
+        eec_menage = survey.get_values(table = table_by_name['eec_menage'], ignorecase=True)
 
     fpr_individu = survey.get_values(table = table_by_name['fpr_individu'], ignorecase = True)
     fpr_menage = survey.get_values(table = table_by_name['fpr_menage'], ignorecase = True)
 
     # transform to lowercase
-    for table in (fpr_menage, eec_menage, eec_individu, fpr_individu):
+     # tables à traiter en fonction de l'année
+    if year < 2021:
+        tables_to_lower = [fpr_menage, eec_menage, eec_individu, fpr_individu]
+    else:
+        tables_to_lower = [fpr_menage, fpr_individu]
+
+    for table in tables_to_lower:
         table.columns = [k.lower() for k in table.columns]
 
     # check column names prior to 2002
-    if 'nopers' in eec_individu.columns:
-        eec_individu.rename(columns = {'nopers':'noindiv'}, inplace = True)
+    if year < 2021:
+        if 'nopers' in eec_individu.columns:
+            eec_individu.rename(columns = {'nopers':'noindiv'}, inplace = True)
 
     # merge EEC and FPR tables
-    individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
+    if year < 2021:
+        individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
+    else:
+        merge_tables_2(fpr_menage, fpr_individu, year)
 
     # check name of revenus fonciers variable
     if 'rev_fonciers' in menages.columns:
@@ -263,6 +285,163 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
 
     return individus, menages
 
+def merge_tables_2(fpr_menage = None, fpr_individu = None, year = None,
+        skip_menage = False):
+
+    # Step 1: Individual-Level Data
+
+    # assert (eec_individu is not None) and (fpr_individu is not None)
+    assert (fpr_individu is not None)
+
+    # Fusion enquête emploi et source fiscale
+    nobs = {}
+    nobs['fpr_ind'] = len(fpr_individu.noindiv.unique())
+    # nobs['eec_ind'] = len(eec_individu.noindiv.unique())
+
+    # check name of 'acteu' variable and rename if necessary
+    # if 'act' in eec_individu.columns:
+    #     eec_individu.rename(columns = {'act':'acteu'}, inplace = True)
+
+
+    log.debug('There are {} obs. in the FPR individual-level data [unique(noindiv)]'.format(nobs['fpr_ind']))
+    # log.debug('There are {} obs. in the EEC individual-level data [unique(noindiv)]'.format(nobs['eec_ind']))
+
+    log.debug('Columns in FPR-Ind table: {}.'.format(','.join(fpr_individu.columns)))
+    # log.debug('Columns in EEC-Ind table: {}.'.format(','.join(eec_individu.columns)))
+
+    # merge tables
+    # individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
+    individus=fpr_individu
+
+    nobs['fpr_eec_ind'] = len(individus.noindiv.unique())
+    log.debug('There are {} obs. in the FPR-EEC individual-level data [unique(noindiv)]'.format(nobs['fpr_eec_ind']))
+
+    # check TBD
+    check_naia_naim(individus, year)
+
+    # establish list of variables, taking into account differences over time
+    agepr = 'agepr' if year < 2013 else "ageprm"
+    cohab = 'cohab' if year < 2013 else "coured" # coupl_men à partir de 2021 ?
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
+    retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
+    txtppb = 'txtpp' if year < 2004 else 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+                                                                                # + pas utilisee (cf step_03 todo_create)
+    acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
+    cstot = 'dcstot' if year < 2002 else 'cstotr' # mêmes modalité (0 = non-réponse)
+    var_list = ([
+        acteu,
+        agepr,
+        cohab,
+        'contra',
+        'forter',
+        lien,
+        'mrec',
+        'naia',
+        'noicon',
+        'noimer',
+        prosa,
+        #retrai,
+        'rstg',
+        'statut',
+        'stc',
+        'titc',
+        txtppb,
+        ]
+         + (["noiper"] if "noiper" in individus.columns else [])
+         + (["encadr"] if "encadr" in individus.columns else [])
+         + ([retrai] if retrai in individus.columns else []) #n'existe pas avant 2004
+         + ([cstot] if cstot in individus.columns else [])) #existe 1996 - 2003, remplace retrai
+
+
+    # fill NAs and type conversion
+    for var in var_list:
+        individus[var]=individus[var].fillna(0)
+        individus[var]=individus[var].astype(np.int64)
+        assert np.issubdtype(individus[var].dtype, np.integer), \
+            "Variable {} dtype is {} and should be an integer".format(
+                var, individus[var].dtype
+                )
+
+    # TBD
+    if year >= 2013:
+        individus['lpr'] = individus.lprm
+
+    # Step 2: Household-Level Data
+    if not skip_menage:
+
+        # assert (eec_menage is not None) and (fpr_menage is not None)
+        assert (fpr_menage is not None)
+
+        nobs['fpr_men'] = len(fpr_menage.ident.unique())
+        # nobs['eec_men'] = len(eec_menage.ident.unique())
+
+        log.debug('There are {} obs. in the FPR household-level data [unique(ident)]'.format(nobs['fpr_men']))
+        # log.debug('There are {} obs. in the EEC household-level data [unique(ident)]'.format(nobs['eec_men']))
+
+        # common_variables_pre = set(fpr_menage.columns).intersection(eec_menage.columns)
+
+        # if 'th' in common_variables_pre:
+        #     fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
+        #     log.debug("Household-level tables: Renamed variable 'th' to 'taxe_habitation'")
+
+        # if 'tur5' in common_variables_pre:
+        #     fpr_menage.drop('tur5', axis = 1, inplace = True)
+        #     log.debug("Household-level tables: Variable 'tur5' has been removed from household-level data (FPR)")
+
+        # common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
+        # dropped_vars = common_variables_pre.symmetric_difference(common_variables)
+
+        # log.debug('Common variables in the household-level tables: [{}]'.format(','.join(common_variables)))
+
+        # if len(dropped_vars) > 0:
+        #     log.debug('These household-level variables have been dropped: [{}]'.format(','.join(dropped_vars)))
+        # else:
+        #     log.debug('No household-level variables have been dropped.')
+
+        # merge FPR and EEC household-level data
+        # menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
+        menages = fpr_menage
+
+        nobs['fpr_eec_men'] = len(menages.ident.unique())
+        log.debug('There are {} obs. in the FPR-EEC household-level data [unique(noindiv)]'.format(nobs['fpr_eec_men']))
+
+        create_variable_locataire(menages)
+
+        lprm = "lpr" if year < 2013 else "lprm"
+
+        try:
+            menages = menages.merge(
+                individus.loc[individus[lprm] == 1, ["ident", "ddipl"]].copy()
+                # lpr (ou lprm) == 1 ==> C'est la personne de référence
+                )
+        except Exception:
+            print(individus.dtypes)
+            raise
+
+        nobs['merge_men'] = len(menages.ident.unique())
+        nobs['merge_ind'] = len(menages.ident.unique())
+
+        log.debug('There are {} individuals [before: {}] and {} households [before: {}] in the merged data table.'.format(nobs['merge_ind'], nobs['fpr_eec_ind'], nobs['merge_men'], nobs['fpr_eec_men']))
+
+
+    # Infos sur les non appariés
+    if not skip_menage:
+        # non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage)
+        non_apparies(fpr_individu, fpr_menage)
+
+    if skip_menage:
+        menages = None
+
+    m = individus.select_dtypes(np.number)
+    individus[m.columns]= individus[m.columns].fillna(0)
+    individus[m.columns]= individus[m.columns].astype('int64')
+
+    m = menages.select_dtypes(np.number)
+    menages[m.columns]= menages[m.columns].fillna(0)
+    menages[m.columns]= menages[m.columns].astype('int64')
+
+    return individus, menages
 
 def non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage):
     """
