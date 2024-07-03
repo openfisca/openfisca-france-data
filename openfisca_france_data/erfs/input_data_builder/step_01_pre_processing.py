@@ -56,7 +56,10 @@ def create_actrec_variable(indivim):
 
 def create_variable_locataire(menagem):
     # Locataire
-    menagem["locataire"] = menagem.so.isin([3, 4, 5])
+    if 'so' in menagem.columns:
+        menagem["locataire"] = menagem.so.isin([3, 4, 5])
+    elif 'logt' in menagem.columns:
+        menagem["locataire"] = menagem.logt.isin([3, 4, 5])
     assert_dtype(menagem.locataire, "bool")
 
 
