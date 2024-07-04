@@ -113,11 +113,11 @@ def build_merged_dataframes(temporary_store = None, year = None):
     # merge EEC and FPR tables
     if year < 2021:
         # individus, menages = merge_tables(fpr_menage, eec_menage, eec_individu, fpr_individu, year)
-        individus, menages = merge_tables_3(fpr_menage, eec_menage, fpr_individu, eec_individu, year)
+        individus, menages = merge_tables(fpr_menage, eec_menage, fpr_individu, eec_individu, year)
         individus, menages = clean_tables(individus, menages, year)
 
         # # vérifier nouvelle methode        
-        individus_2, menages_2 = merge_tables(fpr_menage, eec_menage, fpr_individu, eec_individu, year)
+        individus_2, menages_2 = merge_tables_temp(fpr_menage, eec_menage, fpr_individu, eec_individu, year)
         if individus.equals(individus_2):
             print(f"individu ok")
         else:
@@ -197,53 +197,6 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
     # check TBD
     check_naia_naim(individus, year)
 
-    # establish list of variables, taking into account differences over time
-    agepr = 'agepr' if year < 2013 else "ageprm"
-    cohab = 'cohab' if year < 2013 else "coured"
-    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
-    prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
-    retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
-    txtppb = 'txtpp' if year < 2004 else 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
-                                                                                # + pas utilisee (cf step_03 todo_create)
-    acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
-    cstot = 'dcstot' if year < 2002 else 'cstotr' # mêmes modalité (0 = non-réponse)
-    var_list = ([
-        acteu,
-        agepr,
-        cohab,
-        'contra',
-        'forter',
-        lien,
-        'mrec',
-        'naia',
-        'noicon',
-        'noimer',
-        prosa,
-        #retrai,
-        'rstg',
-        'statut',
-        'stc',
-        'titc',
-        txtppb,
-        ]
-         + (["noiper"] if "noiper" in individus.columns else [])
-         + (["encadr"] if "encadr" in individus.columns else [])
-         + ([retrai] if retrai in individus.columns else []) #n'existe pas avant 2004
-         + ([cstot] if cstot in individus.columns else [])) #existe 1996 - 2003, remplace retrai
-
-
-    # fill NAs and type conversion
-    for var in var_list:
-        individus[var]=individus[var].fillna(0)
-        individus[var]=individus[var].astype(np.int64)
-        assert np.issubdtype(individus[var].dtype, np.integer), \
-            "Variable {} dtype is {} and should be an integer".format(
-                var, individus[var].dtype
-                )
-
-    # TBD
-    if year >= 2013:
-        individus['lpr'] = individus.lprm
 
     # Step 2: Household-Level Data
     if not skip_menage:
@@ -282,19 +235,6 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
         nobs['fpr_eec_men'] = len(menages.ident.unique())
         log.debug('There are {} obs. in the FPR-EEC household-level data [unique(noindiv)]'.format(nobs['fpr_eec_men']))
 
-        create_variable_locataire(menages)
-
-        lprm = "lpr" if year < 2013 else "lprm"
-
-        try:
-            menages = menages.merge(
-                individus.loc[individus[lprm] == 1, ["ident", "ddipl"]].copy()
-                # lpr (ou lprm) == 1 ==> C'est la personne de référence
-                )
-        except Exception:
-            print(individus.dtypes)
-            raise
-
         nobs['merge_men'] = len(menages.ident.unique())
         nobs['merge_ind'] = len(menages.ident.unique())
 
@@ -308,15 +248,49 @@ def merge_tables(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_
     if skip_menage:
         menages = None
 
-    m = individus.select_dtypes(np.number)
-    individus[m.columns]= individus[m.columns].fillna(0)
-    individus[m.columns]= individus[m.columns].astype('int64')
+    return individus, menages
 
-    m = menages.select_dtypes(np.number)
-    menages[m.columns]= menages[m.columns].fillna(0)
-    menages[m.columns]= menages[m.columns].astype('int64')
+
+
+def merge_tables_3(fpr_menage=None, eec_menage=None, eec_individu=None, fpr_individu=None, year=None, skip_menage=False):
+  
+    # Step 1: Individual-Level Data
+    assert (eec_individu is not None) and (fpr_individu is not None)
+    
+    # renommer la colonne 'act'
+    if 'act' in eec_individu.columns:
+        eec_individu.rename(columns={'act': 'acteu'}, inplace=True)
+
+    # merge tables eec_indivi and fpr_individu
+    individus = eec_individu.merge(fpr_individu, on=['noindiv', 'ident', 'noi'], how="inner")
+
+    # check year and month of birth
+    check_naia_naim(individus, year)
+
+    # clean table individus
+    # individus = process_individual_data(individus, year)
+
+
+    # Step 2: Household-Level Data
+    if not skip_menage:
+        #check tables not None
+        assert (eec_menage is not None) and (fpr_menage is not None)
+
+        # rename columns
+        if 'th' in fpr_menage.columns:
+            fpr_menage.rename(columns={'th': 'taxe_habitation'}, inplace=True)
+        if 'tur5' in fpr_menage.columns:
+            fpr_menage.drop('tur5', axis=1, inplace=True)
+
+        # merge tables
+        menages = fpr_menage.merge(eec_menage, on='ident', how='inner')
+        # menages = process_household_data(menages, year, individus)
+
+    else:
+        menages = None
 
     return individus, menages
+
 
 
 def merge_tables_2(fpr_menage = None, fpr_individu = None, year = None,
@@ -494,43 +468,157 @@ def merge_tables_2(fpr_menage = None, fpr_individu = None, year = None,
     return individus, menages
 
 
-def merge_tables_3(fpr_menage=None, eec_menage=None, eec_individu=None, fpr_individu=None, year=None, skip_menage=False):
-  
+def merge_tables_temp(fpr_menage = None, eec_menage = None, eec_individu = None, fpr_individu = None, year = None,
+        skip_menage = False):
+
     # Step 1: Individual-Level Data
-    # check tables not None
+
     assert (eec_individu is not None) and (fpr_individu is not None)
-    
-    # renommer la colonne 'act'
+
+    # Fusion enquête emploi et source fiscale
+    # calcul du nombre d'observations uniques dans chaque table
+    nobs = {}
+    nobs['fpr_ind'] = len(fpr_individu.noindiv.unique())
+    nobs['eec_ind'] = len(eec_individu.noindiv.unique())
+
+    # check name of 'acteu' variable and rename if necessary
     if 'act' in eec_individu.columns:
-        eec_individu.rename(columns={'act': 'acteu'}, inplace=True)
+        eec_individu.rename(columns = {'act':'acteu'}, inplace = True)
 
-    # merge tables eec_indivi and fpr_individu
-    individus = eec_individu.merge(fpr_individu, on=['noindiv', 'ident', 'noi'], how="inner")
 
-    # check year and month of birth
+    log.debug('There are {} obs. in the FPR individual-level data [unique(noindiv)]'.format(nobs['fpr_ind']))
+    log.debug('There are {} obs. in the EEC individual-level data [unique(noindiv)]'.format(nobs['eec_ind']))
+
+    log.debug('Columns in FPR-Ind table: {}.'.format(','.join(fpr_individu.columns)))
+    log.debug('Columns in EEC-Ind table: {}.'.format(','.join(eec_individu.columns)))
+
+    # merge tables
+    individus = eec_individu.merge(fpr_individu, on = ['noindiv', 'ident', 'noi'], how = "inner")
+
+    nobs['fpr_eec_ind'] = len(individus.noindiv.unique())
+    log.debug('There are {} obs. in the FPR-EEC individual-level data [unique(noindiv)]'.format(nobs['fpr_eec_ind']))
+
+    # check TBD
     check_naia_naim(individus, year)
 
-    # clean table individus
-    # individus = process_individual_data(individus, year)
+    # establish list of variables, taking into account differences over time
+    agepr = 'agepr' if year < 2013 else "ageprm"
+    cohab = 'cohab' if year < 2013 else "coured"
+    lien = 'lien' if year < 2013 else 'lienprm'  # TODO attention pas les mêmes modalités
+    prosa = 'prosa' if year < 2013 else 'qprcent'  # TODO attention pas les mêmes modalités
+    retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
+    txtppb = 'txtpp' if year < 2004 else 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
+                                                                                # + pas utilisee (cf step_03 todo_create)
+    acteu = 'act' if year < 2005 else 'acteu' # mêmes modalités (définition a changé)
+    cstot = 'dcstot' if year < 2002 else 'cstotr' # mêmes modalité (0 = non-réponse)
+    var_list = ([
+        acteu,
+        agepr,
+        cohab,
+        'contra',
+        'forter',
+        lien,
+        'mrec',
+        'naia',
+        'noicon',
+        'noimer',
+        prosa,
+        #retrai,
+        'rstg',
+        'statut',
+        'stc',
+        'titc',
+        txtppb,
+        ]
+         + (["noiper"] if "noiper" in individus.columns else [])
+         + (["encadr"] if "encadr" in individus.columns else [])
+         + ([retrai] if retrai in individus.columns else []) #n'existe pas avant 2004
+         + ([cstot] if cstot in individus.columns else [])) #existe 1996 - 2003, remplace retrai
 
+
+    # fill NAs and type conversion
+    for var in var_list:
+        individus[var]=individus[var].fillna(0)
+        individus[var]=individus[var].astype(np.int64)
+        assert np.issubdtype(individus[var].dtype, np.integer), \
+            "Variable {} dtype is {} and should be an integer".format(
+                var, individus[var].dtype
+                )
+
+    # TBD
+    if year >= 2013:
+        individus['lpr'] = individus.lprm
 
     # Step 2: Household-Level Data
     if not skip_menage:
-        #check tables not None
+
         assert (eec_menage is not None) and (fpr_menage is not None)
 
-        # rename columns
-        if 'th' in fpr_menage.columns:
-            fpr_menage.rename(columns={'th': 'taxe_habitation'}, inplace=True)
-        if 'tur5' in fpr_menage.columns:
-            fpr_menage.drop('tur5', axis=1, inplace=True)
+        nobs['fpr_men'] = len(fpr_menage.ident.unique())
+        nobs['eec_men'] = len(eec_menage.ident.unique())
 
-        # merge tables
-        menages = fpr_menage.merge(eec_menage, on='ident', how='inner')
-        # menages = process_household_data(menages, year, individus)
+        log.debug('There are {} obs. in the FPR household-level data [unique(ident)]'.format(nobs['fpr_men']))
+        log.debug('There are {} obs. in the EEC household-level data [unique(ident)]'.format(nobs['eec_men']))
 
-    else:
+        common_variables_pre = set(fpr_menage.columns).intersection(eec_menage.columns)
+
+        if 'th' in common_variables_pre:
+            fpr_menage.rename(columns = dict(th = 'taxe_habitation'), inplace = True)
+            log.debug("Household-level tables: Renamed variable 'th' to 'taxe_habitation'")
+
+        if 'tur5' in common_variables_pre:
+            fpr_menage.drop('tur5', axis = 1, inplace = True)
+            log.debug("Household-level tables: Variable 'tur5' has been removed from household-level data (FPR)")
+
+        common_variables = set(fpr_menage.columns).intersection(eec_menage.columns)
+        dropped_vars = common_variables_pre.symmetric_difference(common_variables)
+
+        log.debug('Common variables in the household-level tables: [{}]'.format(','.join(common_variables)))
+
+        if len(dropped_vars) > 0:
+            log.debug('These household-level variables have been dropped: [{}]'.format(','.join(dropped_vars)))
+        else:
+            log.debug('No household-level variables have been dropped.')
+
+        # merge FPR and EEC household-level data
+        menages = fpr_menage.merge(eec_menage, on = 'ident', how = 'inner')
+
+        nobs['fpr_eec_men'] = len(menages.ident.unique())
+        log.debug('There are {} obs. in the FPR-EEC household-level data [unique(noindiv)]'.format(nobs['fpr_eec_men']))
+
+        create_variable_locataire(menages)
+
+        lprm = "lpr" if year < 2013 else "lprm"
+
+        try:
+            menages = menages.merge(
+                individus.loc[individus[lprm] == 1, ["ident", "ddipl"]].copy()
+                # lpr (ou lprm) == 1 ==> C'est la personne de référence
+                )
+        except Exception:
+            print(individus.dtypes)
+            raise
+
+        nobs['merge_men'] = len(menages.ident.unique())
+        nobs['merge_ind'] = len(menages.ident.unique())
+
+        log.debug('There are {} individuals [before: {}] and {} households [before: {}] in the merged data table.'.format(nobs['merge_ind'], nobs['fpr_eec_ind'], nobs['merge_men'], nobs['fpr_eec_men']))
+
+
+    # Infos sur les non appariés
+    if not skip_menage:
+        non_apparies(eec_individu, eec_menage, fpr_individu, fpr_menage)
+
+    if skip_menage:
         menages = None
+
+    m = individus.select_dtypes(np.number)
+    individus[m.columns]= individus[m.columns].fillna(0)
+    individus[m.columns]= individus[m.columns].astype('int64')
+
+    m = menages.select_dtypes(np.number)
+    menages[m.columns]= menages[m.columns].fillna(0)
+    menages[m.columns]= menages[m.columns].astype('int64')
 
     return individus, menages
 
@@ -538,6 +626,8 @@ def merge_tables_3(fpr_menage=None, eec_menage=None, eec_individu=None, fpr_indi
 def clean_tables(individus, menages, year):
     
     # Step 1 : Individual-Level Data
+
+    # establish list of variables, taking into account differences over time
     agepr = 'agepr' if year < 2013 else "ageprm"
     cohab = 'cohab' if year < 2013 else ('coupl_men' if year > 2020 else 'coured') # coupl_men remplace coured ?
     lien = 'lien' if year < 2013 else ('lprm' if year > 2020 else 'lienprm')  # attention pas les mêmes modalités
@@ -574,7 +664,7 @@ def clean_tables(individus, menages, year):
          + ([retrai] if retrai in individus.columns else []) #n'existe pas avant 2004
          + ([cstot] if cstot in individus.columns else [])) #existe 1996 - 2003, remplace retrai
 
-    # Remplissage des valeurs manquantes et conversion des types
+    # fill NAs and type conversion
     for var in var_list:
         individus[var] = individus[var].fillna(0).astype(np.int64)
         assert np.issubdtype(individus[var].dtype, np.integer), \
