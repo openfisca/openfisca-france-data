@@ -70,11 +70,11 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
     # Base pour constituer les familles, foyers, etc.
-    create_statut_matrimonial(individus)
+    create_statut_matrimonial(individus, year)
 
     # variable d'activite
     create_activite(individus)
-    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
+    create_contrat_de_travail(individus, year, period = period, salaire_type = revenu_type)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
     create_categorie_non_salarie(individus)
     # inversion des revenus pour retrouver le brut
@@ -131,43 +131,58 @@ def create_activite(individus):
 
 
 def create_actrec(individus):
-    """Création de la variables actrec.
-
-    acterc pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
+    """Création de la variables actrec.  
+    actrec pour activité recodée comme preconisé par l'INSEE p84 du guide méthodologique de l'ERFS
     """
     assert "actrec" not in individus.columns
+
     individus["actrec"] = np.nan
+
     acteu = 'act' if 'act' in individus else 'acteu'
+    contra = 'contra' if 'contra' in individus else 'saltypa' # plus de contra à partir de 2021, attention pas exactement les mêmes modalités (evite de ramener l'année dans la fonction)
+    mrec = 'mrec' if 'mrec' in individus else 'demne'
+
     # Attention : Pas de 6, la variable recodée de l'INSEE (voit p84 du guide methodo), ici \
     # la même nomenclature à été adopée
+
     # 3: contrat a durée déterminée
     individus.loc[individus[acteu]== 1, 'actrec'] = 3
+
     # 8: femme (homme) au foyer, autre inactif
     individus.loc[individus[acteu] == 3, 'actrec'] = 8
+
     # 1: actif occupé non salarié
     filter1 = (individus[acteu] == 1) & (individus.stc.isin([1, 3]))  # actifs occupés non salariés à son compte
     individus.loc[filter1, 'actrec'] = 1                             # ou pour un membre de sa famille
+
     # 2: salarié pour une durée non limitée
-    filter2 = (individus[acteu] == 1) & (((individus.stc == 2) & (individus.contra == 1)) | (individus.titc == 2))
+    filter2 = (individus[acteu] == 1) & (((individus.stc == 2) & (individus[contra] == 1)) | (individus.titc == 2))
     individus.loc[filter2, 'actrec'] = 2
+
     # 4: au chomage
-    filter4 = (individus[acteu] == 2) | ((individus[acteu] == 3) & (individus.mrec == 1))
+    filter4 = (individus[acteu] == 2) | ((individus[acteu] == 3) & (individus[mrec] == 1))
     individus.loc[filter4, 'actrec'] = 4
+
     # 5: élève étudiant , stagiaire non rémunéré
-    filter5 = (individus[acteu] == 3) & ((individus.forter == 2) | (individus.rstg == 1))
+    # filter5 = (individus[acteu] == 3) & ((individus.forter == 2) | (individus.rstg == 1))
+    filter5 = (individus[acteu] == 3) & (individus.forter == 2) # rstg n'est plus présent à partir de 2021 (pas d'équivalent trouvé concernant la raison/motivation du stage)
     individus.loc[filter5, 'actrec'] = 5
+
     # 7: retraité, préretraité, retiré des affaires unchecked
     try: # cas >= 2014, evite de ramener l'année dans la fonction
-        filter7 = (individus[acteu] == 3) & ((individus.ret == 1))
+        ret = 'ret' if 'ret' in individus else 'retraite' #retraite à partir de 2021
+        filter7 = (individus[acteu] == 3) & ((individus[ret] == 1))
     except Exception:
         pass
     try: # cas 2004 - 2013
         filter7 = (individus[acteu] == 3) & ((individus.retrai == 1) | (individus.retrai == 2))
     except Exception: # cas 1996 - 2003
         cstot = 'dcstot' if 'dcstot' in individus else 'cstotr'
-        filter7 = (individus[acteu] == 3) & ((individus[cstot] == 7))
+        if cstot in individus.columns:
+            filter7 = (individus[acteu] == 3) & ((individus[cstot] == 7)) # CTSOTR==7 : 'Inactifs ayant eu une activité professionnelle renseignée dans le passé'
 
     individus.loc[filter7, 'actrec'] = 7
+
     # 9: probablement enfants de - de 16 ans TODO: check that fact in database and questionnaire
     individus.loc[individus[acteu] == 0, 'actrec'] = 9
 
@@ -509,11 +524,58 @@ def create_categorie_non_salarie(individus):
         'categorie_non_salarie'
         ] = 2
 
+# Fonction pour calculer la valeur de 'duhab'
+def calculer_duhab(row):
+    
+    # Description : Fonction permettant de reconstruire la variable duhab pour le millésime 2021, à partir des variables hhabemp et tppred
 
-def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
-    """Création de la variable contrat_de_travail et heure_remunerees_volume.
+    # Rappel :
+    #  - duhab (2019) : Type d'horaires de travail (temps complet ou temps partiel en tranches)
+            # Vide  Sans objet (personnes non actives occupées)
+            # 1     Temps partiel de moins de 15 heures
+            # 2     Temps partiel de 15 à 29 heures
+            # 3     Temps partiel de 30 heures ou plus
+            # 4     Temps complet de moins de 30 heures
+            # 5     Temps complet de 30 à 34 heures
+            # 6     Temps complet de 35 à 39 heures
+            # 7     Temps complet de 40 heures ou plus
+            # 9     Pas d'horaire habituel ou horaire habituel non déclaré
 
-    Ses modliatés sont:
+    #  - hhabemp (2021) : Nombre d’heures habituellement travaillées par semaine (emploi principal)
+    #  - tppred (2019 & 2021) : Temps de travail (1.Temps complet ; 2. Temps partiel)
+
+    # temps partiel:
+    if row['tppred'] == 2:
+        if row['hhabemp'] < 15: 
+            return 1 #Temps partiel de moins de 15 heures
+        elif (row['hhabemp'] >= 15 and row['hhabemp'] < 30): 
+            return 2 #Temps partiel de 15 à 29 heures (ici '<30' au lieu de '<29' pour inclure tous les cas, si float, cf. modalité n°3)
+        elif row['hhabemp'] >= 30: 
+            return 3 #Temps partiel de 30 heures ou plus
+        else:
+            return 0
+                    
+    # temp complet:
+    elif row['tppred'] == 1:
+        if row['hhabemp'] < 30: 
+            return 4 #Temps complet de moins de 30 heures
+        elif (row['hhabemp'] >= 30 and row['hhabemp'] < 35): 
+            return 5 #Temps complet de 30 à 34 heures (ici '<35' au lieu de '<34' pour inclure tous les cas, si float, cf. modalité n°6)
+        elif (row['hhabemp'] >= 35 and row['hhabemp'] < 40): 
+            return 6 #Temps complet de 35 à 39 heures (ici '<40' au lieu de '<39' pour inclure tous les cas, si float, cf. modalité n°7)
+        elif row['hhabemp'] >= 40: 
+                return 7 #Temps complet de 35 à 39 heures (ici '<40' au lieu de '<39' pour inclure tous les cas, si float, cf. modalité n°7)
+        else:
+            return 0
+    # pas d'horaire habituel ou horaire habituel non déclaré
+    else:
+            return 0
+    
+
+def create_contrat_de_travail(individus, year, period, salaire_type = 'imposable'):
+    """Création de la variable contrat_de_travail et heures_remunerees_volume.
+
+    Ses modalités sont:
         0 - temps_plein
         1 - temps_partiel
         2 - forfait_heures_semaines
@@ -521,16 +583,19 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         4 - forfait_heures_annee
         5 - forfait_jours_annee
         6 - sans_objet
-    à partir de la variables tppred (Temps de travail dans l'emploi principal)
+
+    à partir de la variable tppred (Temps de travail dans l'emploi principal)
         0 - Sans objet (ACTOP='2') ou non renseigné principal
         1 - Temps complet
         2 - Temps partiel
-    qui doit être construite à partir de tpp
+
+    qui doit être construite à partir de tpp (plus de tpp à partir de 2021)
         0 - Sans objet (ACTOP='2') ou non renseigné
         1 - A temps complet
         2 - A temps partiel
         3 - Sans objet (pour les personnes non salariées qui estiment que cette question ne
             s'applique pas à elles)
+
     et de duhab
         1 - Temps partiel de moins de 15 heures
         2 - Temps partiel de 15 à 29 heures
@@ -540,20 +605,44 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
         6 - Temps complet de 35 à 39 heures
         7 - Temps complet de 40 heures ou plus
         9 - Pas d'horaire habituel ou horaire habituel non déclaré
-    On utilise également hcc pour déterminer le nombre d'heures
+    Attention : plus de duhab à partir de 2021
+
+    On utilise également hhc (pour déterminer le nombre d'heures):
+        Vide        - Sans objet (personnes non actives occupées) ou non réponse
+        00.0 a 99.5 - Nombre d'heures (nombre entier ou demi-entier)
+    A partir de 2021, plus de hhc ; on utilise heffemp.
+    Attention heffemp pas exactement l'équivalent de hhc :
+    - hhc : Nombre d'heures travaillées en moyenne par semaine dans l'emploi principal, heures supplémentaires comprises
+    - heffemp : Nombre d heures effectivement travaillées au cours de la semaine de référence (emploi principal)
+
     TODO: utiliser la variable forfait
     """
+    # Adapter les variables de 2021
+    # adapter hhabemp pour correspondre à hhc (remplacer les 0 par missing value)
+    if year >= 2021:
+        individus['hhabemp'] = individus['hhabemp'].replace(0, np.nan)  
+    hhc = 'hhc' if 'hhc' in individus else 'hhabemp'
+
+    # Reconstruire la variable DUHAB pour 2021
+    #  - duhab (2019) : Type d'horaires de travail (temps complet ou temps partiel en tranches)
+    # à partir de HCONT et TPPRED :
+    #  - hhabemp (2021) : Nombre d’heures habituellement travaillées par semaine (emploi principal)
+    #  - tppred (2019 & 2021) : Temps de travail (1.Temps complet ; 2. Temps partiel)
+    if year >= 2021:
+        individus['duhab'] = individus.apply(calculer_duhab, axis=1)  
+
+
     if not isinstance(period, periods.Period):
         period = periods.period(period)
 
-    assert salaire_type in ['net', 'imposable']
+    assert salaire_type in ['net', 'imposable']   
 
-    if ((individus.hhc.dtype != 'float') & (individus.hhc.dtype != 'float32')):
-        individus.loc[individus.hhc == "", "hhc"] = np.nan
-        individus.hhc = individus.hhc.astype(float)
-    individus.loc[individus.hhc <= 0.01 , "hhc"] = np.nan
+    if ((individus[hhc].dtype != 'float') & (individus[hhc].dtype != 'float32')):
+        individus.loc[individus[hhc] == "", hhc] = np.nan
+        individus[hhc] = individus[hhc].astype(float)
+    individus.loc[individus[hhc] <= 0.01 , hhc] = np.nan
 
-    assert ((individus.hhc > 0) | individus.hhc.isnull()).all()
+    assert ((individus[hhc] > 0) | individus[hhc].isnull()).all() 
 
     assert individus.tppred.isin(range(3)).all(), \
         'tppred values {} should be in [0, 1, 2]'.format(individus.tppred.unique())
@@ -588,6 +677,53 @@ def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     assert (individus.mois_enquete.isin(range(9, 13))).all()
 
     # # on ne prend que les mois de l'année en cours donc on n'a pas le même nombre de mois connus selon le mois de l'enquête
+
+
+    if year >= 2021:
+    # en 2021, le noms des variables sp00, sp01 etc. ont changé (respectivement spr00, spr01 etc.)
+    # ainsi que leurs modalités :
+    #  - 2019 : SP00, SP01... : 
+        # Vide Non renseigné
+        # 1 En emploi, Salarié (y compris apprentissage ou stage rémunéré)
+        # 2 En emploi, À son compte ou en tant qu'aide familial ou conjoint collaborateur
+        # 3 Études ou stage non rémunéré
+        # 4 Chômage (inscrit ou non à pôle Emploi)
+        # 5 Retraite ou préretraite
+        # 6 Congé parental à temps plein
+        # 7 Au foyer
+        # 8 Inactif pour cause d'invalidité
+        # 9 Autre situation
+
+    #  - 2021 : SPR00, SPR01... : 
+        # 1. En emploi  
+        # 2. Au chômage (inscrit(e) ou non à Pôle emploi)  
+        # 3. Retraité(e) ou préretraité(e)  
+        # 4. En incapacité de travailler en raison d’un handicap ou d’un problème de santé durable  
+        # 5. En études  
+        # 6. Femme / Homme au foyer  
+        # 7. Dans une autre situation 
+        # 9. Non réponse
+    
+        # copier les colonnes spr.. en colonnes sp..
+        sp_suffixes = [f"{i:02}" for i in range(12)]
+        for suffix in sp_suffixes:
+            individus[f"sp{suffix}"] = individus[f"spr{suffix}"]
+
+        # modifier les modalités pour correspondre à sp..    
+        map_spr_sp = {
+                1: 1, # attention pas de précision dans les spr si emploi salarié ou À son compte ou en tant qu'aide familial ou conjoint collaborateur
+                2: 4,
+                3: 5,
+                4: 8,
+                5: 3,
+                6: 7,
+                #?:6 # attention pas de précision sur le congé parental dans les spr
+                9: 0,
+                }
+        for suffix in sp_suffixes:
+            individus[f"sp{suffix}"] = individus[f"sp{suffix}"].map(map_spr_sp)
+    
+
 
     individus['nb_mois_salariat_annee'] = 0
     for i in ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]:
@@ -893,6 +1029,13 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
     month_birth = 1 + random_state.randint(12, size = len(individus))
     day_birth = 1 + random_state.randint(28, size = len(individus))
 
+    # redefinir le mois de naissance quand il est égal à 99 (99=non-réponse)
+    # voir pourquoi la fonction check_naia_naim n'a pas modifié ces valeurs ?
+    individus.loc[
+            individus.naim == 99,
+            'naim'
+            ] = 1  # np.random.randint(1, 13, sum(~valid_naim))
+
     if age_variable is not None:
         assert age_variable in individus
         year_birth = (year - individus[age_variable]).astype(int)
@@ -1013,7 +1156,7 @@ def create_revenus_remplacement_bruts(individus):
     individus['retraite_brute'] =  individus.retraite_imposable + individus.csgrstd_i #+ individus.csg_nd_crds_ret_i
 
 
-def create_statut_matrimonial(individus):
+def create_statut_matrimonial(individus, year):
     """
     Création de la variable statut_marital qui prend les valeurs:
       1 - "Marié",
@@ -1028,13 +1171,46 @@ def create_statut_matrimonial(individus):
       2 - Marié(e) ou remarié(e)
       3 - Veuf(ve)
       4 - Divorcé(e)
-    """
-    assert individus.matri.isin(range(5)).all()
 
-    individus['statut_marital'] = 2  # célibataire par défaut
-    individus.loc[individus.matri == 2, 'statut_marital'] = 1  # marié(e)
-    individus.loc[individus.matri == 3, 'statut_marital'] = 4  # veuf(ve)
-    individus.loc[individus.matri == 4, 'statut_marital'] = 3  # divorcé(e)
+      A partir de 2021, la variable matri est remplacée par ETAMATRI_Y_COMP avec des modalités différentes:
+       1 - Marié(e)
+       2 - Pacsé(e)
+       3 - Concubinage ou union libre
+       4 - Veuf / veuve
+       5 - Divorcé(e)
+       6 - Dépacsé(e)
+       7 - Séparé(e)
+       8 - Célibataire
+       9 - Non réponse
+    """
+
+    # Définir le nom de la colonne en fonction de l'année
+    # à voir : autre méthode possible en renommant la colonne 'etamatri_y_comp' en 'matri'
+    if year < 2021:
+        matri = 'matri'
+    else:
+        matri = 'etamatri_y_comp'
+
+    # vérifier si la colonne matri existe dans individus et contenu de la colonne
+    # à voir : regrouper tout ce qui est antérieur à 2021 ou, comme ici, regrouper par tâches (pour plus de clarté)
+    if year < 2021:
+        assert individus[matri].isin(range(5)).all()
+    else:
+        # remplacer les valeurs 99 en 9 dans etamatri_y_comp (pour correspondre au dictionnaire des variables)
+        individus['etamatri_y_comp'] = individus['etamatri_y_comp'].replace(99, 9)
+        assert individus[matri].isin(range(1, 10)).all()
+
+    if year < 2021:
+        individus['statut_marital'] = 2  # célibataire par défaut
+        individus.loc[individus[matri] == 2, 'statut_marital'] = 1  # marié(e)
+        individus.loc[individus[matri] == 3, 'statut_marital'] = 4  # veuf(ve)
+        individus.loc[individus[matri] == 4, 'statut_marital'] = 3  # divorcé(e)
+    else:
+        individus['statut_marital'] = 2  # célibataire par défaut
+        individus.loc[individus[matri] == 1, 'statut_marital'] = 1  # marié(e)
+        individus.loc[individus[matri] == 4, 'statut_marital'] = 4  # veuf(ve)
+        individus.loc[individus[matri] == 5, 'statut_marital'] = 3  # divorcé(e)
+        individus.loc[individus[matri] == 2, 'statut_marital'] = 5  # pacsé(e)
 
     assert individus.statut_marital.isin(range(1, 7)).all()
 
