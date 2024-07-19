@@ -3,45 +3,45 @@
     "data":[
         {
             "variable":"salaire_imposable",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 24172000,
+            "actual_amount": 729255000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"chomage_imposable",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 5394000,
+            "actual_amount": 33669000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"retraite_imposable",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 15094000,
+            "actual_amount": 356693000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"rpns_imposables",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 3733000,
+            "actual_amount": 91066000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"revenu_categoriel_foncier",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 5090000,
+            "actual_amount": 30719000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"revenu_categoriel_capital",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 16083000,
+            "actual_amount": 48960000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"revenu_categoriel_plus_values",
-            "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_beneficiaries": 195000,
+            "actual_amount": 26281000000,
+            "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
             "variable":"af",
@@ -166,7 +166,7 @@
         {
             "variable":"impot_revenu_restant_a_payer",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
+            "actual_amount": 82100000000,
             "source": ""
         },
         {
@@ -175,5 +175,5 @@
             "actual_amount": 0,
             "source": ""
         }
-    ] 
+    ]
 }

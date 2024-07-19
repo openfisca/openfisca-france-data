@@ -1,5 +1,4 @@
 {
-    "documentation":"Pour les prestations sociales, les cotisations et prélèvements sociaux, note de validation INES 2019, pour l'ir note de validation 2019 et 2020",
     "data":[
         {
             "variable":"salaire_imposable",
@@ -185,5 +184,5 @@
             "actual_beneficiaries":0,
             "actual_amount":0
         }
-    ] 
+    ]
 }
