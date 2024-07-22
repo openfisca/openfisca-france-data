@@ -815,7 +815,7 @@ def create_contrat_de_travail(individus, year, period, salaire_type = 'imposable
     del temps_plein, temps_plein_sous_smic
 
     # 2.2 Pour les temps partiel on prends les heures hhc
-    individus.loc[(individus.hhc > 35) & (individus.hhc.notnull()) & (individus.contrat_de_travail == 1),'hhc'] = 35
+    individus.loc[(individus[hhc] > 35) & (individus[hhc].notnull()) & (individus.contrat_de_travail == 1),'hhc'] = 35
     individus.loc[(passage_temps_plein_temps_partiel) & (individus.hhc.isnull()), 'hhc'] = 35
     del passage_temps_plein_temps_partiel
     # on met 35h aux individus qui étaient à temps plein et qu'on a basculé en temps partiel pour la part salarié dans l'année
