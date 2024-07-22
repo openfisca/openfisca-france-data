@@ -704,25 +704,41 @@ def create_contrat_de_travail(individus, year, period, salaire_type = 'imposable
         # 7. Dans une autre situation 
         # 9. Non réponse
     
-        # copier les colonnes spr.. en colonnes sp..
+        # suffixes des colonnes sp et spr
         sp_suffixes = [f"{i:02}" for i in range(12)]
-        for suffix in sp_suffixes:
-            individus[f"sp{suffix}"] = individus[f"spr{suffix}"]
 
-        # modifier les modalités pour correspondre à sp..    
-        map_spr_sp = {
-                1: 1, # attention pas de précision dans les spr si emploi salarié ou À son compte ou en tant qu'aide familial ou conjoint collaborateur
-                2: 4,
-                3: 5,
-                4: 8,
-                5: 3,
-                6: 7,
-                #?:6 # attention pas de précision sur le congé parental dans les spr
-                9: 0,
-                }
+        # copier les colonnes spr.. en colonnes sp..
         for suffix in sp_suffixes:
-            individus[f"sp{suffix}"] = individus[f"sp{suffix}"].map(map_spr_sp)
-    
+            # individus[f"sp{suffix}"] = individus[f"spr{suffix}"]
+            individus[f"sp{suffix}"] = np.nan
+
+        # # modifier les modalités pour correspondre à sp..    
+        # map_spr_sp = {
+        #     0: 0,
+        #     1: 1, # pas de précision dans les spr si emploi salarié ou À son compte ou en tant qu'aide familial ou conjoint collaborateur
+        #     2: 4,
+        #     3: 5,
+        #     4: 8,
+        #     5: 3,
+        #     6: 7,
+        #     9: 0,
+        #     }
+        # for suffix in sp_suffixes:
+        #     individus[f"sp{suffix}"] = individus[f"sp{suffix}"].map(map_spr_sp)
+        
+        # modifier les valeurs de sp pour correspondre aux modalités de 2019
+        for suffix in sp_suffixes:            
+            individus.loc[(individus[f"spr{suffix}"] == 1) & (individus['stc'] == 3), f"sp{suffix}"] = 1 # En emploi, Salarié            
+            individus.loc[(individus[f"spr{suffix}"] == 1) & (individus['stc'].isin([1, 2, 4])), f"sp{suffix}"] = 2 # En emploi, À son compte ou en tant qu'aide familial ou conjoint collaborateur
+            individus.loc[(individus[f"spr{suffix}"] == 5), f"sp{suffix}"] = 3 # Études ou stage non rémunéré
+            individus.loc[(individus[f"spr{suffix}"] == 2), f"sp{suffix}"] = 4 # Chômage (inscrit ou non à pôle Emploi)
+            individus.loc[(individus[f"spr{suffix}"] == 3), f"sp{suffix}"] = 5 # Retraite ou préretraite
+            individus.loc[(individus['durabsemp'].isin([1, 2])), f"sp{suffix}"] = 6 # Congé parental à temps plein
+            individus.loc[(individus[f"spr{suffix}"] == 6), f"sp{suffix}"] = 7 # Au foyer
+            individus.loc[(individus[f"spr{suffix}"] == 4), f"sp{suffix}"] = 8 # Inactif pour cause d'invalidité
+            individus.loc[(individus[f"spr{suffix}"] == 7), f"sp{suffix}"] = 9 # Autre situation 
+            individus.loc[(individus[f"spr{suffix}"] == 9), f"sp{suffix}"] = 0 # Non renseigné
+            individus[f"sp{suffix}"].fillna(0, inplace=True) # Missing values  
 
 
     individus['nb_mois_salariat_annee'] = 0
