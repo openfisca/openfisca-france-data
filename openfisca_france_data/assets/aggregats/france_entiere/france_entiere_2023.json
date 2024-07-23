@@ -32,13 +32,13 @@
             "source": ""
         },
         {
-            "variable":"revenu_categoriel_capital",
+            "variable":"revenus_capital",
             "actual_beneficiaries": 0,
             "actual_amount": 0,
             "source": ""
         },
         {
-            "variable":"revenu_categoriel_plus_values",
+            "variable":"plus_values_base_large",
             "actual_beneficiaries": 0,
             "actual_amount": 0,
             "source": ""
@@ -187,5 +187,5 @@
             "actual_amount": 0,
             "source": ""
         }
-    ] 
+    ]
 }
