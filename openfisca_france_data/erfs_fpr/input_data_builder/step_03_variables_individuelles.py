@@ -76,7 +76,7 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_activite(individus)
     create_contrat_de_travail(individus, year, period = period, salaire_type = revenu_type)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
-    create_categorie_non_salarie(individus)
+    create_categorie_non_salarie(individus, year)
     # inversion des revenus pour retrouver le brut
     # pour les revenus de remplacement on a la csg et la crds dans l'erfs-fpr donc on peut avoir le brut directement
     create_revenus_remplacement_bruts(individus)
@@ -303,23 +303,25 @@ def create_categorie_salarie(individus, period, survey_year = None):
             2: 5,
             1: 6,
             6: 1,
+            9: 0, # à partir de 2021, 9='Non réponse'
             }
         individus['chpub'] = individus.chpub.map(chpub_replacement)
 
-        log.debug('Using qprc to infer prosa for year {}'.format(survey_year))
-        qprc_to_prosa = {
-            0: 0,
-            1: 1,
-            2: 2,
-            3: 3,
-            4: 4,
-            5: 5,
-            6: 7,
-            7: 8,
-            8: 9,
-            9: 5,  # On met les non renseignés en catégorie B
-            }
-        individus['prosa'] = individus.qprcent.map(qprc_to_prosa)
+        if survey_year < 2021: 
+            log.debug('Using qprc to infer prosa for year {}'.format(survey_year))
+            qprc_to_prosa = {
+                0: 0,
+                1: 1,
+                2: 2,
+                3: 3,
+                4: 4,
+                5: 5,
+                6: 7,
+                7: 8,
+                8: 9,
+                9: 5,  # On met les non renseignés en catégorie B
+                }
+            individus['prosa'] = individus.qprcent.map(qprc_to_prosa)
         # Actually prosa is there I don't need to change it further
     else:
         pass
@@ -331,26 +333,101 @@ def create_categorie_salarie(individus, period, survey_year = None):
 # On pourrait prendre csei mais elle ne recoupe pas bien prosa, ce serait vraiment
 # une autre manière de déterminer la catégorie salariale.
     if 'encadr' in individus:
-       individus.loc[individus.encadr == 0, 'encadr'] = 2
-       assert individus.encadr.isin(range(1, 3)).all(), \
-           "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
+        if survey_year >= 2021:            
+            # Changement de modalités pour encadr
+            #
+            # En 2021:
+            # Supervise le travail d’autres salariés (emploi principal)
+            # 1. Oui, c'est la tâche principale 
+            # 2. Oui, mais ce n'est pas la tâche principale 
+            # 3. Non 
+            # 9. Non réponse
+            #
+            # En 2019:
+            # Encadrement d'une ou plusieurs personnes (pour les salariés ou ceux ayant un emploi informel)
+            # Vide Sans objet (STC distinct de 3 et INFORM distinct de 1) ou non renseigné
+            # 1 Oui
+            # 2 Non
 
-    assert individus.prosa.isin(range(0, 10)).all(), \
-        "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
+            encadr_2021_replacement = {
+                0: 2,
+                1: 1,
+                2: 1,
+                3: 2,
+                9: 2,
+            }
+            individus['encadr_2021'] = individus['encadr'] #on conserve l'information supplémentaire contenue dans encadr avant de l'adapter
+            individus['encadr'] = individus.encadr.map(encadr_2021_replacement)
 
-    statut_values = [0, 11, 12, 13, 21, 22, 33, 34, 35, 43, 44, 45, 99]
-    assert individus.statut.isin(statut_values).all(), \
-        "statut n'est pas toujours dans l'ensemble {} des valeurs antendues.\n{}".format(
-            statut_values,
-            individus.statut.value_counts(dropna = False)
-            )
+        individus.loc[individus.encadr == 0, 'encadr'] = 2
+        assert individus.encadr.isin(range(1, 3)).all(), \
+            "encadr n'est pas toujours dans l'intervalle [1, 2]\n{}".format(individus.encadr.value_counts(dropna = False))
 
-    if survey_year >= 2013:
+    # prosa n'est plus dans la l'ERFS 2021
+    # pour distinguer les cadres/non-cadres on utilisera PCS1, Modalité 3 : 'Cadres et professions intellectuelles supérieures' (vérifier la distribution)
+    if survey_year < 2021 :
+        assert individus.prosa.isin(range(0, 10)).all(), \
+            "prosa n'est pas toujours dans l'intervalle [0, 9]\n{}".format(individus.prosa.value_counts())
+
+    if survey_year < 2021: # à partir de 2021, changements de modalités pour la variable 'statut'
+        
+        # en 2019:
+            # Vide Sans objet (personnes non actives occupées)
+            # 11 Indépendants non employeurs
+            # 12 Indépendants employeurs
+            # 13 Aides familiaux
+            # 21 Intérimaires
+            # 22 Apprentis
+            # 33 CDD (hors Etat, coll.loc.), hors contrats aides
+            # 34 Stagiaires et contrats aides (hors Etat, coll.loc.)
+            # 35 Autres contrats (hors Etat, coll.loc.)
+            # 43 CDD (Etat, coll.loc.), hors contrats aides
+            # 44 Stagiaires et contrats aides (Etat, coll.loc.)
+            # 45 Autres contrats (Etat, coll.loc.)
+            # 99 Non renseigné
+
+        # en 2021:
+            # Statut agrégé (emploi principal) 
+            # 1. Indépendant 
+            # 2. Salarié 
+            # 9. Non réponse
+        # Il existe également une variable STATUTDET (statut détaillé) mais dont les modalités ne sont pas les mêmes qu'en 2019:
+            # 10. Indépendant  
+            # 21. CDI, fonctionnaire  
+            # 22. CDD  
+            # 23. Intérim  
+            # 24. Alternance, stage  
+            # 25. Sans contrat, ni stage  
+            # 99. Non réponse 
+        
+        statut_values = [0, 11, 12, 13, 21, 22, 33, 34, 35, 43, 44, 45, 99]
+        assert individus.statut.isin(statut_values).all(), \
+            "statut n'est pas toujours dans l'ensemble {} des valeurs antendues.\n{}".format(
+                statut_values,
+                individus.statut.value_counts(dropna = False)
+                )
+
+    if survey_year >= 2013:        
+        # Modalités titc en 2019:
+            # Vide Sans objet (CHPUB distinct de 3, 4 et 5) ou non renseigné
+            # 1 Élève fonctionnaire ou fonctionnaire stagiaire
+            # 2 Titulaire civil ou militaire
+            # 3 Agent contractuel, ouvrier d'Etat, assistante maternelle, praticien hospitalier
+            # 4 Stagiaire
+        # Modalités titc en 2021:
+            # 1. Élève fonctionnaire ou fonctionnaire stagiaire 
+            # 2. Fonctionnaire        
+            # 3. Autre (contractuel, stagiaire...) 
+            # 9. Non réponse
+
         if individus.titc.isnull().any():
             individus.loc[
                 individus.titc.isnull() & ~(individus.chpub.isin([3, 4, 5])),
                 'titc'
             ] = 0
+
+        if survey_year >= 2021: # remplacer les valeurs 9 par 0 pour adapter 2021 aux précédents millésimes
+            individus['titc'] = individus['titc'].replace(9, 0)
         assert individus.titc.isin(range(5)).all(), \
             "titc n'est pas toujours dans l'ensemble [0, 1, 2, 3, 4] des valeurs antendues.\n{}".format(
                 individus.titc.value_counts(dropna = False)
@@ -367,16 +444,26 @@ def create_categorie_salarie(individus, period, survey_year = None):
     # encadrement
     assert 'cadre' not in individus.columns
     individus['cadre'] = False
-    individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
-    if 'encadr' in individus: #N'existe qu'à partir de 2006 inclu
-        individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
-    cadre = (
-        (individus.statut >= 21) & (individus.statut <= 35)  # En activité hors fonction publique
-        & (chpub > 3) # Hors fonction publique mais entreprise publique
-        & individus.cadre
-        )
-    del individus['cadre']
 
+    if survey_year < 2021:
+        individus.loc[individus.prosa.isin([7, 8]), 'cadre'] = True
+        if 'encadr' in individus: #N'existe qu'à partir de 2006 inclu
+            individus.loc[(individus.prosa == 9) & (individus.encadr == 1), 'cadre'] = True
+        cadre = (
+            (individus.statut >= 21) & (individus.statut <= 35)  # En activité hors fonction publique
+            & (chpub > 3) # Hors fonction publique mais entreprise publique
+            & individus.cadre
+            )
+        del individus['cadre']
+    else: #solution temporaire pour 2021 avant de trouver mieux (pas de 'prosa' en 2021 et modalités de 'statut' différentes) ; # à vérifier (distribution, autres solutions etc.)
+        individus.loc[individus.pcs2.isin([23, #Chefs d’entreprise de plus de 10 personnes
+                                           37, #Cadres des services administratifs et commerciaux d’entreprise
+                                           38, #Ingénieurs et cadres techniques d’entreprise
+                                           ]), 
+                                           'cadre'] = True
+        cadre = individus['cadre'] 
+        del individus['cadre']
+    
     # etat_stag = (chpub == 1) & (titc == 1)
     etat_titulaire = (chpub == 1) & ((titc == 2) | (titc == 1))
     etat_contractuel = (chpub == 1) & (titc == 3)
@@ -423,7 +510,7 @@ def create_categorie_salarie(individus, period, survey_year = None):
             individus.categorie_salarie.value_counts(dropna = False))
 
 
-def create_categorie_non_salarie(individus):
+def create_categorie_non_salarie(individus, survey_year):
     """Création de la variable categorie_salarie.
 
     Ses modalités sont:
@@ -432,6 +519,8 @@ def create_categorie_non_salarie(individus):
       - "commercant
       - "profession_liberale
     à partir des variables de l'eec' :
+
+        Avant 2021:
       - cstot
         - 00 Non renseigné (pour les actifs)
         - 11 Agriculteurs sur petite exploitation
@@ -476,34 +565,77 @@ def create_categorie_non_salarie(individus):
         - 84 Elèves, étudiants
         - 85 Personnes diverses sans activité professionnelle de moins de 60 ans (sauf retraités)
         - 86 Personnes diverses sans activité professionnelle de 60 ans et plus (sauf retraités)
+
+        A partir de 2021:
+        - PCS2
+        00 Non codée  
+        10 Exploitants agricoles, forestiers, pêcheurs et aquaculteurs  
+        21 Artisans  
+        22 Commerçants et assimilés  
+        23 Chefs d’entreprise de plus de 10 personnes  
+        31 Professions libérales  
+        33 Cadres de la fonction publique  
+        34 Professeurs et professions scientifiques supérieures  
+        35 Professions de l’information, de l’art et des spectacles  
+        37 Cadres des services administratifs et commerciaux d’entreprise  
+        38 Ingénieurs et cadres techniques d’entreprise         
+        42 Professions de l’enseignement primaire et professionnel, de la formation continue et du sport  
+        43 Professions intermédiaires de la santé et du travail social  
+        44 Ministres du culte et religieux consacrés  
+        45 Professions intermédiaires de la fonction publique (administration, sécurité)  
+        46 Professions intermédiaires administratives et commerciales des entreprises  
+        47 Techniciens  
+        48 Agents de maîtrise (hors maîtrise administrative)  
+        52 Employés administratifs de la fonction publique, agents de service et auxiliaires de santé  
+        53 Policiers, militaires, pompiers, agents de sécurité privés  
+        54 Employés administratifs d’entreprise  
+        55 Employés de commerce  
+        56 Personnels des services directs aux particuliers  
+        62 Ouvriers qualifiés de type industriel  
+        63 Ouvriers qualifiés de type artisanal  
+        64 Conducteurs de véhicules de transport, chauffeurs-livreurs, coursiers  
+        65 Conducteurs d’engins, caristes, magasiniers et ouvriers du transport (non routier)  
+        67 Ouvriers peu qualifiés de type industriel  
+        68 Ouvriers peu qualifiés de type artisanal  
+        69 Ouvriers agricoles, des travaux forestiers, de la pêche et de l’aquaculture
     """
-    assert individus.cstot.notnull().all()
-    if not pd.api.types.is_numeric_dtype(individus.cstot):
-        individus.replace(
-            {
-                'cstot' : {'': '0', '00': '0'}
-                },
-            inplace = True
-            )
 
-    individus['cstot'] = individus.cstot.astype('int')
-    assert set(individus.cstot.unique()) < set([
-        0,
-        11, 12, 13,
-        21, 22, 23,
-        31, 33, 34, 35, 37, 38,
-        42, 43, 44, 45, 46, 47, 48,
-        52, 53, 54, 55, 56,
-        62, 63, 64, 65, 67, 68, 69,
-        71, 72, 74, 75, 77, 78,
-        81, 83, 84, 85, 86,
-        ])
+    if survey_year < 2021:
+        assert individus.cstot.notnull().all()
+        if not pd.api.types.is_numeric_dtype(individus.cstot):
+            individus.replace(
+                {
+                    'cstot' : {'': '0', '00': '0'}
+                    },
+                inplace = True
+                )
 
-    agriculteur = individus.cstot.isin([11, 12, 13])
-    artisan = individus.cstot.isin([21])
-    commercant = individus.cstot.isin([22])
-    chef_entreprise = individus.cstot.isin([23])
-    profession_liberale = individus.cstot.isin([31])
+        individus['cstot'] = individus.cstot.astype('int')
+        assert set(individus.cstot.unique()) < set([
+            0,
+            11, 12, 13,
+            21, 22, 23,
+            31, 33, 34, 35, 37, 38,
+            42, 43, 44, 45, 46, 47, 48,
+            52, 53, 54, 55, 56,
+            62, 63, 64, 65, 67, 68, 69,
+            71, 72, 74, 75, 77, 78,
+            81, 83, 84, 85, 86,
+            ])
+
+        agriculteur = individus.cstot.isin([11, 12, 13])
+        artisan = individus.cstot.isin([21])
+        commercant = individus.cstot.isin([22])
+        chef_entreprise = individus.cstot.isin([23])
+        profession_liberale = individus.cstot.isin([31])
+    
+    else: # 2021 et après (pcs2)
+        agriculteur = individus.pcs2.isin([10])
+        artisan = individus.pcs2.isin([21])
+        commercant = individus.pcs2.isin([22])
+        chef_entreprise = individus.pcs2.isin([23])
+        profession_liberale = individus.pcs2.isin([31])
+    
     individus['categorie_non_salarie'] = 0
     individus.loc[
         agriculteur | artisan,
@@ -1076,9 +1208,19 @@ def create_date_naissance(individus, age_variable = 'age', annee_naissance_varia
 def create_effectif_entreprise(individus, period = None, survey_year = None):
     """Création de la variable effectif_entreprise.
 
-    A partir de la variable nbsala qui prend les valeurs suivantes:
-    Création de la variable effectif_entreprise à partir de la variable nbsala qui prend les valeurs suivantes:
-    A partir de (>=) 2013
+    A partir de 2021
+    Création de la variable effectif_entreprise à partir de la variable nbsal_y qui prend les valeurs suivantes:
+    01. – 09. Nombre exact de personnes entre 1 et 9 
+    10. 10 à 19 personnes 
+    11. 20 à 49 personnes 
+    12. 50 à 249 personnes  
+    13. 250 personnes ou plus 
+    14. Moins de 10 personnes mais ne connaît pas le nombre exact 
+    15. Plus de 10 personnes mais ne connaît pas le nombre exact 
+    99. Non réponse
+
+    Avant 2021
+    Création de la variable effectif_entreprise à partir de la variable nbsala qui prend les valeurs suivantes:    
         0 Vide Sans objet ou non renseigné
         1 1 salarié
         2 2 salariés
@@ -1109,8 +1251,29 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
     assert period is not None
     if survey_year is None:
         survey_year = period.start.year
-
-    if survey_year >= 2013:
+    
+    if survey_year >= 2021:
+        individus['effectif_entreprise'] = 50 # ATTENTION valeur fixée par défaut n'ayant pas d'information concernant l'effectif de l'entreprise en 2021
+        
+        # # Nombre exact de personnes entre 1 et 9
+        # for i in range(1, 10):
+        #     individus.loc[individus.nbsal_y == i, 'effectif_entreprise'] = 1
+        # # '10. 10 à 19 personnes'
+        # individus.loc[individus.nbsal_y == 10, 'effectif_entreprise'] = 10 # borne inférieure (10) pour faire comme les années précédentes
+        # # '11. 20 à 49 personnes'
+        # individus.loc[individus.nbsal_y == 11, 'effectif_entreprise'] = 20
+        # # '12. 50 à 249 personnes'
+        # individus.loc[individus.nbsal_y == 12, 'effectif_entreprise'] = 50
+        # # '13. 50 à 249 personnes'
+        # individus.loc[individus.nbsal_y == 13, 'effectif_entreprise'] = 250
+        # # '14. Moins de 10 personnes mais ne connaît pas le nombre exact'
+        # individus.loc[individus.nbsal_y == 14, 'effectif_entreprise'] = 5 # 5 par défaut ; à définir
+        # # '15. Plus de 10 personnes mais ne connaît pas le nombre exact'
+        # individus.loc[individus.nbsal_y == 15, 'effectif_entreprise'] = 10 # 10 par défaut ; à définir
+        # # '99. Non réponse'
+        # individus.loc[individus.nbsal_y == 99, 'effectif_entreprise'] = 0
+        
+    elif survey_year >= 2013:
         assert individus.nbsala.isin(list(range(0, 13)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 12] ou 99 \n{}".format(
                 individus.nbsala.value_counts(dropna = False))
@@ -1135,7 +1298,7 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
         assert individus.effectif_entreprise.isin([0, 1, 2, 3, 4, 5, 5, 7, 8, 9, 10, 50, 500]).all(), \
             "effectif_entreprise n'est pas toujours dans [0, 1, 5, 10, 20, 50, 200, 500, 1000] \n{}".format(
                 individus.effectif_entreprise.value_counts(dropna = False))
-
+    
     else:
         assert individus.nbsala.isin(list(range(0, 10)) + [99]).all(), \
             "nbsala n'est pas toujours dans l'intervalle [0, 9] ou 99 \n{}".format(
