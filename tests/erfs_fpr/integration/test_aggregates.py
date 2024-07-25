@@ -8,14 +8,14 @@ import pandas as pd
 import sys
 import gc
 import os
-
+from pathlib import Path
 
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.aggregates import FranceAggregates as Aggregates
-
+from openfisca_france_data.config import config
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level = logging.INFO, stream = sys.stdout,
@@ -23,6 +23,7 @@ logging.basicConfig(level = logging.INFO, stream = sys.stdout,
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
+figures_directory = Path(config.get("paths", "figures_directory"))
 
 def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
@@ -55,7 +56,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_in
 
         np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
 
-    return survey_scenario, aggregates_taxipp.get_data_frame(), aggregates_ines.get_data_frame(), aggregates_france_entiere.get_data_frame() 
+    return survey_scenario, aggregates_taxipp.get_data_frame(), aggregates_ines.get_data_frame(), aggregates_france_entiere.get_data_frame()
 
 
 def test_erfs_fpr_aggregates_reform():
@@ -126,7 +127,7 @@ def main(year, configfile = None, verbose = False):
             "france_entiere": aggregates_france_entiere,
             "taxipp": aggregates_taxipp
             })
-        df.to_csv(f'aggregates_erfs_fpr_{year}.csv')
+        df.to_csv(os.path.join(figures_directory,f'aggregates_erfs_fpr_{year}.csv'))
 
         continue
         survey_scenario._set_used_as_input_variables_by_entity()
