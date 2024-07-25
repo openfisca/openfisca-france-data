@@ -168,14 +168,13 @@ def complete_indivi(indivi, year):
         (indivi.naim >= 7) * (indivi.year - indivi.naia - 1)
         )
 
-    # Enfant en nourrice exclus
-    # before 2013, lien ==6 inclut enfants en nourrice sans lien de parenté
-    # en 2014 lienprm == 6 inclut tous les "sans lien de parenté". On va dire que c'est équivalent
-
     try:
-        selection_enfant_en_nourrice = (indivi.lien == 6) & (indivi.agepf < 16)
+        try:
+            selection_enfant_en_nourrice = (indivi.lien == 6) & (indivi.agepf < 16)
+        except Exception:
+            selection_enfant_en_nourrice = (indivi.lienprm == 6) & (indivi.agepf < 16)
     except Exception:
-        selection_enfant_en_nourrice = (indivi.lienprm == 6) & (indivi.agepf < 16)
+        selection_enfant_en_nourrice = (indivi.lprm == 6) & (indivi.agepf < 16)
 
     nb_enfants_en_nourrice = selection_enfant_en_nourrice.sum()
 
@@ -238,23 +237,38 @@ def famille_2(base, year = None):
     assert year is not None
     log.info(" [2] On cherche les enfants ayant père et/ou mère comme personne de référence et conjoint")
 
-    if year < 2013:
-        lpr = "lpr"
-    else:
+    # nom de la variable 'lpr' selon le millésime (Lien à la personne de référence du ménage/logement)
+    # il semble qu'en 2021, l'identifiant soit rattaché au logement et non au ménage ; 
+    # dans la description des variables, on a ident (logement) et identm (ménage) mais seul ident21 est présent dans la table
+    # sans cette modification, on a une erreur car :
+    #   -  on a plusieurs personnes de reference pour un même identifiant 
+    #   ce qui entraine une erreur dans le merge ci-dessous de nof01 et personne_de_reference car la nof01 mergée contient plus de lignes que nof01 avant merge, ce qui provoque un problème dans la fonction de control_04
+    # voir comment régler ce problème pour 2021 et retrouver l'identifiant ménage 
+    if year >= 2021: 
+        lpr = "lprl"
+    elif year >= 2013:
         lpr = "lprm"
+    else:
+        lpr = "lpr"
 
+    # on copie la dataframe 'base' en ne conservant les personnes de références :
     personne_de_reference = base.loc[base[lpr] == 1, ['ident', 'noi']].copy()
+    # on crée un numéro d'identifiant (AAAAAAAABB) :
+    #   - IDENT     : Identifiant anonymisé de logement (AAAAAAAA)
+    #   - NOI       : Identifiant de l'individu (BB)
     personne_de_reference['noifam'] = (100 * personne_de_reference.ident + personne_de_reference['noi']).astype(int)
     personne_de_reference = personne_de_reference[['ident', 'noifam']].copy()
-
     log.debug("length personne_de_reference : {}".format(len(personne_de_reference.index)))
 
+    # on copie la dataframe 'base' en ne conservant que certaines catégories :
     nof01 = base.loc[
-        base[lpr].isin([1, 2]) |
-        ((base[lpr] == 3) & (base.moins_de_15_ans_inclus)) |
-        ((base[lpr] == 3) & base.jeune_non_eligible_rsa & (~base.smic55))
-        ].copy()
+        base[lpr].isin([1, 2]) | # - les personnes de références et conjoints
+        ((base[lpr] == 3) & (base.moins_de_15_ans_inclus)) | # - les enfants de la personne de référence ou du conjoint de 15 ans ou moins
+        ((base[lpr] == 3) & base.jeune_non_eligible_rsa & (~base.smic55)) # - les enfants de la personne de référence ou du conjoint non éligible au rsa et salaire de base < 55% du smic
+        ].copy()    
     log.debug('longueur de nof01 avant merge: {}'.format(len(nof01.index)))
+
+    # on merge les dataframes nof01 et personne de reference
     nof01 = nof01.merge(personne_de_reference, on = 'ident', how = 'outer')
     nof01['famille'] = 10
     nof01['kid'] = (
@@ -276,7 +290,7 @@ def famille_2(base, year = None):
 
     # On adopte une approche non genrée
     couple = subset_base(base, famille)
-    cohab = 'cohab' if year < 2013 else "coured"
+    cohab = 'cohab' if year < 2013 else ('coupl_men' if year > 2020 else 'coured') # coupl_men remplace coured
     couple = couple[(couple[cohab] == 1) & (couple[lpr] >= 3)].copy()
     # l'identifiant famille est lié au noi de le plus bas
     couple['noifam'] = np.minimum(
@@ -313,6 +327,7 @@ def famille_2(base, year = None):
 
 def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
+    # nom de la colonne du lien avec la personne de référence selon le millésime
     if year < 2013:
         lpr = "lpr"
     else:
@@ -322,11 +337,17 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     assert famille is not None
     assert year is not None
 
+    # à partir de 2021, plus de mère/père mais parent_1 et parent_2
+    # on recrée une colonne 'noimer' pour numero identifiant mère :
+    if year >= 2021:
+        base['noimer'] = np.where(base['noipar1'] == 2, base['noipar1'], 0)
+        base['noimer'] = np.where(base['noipar2'] == 2, base['noipar2'], base['noimer'])
+
     log.info(" [3] Récupération des personnes seules")
     log.info(" [3.1] personnes seules de catégorie 1")
 
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    cohab = 'cohab' if year < 2013 else "coured"
+    cohab = 'cohab' if year < 2013 else ('coupl_men' if year > 2020 else 'coured') # coupl_men remplace coured
 
     seul1 = seul1[
         (seul1[lpr].isin([3, 4,5,6])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1[cohab] == 1) &
@@ -701,7 +722,7 @@ def famille_6(base = None, famille = None, personne_de_reference = None, kind = 
     log.info(" [6] gestion des non attribués")
     log.info(" [6.1] non attribués type 1")
     non_attribue1 = subset_base(base, famille)
-    lien = 'lien' if year < 2013 else 'lienprm'  # TODO: attention pas les mêmes modalités
+    lien = 'lien' if year < 2013 else ('lprm' if year >= 2021 else 'lienprm')  # TODO: attention pas les mêmes modalités
     subsetlienfamilial = list(range(1,5)) if year<2013 else list(range(6))
     agepr = 'agepr' if year < 2013 else "ageprm"
     if kind == 'erfs_fpr':
