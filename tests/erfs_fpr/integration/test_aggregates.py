@@ -7,9 +7,6 @@ import numpy as np
 import pandas as pd
 import sys
 import gc
-import os
-from pathlib import Path
-
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
@@ -22,8 +19,6 @@ logging.basicConfig(level = logging.INFO, stream = sys.stdout,
     format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-
-figures_directory = Path(config.get("paths", "figures_directory"))
 
 def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
@@ -127,7 +122,7 @@ def main(year, configfile = None, verbose = False):
             "france_entiere": aggregates_france_entiere,
             "taxipp": aggregates_taxipp
             })
-        df.to_csv(os.path.join(figures_directory,f'aggregates_erfs_fpr_{year}.csv'))
+        df.to_csv(f'aggregates_erfs_fpr_{year}.csv')
 
         continue
         survey_scenario._set_used_as_input_variables_by_entity()
