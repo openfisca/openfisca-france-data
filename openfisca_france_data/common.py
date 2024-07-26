@@ -57,9 +57,9 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
     parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = parameters_csg_deductible.taux
-    taux_abattement = parameters_csg_deductible.abattement.rates[0]
+    taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
     try:
-        seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
+        seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
     except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
         seuil_abattement = None
     csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
@@ -71,9 +71,9 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
         parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_csg = parameters_csg_imposable.taux
-        taux_abattement = parameters_csg_imposable.abattement.rates[0]
+        taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
-            seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
+            seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
@@ -83,9 +83,9 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
         parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
         taux_csg = parameters_crds.taux
-        taux_abattement = parameters_crds.abattement.rates[0]
+        taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
-            seuil_abattement = parameters_crds.abattement.thresholds[1]
+            seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')
@@ -244,9 +244,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
     plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
     parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_csg = parameters_csg_deductible.taux
-    taux_abattement = parameters_csg_deductible.abattement.rates[0]
+    taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
     try:
-        seuil_abattement = parameters_csg_deductible.abattement.thresholds[1]
+        seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
     except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
         seuil_abattement = None
     csg_deductible = MarginalRateTaxScale(name = 'csg_deductible')
@@ -260,9 +260,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # 1. csg imposable
         parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_csg = parameters_csg_imposable.taux
-        taux_abattement = parameters_csg_imposable.abattement.rates[0]
+        taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
-            seuil_abattement = parameters_csg_imposable.abattement.thresholds[1]
+            seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         csg_imposable = MarginalRateTaxScale(name = 'csg_imposable')
@@ -272,9 +272,9 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # 2. crds
         parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
         taux_csg = parameters_crds.taux
-        taux_abattement = parameters_crds.abattement.rates[0]
+        taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
-            seuil_abattement = parameters_crds.abattement.thresholds[1]
+            seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours été limité à 4 PSS
             seuil_abattement = None
         crds = MarginalRateTaxScale(name = 'crds')
@@ -427,8 +427,8 @@ def create_revenus_remplacement_bruts(individus, period, tax_benefit_system, rev
     csg = parameters.prelevements_sociaux.contributions_sociales.csg
     csg_deductible_chomage = csg.remplacement.allocations_chomage.deductible
     pss = parameters.prelevements_sociaux.pss.plafond_securite_sociale_annuel
-    taux_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.rates[0]
-    seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.remplacement.allocations_chomage.deductible.abattement.thresholds[1]
+    taux_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
+    seuil_abattement_csg_chomage = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
     taux_plein = csg_deductible_chomage.taux_plein
     taux_reduit = csg_deductible_chomage.taux_reduit
     liste_smic_mensuel = []

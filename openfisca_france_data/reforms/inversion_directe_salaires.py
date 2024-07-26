@@ -44,9 +44,9 @@ class salaire_de_base(Variable):
         plafond_securite_sociale_annuel = P.prelevements_sociaux.pss.plafond_securite_sociale_mensuel * 12
         csg_deductible = parameters(period).prelevements_sociaux.contributions_sociales.csg.activite.deductible
         taux_csg = csg_deductible.taux
-        taux_abattement = csg_deductible.abattement.rates[0]
+        taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
-            seuil_abattement = csg_deductible.abattement.thresholds[1]
+            seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
         except IndexError:  # Pour gérer le fait que l'abattement n'a pas toujours était limité à 4 PSS
             seuil_abattement = None
         csg = MarginalRateTaxScale(name = 'csg')

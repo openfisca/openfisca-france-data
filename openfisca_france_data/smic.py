@@ -149,11 +149,11 @@ def smic_annuel_imposable_from_net(year, smic_hor_brut):
         taux_csg = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.taux
         taux_crds = params.prelevements_sociaux.contributions_sociales.crds.activite.taux
         pss = params.prelevements_sociaux.pss.plafond_securite_sociale_annuel
-        abatt_sous_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement.rates[0]
-        use_plafond = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement.rates.__len__() == 2
+        abatt_sous_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
+        use_plafond = params.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates.__len__() == 2
         if use_plafond:
-            abatt_dessus_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.abattement.rates[1]
-        
+            abatt_dessus_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[1]
+
         # precise formula is kinda unnecessary, since SMIC won't ever be beyond 4 PSS. but still, for the heck of it.
         if use_plafond:
             base_csg_crds = (1 - abatt_sous_4pss) * min(smic_brut, 4 * pss) + (smic_brut > 4 * pss) * (1 - abatt_dessus_4pss) * (smic_brut - 4 * pss)
