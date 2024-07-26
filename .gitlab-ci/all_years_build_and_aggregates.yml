@@ -30,6 +30,11 @@ aggregates-2019:
   - echo "aggregates-2019"
   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
     ~/.config/openfisca-survey-manager/config.ini
+  - mkdir -p ~/.config/openfisca-france-data
+  - cp ./.gitlab-ci/openfisca_france_data_config.ini
+    ~/.config/openfisca-france-data/config.ini
+  - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-france-data/config.ini
+  - cat ~/.config/openfisca-france-data/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output

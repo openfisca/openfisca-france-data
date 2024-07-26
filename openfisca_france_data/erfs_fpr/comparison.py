@@ -104,7 +104,7 @@ def compare(browse = False, load = False, verbose = True, debug = True, target_v
 
     Data can be explored using D-Tale and graphs are saved as pdf files.
     """
-    comparator = ErfsFprtoInputComparator()
+    comparator = ErfsFprtoInputComparator(period=period)
     comparator.period = period
     comparator.compare(browse=browse, load=load, verbose=verbose, debug=debug, target_variables=target_variables, period=period, rebuild=rebuild, summary=summary, compute_divergence = True)
 
