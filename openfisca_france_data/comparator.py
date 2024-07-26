@@ -306,7 +306,8 @@ class AbstractComparator(object):
     messages = list()
     survey_scenario = None
 
-    def __init__(self):
+    def __init__(self, period):
+        self.period = period
         name = self.get_name()
         assert name is not None and isinstance(name, str)
 
