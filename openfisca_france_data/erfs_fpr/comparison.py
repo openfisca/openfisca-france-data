@@ -47,12 +47,12 @@ class ErfsFprtoInputComparator(AbstractComparator):
     default_target_variables = [
         "chomage_imposable",
         "loyer",
-        # "rag",
+        "rag",
         "retraite_imposable",
-        # "ric",
-        # "rnc",
+        "ric",
+        "rnc",
        "salaire_imposable",
-       "statut_occupation_logement",
+       #"statut_occupation_logement",
         ]
 
     def compute_test_dataframes(self):
@@ -106,4 +106,5 @@ def compare(browse = False, load = False, verbose = True, debug = True, target_v
     """
     comparator = ErfsFprtoInputComparator()
     comparator.period = period
-    comparator.compare(browse, load, verbose, debug, target_variables, period, rebuild, summary)
+    comparator.compare(browse=browse, load=load, verbose=verbose, debug=debug, target_variables=target_variables, period=period, rebuild=rebuild, summary=summary, compute_divergence = True)
+

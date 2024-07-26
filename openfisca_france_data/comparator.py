@@ -24,14 +24,14 @@ log = logging.getLogger(__name__)
 
 
 def get_entity_original_id(survey_scenario, variable):
-    entity = survey_scenario.tax_benefit_system.variables[variable].entity.key
+    entity = survey_scenario.tax_benefit_systems['baseline'].variables[variable].entity.key
     return "noindiv" if entity == "individu" else "idmen_original"
 
 
 def compute_result(variable, survey_scenario, target_dataframe):
     result = None
     stats = None
-    entity = survey_scenario.tax_benefit_system.variables[variable].entity.key
+    entity = survey_scenario.tax_benefit_systems['baseline'].variables[variable].entity.key
     entity_original_id = get_entity_original_id(survey_scenario, variable)
     output_variables = [entity_original_id, variable]
     entity_dataframe = survey_scenario.create_data_frame_by_entity(
@@ -368,8 +368,7 @@ class AbstractComparator(object):
         if target_variables is None:
             target_variables = self.default_target_variables
 
-        self.target_variables = target_variables   
-
+        self.target_variables = target_variables
         if period is not None:
             period = int(period)
 
@@ -483,7 +482,7 @@ class AbstractComparator(object):
             data = data
             )
 
-        tax_benefit_system = survey_scenario.tax_benefit_system
+        tax_benefit_system = survey_scenario.tax_benefit_systems['baseline']
         markdown_section_by_variable = dict()
         markdown_summary_section_by_variable = dict()
         stats_by_variable = dict()
@@ -495,6 +494,7 @@ class AbstractComparator(object):
 
             entity = tax_benefit_system.variables[variable].entity.key
             target_dataframe = target_dataframe_by_entity[entity]
+            print(  target_dataframe.columns)
             assert variable in target_dataframe
             log.debug(f"Testing final only variable: {variable}")
             result, stats = compute_result(
