@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.4.2 [#258](https://github.com/openfisca/openfisca-france-data/pull/258)
+
+* Technical changes
+  - Ajout d'aggrégats de comparaion pour 2022
+  - Corrige les tests de comparaisons et d'agrégats
+
 ### 3.4.1 [#257](https://github.com/openfisca/openfisca-france-data/pull/257)
 
 * Technical changes
