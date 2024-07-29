@@ -1,5 +1,4 @@
 {
-    "documentation":"Pour les prestations sociales, les cotisations et prélèvements sociaux, note de validation INES 2019, pour l'ir note de validation 2019 et 2020",
     "data":[
         {
             "variable":"salaire_imposable",
@@ -32,13 +31,13 @@
             "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
-            "variable":"revenu_categoriel_capital",
+            "variable":"revenus_capital",
             "actual_beneficiaries": 15511000,
             "actual_amount": 45881000000,
             "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
         },
         {
-            "variable":"revenu_categoriel_plus_values",
+            "variable":"plus_values_base_large",
             "actual_beneficiaries": 216000,
             "actual_amount": 216000000,
             "source": "Statistiques DGFIP, Impôt sur le revenu : répartition des revenus catégoriels déclarés entre imposés et non-imposés (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
@@ -100,19 +99,31 @@
         {
             "variable":"aides_logement",
             "actual_beneficiaries": 0,
-            "actual_amount": 15262994463,
-            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
+            "actual_amount": 15602974660,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
+        },
+        {
+            "variable":"apl",
+            "actual_beneficiaries": 0,
+            "actual_amount": 6897920894,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
+        },
+        {
+            "variable":"alf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 3565671170,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
+        },
+        {
+            "variable":"als",
+            "actual_beneficiaries": 0,
+            "actual_amount": 5109934933,
+            "source": "Dépenses tous régimes des prestations familiales et sociales gérées par la branche Famille, CAF (http://data.caf.fr/dataset/les-depenses-tous-regimes-de-prestations-familiales-et-sociales)"
         },
         {
             "variable":"aah",
             "actual_beneficiaries": 0,
             "actual_amount":11222712959,
-            "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
-        },
-        {
-            "variable":"apl",
-            "actual_beneficiaries": 0,
-            "actual_amount": 6743703175,
             "source": "Rapport du Directeur comptable et financier sur les comptes de l'exercice 2021, CAF (https://www.caf.fr/sites/default/files/medias/cnaf/Nous_connaitre/qui%20sommes%20nous/presentation/Comptes-et-financements/2021/Rapport_Dcf_comptes_exercice2021.pdf)"
         },
         {
@@ -163,7 +174,7 @@
             "source":"Comptes de la sécurité sociale, résultats 2022 et prévisions 2023 (https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/DSS/2023/CCSS-Mai2023.pdf)"
         },
         {
-            "variable":"impot_revenu_restant_a_payer",
+            "variable":"irpp_economique",
             "actual_beneficiaries":40257000,
             "actual_amount":80826000000,
             "source": "Statistiques DGFIP, Impôt sur le revenu : répartition par région (https://www.impots.gouv.fr/statistiques-impots-des-particuliers)"
@@ -173,5 +184,5 @@
             "actual_beneficiaries":0,
             "actual_amount":0
         }
-    ] 
+    ]
 }

@@ -158,7 +158,7 @@ france_data_tax_benefit_system = openfisca_france_data(openfisca_france_tax_bene
 CountryTaxBenefitSystem = lambda: france_data_tax_benefit_system  # noqa analysis:ignore
 
 AGGREGATES_DEFAULT_VARS = [
-    "cotisation_salariales",
+    "cotisations_salariales",
     #"cotisations_employeur",
     "cotisation_non_salarie",
     "salaire_brut",

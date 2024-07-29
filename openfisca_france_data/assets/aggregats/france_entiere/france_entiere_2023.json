@@ -32,13 +32,13 @@
             "source": ""
         },
         {
-            "variable":"revenu_categoriel_capital",
+            "variable":"revenus_capital",
             "actual_beneficiaries": 0,
             "actual_amount": 0,
             "source": ""
         },
         {
-            "variable":"revenu_categoriel_plus_values",
+            "variable":"plus_values_base_large",
             "actual_beneficiaries": 0,
             "actual_amount": 0,
             "source": ""
@@ -46,14 +46,14 @@
         {
             "variable":"af",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 13414000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"paje_prepare",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 755000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"aeeh",
@@ -64,44 +64,62 @@
         {
             "variable":"asf",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 3024000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
            },
         {
             "variable":"paje_base",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 2997000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"paje_naissance",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 516000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"cf",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 2448000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"ars",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 2116000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"paje_cmg",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 7093000000,
+            "source": "Rapport de la commission des comptes de la Sécurité sociale - Résultats 2022, prévision 2023 et 2024, p97"
         },
         {
             "variable":"aides_logement",
             "actual_beneficiaries": 0,
-            "actual_amount": 0,
-            "source": ""
+            "actual_amount": 16315000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
+        },
+        {
+            "variable":"apl",
+            "actual_beneficiaries": 0,
+            "actual_amount": 7227000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
+        },
+        {
+            "variable":"alf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 3578000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
+        },
+        {
+            "variable":"als",
+            "actual_beneficiaries": 0,
+            "actual_amount": 5190000000,
+            "source": "Documents annexés au Projet de loi de finances pour 2024, Budget général, Cohésion des territoires, programme 109 aide à l'accès au logement, p17"
         },
         {
             "variable":"aah",
@@ -169,5 +187,5 @@
             "actual_amount": 0,
             "source": ""
         }
-    ] 
+    ]
 }

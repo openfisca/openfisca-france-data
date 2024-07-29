@@ -7,22 +7,18 @@ import numpy as np
 import pandas as pd
 import sys
 import gc
-import os
-
-
 
 from openfisca_france_data import france_data_tax_benefit_system
 from openfisca_france_data.erfs_fpr import REFERENCE_YEAR
 from openfisca_france_data.erfs_fpr.get_survey_scenario import get_survey_scenario
 from openfisca_france_data.aggregates import FranceAggregates as Aggregates
-
+from openfisca_france_data.config import config
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level = logging.INFO, stream = sys.stdout,
     format='%(asctime)s - %(name)-12s: %(levelname)s %(module)s - %(funcName)s: %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
-
 
 def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_input_data = False, use_marginal_tax_rate = True, variation_factor = 0.03, varying_variable = 'salaire_de_base'):
     log.info(f'test_erfs_fpr_survey_simulation_aggregates for {year}...')
@@ -55,7 +51,7 @@ def test_erfs_fpr_survey_simulation_aggregates(year = REFERENCE_YEAR, rebuild_in
 
         np.quantile(mtr_rd, q = np.arange(0, 1.1, .1))
 
-    return survey_scenario, aggregates_taxipp.get_data_frame(), aggregates_ines.get_data_frame(), aggregates_france_entiere.get_data_frame() 
+    return survey_scenario, aggregates_taxipp.get_data_frame(), aggregates_ines.get_data_frame(), aggregates_france_entiere.get_data_frame()
 
 
 def test_erfs_fpr_aggregates_reform():

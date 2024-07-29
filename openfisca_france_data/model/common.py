@@ -24,7 +24,7 @@ class assiette_csg_salaire(Variable):
         assiette_csg_abattue = individu('assiette_csg_abattue', period)
         assiette_csg_non_abattue = individu('assiette_csg_non_abattue', period)
         plafond_securite_sociale = individu('plafond_securite_sociale', period)
-        abattement = parameters(period.start).prelevements_sociaux.contributions_sociales.csg.activite.deductible.abattement
+        abattement = parameters(period.start).prelevements_sociaux.contributions_sociales.csg.activite.abattement
         assiette = assiette_csg_abattue - abattement.calc(
             assiette_csg_abattue,
             factor = plafond_securite_sociale,
@@ -96,7 +96,7 @@ class csg_remplacement(Variable):
             + individu('csg_imposable_chomage', period)
             + individu('csg_deductible_chomage', period)
             )
-    
+
 class csg_retraite(Variable):
     value_type = float
     entity = Individu
@@ -106,7 +106,7 @@ class csg_retraite(Variable):
         csg_imposable_retraite = individu('csg_imposable_retraite', period, options = [ADD])
         csg_deductible_retraite = individu('csg_deductible_retraite', period, options = [ADD])
         return csg_deductible_retraite + csg_imposable_retraite
-    
+
 class csg_chomage(Variable):
     value_type = float
     entity = Individu

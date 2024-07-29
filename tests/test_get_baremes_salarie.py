@@ -14,7 +14,6 @@ target_by_period_by_categorie_salarie = {
         2016: [
             'agff',
             'arrco',
-            'asf',
             'chomage',
             'maladie',
             'vieillesse_deplafonnee',
@@ -23,7 +22,6 @@ target_by_period_by_categorie_salarie = {
         2017: [
             'agff',
             'arrco',
-            'asf',
             'chomage',
             'maladie',
             'vieillesse_deplafonnee',
@@ -32,14 +30,12 @@ target_by_period_by_categorie_salarie = {
         2018: [
             'agff',
             'arrco',
-            'asf',
             'chomage',
             'vieillesse_deplafonnee',
             'vieillesse_plafonnee',
             ],
         2019: [
             'agirc_arrco',
-            'asf',
             'ceg',
             'cet2019',
             'vieillesse_deplafonnee',
@@ -52,7 +48,6 @@ target_by_period_by_categorie_salarie = {
             'agirc',
             'apec',
             'arrco',
-            'asf',
             'cet',
             'chomage',
             'maladie',
@@ -64,7 +59,6 @@ target_by_period_by_categorie_salarie = {
             'arrco',
             'agirc',
             'apec',
-            'asf',
             'cet',
             'maladie',
             'chomage',
@@ -76,7 +70,6 @@ target_by_period_by_categorie_salarie = {
             'arrco',
             'agirc',
             'apec',
-            'asf',
             'cet',
             'chomage',
             'vieillesse_deplafonnee',
@@ -84,7 +77,6 @@ target_by_period_by_categorie_salarie = {
             ],
         2019: [
             'agirc_arrco',
-            'asf',
             'apec',
             'ceg',
             'cet2019',

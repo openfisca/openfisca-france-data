@@ -31,8 +31,8 @@ aggregates-2019:
   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
-  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/tests
+  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/tests
   stage: aggregates
   tags:
   - openfisca

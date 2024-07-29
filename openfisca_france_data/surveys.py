@@ -153,7 +153,6 @@ class AbstractErfsSurveyScenario(ReformScenario):
         computed_variables_used_as_input =  [
             "chomage_imposable",
             "primes_fonction_publique",
-            "retraite_brute",
             "retraite_imposable",
             "salaire_de_base",
             "traitement_indiciaire_brut",
