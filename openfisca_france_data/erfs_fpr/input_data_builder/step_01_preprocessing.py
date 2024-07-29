@@ -232,9 +232,9 @@ def clean_tables(individus, menages, year):
 
     # establish list of variables, taking into account differences over time
     agepr = 'agepr' if year < 2013 else "ageprm"
-    cohab = 'cohab' if year < 2013 else ('coupl_men' if year > 2020 else 'coured') # coupl_men remplace coured ?
-    lien = 'lien' if year < 2013 else ('lprm' if year > 2020 else 'lienprm')  # attention pas les mêmes modalités
-    prosa = 'prosa' if year < 2013 else ('pcs1' if year > 2020 else 'qprcent')  # attention pas les mêmes
+    cohab = 'cohab' if year < 2013 else ('coupl_men' if year >= 2021 else 'coured') # coupl_men remplace coured ?
+    lien = 'lien' if year < 2013 else ('lprm' if year >= 2021 else 'lienprm')  # attention pas les mêmes modalités
+    prosa = 'prosa' if year < 2013 else ('pcs1' if year >= 2021 else 'qprcent')  # attention pas les mêmes
     retrai = 'retrai' if year < 2013 else 'ret'  # TODO attention pas les mêmes modalités
     txtppb = 'txtpp' if year < 2004 else 'txtppb' if year < 2013 else 'txtppred'  # TODO attention pas les mêmes modalités
                                                                                 # + pas utilisee (cf step_03 todo_create)
@@ -278,7 +278,11 @@ def clean_tables(individus, menages, year):
     
     # Step 2 : Household-Level Data
     create_variable_locataire(menages)
-    lprm = "lpr" if year < 2013 else "lprm"
+    # curieusement en 2021 il semble que la variable de FPR_INDIV associée à FPR_MENAGE est
+    # LPRL (Lien à la personne de référence du logement) 
+    # et non LPRM (Lien à la personne de référence du logement).
+    # En effet, le nombre de LPRL==1 est égal au nombre de lignes de FPR_MENAGE (soit 43995)
+    lprm = "lpr" if year < 2013 else ('lprl' if year >= 2021 else 'lprm')
 
     if 'ddipl' in individus.columns:
             ddipl='ddipl'

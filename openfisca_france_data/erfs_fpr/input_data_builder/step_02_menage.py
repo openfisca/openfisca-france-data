@@ -16,6 +16,8 @@ def build_variables_menage(temporary_store = None, year = None):
 
     if "loyer" in menages.columns:
         menages['loyer'] = menages['loyer'] * 12
+    else:
+        menages['loyer'] = 500 # attention solution temporaire pour test, car pas de loyer à partir de 2021
 
     if year == 2018:
         menages['statut_occupation_logement'] = menages['so'].copy()
