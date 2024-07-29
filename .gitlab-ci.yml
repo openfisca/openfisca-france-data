@@ -128,8 +128,7 @@ diagnostics:
   - sed -i "s/BRANCH_NAME/$OUT_FOLDER/" ~/.config/openfisca-france-data/config.ini
   - cat ~/.config/openfisca-france-data/config.ini
   - compare-erfs-fpr-input -u -s -v
-  - cp -r /mnt/data-out/openfisca-france-data/$OUT_FOLDER/figures_directory .
-  - cp -r ./figures_directory $ROOT_FOLDER/$OUT_FOLDER/data_output
+  - cp -r /mnt/data-out/openfisca-france-data/$OUT_FOLDER/tests/figures_directory .
   stage: diagnostics
   tags:
   - openfisca
@@ -160,7 +159,7 @@ check-for-functional-changes:
   - ''
   script:
   - if `.gitlab-ci/has-functional-changes.sh` ; then echo "OK to build package" ; fi
-  only: 
+  only:
   - master
 
 build_conda_package:
