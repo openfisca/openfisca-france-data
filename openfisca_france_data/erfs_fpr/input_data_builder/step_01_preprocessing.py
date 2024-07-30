@@ -21,53 +21,53 @@ def build_table_by_name(year, erfs_fpr_survey_collection):
     survey = erfs_fpr_survey_collection.get_survey(f"erfs_fpr_{year}")
     tables = set(survey.tables.keys())
 
-    table_by_name_stata = {  
+    # defining pattern of files names to import (differ among years)
+    table_by_name_pattern_1 = {  
         "eec_individu": f"fpr_irf{yr}e{yr}t4" if year >= 2002 else f"fpr_irf{yr}e{yr1}",
         "eec_menage": f"fpr_mrf{yr}e{yr}t4" if year >= 2002 else f"fpr_mrf{yr}e{yr1}",
         "fpr_individu": f"fpr_indiv_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_indiv_{year}",
         "fpr_menage": f"fpr_menage_{year}_retropole" if year in add_suffix_retropole_years else f"fpr_menage_{year}"
         }
     
-    capitalized_table_by_name_stata = dict(
+    capitalized_table_by_name_pattern_1 = dict(
         (name, table.upper())
-        for name, table in table_by_name_stata.items()
+        for name, table in table_by_name_pattern_1.items()
         )
 
-    table_by_name_sas = { # en 2019 les données étaient en csv (non sas) et les noms correspondaient => changer le nom de la variable ?
+    table_by_name_pattern_2 = { # en 2019 les données étaient en csv (non sas) et les noms correspondaient => changer le nom de la variable ?
         "eec_individu": "IRF",
         "eec_menage": "MRF",
         "fpr_individu": "Individu",
         "fpr_menage": "Menage"
         }
     
-    table_by_name_2021 = {
-        "fpr_individu": f"fpr_indiv_2021",
-        "fpr_menage": f"fpr_menage_2021"
+    table_by_name_pattern_3 = {
+        "fpr_individu": f"fpr_indiv_{year}",
+        "fpr_menage": f"fpr_menage_{year}"
         }
     
-    if tables == set(table_by_name_stata.values()):
-        table_by_name = table_by_name_stata.copy()
+    if tables == set(table_by_name_pattern_1.values()):
+        table_by_name = table_by_name_pattern_1.copy()
 
-    elif tables == set(capitalized_table_by_name_stata.values()):
-        table_by_name = capitalized_table_by_name_stata.copy()
+    elif tables == set(capitalized_table_by_name_pattern_1.values()):
+        table_by_name = capitalized_table_by_name_pattern_1.copy()
 
-    elif tables == set(table_by_name_sas.values()):
-        table_by_name = table_by_name_sas.copy()
+    elif tables == set(table_by_name_pattern_2.values()):
+        table_by_name = table_by_name_pattern_2.copy()
 
-    elif tables == set(table_by_name_2021.values()):
-        table_by_name = table_by_name_2021.copy()
+    elif tables == set(table_by_name_pattern_3.values()):
+        table_by_name = table_by_name_pattern_3.copy()
 
     else:
         raise ValueError(f"""
 Incorrect table pattern: {tables} differs from:
-    - stata: {set(table_by_name_stata.values())}
-    - capitalized_stata: {set(capitalized_table_by_name_stata.values())}
-    - sas: {set(table_by_name_sas.values())}
-    - 2021: {set(table_by_name_2021.values())}
+    - stata: {set(table_by_name_pattern_1.values())}
+    - capitalized_stata: {set(capitalized_table_by_name_pattern_1.values())}
+    - sas: {set(table_by_name_pattern_2.values())}
+    - 2021: {set(table_by_name_pattern_3.values())}
 """)
 
     table_by_name["survey"] = f"erfs_fpr_{year}"
-    print(table_by_name)
 
     return table_by_name
 
@@ -97,7 +97,7 @@ def build_merged_dataframes(temporary_store = None, year = None):
 
     # transform to lowercase
      # tables à traiter en fonction de l'année
-    if year < 2021:
+    if ('eec_individu' in table_by_name) and ('eec_menage' in table_by_name):
         tables_to_lower = [fpr_menage, eec_menage, eec_individu, fpr_individu]
     else:
         tables_to_lower = [fpr_menage, fpr_individu]
@@ -106,12 +106,12 @@ def build_merged_dataframes(temporary_store = None, year = None):
         table.columns = [k.lower() for k in table.columns]
 
     # check column names prior to 2002
-    if year < 2021:
+    if 'eec_individu' in table_by_name:
         if 'nopers' in eec_individu.columns:
             eec_individu.rename(columns = {'nopers':'noindiv'}, inplace = True)
 
     # merge EEC and FPR tables
-    if year < 2021:
+    if ('eec_individu' in table_by_name) and ('eec_menage' in table_by_name):
         individus, menages = merge_tables(fpr_menage, eec_menage, fpr_individu, eec_individu, year)
         individus, menages = clean_tables(individus, menages, year)
     else:
@@ -124,16 +124,16 @@ def build_merged_dataframes(temporary_store = None, year = None):
 
     # store household table
     temporary_store[f"menages_{year}"] = menages
-    variables_to_delete = ['eec_menage', 'fpr_menage', 'menages']
-    for var in variables_to_delete:
+    tables_to_delete = ['eec_menage', 'fpr_menage', 'menages']
+    for var in tables_to_delete:
         if var in globals():
             del globals()[var]
     gc.collect()
 
     # store individual-level table
     temporary_store[f"individus_{year}_post_01"] = individus
-    variables_to_delete = ['eec_individu', 'fpr_individu']
-    for var in variables_to_delete:
+    tables_to_delete = ['eec_individu', 'fpr_individu']
+    for var in tables_to_delete:
         if var in globals():
             del globals()[var]
     gc.collect()
@@ -302,9 +302,8 @@ def clean_tables(individus, menages, year):
     m = individus.select_dtypes(np.number)
     individus[m.columns] = individus[m.columns].fillna(0).astype('int64')
 
-    if menages is not None:
-        m = menages.select_dtypes(np.number)
-        menages[m.columns] = menages[m.columns].fillna(0).astype('int64')
+    m = menages.select_dtypes(np.number)
+    menages[m.columns] = menages[m.columns].fillna(0).astype('int64')
 
     return individus, menages
 
