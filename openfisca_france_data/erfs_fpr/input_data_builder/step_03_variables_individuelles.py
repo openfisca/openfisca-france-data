@@ -74,7 +74,7 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
 
     # variable d'activite
     create_activite(individus)
-    create_contrat_de_travail(individus, year, period = period, salaire_type = revenu_type)
+    create_contrat_de_travail(individus, period = period, salaire_type = revenu_type)
     create_categorie_salarie(individus, period = period, survey_year = survey_year)
     create_categorie_non_salarie(individus, year)
     # inversion des revenus pour retrouver le brut
@@ -704,7 +704,7 @@ def calculer_duhab(row):
             return 0
     
 
-def create_contrat_de_travail(individus, year, period, salaire_type = 'imposable'):
+def create_contrat_de_travail(individus, period, salaire_type = 'imposable'):
     """Création de la variable contrat_de_travail et heures_remunerees_volume.
 
     Ses modalités sont:
@@ -749,6 +749,11 @@ def create_contrat_de_travail(individus, year, period, salaire_type = 'imposable
 
     TODO: utiliser la variable forfait
     """
+    # set period/year
+    if not isinstance(period, periods.Period):
+        period = periods.period(period)
+    year = int(period.__str__())
+
     # Adapter les variables de 2021
     # adapter hhabemp pour correspondre à hhc (remplacer les 0 par missing value)
     if year >= 2021:
@@ -760,12 +765,9 @@ def create_contrat_de_travail(individus, year, period, salaire_type = 'imposable
     # à partir de HCONT et TPPRED :
     #  - hhabemp (2021) : Nombre d’heures habituellement travaillées par semaine (emploi principal)
     #  - tppred (2019 & 2021) : Temps de travail (1.Temps complet ; 2. Temps partiel)
+
     if year >= 2021:
         individus['duhab'] = individus.apply(calculer_duhab, axis=1)  
-
-
-    if not isinstance(period, periods.Period):
-        period = periods.period(period)
 
     assert salaire_type in ['net', 'imposable']   
 
