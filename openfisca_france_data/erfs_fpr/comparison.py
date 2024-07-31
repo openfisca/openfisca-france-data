@@ -46,7 +46,7 @@ class ErfsFprtoInputComparator(AbstractComparator):
     period = None
     default_target_variables = [
         "chomage_imposable",
-        "loyer",
+        # "loyer",
         "rag",
         "retraite_imposable",
         "ric",
