@@ -15,7 +15,7 @@ def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
     doublons = list({k:v for (k,v) in doublons.items() if v>1}.keys())
     assert len(doublons) == 0, f"Il y a des doublons dans les cases cerfa d'openfisca france : {doublons}"
 
-    del doublons 
+    del doublons
 
     colonnes_pote = glob.glob(f"{raw_data_directory}*.parquet")
     colonnes_pote = [col.split("\\")[-1].split("_")[1].split(".")[0] for col in colonnes_pote]
