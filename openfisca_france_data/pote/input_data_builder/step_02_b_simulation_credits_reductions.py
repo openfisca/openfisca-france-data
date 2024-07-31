@@ -1,5 +1,4 @@
 from openfisca_france_data.pote.survey_scenario import PoteSurveyScenario
-from openfisca_france_data.pote.input_data_builder.analyse_variables import liens_variables
 import pyarrow.parquet as pq
 import gc
 import os
@@ -35,7 +34,7 @@ def simulation_preparation_credits_reductions(config_files_directory, variables_
             df = survey_scenario.simulations['baseline'].create_data_frame_by_entity([variable_to_compute],period = 2021)['foyer_fiscal']
             df[[variable_to_compute]].to_parquet(f"{tmp_tmp_directory}{variable_to_compute}_{i}.parquet")
             del survey_scenario
-            del df 
+            del df
             gc.collect()
         all = pq.read_table(tmp_tmp_directory)
         #print(f"Enregistrement table {variable_to_compute}, nombre de lignes : {len(all)}")

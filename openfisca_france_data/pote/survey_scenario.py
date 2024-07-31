@@ -17,7 +17,7 @@ class PoteSurveyScenario(AbstractSurveyScenario):
         config_files_directory,
         annee_donnees: int = 2021,
         period: int = 2021,
-        rebuild_input_data: bool = False, # pour l'instant il n'y a pas de builder propre
+        rebuild_input_data: bool = False, # pour l'instant il n'y a pas re builder propre
         init_from_data : bool = True,
         baseline_tax_benefit_system: TaxBenefitSystem = AnnualisationVariablesIR(openfisca_france_tax_benefit_system),
         used_as_input_variables = None,
@@ -84,15 +84,15 @@ class PoteSurveyScenario(AbstractSurveyScenario):
             var_to_keep = list(set(variables_in_tax_benefit_system) & set(input_variable))
             self.used_as_input_variables = var_to_keep + var_create_in_custom_input_data_frame
         else:
-            self.used_as_input_variables = used_as_input_variables 
-        #print("Données du scenario : \n", data)
+            self.used_as_input_variables = used_as_input_variables
+
         if init_from_data:
             self.simulations = dict()
             self.init_from_data(
                 data=data,
                 rebuild_input_data=rebuild_input_data,
-                #config_files_directory=data["config_files_directory"]
             )
+
     def init_from_data(self, rebuild_input_data=False, data=None):
         if rebuild_input_data:
             print("Rebuild input data is not implemented yet")
@@ -105,7 +105,7 @@ class PoteSurveyScenario(AbstractSurveyScenario):
                 simulation_name=prefix,
                 data = self.data,
             )
-    
+
     def custom_input_data_frame(self, input_data_frame, period, entity = None):
         if self.do_custom_input_data_frame:
             if entity == 'foyer_fiscal':
@@ -120,7 +120,7 @@ class PoteSurveyScenario(AbstractSurveyScenario):
                 input_data_frame["caseT"] = np.where(input_data_frame.zt == "T", True, False)
                 input_data_frame["nbR"] = input_data_frame.zr
                 input_data_frame["jeune_veuf"] = np.where(input_data_frame.zz == "Z", True, False) # jeune_veuf = deces du conjoint dans l'annee des revenus
-                input_data_frame["depcom_foyer"] = input_data_frame["iddep"] 
+                input_data_frame["depcom_foyer"] = input_data_frame["iddep"]
                 input_data_frame.drop(["zl", "zn", "zp", "zf", "zw", "zs", "zg","zt","zr","zz","iddep"],axis = 1, inplace = True)
 
                 input_data_frame["foyer_fiscal_id"] = range(len(input_data_frame))

@@ -3,11 +3,15 @@ from os.path import exists
 from pyarrow.parquet import ParquetFile
 import pyarrow as pa
 import numpy as np
-# from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 from openfisca_survey_manager.surveys import Survey
 import logging
 
 def build_individus(year, chunk_size, variables_individu,config_files_directory, raw_data_directory, output_path, errors_path, nrange):
+    '''
+    Création d'une table individu (une ligne par individu) à partir de POTE (une ligne par foyer fiscal)
+
+    '''
+
     print("Etape 1 : construction de la base individus")
 
     columns = ["aged","agec", "mat",
@@ -58,7 +62,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
      # 1) création des individus déclarants et conjoint si existant
         df["foyer_fiscal_id"] = range(len(df))
         df_indiv = df[["foyer_fiscal_id","mat","aged",'agec']]
-        ## tests 
+        ## tests
         mat_na = mat_na + list(df_indiv.loc[df_indiv['mat'].isna()].foyer_fiscal_id)
         date_naiss_decl_na = date_naiss_decl_na + list(df_indiv.loc[df_indiv['aged'].isna()].foyer_fiscal_id)
         incoherence_date_naiss_1 = incoherence_date_naiss_1 + list(df_indiv.loc[(df_indiv['mat'].isin(['C','D','V'])) & (df_indiv['agec'].notna())].foyer_fiscal_id)

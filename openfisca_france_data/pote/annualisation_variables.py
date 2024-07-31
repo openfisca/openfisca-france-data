@@ -59,12 +59,6 @@ class AnnualisationVariablesIR(Reform):
             reference = 'http://www.insee.fr/fr/methodes/default.asp?page=definitions/chomage.htm'
             definition_period = YEAR
 
-        # class foyer_fiscal_id(Variable):
-        #     value_type = int
-        #     unit = 'currency'
-        #     entity = FoyerFiscal
-        #     label = 'identifiant du foyer fiscal'
-        #     definition_period = YEAR
 
         baseline_revenus_capitaux_pfu = self.baseline.get_variable(
             "revenus_capitaux_prelevement_forfaitaire_unique_ir"
@@ -81,6 +75,7 @@ class AnnualisationVariablesIR(Reform):
 
             def formula_2021_01_01(foyer_fiscal, period, parameters):
                 return formula_revenus_capitaux_pfu(foyer_fiscal, period.first_month, parameters) * 12
+
 
         baseline_revenus_capitaux_prelevement_bareme = self.baseline.get_variable(
             "revenus_capitaux_prelevement_bareme"
@@ -148,7 +143,7 @@ class AnnualisationVariablesIR(Reform):
             def formula(foyer_fiscal, period, parameters):
                 rfr = formula_rfr(foyer_fiscal, period, parameters)
                 return max_(rfr, 0)
-        
+
         class salaire_imposable_large(Variable):
             value_type = float
             entity = Individu
@@ -160,7 +155,7 @@ class AnnualisationVariablesIR(Reform):
                 chomage_imposable = individu("chomage_imposable", period)
 
                 return revenu_assimile_salaire - chomage_imposable
-            
+
         class rfr_par_part(Variable):
             value_type = float
             entity = FoyerFiscal
@@ -195,4 +190,3 @@ class AnnualisationVariablesIR(Reform):
 
         for variable in variables_ajout:
             self.add_variable(variable)
-        # self.add_variable(foyer_fiscal_id)

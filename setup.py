@@ -60,6 +60,10 @@ setup(
             "scipy >=1.2.1, <2.0.0",
             "toolz >=0.9.0, <1.0.0",
             ],
+        "pote": [
+            "pyarrow",
+            "shutil"
+        ]
         },
     packages = find_namespace_packages(exclude = ("docs", "tests")),
     )

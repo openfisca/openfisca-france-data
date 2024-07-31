@@ -1,33 +1,55 @@
-import pandas as pd
 from openfisca_france_data.utils import build_cerfa_fields_by_variable
+from openfisca_core.simulation_builder import SimulationBuilder
+from openfisca_france_data.pote.annualisation_variables import AnnualisationVariablesIR
+import openfisca_france
 
 
-def liens_variables():
-    path = "C:/Users/Public/Documents/TRAVAIL/Pote_openfisca/code_pote_openfisca/tests/result_test_variables_irpp.txt"
+
+def liens_variables(year):
+    '''
+    Pour une année year de simulation de l'impôt sur le revenu renvoi :
+
+    - les variables composées d'input variables qui ne sont utilisée que dans cette variables
+    - la liste des input variables qui composent chaque variable du point précédent
+
+    Ces listes vont être utilisées pour faire des pré calcul dans l'impôt sur le revenu afin de limiter le nombre de colonnes.
+
+    '''
 
     var_foyer_fiscal = list()
-    cerfa_var_dict = build_cerfa_fields_by_variable(year = 2021)
+    cerfa_var_dict = build_cerfa_fields_by_variable(year = year)
 
     for openfisca_var, cerfa in cerfa_var_dict.items():
         if len(cerfa) == 1:
             var_foyer_fiscal.append(openfisca_var)
 
-    i = 0
+    cas_type = {
+        "individus": {
+            "ind0": {
+                "date_naissance": {'ETERNITY':'1970-01-01'},
+                "salaire_imposable": {f"{year}":0},
+                "retraite_imposable": {f"{year}":0},
+                "chomage_imposable": {f"{year}":0}
+            }
+        }
+    }
+    tax_benefit_system = AnnualisationVariablesIR(openfisca_france.FranceTaxBenefitSystem())
+    simulation = SimulationBuilder()
+    simulation = simulation.build_from_entities(tax_benefit_system, cas_type)
+    simulation.trace = True
+    simulation.calculate('irpp_economique', year)
+    lines = simulation.tracer.computation_log.lines()
     text = list()
-    with open(path, 'r') as file:
-        for line in file.readlines():
-            if line.find("Computation log:")!= -1:
-                i = 1
-            if i ==1:
-                line = line.split(">>")
-                if len(line)==2:
-                    text.append(line[0])
+    for line in lines:
+        line = line.split(">>")
+        if len(line)==2:
+            text.append(line[0])
 
     indented_variables = list()
     for line in text:
         split_line = line.split("<")
         assert len(split_line) == 2
-        assert split_line[1].startswith("2021")
+        assert split_line[1].startswith(str(year)), f"{split_line} doesn't start with {year}"
         indented_variables += [split_line[0]]
 
     indent_max = 0
@@ -91,7 +113,7 @@ def liens_variables():
                 if len(enfants_parent) == len(unique_appel_enfants):
                     if len(enfants_parent) == len(only_case_fiscal):
                         variables_to_compute += [parent[0]]
-    
+
     variables_to_compute = [v for v in variables_to_compute if len(dictionnaire_parent_enfants[v])>1] # cela ne sert à rien de calculer si qu'une variable, aucun gain de colonnes
     enfants_tot = list()
     for var in variables_to_compute:
@@ -101,9 +123,8 @@ def liens_variables():
         assert enfant.startswith("f7")
         ref = {'duflot_pinel_denormandie_metropole', 'duflot_pinel_denormandie_om'}
         assert set(dictionnaire_enfant_parents[enfant]).issubset(ref), f"{enfant}"
-    enfants_tot = enfants_tot + dictionnaire_parent_enfants['duflot_pinel_denormandie_metropole'] 
+    enfants_tot = enfants_tot + dictionnaire_parent_enfants['duflot_pinel_denormandie_metropole']
     enfants_tot = enfants_tot + dictionnaire_parent_enfants['duflot_pinel_denormandie_om']
     variables_to_compute += ['duflot_pinel_denormandie_metropole', 'duflot_pinel_denormandie_om']
 
     return variables_to_compute, enfants_tot, dictionnaire_enfant_parents, dictionnaire_parent_enfants
-    

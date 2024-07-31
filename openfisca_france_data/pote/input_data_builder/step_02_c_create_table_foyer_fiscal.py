@@ -1,17 +1,11 @@
-
-
-print("Importing modules...")
-import collections
 import os
 import pandas as pd
 from os.path import exists
-from openfisca_survey_manager.tables import Table
 from openfisca_survey_manager.survey_collections import SurveyCollection
 import pyarrow.parquet as pq
 import pyarrow as pa
 import gc
 import tracemalloc
-from openfisca_france_data.pote.input_data_builder.analyse_variables import liens_variables
 
 tracemalloc.start()
 
@@ -42,7 +36,7 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
     variables_a_enlever = []
     for var in variables_to_compute:
         variables_a_enlever += dictionnaire_parent_enfants[var]
-    
+
     columns_demi_part = {"zl":None, "zn":None, "zp":None, "zf":None, "zw":None, "zs":None, "zg":None,"zt":None,"zr":None,"zz":None,"iddep":None} # "dadokz":None,
     variables_foyer_fiscal.update(columns_demi_part)
     final_parquet_files = list()
@@ -111,4 +105,3 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
     collection_json_path = os.path.join(collections_directory, "pote.json")
     survey_collection.dump(json_file_path=collection_json_path)
 
-    # shutil.rmtree(tmp_directory)
