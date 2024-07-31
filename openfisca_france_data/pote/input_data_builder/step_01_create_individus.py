@@ -1,10 +1,13 @@
 import pandas as pd
 from os.path import exists
+import os
 from pyarrow.parquet import ParquetFile
 import pyarrow as pa
 import numpy as np
+# from openfisca_survey_manager.input_dataframe_generator import set_table_in_survey
 from openfisca_survey_manager.surveys import Survey
 import logging
+from openfisca_survey_manager.survey_collections import SurveyCollection
 
 def build_individus(year, chunk_size, variables_individu,config_files_directory, raw_data_directory, output_path, errors_path, nrange):
     '''
@@ -26,11 +29,13 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
     #p = nb petits enfants rattachés alternance
     #dnpa4c : annnees de naissances de tous les pacs (y compris les majeurs par ex)
 
+
     columns_iter = dict()
     for col in columns:
         pf = ParquetFile(f"{raw_data_directory}pote_{col}.parquet")
         columns_iter[col] = pf.iter_batches(batch_size = chunk_size)
 
+    # récupération des colonnes de POTE qui sont dans les cerfa d'openfisca france
     columns_revenus_iter = dict()
     for openfisca_var, cerfa in variables_individu.items():
         for c in cerfa:
@@ -51,6 +56,8 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
                "n":list(),
                "r":list()}
     incoherence_revenus = list()
+
+    # script par batch par limite de la capacité sur le CASD
     for i in range(nrange):
         print(f"Etape 1 : début du round {i} sur {nrange}")
         df = pd.DataFrame()
@@ -60,7 +67,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
             df[col] = df_col
 
      # 1) création des individus déclarants et conjoint si existant
-        df["foyer_fiscal_id"] = range(len(df))
+        df["foyer_fiscal_id"] = [j + i * chunk_size for j in range(len(df))]
         df_indiv = df[["foyer_fiscal_id","mat","aged",'agec']]
         ## tests
         mat_na = mat_na + list(df_indiv.loc[df_indiv['mat'].isna()].foyer_fiscal_id)
@@ -119,6 +126,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
 
         df_indiv = pd.concat([df_indiv,df_pac])
 
+    # 3) récupération des variables de revenus individuels pour les individus identifiés dans l'étape précédente
         revenus_individu = pd.DataFrame()
         for openfisca_var, cerfa in variables_individu.items():
             table_temp = pd.DataFrame()
@@ -131,7 +139,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
                     table_temp[str(rang)] = df_col.fillna(0)
                     value_vars += str(rang)
                     rang +=1
-            table_temp["foyer_fiscal_id"] = range(len(table_temp))
+            table_temp["foyer_fiscal_id"] = [j + i * chunk_size for j in range(len(df))]
             table_temp =  pd.melt(table_temp, id_vars=["foyer_fiscal_id"], value_vars=value_vars, var_name="rang", value_name=openfisca_var)
             if len(revenus_individu) == 0:
                 revenus_individu = table_temp
@@ -168,32 +176,29 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
 
         revenus_individu.to_parquet(f"{output_path}individu/individu_{i}.parquet")
 
-        survey = Survey(
-            name =  f"pote_{year}",
-            label = None,
-            survey_collection = survey_collection,
-            parquet_file_path = output_path
-            )
-        survey.tables[f"individu_{year}"] = {
-            "source_format":"parquet",
-            "variables":revenus_individu.columns,
-            "parquet_file":f"{output_path}individu/",
-            }
-        survey_collection.surveys = [kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != f"pote-{variable_to_compute}"]
-        survey_collection.surveys.append(survey)
-        collections_directory = survey_collection.config.get('collections', 'collections_directory')
-        collection_json_path = os.path.join(collections_directory, "pote.json")
-        survey_collection.dump(json_file_path=collection_json_path)
+        if i == nrange - 1:
+            columns = revenus_individu.columns
 
-    # set_table_in_survey(
-    #     revenus_individu,
-    #     entity = "individu",
-    #     period = year,
-    #     collection = "pote",
-    #     survey_name = f"pote_{year}",
-    #     config_files_directory = config_files_directory,
-    #     source_format = "parquet"
-    # )
+    survey = Survey(
+        name =  f"pote_{year}",
+        label = None,
+        #survey_collection = survey_collection,
+        parquet_file_path = output_path
+        )
+    survey.tables[f"individu_{year}"] = {
+        "source_format":"parquet",
+        "variables":[c for c in columns],
+        "parquet_file":f"{output_path}individu/",
+        }
+
+    survey_collection = SurveyCollection.load(collection = 'pote', config_files_directory = config_files_directory)
+    survey_collection.surveys = [kept_survey for kept_survey in survey_collection.surveys if kept_survey.name != f"pote_{year}"]
+    survey_collection.surveys.append(survey)
+    collections_directory = survey_collection.config.get('collections', 'collections_directory')
+    collection_json_path = os.path.join(collections_directory, "pote.json")
+    print(collection_json_path)
+    print(survey_collection)
+    survey_collection.dump(json_file_path=collection_json_path)
 
     # errors_ids = {
     #     'mat_na':[mat_na], # un peu crade on met dans une liste pour exporter en json via pandas (donc avec meme nombre d'élements) car le paquet json par sur le casd so far

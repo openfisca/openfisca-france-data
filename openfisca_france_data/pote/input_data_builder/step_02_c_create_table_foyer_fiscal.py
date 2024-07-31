@@ -9,7 +9,7 @@ import tracemalloc
 
 tracemalloc.start()
 
-non_nul = pd.read_json("C:/Users/Public/Documents/donnees_brutes/POTE/parquet_columns/2021/columns_stats_desc.json")
+non_nul = pd.read_json("C:/Users/Public/Documents/donnees_brutes/POTE/parquet_columns/2022/columns_stats_desc.json")
 
 def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory):
     print("Etape 2 - c : Création de la table foyer fiscal d'input")
@@ -54,36 +54,37 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
                 col2 = col
                 if col == "zr":
                     col2 ="r"
-                if non_nul[col2].nombre_na < (40185996 - 10000): ## pour l'isntant on trie car on n'arrive pas à tout prendre donc on prend que si concerne au moins 10000 personnes
-                    print(f"colonne {col}")
-                    columns_list.append(openfisca_var)
+                if col2 in non_nul.columns:
+                    if non_nul[col2].nombre_na < (40748793 - 10000): ## pour l'isntant on slectionn que les variables avec un certain nombre de valeur non nulle car on n'arrive pas à tout prendre donc on prend que si concerne au moins 10000 personnes
+                        print(f"colonne {col}")
+                        columns_list.append(openfisca_var)
 
-                    if i == 0:
-                        first_col = col
-                        final_table =  pq.read_table(file_path)
-                        final_table = final_table.rename_columns([openfisca_var])
-                        final_table = final_table.append_column("foyer_fiscal_id", [[x for x in range(final_table.num_rows)]])
-                        i = 1
-                    else:
-                        table = pq.read_table(file_path)
-                        final_table = final_table.append_column(openfisca_var,table.column(0))
+                        if i == 0:
+                            first_col = col
+                            final_table =  pq.read_table(file_path)
+                            final_table = final_table.rename_columns([openfisca_var])
+                            final_table = final_table.append_column("foyer_fiscal_id", [[x for x in range(final_table.num_rows)]])
+                            i = 1
+                        else:
+                            table = pq.read_table(file_path)
+                            final_table = final_table.append_column(openfisca_var,table.column(0))
 
-                        #snapshot_avant = tracemalloc.take_snapshot()
+                            #snapshot_avant = tracemalloc.take_snapshot()
 
-                        pool = pa.default_memory_pool()
-                        pool.release_unused()
-                        print("*********")
-                        print(f"Pool bytes {pool.bytes_allocated():,} max memory {pool.max_memory():,}")
-                        i = i+1
-                        if pool.bytes_allocated() > 40_000_000_000:
-                            print("*** Saving to disk ***")
-                            final_parquet_file =  f"{output_path}foyer_fiscal/foyer_fiscal-from-{first_col}-to-{col}-{i}.parquet"
-                            pq.write_table(final_table, final_parquet_file)
-                            final_parquet_files += [final_parquet_file]
-                            del final_table, table
-                            gc.collect()
-                            i = 0
-                        print("************")
+                            pool = pa.default_memory_pool()
+                            pool.release_unused()
+                            print("*********")
+                            print(f"Pool bytes {pool.bytes_allocated():,} max memory {pool.max_memory():,}")
+                            i = i+1
+                            if pool.bytes_allocated() > 40_000_000_000:
+                                print("*** Saving to disk ***")
+                                final_parquet_file =  f"{output_path}foyer_fiscal/foyer_fiscal-from-{first_col}-to-{col}-{i}.parquet"
+                                pq.write_table(final_table, final_parquet_file)
+                                final_parquet_files += [final_parquet_file]
+                                del final_table, table
+                                gc.collect()
+                                i = 0
+                            print("************")
                 print("=======================")
     print("*** Saving to disk ***")
     final_parquet_file =  f"{output_path}foyer_fiscal/foyer_fiscal-from-{first_col}-to-{col}-{i}.parquet"
@@ -105,3 +106,4 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
     collection_json_path = os.path.join(collections_directory, "pote.json")
     survey_collection.dump(json_file_path=collection_json_path)
 
+    # shutil.rmtree(tmp_directory)

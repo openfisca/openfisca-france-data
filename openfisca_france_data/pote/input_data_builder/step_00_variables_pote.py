@@ -1,8 +1,9 @@
 from openfisca_france_data.utils import build_cerfa_fields_by_variable
 import pandas as pd
 import logging
+import glob
 
-def create_pote_openfisca_variables_list(year, errors_path, pote_colonne_file_path):
+def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
     logging.warning("Récupération des colonnes en commun entre Pote et Openfisca")
     dict_variables_cerfa_field = build_cerfa_fields_by_variable(year = year)
 
@@ -16,12 +17,13 @@ def create_pote_openfisca_variables_list(year, errors_path, pote_colonne_file_pa
 
     del doublons 
 
-    colonnes_pote_2021 = pd.read_csv(pote_colonne_file_path,sep =",",encoding = "latin_1")
-    colonnes_pote_2021 = ["f" + str.lower(c[1:]) for c in colonnes_pote_2021.NAME if str.lower(c).startswith('z')]
+    colonnes_pote = glob.glob(f"{raw_data_directory}*.parquet")
+    colonnes_pote = [col.split("\\")[-1].split("_")[1].split(".")[0] for col in colonnes_pote]
+    colonnes_pote = ["f" + str.lower(c[1:]) for c in colonnes_pote if str.lower(c).startswith('z')]
 
-    var_to_keep = list(set(colonnes_pote_2021) & set(variables_cerfa_field))
-    logging.warning(f"Parmi les {len(colonnes_pote_2021)} variables de pote, {len(var_to_keep)} ont été trouvées dans openfisca")
-    var_not_in_openfisca = [c for c in colonnes_pote_2021 if c not in variables_cerfa_field]
+    var_to_keep = list(set(colonnes_pote) & set(variables_cerfa_field))
+    logging.warning(f"Parmi les {len(colonnes_pote)} variables de pote, {len(var_to_keep)} ont été trouvées dans openfisca")
+    var_not_in_openfisca = [c for c in colonnes_pote if c not in variables_cerfa_field]
     pd.DataFrame({'liste_var': var_not_in_openfisca}).to_csv(f"{errors_path}cerfa_manquants_openfisca.csv")
 
     variables_foyer_fiscal = dict()

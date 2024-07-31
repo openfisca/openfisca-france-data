@@ -10,6 +10,10 @@ from openfisca_survey_manager.surveys import Survey
 individus_columns = ["foyer_fiscal_id","foyer_fiscal_role_index","famille_id","menage_id","famille_role_index","menage_role_index"]
 
 def create_table_foyer_fiscal_preparation(raw_data_directory, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory):
+    '''
+    Création de table de variables foyer fiscal pour réaliser des simulations intermédiaires (étape 2b) afin de réduire le nombre de colones dans les tables d'entrée
+    '''
+
     print("Etape 2 - a Préparation des tables intermédiaires foyer fiscal")
 
     tmp_output_path = os.path.join(tmp_directory,"tmp_foyer_fiscal")
