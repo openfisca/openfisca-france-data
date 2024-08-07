@@ -17,7 +17,6 @@ cache:
 stages:
   - docker
   - test
-  - pote
   - build_collection
   - build_input_data
   - diagnostics
@@ -25,6 +24,7 @@ stages:
   - run_on_all_years
   - build_input_data_all
   - aggregates_all
+  - pote
   - anaconda
 
 before_script:
@@ -140,7 +140,7 @@ build_and_test_pote:
   - cp ./.gitlab-ci/pote_openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
   - python tests/pote/create_fake_data.py -y 2022 -p /tests/pote/fake_data/raw/
   - build-pote -y 2022 -c ~/.config/openfisca-survey-manager/
-  - pytest tests/pote/test_pote_survey_scenario
+  - pytest tests/pote/test_pote_survey_scenario.py
   stage: pote
 
 check-version-and-changelog:
