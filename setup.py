@@ -37,13 +37,14 @@ setup(
             'build-erfs-fpr=openfisca_france_data.erfs_fpr.input_data_builder:main',
             'compare-erfs-fpr-input=openfisca_france_data.erfs_fpr.comparison:compare',
             'create-test-erfs-fpr=openfisca_france_data.erfs_fpr.test_case_creation:create_test',
+            'build-pote=openfisca_france_data.pote.input_data_builder.console:main',
             ],
         },
     python_requires = ">=3.9",
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
         "OpenFisca-France >=168.0.0, <169.0.0",
-        "openFisca-survey-manager >=2.0.0, <2.1.0",
+        "openFisca-survey-manager >=2.2.0, <2.3.0",
         ],
     extras_require = {
         "test": [
@@ -58,12 +59,8 @@ setup(
             "pypandoc",
             'pytest >=7.2.2, <8.0',
             "scipy >=1.2.1, <2.0.0",
-            "toolz >=0.9.0, <1.0.0",
-            ],
-        "pote": [
-            "pyarrow",
-            "shutil"
-        ]
+            "toolz >=0.9.0, <1.0.0"
+            ]
         },
     packages = find_namespace_packages(exclude = ("docs", "tests")),
     )
