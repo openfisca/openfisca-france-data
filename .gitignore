@@ -89,3 +89,6 @@ openfisca_erfs_fpr.json
 .pytest_cache/
 
 figures_directory
+
+# test python
+*.parquet

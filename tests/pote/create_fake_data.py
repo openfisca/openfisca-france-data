@@ -5,8 +5,6 @@ import pandas as pd
 import os
 import click
 
-output_path = "/home/cgl/leximpact/openfisca-france-data/tests/pote/fake_data/raw/"
-
 def create_fake_data(year = 2022, data_length = 100, output_path = output_path):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
