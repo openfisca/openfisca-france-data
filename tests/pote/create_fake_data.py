@@ -5,7 +5,11 @@ import pandas as pd
 import os
 import click
 
-def create_fake_data(year = 2022, data_length = 100, output_path = output_path):
+cwd = os.getcwd()
+
+default_output_path = os.path.join(os.path.join(cwd,"fake_data"),"raw")
+
+def create_fake_data(year = 2022, data_length = 100, output_path = default_output_path):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     # on recupere toutes les cases fiscales de l'annee de simulation
@@ -91,9 +95,8 @@ def create_fake_data(year = 2022, data_length = 100, output_path = output_path):
     type = int)
 @click.option('-l', '--length', 'data_length', default = 100, help = "data length", show_default = True,
     type = int)
-@click.option('-p', '--path', 'output_path', default = output_path, help = "output data path", show_default = True,
-    type = str)
-def main(year = 2022, data_length = 100, output_path=output_path):
+@click.option('-p', '--path', 'output_path', default=default_output_path, help = "output data path", show_default = True)
+def main(year = 2022, data_length = 100, output_path=default_output_path):
     create_fake_data(year, data_length, output_path)
 
 if __name__ == '__main__':
