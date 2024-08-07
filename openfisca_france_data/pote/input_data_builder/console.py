@@ -1,3 +1,9 @@
+import logging
+import os
+import shutil
+import pyarrow
+import click
+import datetime
 from openfisca_survey_manager.survey_collections import SurveyCollection
 from openfisca_france_data.pote.input_data_builder.step_00_variables_pote import create_pote_openfisca_variables_list
 from openfisca_france_data.pote.input_data_builder.step_01_create_individus import build_individus
@@ -5,36 +11,62 @@ from openfisca_france_data.pote.input_data_builder.step_02_a_create_table_presim
 from openfisca_france_data.pote.input_data_builder.step_02_b_simulation_credits_reductions import simulation_preparation_credits_reductions
 from openfisca_france_data.pote.input_data_builder.step_02_c_create_table_foyer_fiscal import create_table_foyer_fiscal
 from openfisca_france_data.pote.input_data_builder.analyse_variables import liens_variables
-import logging
-import os
-import shutil
+from openfisca_survey_manager import default_config_files_directory
 
-year = 2022
-chunk_size = 1000000
-nrange = 41
-config_files_directory = "C:/Users/Public/Documents/TRAVAIL/Pote_openfisca/.config/openfisca-survey-manager/"
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
+# BCO : Il ne faut pas envoyer les logs dans ""../logs" car c'est un dossier qui n'existe pas.
+# /tmp à le mérite d'exister sur OSX et Linux mais pas sous Windows. Le mieux est de ne pas utiliser de fichier,
+# et de rediriger la sortie console vers un fichier quand on en a besoin.
+fileHandler = logging.FileHandler("/tmp/build_erfs_fpr_{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
+fileHandler.setLevel(logging.DEBUG)
+log.addHandler(fileHandler)
 
-survey = SurveyCollection(name = 'raw_pote', config_files_directory = config_files_directory)
-raw_data_directory = survey.config.get('data','raw_pote')
-output_path = survey.config.get('data','output_directory')
-tmp_directory = survey.config.get('data','tmp_directory')
-#pote_colonne_file_path = survey.config.get('openfisca_france_data_pote','pote_colonne_file_path')
-errors_path = survey.config.get('openfisca_france_data_pote','errors_path') 
-logging.basicConfig(filename=f"{errors_path}builder_log.log", encoding = 'utf-8')
-# if os.path.exists(tmp_directory):
-#     shutil.rmtree(tmp_directory)
-# os.mkdir(tmp_directory)
+consoleHandler = logging.StreamHandler()
+consoleHandler.setLevel(logging.INFO)
+log.addHandler(consoleHandler)
+def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory):
 
-if not os.path.exists(os.path.join(output_path,"foyer_fiscal")):
-    os.mkdir(os.path.join(output_path,"foyer_fiscal"))
-if not os.path.exists(os.path.join(output_path,"individu")):
-    os.mkdir(os.path.join(output_path,"individu"))
+    log.info(f"Debut de la préparation de POTE {year} pour Openfisca France")
 
-variables_individu, variables_foyer_fiscal = create_pote_openfisca_variables_list(year, errors_path, raw_data_directory)
+    survey = SurveyCollection(name = 'raw_pote', config_files_directory = config_files_directory)
+    raw_data_directory = survey.config.get('data','raw_pote')
+    output_path = survey.config.get('data','output_directory')
+    tmp_directory = survey.config.get('data','tmp_directory')
+    errors_path = survey.config.get('openfisca_france_data_pote','errors_path')
+    logging.basicConfig(filename=f"{errors_path}builder_log.log", encoding = 'utf-8')
+    # if os.path.exists(tmp_directory):
+    #     shutil.rmtree(tmp_directory)
+    # os.mkdir(tmp_directory)
+    for path in [os.path.join(output_path,"foyer_fiscal"),
+                 os.path.join(output_path,"individu"),
+                 survey.config.get('collections','collections_directory'),
+                 os.path.join(tmp_directory,"tmp_foyer_fiscal"),
+                 ]:
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-variables_to_compute, enfants_tot, dictionnaire_enfant_parents, dictionnaire_parent_enfants = liens_variables(year)
+    pote_length = pyarrow.parquet.read_table(f"{raw_data_directory}pote_aged.parquet").num_rows
+    nrange = pote_length // chunk_size + 1 * (pote_length%chunk_size > 0)
 
-build_individus(year, chunk_size, variables_individu, config_files_directory, raw_data_directory, output_path, errors_path, nrange)
-create_table_foyer_fiscal_preparation(raw_data_directory, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory)
-simulation_preparation_credits_reductions(year,config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory)
-create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory)
+    variables_individu, variables_foyer_fiscal = create_pote_openfisca_variables_list(year, errors_path, raw_data_directory)
+
+    variables_to_compute, enfants_tot, dictionnaire_enfant_parents, dictionnaire_parent_enfants = liens_variables(year)
+
+    build_individus(year, chunk_size, variables_individu, config_files_directory, raw_data_directory, output_path, errors_path, nrange, log)
+    create_table_foyer_fiscal_preparation(raw_data_directory, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, log)
+    simulation_preparation_credits_reductions(year,config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, pote_length, log)
+    create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, log)
+
+    log.info(f"Fin de la préparation de POTE {year} pour Openfisca France !")
+
+@click.command()
+@click.option('-y', '--year', 'year', default = 2022, help = "POTE year")
+@click.option('-s', '--chunk_size', 'chunk_size', default = 1000000, help = "chunk size")
+@click.option('-c', '--config_files_directory', 'config_files_directory', default = default_config_files_directory, help = "config files directory")
+
+def main(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory):
+    build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory)
+
+if __name__ == '__main__':
+    main()
