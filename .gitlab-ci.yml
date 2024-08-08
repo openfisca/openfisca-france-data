@@ -21,10 +21,10 @@ stages:
   - build_input_data
   - diagnostics
   - aggregates
+  - pote
   - run_on_all_years
   - build_input_data_all
   - aggregates_all
-  - pote
   - anaconda
 
 before_script:
