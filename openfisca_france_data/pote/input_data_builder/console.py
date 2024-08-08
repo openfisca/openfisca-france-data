@@ -1,10 +1,10 @@
 import logging
 import os
-import shutil
 import pyarrow
 import click
 import datetime
 from openfisca_survey_manager.survey_collections import SurveyCollection
+from openfisca_france_data.pote.input_data_builder.before_script_pote_sas_to_parquet import pote_sas_to_parquet
 from openfisca_france_data.pote.input_data_builder.step_00_variables_pote import create_pote_openfisca_variables_list
 from openfisca_france_data.pote.input_data_builder.step_01_create_individus import build_individus
 from openfisca_france_data.pote.input_data_builder.step_02_a_create_table_presimulation import create_table_foyer_fiscal_preparation
@@ -25,7 +25,7 @@ log.addHandler(fileHandler)
 consoleHandler = logging.StreamHandler()
 consoleHandler.setLevel(logging.INFO)
 log.addHandler(consoleHandler)
-def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002):
+def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002, rebuild_from_sas = False):
     """
     Met les données POTE dans un format de données compatible avec une simulation d'openfisca france via un survey scenario (objet d'openfisca survey manager)
     - year : année de POTE utilisé
@@ -41,10 +41,7 @@ def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=d
     output_path = survey.config.get('data','output_directory') # chemin où seront enregistrées les tables finales prêtes pour la simulation
     tmp_directory = survey.config.get('data','tmp_directory')
     errors_path = survey.config.get('openfisca_france_data_pote','errors_path')
-    logging.basicConfig(filename=f"{errors_path}builder_log.log", encoding = 'utf-8')
-    # if os.path.exists(tmp_directory):
-    #     shutil.rmtree(tmp_directory)
-    # os.mkdir(tmp_directory)
+
     for path in [os.path.join(output_path,"foyer_fiscal"),
                  os.path.join(output_path,"individu"),
                  survey.config.get('collections','collections_directory'),
@@ -52,6 +49,19 @@ def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=d
                  ]:
         if not os.path.exists(path):
             os.makedirs(path)
+
+    if rebuild_from_sas:
+        log.warnings("ATTENTION Vous avez lancé le build à partir de la table sas de POTE. Cela peut prendre plusieurs jours. Si vous avez déjà la table POTE au format parquet vous pouvez passer cette étape")
+        sas_data_directory = survey.config.get('data','sas_pote')
+        chunks_data_directory = survey.config.get('data','chunks_pote')
+
+        for path in [sas_data_directory, chunks_data_directory]:
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+        pote_sas_to_parquet(year, sas_data_directory, chunks_data_directory, raw_data_directory)
+
+    logging.basicConfig(filename=f"{errors_path}builder_log.log", encoding = 'utf-8')
 
     pote_length = pyarrow.parquet.read_table(f"{raw_data_directory}pote_aged.parquet").num_rows
     nrange = pote_length // chunk_size + 1 * (pote_length%chunk_size > 0)
