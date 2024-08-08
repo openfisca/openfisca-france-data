@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.5.0 [#259](https://github.com/openfisca/openfisca-france-data/pull/259)
+
+* New features
+  - Ajout du code pour mettre POTE au format de données openfisca-survey-manager et initialisation d'un survey-scenario spécifique à POTE.
+    - `/openfisca_france_data/pote/`
+
 ### 3.4.2 [#258](https://github.com/openfisca/openfisca-france-data/pull/258)
 
 * Technical changes
