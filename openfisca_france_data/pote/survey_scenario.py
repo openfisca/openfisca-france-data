@@ -84,7 +84,7 @@ class PoteSurveyScenario(AbstractSurveyScenario):
             var_to_keep = list(set(variables_in_tax_benefit_system) & set(input_variable))
             self.used_as_input_variables = var_to_keep + var_create_in_custom_input_data_frame
         else:
-            self.used_as_input_variables = used_as_input_variables 
+            self.used_as_input_variables = used_as_input_variables
         #print("Données du scenario : \n", data)
         if init_from_data:
             self.simulations = dict()
@@ -105,22 +105,22 @@ class PoteSurveyScenario(AbstractSurveyScenario):
                 simulation_name=prefix,
                 data = self.data,
             )
-    
+
     def custom_input_data_frame(self, input_data_frame, period, entity = None):
         if self.do_custom_input_data_frame:
             if entity == 'foyer_fiscal':
             ## gestions des cases demi part supplémentaires
-                input_data_frame["caseL"] = np.where(input_data_frame.zl == "L", True, False)
-                input_data_frame["caseN"] = np.where(input_data_frame.zn == "N", True, False)
-                input_data_frame["caseP"] = np.where(input_data_frame.zp == "P", True, False)
-                input_data_frame["caseF"] = np.where(input_data_frame.zf == "F", True, False)
-                input_data_frame["caseW"] = np.where(input_data_frame.zw == "W", True, False)
-                input_data_frame["caseS"] = np.where(input_data_frame.zs == "S", True, False)
-                input_data_frame["caseG"] = np.where(input_data_frame.zg == "G", True, False)
-                input_data_frame["caseT"] = np.where(input_data_frame.zt == "T", True, False)
-                input_data_frame["nbR"] = input_data_frame.zr
-                input_data_frame["jeune_veuf"] = np.where(input_data_frame.zz == "Z", True, False) # jeune_veuf = deces du conjoint dans l'annee des revenus
-                input_data_frame["depcom_foyer"] = input_data_frame["iddep"] 
-                input_data_frame.drop(["zl", "zn", "zp", "zf", "zw", "zs", "zg","zt","zr","zz","iddep"],axis = 1, inplace = True)
+                for case in ['L', 'N', 'P', 'F', 'W', 'S', 'G', 'T']:
+                    if f"case{case}" in input_data_frame.columns:
+                        input_data_frame[f"case{case}"] = np.where(input_data_frame[f"z{case.lower()}"] == case, True, False)
+                        input_data_frame.drop([f"z{case.lower()}"], axis = 1, inplace = True)
+                if "zr" in input_data_frame.columns:
+                    input_data_frame["nbR"] = input_data_frame.zr
+                    input_data_frame.drop(["zr"],axis = 1, inplace = True)
+                if "zz" in input_data_frame.columns:
+                    input_data_frame["jeune_veuf"] = np.where(input_data_frame.zz == "Z", True, False) # jeune_veuf = deces du conjoint dans l'annee des revenus
+                    input_data_frame.drop(["zz"],axis = 1, inplace = True)
+                if "iddep" in input_data_frame.columns:
+                    input_data_frame.rename(columns = {'iddep':'depcom_foyer'},inplace = True)
 
                 input_data_frame["foyer_fiscal_id"] = range(len(input_data_frame))

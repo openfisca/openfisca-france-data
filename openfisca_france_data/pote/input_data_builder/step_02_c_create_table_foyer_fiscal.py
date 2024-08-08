@@ -2,18 +2,17 @@ import os
 import pyarrow.parquet as pq
 import pyarrow as pa
 import gc
+import pandas as pd
 import tracemalloc
 import shutil
-import logging
 from openfisca_survey_manager.survey_collections import SurveyCollection
 
 tracemalloc.start()
 
-#non_nul = pd.read_json("C:/Users/Public/Documents/donnees_brutes/POTE/parquet_columns/2022/columns_stats_desc.json")
-
-def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, log):
+def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, pote_length, taux_non_null, log):
     log.info("----- Etape 2 - c : Création de la table foyer fiscal d'input ------")
-    columns_list = ["foyer_fiscal_id"]#list()
+    non_nul = pd.read_json(os.path.join(raw_data_directory,"columns_stats_desc.json"))
+    columns_list = ["foyer_fiscal_id"]
     i = 0
     create_ids = True
     for variable_to_compute in variables_to_compute:
@@ -54,8 +53,8 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
                 col2 = col
                 if col == "zr":
                     col2 ="r"
-                if True: #col2 in non_nul.columns:
-                    if True: #non_nul[col2].nombre_na < (40748793 - 10000): ## pour l'isntant on slectionn que les variables avec un certain nombre de valeur non nulle car on n'arrive pas à tout prendre donc on prend que si concerne au moins 10000 personnes
+                if col2 in non_nul.columns:
+                    if non_nul[col2].nombre_na < (pote_length - taux_non_null): ## pour l'instant on sélectionne que les variables avec un certain nombre de valeur non nulle car on n'arrive pas à tout prendre en mémoire
                         columns_list.append(openfisca_var)
 
                         if i == 0:

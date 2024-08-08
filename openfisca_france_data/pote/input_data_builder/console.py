@@ -18,20 +18,27 @@ log.setLevel(logging.INFO)
 # BCO : Il ne faut pas envoyer les logs dans ""../logs" car c'est un dossier qui n'existe pas.
 # /tmp à le mérite d'exister sur OSX et Linux mais pas sous Windows. Le mieux est de ne pas utiliser de fichier,
 # et de rediriger la sortie console vers un fichier quand on en a besoin.
-fileHandler = logging.FileHandler("/tmp/build_erfs_fpr_{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
+fileHandler = logging.FileHandler("/tmp/build_pote_{}.log".format(datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")))
 fileHandler.setLevel(logging.DEBUG)
 log.addHandler(fileHandler)
 
 consoleHandler = logging.StreamHandler()
 consoleHandler.setLevel(logging.INFO)
 log.addHandler(consoleHandler)
-def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory):
+def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002):
+    """
+    Met les données POTE dans un format de données compatible avec une simulation d'openfisca france via un survey scenario (objet d'openfisca survey manager)
+    - year : année de POTE utilisé
+    - chunk_size : nombre de ligne par morceau de POTE lu. Lecture par bout par contrainte de mémoire sur le CASD
+    - config_files_directory : chemin du `.config/openfisca-survey-scenario`. voir dans .gitlab-ci/.gitlab-ci/pote_openfisca_survey_manager_config.ini pour un exemple
+    - taux_non_null : taux minimum de valeur non nulle dans une colonne POTE pour qu'elle soit gardée. Toutes les variables ne sont pas gardées par contrainte de mémoire
+    """
 
     log.info(f"Debut de la préparation de POTE {year} pour Openfisca France")
 
     survey = SurveyCollection(name = 'raw_pote', config_files_directory = config_files_directory)
-    raw_data_directory = survey.config.get('data','raw_pote')
-    output_path = survey.config.get('data','output_directory')
+    raw_data_directory = survey.config.get('data','raw_pote') # chemin vers la table POTE avec un fichier .parquet par colonne
+    output_path = survey.config.get('data','output_directory') # chemin où seront enregistrées les tables finales prêtes pour la simulation
     tmp_directory = survey.config.get('data','tmp_directory')
     errors_path = survey.config.get('openfisca_france_data_pote','errors_path')
     logging.basicConfig(filename=f"{errors_path}builder_log.log", encoding = 'utf-8')
@@ -53,10 +60,10 @@ def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=d
 
     variables_to_compute, enfants_tot, dictionnaire_enfant_parents, dictionnaire_parent_enfants = liens_variables(year)
 
-    build_individus(year, chunk_size, variables_individu, config_files_directory, raw_data_directory, output_path, errors_path, nrange, log)
-    create_table_foyer_fiscal_preparation(raw_data_directory, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, log)
-    simulation_preparation_credits_reductions(year,config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, pote_length, log)
-    create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, log)
+    #build_individus(year, chunk_size, variables_individu, config_files_directory, raw_data_directory, output_path, errors_path, nrange, log)
+    #create_table_foyer_fiscal_preparation(raw_data_directory, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, log)
+    #simulation_preparation_credits_reductions(year,config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, pote_length, log)
+    create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, variables_to_compute, dictionnaire_parent_enfants, tmp_directory, pote_length, taux_non_null, log)
 
     log.info(f"Fin de la préparation de POTE {year} pour Openfisca France !")
 
@@ -64,9 +71,10 @@ def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=d
 @click.option('-y', '--year', 'year', default = 2022, help = "POTE year")
 @click.option('-s', '--chunk_size', 'chunk_size', default = 1000000, help = "chunk size")
 @click.option('-c', '--config_files_directory', 'config_files_directory', default = default_config_files_directory, help = "config files directory")
+@click.option('-t', '--taux_non_null', 'taux_non_null', default = 0.0002, help = "taux minimum de valeurs non nulle dans la colonne pour la garder dans la simulation")
 
-def main(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory):
-    build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory)
+def main(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002):
+    build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory, taux_non_null=taux_non_null)
 
 if __name__ == '__main__':
     main()

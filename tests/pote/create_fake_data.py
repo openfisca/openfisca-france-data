@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 import os
 import click
+import glob
+import json
+import pyarrow.parquet as pq
+import pyarrow.compute as pc
 
 cwd = os.getcwd()
 
@@ -89,6 +93,28 @@ def create_fake_data(year = 2022, data_length = 100, output_path = default_outpu
     for c in df.columns:
         df[[c]].to_parquet(f"{output_path}/pote_{c}.parquet")
 
+    # Création d'une table de stats de nombre de valeurs non nulles
+    parquet_file = glob.glob(os.path.join(output_path, "*.parquet"))
+    dfv = pq.ParquetDataset(parquet_file)
+
+    column_names = list()
+    for col in dfv.schema:
+        column_names.append(col.name)
+
+    stats = dict()
+
+    for col in column_names:
+        print(col)
+        datas = dfv.read([col])
+        stats[col] = {
+            'nombre_na' : datas.column(col).null_count,
+            'dtype' : str(datas.column(col).type)
+        }
+        if datas.column(col).type in ("double", "integer"):
+            stats[col]['somme'] = pc.sum(datas.column(col)).as_py()
+
+    with open(f"{output_path}/columns_stats_desc.json", "w") as outfile:
+        json.dump(stats, outfile)
 
 @click.command()
 @click.option('-y', '--year', 'year', default = 2022, help = "POTE year", show_default = True,
