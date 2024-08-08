@@ -1,5 +1,4 @@
 import pandas as pd
-from tqdm import tqdm
 import json
 import gc
 import glob
@@ -21,7 +20,7 @@ def pote_sas_to_parquet(year, sas_pote_path, chunks_path, columns_path):
 
     # 1) on fait des chunks au format parquet de la table complète en SAS.
     i = 0
-    for chunk in tqdm(dfi):
+    for chunk in dfi:
         chunk.columns = [c.lower() for c in chunk.columns.to_list()]
         chunk.drop(["fip18_c"], axis=1, inplace=True)
         chunk.to_parquet(f"{chunks_path}/pote_{i}.parquet")
