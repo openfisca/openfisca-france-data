@@ -32,7 +32,7 @@ format-style:
 	autopep8 `git ls-files | grep "\.py$$"`
 
 test: clean check-syntax-errors
-	pytest --ignore=tests/erfs_fpr/integration
+	pytest --ignore=tests/erfs_fpr/integration --ignore=tests/pote/
 
 test-local: clean check-syntax-errors
 	pytest

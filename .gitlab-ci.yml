@@ -21,6 +21,7 @@ stages:
   - build_input_data
   - diagnostics
   - aggregates
+  - pote
   - run_on_all_years
   - build_input_data_all
   - aggregates_all
@@ -132,6 +133,15 @@ diagnostics:
   stage: diagnostics
   tags:
   - openfisca
+
+build_and_test_pote:
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+  - cp ./.gitlab-ci/pote_openfisca_survey_manager_config.ini ~/.config/openfisca-survey-manager/config.ini
+  - python tests/pote/create_fake_data.py -y 2022 -p /tests/pote/fake_data/raw/
+  - build-pote -y 2022 -c ~/.config/openfisca-survey-manager/
+  - pytest tests/pote/test_pote_survey_scenario.py
+  stage: pote
 
 check-version-and-changelog:
   stage: diagnostics
