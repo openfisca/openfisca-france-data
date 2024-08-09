@@ -2,7 +2,8 @@ from openfisca_france_data.felin.input_data_builder.create_variables_individuell
 from openfisca_france_data.common import (
     create_salaire_de_base,
     create_traitement_indiciaire_brut,
-    create_revenus_remplacement_bruts,
+    create_chomage_brut,
+    create_retraite_brute,
     )
 
 
@@ -47,8 +48,9 @@ def create_individu_variables_brutes(
     create_taux_csg_remplacement(individus, period, tax_benefit_system)
     created_variables.append('taux_csg_remplacement')
 
-    create_revenus_remplacement_bruts(individus, period, tax_benefit_system, revenu_type = revenu_type)
+    create_chomage_brut(individus, period, tax_benefit_system, revenu_type = revenu_type)
     created_variables.append('chomage_brut')
+    create_retraite_brute(individus, period, tax_benefit_system, revenu_type = revenu_type)
     created_variables.append('retraite_brute')
 
     return created_variables
