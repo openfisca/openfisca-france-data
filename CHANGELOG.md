@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.6.0 [#260](https://github.com/openfisca/openfisca-france-data/pull/260)
+
+* Deprecations
+  - Deprecate common.create_revenus_remplacement_bruts.
+  - La fonction est séparée en create_chomage_brut et create_retraite_brute
+
 ### 3.5.0 [#259](https://github.com/openfisca/openfisca-france-data/pull/259)
 
 * New features
