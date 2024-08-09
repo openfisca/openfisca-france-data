@@ -1,3 +1,9 @@
+"""
+Ce script converti le fichier SAS de POTE en format parquet dans deux structures distinctes : 
+- Environs 3 000 fichiers parquets qui contiennent chacun toutes les colonnes mais seulement 100 000 lignes
+- Un fichier par colonne avec toutes les lignes.
+- Un fichier Excel de statistiques descriptives des colonnes.
+"""
 import pandas as pd
 import json
 import gc
