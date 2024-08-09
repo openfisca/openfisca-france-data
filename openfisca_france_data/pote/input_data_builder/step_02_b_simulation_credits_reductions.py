@@ -19,7 +19,7 @@ def simulation_preparation_credits_reductions(year,config_files_directory, varia
         if os.path.exists(tmp_tmp_directory):
             shutil.rmtree(tmp_tmp_directory)
         os.mkdir(tmp_tmp_directory)
-        filter_size = 5000000
+        filter_size = 5_000_000
         for i in range((pote_length//filter_size) + 1):
             filter_by = [(f'foyer_fiscal_id', 'in', [j for j in range(filter_size*i,(filter_size*i) + filter_size)])]
             survey_scenario = PoteSurveyScenario(config_files_directory = config_files_directory,
