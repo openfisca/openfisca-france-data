@@ -59,7 +59,7 @@ setup(
             "pypandoc",
             'pytest >=7.2.2, <8.0',
             "scipy >=1.2.1, <2.0.0",
-            "toolz >=0.9.0, <1.0.0"
+            "toolz >=0.9.0, <1.0.0",
             ]
         },
     packages = find_namespace_packages(exclude = ("docs", "tests")),

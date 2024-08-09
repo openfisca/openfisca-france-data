@@ -32,6 +32,8 @@ def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=d
     - chunk_size : nombre de ligne par morceau de POTE lu. Lecture par bout par contrainte de mémoire sur le CASD
     - config_files_directory : chemin du `.config/openfisca-survey-scenario`. voir dans .gitlab-ci/.gitlab-ci/pote_openfisca_survey_manager_config.ini pour un exemple
     - taux_non_null : taux minimum de valeur non nulle dans une colonne POTE pour qu'elle soit gardée. Toutes les variables ne sont pas gardées par contrainte de mémoire
+
+    Les valeurs par défaut sont celles qui fonctionnent pour une machine avec 12 Go de RAM
     """
 
     log.info(f"Debut de la préparation de POTE {year} pour Openfisca France")

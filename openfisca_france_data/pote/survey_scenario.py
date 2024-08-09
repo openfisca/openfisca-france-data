@@ -85,13 +85,11 @@ class PoteSurveyScenario(AbstractSurveyScenario):
             self.used_as_input_variables = var_to_keep + var_create_in_custom_input_data_frame
         else:
             self.used_as_input_variables = used_as_input_variables
-        #print("Données du scenario : \n", data)
         if init_from_data:
             self.simulations = dict()
             self.init_from_data(
                 data=data,
                 rebuild_input_data=rebuild_input_data,
-                #config_files_directory=data["config_files_directory"]
             )
     def init_from_data(self, rebuild_input_data=False, data=None):
         if rebuild_input_data:
