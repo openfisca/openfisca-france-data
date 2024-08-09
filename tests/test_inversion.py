@@ -8,7 +8,7 @@ from openfisca_core.periods import *
 from openfisca_france import FranceTaxBenefitSystem
 
 from openfisca_france_data.felin.input_data_builder.create_variables_individuelles import create_taux_csg_remplacement
-from openfisca_france_data.common import create_revenus_remplacement_bruts
+from openfisca_france_data.common import create_chomage_brut, create_retraite_brute
 
 margin = 1
 
@@ -29,7 +29,8 @@ with open(path) as yaml:
 # Inverse incomes from net to gross : the tested functions
 
 create_taux_csg_remplacement(individus, period(year), tax_benefit_system)
-create_revenus_remplacement_bruts(individus, period(year), tax_benefit_system, revenu_type = 'net')
+create_chomage_brut(individus, period(year), tax_benefit_system, revenu_type = 'net')
+create_retraite_brute(individus, period(year), tax_benefit_system, revenu_type = 'net')
 
 # Test against chomage_brut_test
 
