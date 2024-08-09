@@ -90,5 +90,4 @@ openfisca_erfs_fpr.json
 
 figures_directory
 
-# test python
 *.parquet
