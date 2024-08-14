@@ -67,7 +67,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             'wprm',
             ]
 
-    individus = create_ids_and_roles(individus)    
+    individus = create_ids_and_roles(individus)
     individus = individus[var_individus].copy() # selectionner les colonnes
     gc.collect() # garbage collection pour libérer de la mémoire
 
@@ -201,6 +201,8 @@ def create_ids_and_roles(individus):
     assert(("lpr" in individus.columns) or ("lprm" in individus.columns))
 
     lpr = "lpr" if "lpr" in individus.columns else "lprm"
+    if "lprl" in individus.columns:
+        lpr = "lprl"
     individus.loc[individus[lpr] == 1, 'quimen'] = 0
     individus.loc[individus[lpr] == 2, 'quimen'] = 1
     individus['idfoy'] = individus['idfam'].copy()
