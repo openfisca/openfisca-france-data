@@ -91,3 +91,5 @@ openfisca_erfs_fpr.json
 figures_directory
 
 *.parquet
+
+.config/
