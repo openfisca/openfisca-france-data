@@ -28,7 +28,9 @@ for year in range(2002, 2021):
 # partir du chiffre de 2010. Les résultats pour les années après 2010 sont les
 # mêmes à un euro près. 1996-1999 ont la meeeeeême valeur que 2000.
 smic_annuel_net_by_year = {
-    2022: 4 * 1269.02 + 8 * 1302.64, # latest value as of May, assuming no change over the year to come
+    2024: 12 * 1398.70, # en attendant donnees insee banque de donnees macroeconomiques, service public en aout
+    2023: 12 * 1373.07,
+    2022: 12 * 1302.44,
     2021: 9 * 1230.6 + 3 * 1258.22,
 
     2020: 12 * 1218.6,

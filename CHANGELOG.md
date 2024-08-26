@@ -1,5 +1,9 @@
 # Changelog
 
+### 3.6.1 [#261](https://github.com/openfisca/openfisca-france-data/pull/261)
+
+* Met à jour le smic net (de manière temporaire en ce qui concerne 2024) pour l'inversion du chômage
+
 ### 3.6.0 [#260](https://github.com/openfisca/openfisca-france-data/pull/260)
 
 * Deprecations
