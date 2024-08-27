@@ -231,14 +231,14 @@ class typmen15(Variable):
         # ratio  2.7 % d'erreurs enfant non nés et erreur d'enfants
         return res
 
-def create_dic_calage(year, base_year, liste_variable, **kwargs):
+def create_dic_calage(year, base_year, liste_variable, base_initiale = None, **kwargs):
     dico_calage = dict()
     assert all(variable in ["age"] for variable in liste_variable), "A variable is asked to be calibrated, but no matching aggregate is implemented"
     if "age" in liste_variable:
-        dico_calage = create_dic_age(year, base_year, dico_calage, **kwargs)
+        dico_calage = create_dic_age(year, base_year, dico_calage, base_initiale, **kwargs)
     return dico_calage
 
-def create_dic_age(year, base_year, dico_calage, base_initiale = None):
+def create_dic_age(year, base_year, dico_calage):
     demographie_file = Path(
                 openfisca_france_data_location,
                 "openfisca_france_data",
