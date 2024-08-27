@@ -238,7 +238,7 @@ def create_dic_calage(year, base_year, liste_variable, base_initiale = None, **k
         dico_calage = create_dic_age(year, base_year, dico_calage, base_initiale, **kwargs)
     return dico_calage
 
-def create_dic_age(year, base_year, dico_calage):
+def create_dic_age(year, base_year, dico_calage, base_initiale):
     demographie_file = Path(
                 openfisca_france_data_location,
                 "openfisca_france_data",
