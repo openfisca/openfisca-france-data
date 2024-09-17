@@ -5,7 +5,7 @@ import pytest
 from openfisca_survey_manager.calibration import Calibration  # type: ignore
 from openfisca_france_data import openfisca_france_data_location
 from openfisca_france_data.model.calage import create_dic_calage
-from openfisca_france_data.reforms.variables_calibration import create_calibration_tax_benefit_system
+from openfisca_france_data.reforms.variables_calibration import scenario_for_calibration
 from openfisca_france_data.erfs_fpr.scenario import (  # type: ignore
     ErfsFprSurveyScenario,
     )
@@ -19,7 +19,7 @@ def location() -> str:
 def test_calage(survey_scenario, fake_input_data, location, year: int = 2015):
     # On ititialise le survey scenario
     survey_scenario2 = ErfsFprSurveyScenario.create(
-    tax_benefit_system = create_calibration_tax_benefit_system(france_data_tax_benefit_system),
+    tax_benefit_system = scenario_for_calibration,
     period = year,
     )
     survey_scenario = survey_scenario2
