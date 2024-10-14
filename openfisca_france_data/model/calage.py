@@ -1,9 +1,12 @@
-from itertools import izip
+#from itertools import izip
 
 from numpy import arange, array, floor, where
+from numpy import minimum as min_
+import pandas as pd
+from pathlib import Path
 
 from openfisca_france_data.model.base import *  # noqa
-
+from openfisca_france_data import openfisca_france_data_location
 
 class nbinde(Variable):
     value_type = int
@@ -227,3 +230,43 @@ class typmen15(Variable):
         # ratio = (( (typmen15!=res)).sum())/((typmen15!=0).sum())
         # ratio  2.7 % d'erreurs enfant non nés et erreur d'enfants
         return res
+
+def create_dic_calage(year, base_year, liste_variable, base_initiale = None, **kwargs):
+    dico_calage = dict()
+    assert all(variable in ["age"] for variable in liste_variable), "A variable is asked to be calibrated, but no matching aggregate is implemented"
+    if "age" in liste_variable:
+        dico_calage = create_dic_age(year, base_year, dico_calage, base_initiale, **kwargs)
+    return dico_calage
+
+def create_dic_age(year, base_year, dico_calage, base_initiale):
+    demographie_file = Path(
+                openfisca_france_data_location,
+                "openfisca_france_data",
+                "assets",
+                "aggregats",
+                "demographie",
+                "demographie_insee.csv"
+                )
+    df_demographie = pd.read_csv(demographie_file, skipfooter = 9, skiprows = 1, encoding_errors = 'replace', sep = ';', thousands = ".")
+    df_demographie["age_calage"] = df_demographie[df_demographie.columns[0]].astype(int) # On passe par columns à cause du Â
+    for annee in range(base_year, year + 1): # On limite à 100 l'age max, pour éviter l'absence de données
+        df_demographie.loc[df_demographie["age_calage"] == 100, str(annee)] = sum(df_demographie[df_demographie["age_calage"] >= 100][str(annee)])
+    df_demographie = df_demographie[df_demographie["age_calage"] <= 100]
+    if base_initiale is None:
+        dic_age = pd.Series(df_demographie[str(year)].values, index = df_demographie["age_calage"]).to_dict()
+        dico_calage["age_calage"] = dic_age
+        return dico_calage
+
+    df_demographie["variation_totale"] = df_demographie[str(year)] / df_demographie[str(base_year)]
+
+    base_initiale["age_calage"] = base_initiale["age_calage"].astype(int)
+    base_initiale.loc[base_initiale["age_calage"] == 100, "N"] = sum(base_initiale[base_initiale["age_calage"] >= 100]["N"])
+    base_initiale = base_initiale[base_initiale["age_calage"] <= 100]
+
+    cible_finale = pd.merge(df_demographie, base_initiale, on = ("age_calage"), how = "inner")
+    cible_finale["cible"] = round(cible_finale["N"] * cible_finale["variation_totale"])
+    dic_age = pd.Series(cible_finale["cible"].values, index = cible_finale["age_calage"]).to_dict()
+    dico_calage["age_calage"] = dic_age
+    return dico_calage
+
+

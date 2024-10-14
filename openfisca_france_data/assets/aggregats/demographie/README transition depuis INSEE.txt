@@ -1,0 +1,2 @@
+Le tableur est issu de https://www.insee.fr/fr/statistiques/5894083?sommaire=5760764 , onglet population. 
+Quelques changements ont été faits pour mieux le parser : conversion en csv, séparateur des milliers mis à "." plutôt qu'à " " (dans Fichier/Options/Options avancées/Utiliser les séparateurs systèmes/Séparateur des milliers), 105 + changé en 105. 
