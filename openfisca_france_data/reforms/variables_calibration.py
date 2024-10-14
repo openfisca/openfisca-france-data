@@ -36,11 +36,11 @@ class variables_pour_calibration(Reform):
             definition_period = YEAR
 
             def formula(individu, period):
-                if france_data_tax_benefit_system.variables["weight_familles"].is_input_variable():
+                if france_data_tax_benefit_system.variables["weight_familles"].unit == "base_weight":
                     return(individu.famille('weight_familles', period))
-                elif france_data_tax_benefit_system.variables["weight_foyers"].is_input_variable():
+                elif france_data_tax_benefit_system.variables["weight_foyers"].unit == "base_weight":
                     return(individu.foyer_fiscal('weight_foyers', period))
-                elif france_data_tax_benefit_system.variables["weight_menages"].is_input_variable():
+                elif france_data_tax_benefit_system.variables["weight_menages"].unit == "base_weight":
                     return(individu.menage('weight_menages', period))
                 return individu.menage('wprm', period)
 
