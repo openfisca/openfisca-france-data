@@ -1,5 +1,12 @@
 # Changelog
 
+### 3.7.0 [#263](https://github.com/openfisca/openfisca-france-data/pull/263)
+
+* Adapte le code pour pouvoir utiliser l'ERFS-FPR 2021
+* Chemins impactés : 
+  - `openfisca_france_data/erfs_fpr/input_data_builder/`
+  - `openfisca_france_data/erfs/input_data_builder/`
+
 ### 3.6.2 [#264](https://github.com/openfisca/openfisca-france-data/pull/264)
 
 * Technical changes
