@@ -16,7 +16,7 @@ def build_foyer(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
     if year >= 2021:
-        statut = 'ETAMATRI_Y_comp'
+        statut = 'etamatri_y_comp'
     else:
         statut = 'matri'
     individus = temporary_store['individus_{}'.format(year)]
