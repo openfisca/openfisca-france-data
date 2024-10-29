@@ -290,7 +290,7 @@ def famille_2(base, year = None):
 
     # On adopte une approche non genrée
     couple = subset_base(base, famille)
-    cohab = 'cohab' if year < 2013 else ('coupl_log' if year > 2020 else 'coured') # coupl_men remplace coured
+    cohab = 'cohab' if year < 2013 else ('coupl_men' if year > 2020 else 'coured') # coupl_men remplace coured
     couple = couple[(couple[cohab] == 1) & (couple[lpr] >= 3)].copy()
     # l'identifiant famille est lié au noi de le plus bas
     couple['noifam'] = np.minimum(
