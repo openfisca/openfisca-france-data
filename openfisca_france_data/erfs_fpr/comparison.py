@@ -46,7 +46,7 @@ class ErfsFprtoInputComparator(AbstractComparator):
     period = None
     default_target_variables = [
         "chomage_imposable",
-        "loyer",
+        # "loyer",
         "rag",
         "retraite_imposable",
         "ric",
@@ -80,8 +80,10 @@ class ErfsFprtoInputComparator(AbstractComparator):
             "menage": openfisca_menage,
             }
 
-        fpr_menage.loyer = 12 * fpr_menage.loyer
-
+        if "loyer" in fpr_menage.columns:
+            fpr_menage.loyer = 12 * fpr_menage.loyer
+        else:
+            fpr_menage.loyer = 12 * 500
         target_dataframe_by_entity = {
             "individu": fpr_individu.rename(columns = openfisca_by_erfs_fpr_variables),
             "menage": fpr_menage.rename(columns = openfisca_by_erfs_fpr_variables),

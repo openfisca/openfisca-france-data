@@ -495,8 +495,8 @@ class AbstractComparator(object):
 
             entity = tax_benefit_system.variables[variable].entity.key
             target_dataframe = target_dataframe_by_entity[entity]
-            print(  target_dataframe.columns)
-            assert variable in target_dataframe
+
+            assert variable in target_dataframe, f"{variable} is not in the target dataframe columns : {target_dataframe.columns}"
             log.debug(f"Testing final only variable: {variable}")
             result, stats = compute_result(
                 variable,

@@ -119,9 +119,10 @@ diagnostics:
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - input_data-2019
+  - input_data-2021
   script:
-  - echo "diagnotics-2019"
-  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
+  - echo "diagnotics-2021"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
     ~/.config/openfisca-survey-manager/config.ini
   - mkdir -p ~/.config/openfisca-france-data
   - cp ./.gitlab-ci/openfisca_france_data_config.ini
@@ -149,6 +150,7 @@ check-version-and-changelog:
   - ''
   needs:
   - input_data-2019
+  - input_data-2021
   script:
   - .gitlab-ci/is-version-number-acceptable.sh
 
