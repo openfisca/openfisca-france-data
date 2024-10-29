@@ -15,7 +15,10 @@ log = logging.getLogger(__name__)
 def build_foyer(temporary_store = None, year = None):
     assert temporary_store is not None
     assert year is not None
-
+    if year >= 2021:
+        statut = 'ETAMATRI_Y_comp'
+    else:
+        statut = 'matri'
     individus = temporary_store['individus_{}'.format(year)]
 
 
@@ -25,8 +28,8 @@ def build_foyer(temporary_store = None, year = None):
     celibataires = individus[~individus['idfam'].isin(id_couples)]
     couples = individus[individus['idfam'].isin(id_couples)]
 
-    decls = pd.merge(couples[couples.quifam == 0][['idfam','ETAMATRI_Y_comp']].rename(columns={'ETAMATRI_Y_comp':'statut_decl1'}),
-                 couples[couples.quifam == 1][['idfam','ETAMATRI_Y_comp']].rename(columns={'ETAMATRI_Y_comp':'statut_decl2'}),
+    decls = pd.merge(couples[couples.quifam == 0][['idfam',statut]].rename(columns={statut:'statut_decl1'}),
+                 couples[couples.quifam == 1][['idfam',statut]].rename(columns={statut:'statut_decl2'}),
                  on = 'idfam',
                  how = "inner"
                  )
