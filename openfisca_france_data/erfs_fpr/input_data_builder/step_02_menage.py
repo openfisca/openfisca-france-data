@@ -24,6 +24,7 @@ def build_variables_menage(temporary_store = None, year = None):
 
     if year >= 2019:  # SO ne fonctionne pas en 2019 bcp de 0 = non-renseigné, logT présent en 2021
         menages['statut_occupation_logement'] = menages['logt'].copy()
+        menages.loc[(menages.statut_occupation_logement == 9), 'statut_occupation_logement'] = 4 # il y a une valeur manquante on la met locataure 
 
     if year >= 2018 and year < 2021:
         menages['zone_apl'] = 3
@@ -41,7 +42,7 @@ def build_variables_menage(temporary_store = None, year = None):
         menages['zone_apl'] = 3
         menages.loc[menages['tuu2020'] == 8,'zone_apl'] = 1 #Commune appartenant à l'aire urbaine de Paris
         menages.loc[menages['tuu2020'] == 7,'zone_apl'] = 2 #Commune appartenant à une aire urbaine de 200 000 à 9 999 999 habitants (attention pas de tranche commençant à 500 000)
-        menages.loc[(menages.statut_occupation_logement == 6), 'statut_occupation_logement'] = 2
+        menages.loc[(menages.statut_occupation_logement == 7), 'statut_occupation_logement'] = 2
         menages['logement_conventionne'] = False
         menages.loc[menages['statut_occupation_logement'] == 3 ,'logement_conventionne'] = True
         temporary_store['menages_{}'.format(year)] = menages
