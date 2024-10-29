@@ -1387,7 +1387,7 @@ def create_statut_matrimonial(individus, year):
         individus.loc[individus[matri] == 3, 'statut_marital'] = 4  # veuf(ve)
         individus.loc[individus[matri] == 4, 'statut_marital'] = 3  # divorcé(e)
     else:
-        individus['statut_marital'] = 2  # célibataire par défaut
+        individus['statut_marital'] = 2  # célibataire par défaut ATTENTION IL Y A BCP DE VALEURS MANQUANTES
         individus.loc[individus[matri] == 1, 'statut_marital'] = 1  # marié(e)
         individus.loc[individus[matri] == 4, 'statut_marital'] = 4  # veuf(ve)
         individus.loc[individus[matri] == 5, 'statut_marital'] = 3  # divorcé(e)

@@ -205,8 +205,6 @@ def create_ids_and_roles(individus):
         lpr = "lprl"
     individus.loc[individus[lpr] == 1, 'quimen'] = 0
     individus.loc[individus[lpr] == 2, 'quimen'] = 1
-    individus['idfoy'] = individus['idfam'].copy()
-    individus['quifoy'] = individus['quifam'].copy()
     return individus
 
 
