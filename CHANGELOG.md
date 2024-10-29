@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.6.2 [#264](https://github.com/openfisca/openfisca-france-data/pull/264)
+
+* Technical changes
+- Met à jour les dépendances à openfisca-france et openfisca-survey-manager
+
 ### 3.6.1 [#261](https://github.com/openfisca/openfisca-france-data/pull/261)
 
 * Met à jour le smic net (de manière temporaire en ce qui concerne 2024) pour l'inversion du chômage
