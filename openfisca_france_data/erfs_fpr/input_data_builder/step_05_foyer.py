@@ -57,9 +57,9 @@ def build_foyer(temporary_store = None, year = None):
     individus['idfoy'] = np.where(individus.noindiv.isin(tag),individus.idfoy +len(individus),individus.idfoy)
     individus['quifoy'] = np.where(individus.noindiv.isin(tag),0,individus.quifoy)
 
-    ids = individus[['idmen','idfam','idfoy']].drop_duplicates().sort_values(by =['idmen','idfam','idfoy'])
+    ids = individus[['idfam','idfoy']].drop_duplicates().sort_values(by =['idfam','idfoy'])
     ids['new_ifoy'] = range(len(ids))
-    individus = pd.merge(individus,ids,on = ['idmen','idfam','idfoy'], how = 'inner')
+    individus = pd.merge(individus,ids,on = ['idfam','idfoy'], how = 'inner')
 
     individus.drop('idfoy',axis = 1,inplace = True)
     individus.rename(columns = {'new_idfoy':"idfoy"},inplace = True)
