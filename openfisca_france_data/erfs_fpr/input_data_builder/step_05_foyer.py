@@ -45,8 +45,8 @@ def build_foyer(temporary_store = None, year = None):
     couples = pd.merge(couples,decls[['idfam',"statut_decl1"]],on = 'idfam', how = 'inner')
     assert len(couples[couples.quifam.isin([0])]) == len(decls)
     
-    couples_concubinage = couples[couples['statut_decl1'.isin([3,4,5,6,7,8])]]
-    couples_maries = couples[~couples['statut_decl1'.isin([3,4,5,6,7,8])]] ## les couples avec de la non réponses sur le statut marital sont mis en mariés
+    couples_concubinage = couples[couples['statut_decl1'].isin([3,4,5,6,7,8])]
+    couples_maries = couples[~couples['statut_decl1'].isin([3,4,5,6,7,8])] ## les couples avec de la non réponses sur le statut marital sont mis en mariés
 
     couples_concubinage['idfoy'] = np.where(couples_concubinage.quifam == 1,couples_concubinage.idfoy + len(individus),couples_concubinage.idfoy)
     couples_concubinage['quifoy'] = np.where(couples_concubinage.quifam == 1,0,couples_concubinage.quifam)
