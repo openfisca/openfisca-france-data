@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 
 from openfisca_survey_manager.temporary import temporary_store_decorator  # type: ignore
-from openfisca_france_data.utils import assert_dtype
-from openfisca_france_data.smic import smic_horaire_brut
 
 
 log = logging.getLogger(__name__)
@@ -62,7 +60,9 @@ def build_foyer(temporary_store = None, year = None):
     individus = pd.merge(individus,ids,on = ['idfam','idfoy'], how = 'inner')
 
     individus.drop('idfoy',axis = 1,inplace = True)
-    individus.rename(columns = {'new_idfoy':"idfoy"},inplace = True)
+    individus.rename(columns = {'new_idfoy':'idfoy'},inplace = True, errors="raise")
+
+    assert 'idfoy' in individus.columns 
 
     temporary_store['individus_{}'.format(year)] = individus
 
