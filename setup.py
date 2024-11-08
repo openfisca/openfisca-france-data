@@ -44,7 +44,7 @@ setup(
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
         "OpenFisca-France >=169.0.0, <170.0.0",
-        "openFisca-survey-manager >=2.2.0, <2.3.0",
+        "openFisca-survey-manager >=2.3.0, <2.4.0",
         ],
     extras_require = {
         "test": [
