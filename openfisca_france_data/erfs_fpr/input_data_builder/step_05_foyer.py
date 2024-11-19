@@ -68,6 +68,3 @@ def build_foyer(temporary_store = None, year = None):
 
     temporary_store['individus_{}'.format(year)] = individus
 
-
-
-
