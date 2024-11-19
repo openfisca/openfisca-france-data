@@ -328,10 +328,12 @@ def famille_2(base, year = None):
 def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
 
     # nom de la colonne du lien avec la personne de référence selon le millésime
-    if year < 2013:
-        lpr = "lpr"
-    else:
+    if year >= 2021: 
+        lpr = "lprl"
+    elif year >= 2013:
         lpr = "lprm"
+    else:
+        lpr = "lpr"
 
     assert base is not None
     assert famille is not None
@@ -347,7 +349,7 @@ def famille_3(base = None, famille = None, kind = 'erfs_fpr', year = None):
     log.info(" [3.1] personnes seules de catégorie 1")
 
     seul1 = base[~(base.noindiv.isin(famille.noindiv.values))].copy()
-    cohab = 'cohab' if year < 2013 else ('coupl_men' if year > 2020 else 'coured') # coupl_men remplace coured
+    cohab = 'cohab' if year < 2013 else ('coupl_log' if year > 2020 else 'coured') # coupl_log remplace coured
 
     seul1 = seul1[
         (seul1[lpr].isin([3, 4,5,6])) & ((seul1.jeune_non_eligible_rsa & seul1.smic55) | seul1.jeune_eligible_rsa) & (seul1[cohab] == 1) &
