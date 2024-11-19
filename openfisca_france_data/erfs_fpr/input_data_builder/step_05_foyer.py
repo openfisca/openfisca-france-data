@@ -33,12 +33,15 @@ def build_foyer(temporary_store = None, year = None):
         how = "inner"
         )
 
-    decls['statut_decl1'] = np.where((decls.statut_decl1 != decls.statut_decl2),
-                                    np.where(decls.statut_decl1.isin([1,2]) | decls.statut_decl2.isin([1,2]),
-                                             1,
-                                             8
-                                             ),
-                                    decls.statut_decl1)
+    decls['statut_decl1'] = np.where(
+        (decls.statut_decl1 != decls.statut_decl2),
+        np.where(
+            decls.statut_decl1.isin([1,2]) | decls.statut_decl2.isin([1,2]),
+            1,
+            8
+            ),
+        decls.statut_decl1
+        )
 
     assert len(couples[couples.quifam.isin([0])]) == len(decls)
     couples = pd.merge(couples,decls[['idfam',"statut_decl1"]],on = 'idfam', how = 'inner')
