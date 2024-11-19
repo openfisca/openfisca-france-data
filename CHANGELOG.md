@@ -1,5 +1,12 @@
 # Changelog
 
+### 3.7.1 [#266](https://github.com/openfisca/openfisca-france-data/pull/266)
+
+* New features
+- Ajoute une étape de création des foyers fiscaux dans le builder de l'erfs fpr
+  - Les foyers fiscaux étaient égaux aux familles. Or les couples en concubinages sont dans la même famille mais dans deux foyers fiscaux séparés. C'est pour prendre en compte cette différence qu'une nouvelle étape a été créée.
+  - Chemins impactés : ` openfisca_france_data/erfs_fpr/input_data_builder`)
+
 ### 3.7.0 [#263](https://github.com/openfisca/openfisca-france-data/pull/263)
 
 * Adapte le code pour pouvoir utiliser l'ERFS-FPR 2021
