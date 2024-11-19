@@ -26,11 +26,12 @@ def build_foyer(temporary_store = None, year = None):
     celibataires = individus[~individus['idfam'].isin(id_couples)]
     couples = individus[individus['idfam'].isin(id_couples)]
 
-    decls = pd.merge(couples[couples.quifam == 0][['idfam',statut]].rename(columns={statut:'statut_decl1'}),
-                 couples[couples.quifam == 1][['idfam',statut]].rename(columns={statut:'statut_decl2'}),
-                 on = 'idfam',
-                 how = "inner"
-                 )
+    decls = pd.merge(
+        couples[couples.quifam == 0][['idfam',statut]].rename(columns={statut:'statut_decl1'}),
+        couples[couples.quifam == 1][['idfam',statut]].rename(columns={statut:'statut_decl2'}),
+        on = 'idfam',
+        how = "inner"
+        )
 
     decls['statut_decl1'] = np.where((decls.statut_decl1 != decls.statut_decl2),
                                     np.where(decls.statut_decl1.isin([1,2]) | decls.statut_decl2.isin([1,2]),
