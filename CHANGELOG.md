@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.2 [#265](https://github.com/openfisca/openfisca-france-data/pull/265)
+
+* Technical changes : 
+  - Update the version of openfisca_survey_manager in dependencies
+
 ### 3.7.1 [#266](https://github.com/openfisca/openfisca-france-data/pull/266)
 
 * New features
