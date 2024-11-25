@@ -250,10 +250,10 @@ jobs:
             return commits.at(-2).id;
           result-encoding: string
       # Default Download artifact don't see artifact of other workflow
-      # So we use dawidd6/action-download-artifact@v2 to do it.
+      # So we use dawidd6/action-download-artifact@v6 to do it.
       - name: Download artifact
         id: download-artifact
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow_conclusion: success
           commit: ${{steps.last_pr_commit.outputs.result}}
