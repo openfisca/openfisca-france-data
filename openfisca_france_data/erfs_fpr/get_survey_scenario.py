@@ -10,7 +10,7 @@ from openfisca_france.entities import Individu, FoyerFiscal, Menage
 from openfisca_france_data.erfs_fpr.scenario import ErfsFprSurveyScenario
 from openfisca_france_data import france_data_tax_benefit_system
 
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 
 from openfisca_france_data.model.id_variables import (
     idmen_original,

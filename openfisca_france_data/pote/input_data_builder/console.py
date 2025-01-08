@@ -11,7 +11,7 @@ from openfisca_france_data.pote.input_data_builder.step_02_a_create_table_presim
 from openfisca_france_data.pote.input_data_builder.step_02_b_simulation_credits_reductions import simulation_preparation_credits_reductions
 from openfisca_france_data.pote.input_data_builder.step_02_c_create_table_foyer_fiscal import create_table_foyer_fiscal
 from openfisca_france_data.pote.input_data_builder.analyse_variables import liens_variables
-from openfisca_survey_manager import default_config_files_directory
+from openfisca_survey_manager.paths import default_config_files_directory
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
