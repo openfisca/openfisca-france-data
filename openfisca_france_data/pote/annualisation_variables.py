@@ -59,7 +59,7 @@ class chomage_imposable(Variable):
 #     "revenus_capitaux_prelevement_forfaitaire_unique_ir"
 # )
 formula_revenus_capitaux_pfu = (
-    revenus_capitaux_prelevement_forfaitaire_unique_ir.get_formula("2021-01-01")
+    revenus_capitaux_prelevement_forfaitaire_unique_ir.get_formula(period="2021-01-01")
 )
 
 class revenus_capitaux_prelevement_forfaitaire_unique_ir(Variable):
