@@ -5,9 +5,10 @@ from openfisca_france.model.base import (
     Variable,
     Reform
 )
-from openfisca_france.model.prelevements_obligatoires.impot_revenu.prelevements_forfaitaires.ir_prelevement_forfaitaire_unique import revenus_capitaux_prelevement_forfaitaire_unique_ir
+from openfisca_france. import FranceTaxBenefitSystem
 from numpy import maximum as max_
 
+baseline_tax_benefit = FranceTaxBenefitSystem()
 
 class salaire_imposable(Variable):
     value_type = float
@@ -55,11 +56,11 @@ class chomage_imposable(Variable):
     definition_period = YEAR
 
 
-# baseline_revenus_capitaux_pfu = self.baseline.get_variable(
-#     "revenus_capitaux_prelevement_forfaitaire_unique_ir"
-# )
+baseline_revenus_capitaux_pfu = baseline_tax_benefit.get_variable(
+    "revenus_capitaux_prelevement_forfaitaire_unique_ir"
+)
 formula_revenus_capitaux_pfu = (
-    revenus_capitaux_prelevement_forfaitaire_unique_ir.get_formula(period="2021-01-01")
+    baseline_revenus_capitaux_pfu.get_formula("2021-01-01")
 )
 
 class revenus_capitaux_prelevement_forfaitaire_unique_ir(Variable):
