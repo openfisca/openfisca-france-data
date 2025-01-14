@@ -73,39 +73,39 @@ class revenus_capitaux_prelevement_forfaitaire_unique_ir(Variable):
         return formula_revenus_capitaux_pfu(foyer_fiscal, period.first_month, parameters) * 12
 
 
-# baseline_revenus_capitaux_prelevement_bareme = self.baseline.get_variable(
-#     "revenus_capitaux_prelevement_bareme"
-# )
-# formula_revenus_capitaux_prelevement_bareme = (
-#     baseline_revenus_capitaux_prelevement_bareme.get_formula("2021-01-01")
-# )
+baseline_revenus_capitaux_prelevement_bareme = baseline_tax_benefit.get_variable(
+    "revenus_capitaux_prelevement_bareme"
+)
+formula_revenus_capitaux_prelevement_bareme = (
+    baseline_revenus_capitaux_prelevement_bareme.get_formula("2021-01-01")
+)
 
-# class revenus_capitaux_prelevement_bareme(Variable):
-#     value_type = float
-#     entity = FoyerFiscal
-#     label = 'Revenus du capital imposés au barème (montants bruts)'
-#     reference = 'http://bofip.impots.gouv.fr/bofip/3775-PGP'
-#     definition_period = YEAR
+class revenus_capitaux_prelevement_bareme(Variable):
+    value_type = float
+    entity = FoyerFiscal
+    label = 'Revenus du capital imposés au barème (montants bruts)'
+    reference = 'http://bofip.impots.gouv.fr/bofip/3775-PGP'
+    definition_period = YEAR
 
-#     def formula_2021_01_01(foyer_fiscal, period, parameters):
-#         return revenus_capitaux_prelevement_forfaitaire_unique_ir.formula_2021_01_01(foyer_fiscal, period.first_month, parameters) * 12
+    def formula_2021_01_01(foyer_fiscal, period, parameters):
+        return revenus_capitaux_prelevement_forfaitaire_unique_ir.formula_2021_01_01(foyer_fiscal, period.first_month, parameters) * 12
 
-# baseline_revenus_capitaux_prelevement_liberatoire = self.baseline.get_variable(
-#     "revenus_capitaux_prelevement_liberatoire"
-# )
-# formula_revenus_capitaux_prelevement_liberatoire = (
-#     baseline_revenus_capitaux_prelevement_liberatoire.get_formula("2021-01-01")
-# )
+baseline_revenus_capitaux_prelevement_liberatoire = baseline_tax_benefit.get_variable(
+    "revenus_capitaux_prelevement_liberatoire"
+)
+formula_revenus_capitaux_prelevement_liberatoire = (
+    baseline_revenus_capitaux_prelevement_liberatoire.get_formula("2021-01-01")
+)
 
-# class revenus_capitaux_prelevement_liberatoire(Variable):
-#     value_type = float
-#     entity = FoyerFiscal
-#     label = 'Revenu du capital imposé au prélèvement libératoire (montants bruts)'
-#     reference = 'http://bofip.impots.gouv.fr/bofip/3817-PGP'
-#     definition_period = YEAR
+class revenus_capitaux_prelevement_liberatoire(Variable):
+    value_type = float
+    entity = FoyerFiscal
+    label = 'Revenu du capital imposé au prélèvement libératoire (montants bruts)'
+    reference = 'http://bofip.impots.gouv.fr/bofip/3817-PGP'
+    definition_period = YEAR
 
-#     def formula_2021_01_01(foyer_fiscal, period, parameters):
-#         return formula_revenus_capitaux_prelevement_liberatoire(foyer_fiscal, period, parameters) * 12
+    def formula_2021_01_01(foyer_fiscal, period, parameters):
+        return formula_revenus_capitaux_prelevement_liberatoire(foyer_fiscal, period, parameters) * 12
 
 class revenus_individuels(Variable):
     value_type = float
@@ -123,22 +123,22 @@ class revenus_individuels(Variable):
 
         return max_(revenu_assimile_salaire + revenu_assimile_pension + rpns_imposables, 0)
 
-# baseline_rfr = self.baseline.get_variable(
-#     "rfr"
-# )
-# formula_rfr = (
-#     baseline_rfr.get_formula()
-# )
+baseline_rfr = baseline_tax_benefit.get_variable(
+    "rfr"
+)
+formula_rfr = (
+    baseline_rfr.get_formula()
+)
 
-# class rfr(Variable):
-#     value_type = float
-#     entity = FoyerFiscal
-#     label = "Revenu fiscal de référence"
-#     definition_period = YEAR
+class rfr(Variable):
+    value_type = float
+    entity = FoyerFiscal
+    label = "Revenu fiscal de référence"
+    definition_period = YEAR
 
-#     def formula(foyer_fiscal, period, parameters):
-#         rfr = formula_rfr(foyer_fiscal, period, parameters)
-#         return max_(rfr, 0)
+    def formula(foyer_fiscal, period, parameters):
+        rfr = formula_rfr(foyer_fiscal, period, parameters)
+        return max_(rfr, 0)
 
 class salaire_imposable_large(Variable):
     value_type = float
@@ -175,9 +175,9 @@ class AnnualisationVariablesIR(Reform):
             retraite_imposable,
             chomage_imposable,
             revenus_capitaux_prelevement_forfaitaire_unique_ir,
-            # revenus_capitaux_prelevement_bareme,
-            # revenus_capitaux_prelevement_liberatoire,
-            # rfr
+            revenus_capitaux_prelevement_bareme,
+            revenus_capitaux_prelevement_liberatoire,
+            rfr
         ]
 
         variables_ajout = [
