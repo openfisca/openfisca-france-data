@@ -5,7 +5,7 @@ from openfisca_france.model.base import (
     Variable,
     Reform
 )
-from openfisca_france. import FranceTaxBenefitSystem
+from openfisca_france import FranceTaxBenefitSystem
 from numpy import maximum as max_
 
 baseline_tax_benefit = FranceTaxBenefitSystem()
