@@ -186,7 +186,8 @@ class AnnualisationVariablesIR(Reform):
             ]
 
         for variable in variables_annualisees:
-            self.update_variable(variable)
+            self.replace_variable(variable)
+
 
         for variable in variables_ajout:
             self.add_variable(variable)
