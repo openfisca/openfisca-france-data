@@ -58,18 +58,18 @@ class chomage_imposable(Variable):
 # baseline_revenus_capitaux_pfu = self.baseline.get_variable(
 #     "revenus_capitaux_prelevement_forfaitaire_unique_ir"
 # )
-# formula_revenus_capitaux_pfu = (
-#     baseline_revenus_capitaux_pfu.get_formula("2021-01-01")
-# )
+formula_revenus_capitaux_pfu = (
+    revenus_capitaux_prelevement_forfaitaire_unique_ir.get_formula("2021-01-01")
+)
 
-# class revenus_capitaux_prelevement_forfaitaire_unique_ir(Variable):
-#     value_type = float
-#     entity = FoyerFiscal
-#     label = 'Revenus des valeurs et capitaux mobiliers soumis au prélèvement forfaitaire unique (partie impôt sur le revenu)'
-#     definition_period = YEAR
+class revenus_capitaux_prelevement_forfaitaire_unique_ir(Variable):
+    value_type = float
+    entity = FoyerFiscal
+    label = 'Revenus des valeurs et capitaux mobiliers soumis au prélèvement forfaitaire unique (partie impôt sur le revenu)'
+    definition_period = YEAR
 
-#     def formula_2021_01_01(foyer_fiscal, period, parameters):
-#         return formula_revenus_capitaux_pfu(foyer_fiscal, period.first_month, parameters) * 12
+    def formula_2021_01_01(foyer_fiscal, period, parameters):
+        return formula_revenus_capitaux_pfu(foyer_fiscal, period.first_month, parameters) * 12
 
 
 # baseline_revenus_capitaux_prelevement_bareme = self.baseline.get_variable(
