@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.3 [#269](https://github.com/openfisca/openfisca-france-data/pull/269)
+
+* Technical changes
+  - Adapte la réforme de POTE pour que les variables ne soient pas définies dans la classe
+
 ### 3.7.2 [#265](https://github.com/openfisca/openfisca-france-data/pull/265)
 
 * Technical changes : 
