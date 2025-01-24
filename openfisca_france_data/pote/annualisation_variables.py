@@ -227,6 +227,35 @@ class jeune_veuf(Variable):
 
         return jeune_veuf
 
+class pensions_invalidite(Variable):
+    value_type = float
+    entity = Individu
+    label = "Pensions d'invalidité"
+    # Cette case est apparue dans la déclaration 2014
+    # Auparavant, les pensions d'invalidité étaient incluses dans la case 1AS
+    cerfa_field = {
+        0: '1AZ',
+        1: '1BZ',
+        2: '1CZ',
+        3: '1DZ',
+        }
+    # start_date = date(2014, 1, 1)
+    definition_period = YEAR
+
+class pensions_alimentaires_percues(Variable):
+    cerfa_field = {
+        0: '1AO',
+        1: '1BO',
+        2: '1CO',
+        3: '1DO',
+        4: '1EO',
+        }
+    value_type = float
+    unit = 'currency'
+    entity = Individu
+    label = 'Pensions alimentaires perçues'
+    definition_period = YEAR
+
 class AnnualisationVariablesIR(Reform):
     name = "Annualisation des variables dans le calcul de l'impôt sur le revenu"
     tax_benefit_system_name = "openfisca_france"
@@ -246,6 +275,8 @@ class AnnualisationVariablesIR(Reform):
             celibataire_ou_divorce,
             veuf,
             jeune_veuf,
+            pensions_invalidite,
+            pensions_alimentaires_percues
         ]
 
         variables_ajout = [
