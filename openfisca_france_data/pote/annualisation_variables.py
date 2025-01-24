@@ -174,6 +174,59 @@ class rfr_par_part(Variable):
 
         return rfr / nbptr
 
+class maries_ou_pacses(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarants mariés ou pacsés'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        marie_ou_pacse = (statut_marital == TypesStatutMarital.marie) | (statut_marital == TypesStatutMarital.pacse)
+
+        return marie_ou_pacse
+
+
+class celibataire_ou_divorce(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarant célibataire ou divorcé'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        celibataire_ou_divorce = (statut_marital == TypesStatutMarital.celibataire) | (
+            statut_marital == TypesStatutMarital.divorce
+            )
+
+        return celibataire_ou_divorce
+
+
+class veuf(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarant veuf'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        veuf = (statut_marital == TypesStatutMarital.veuf)
+
+        return veuf
+
+
+class jeune_veuf(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarant jeune veuf'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        jeune_veuf = (statut_marital == TypesStatutMarital.jeune_veuf)
+
+        return jeune_veuf
+
 class AnnualisationVariablesIR(Reform):
     name = "Annualisation des variables dans le calcul de l'impôt sur le revenu"
     tax_benefit_system_name = "openfisca_france"
@@ -188,7 +241,11 @@ class AnnualisationVariablesIR(Reform):
             revenus_capitaux_prelevement_liberatoire,
             rfr,
             salaire_imposable,
-            statut_marital
+            statut_marital,
+            maries_ou_pacses,
+            celibataire_ou_divorce,
+            veuf,
+            jeune_veuf,
         ]
 
         variables_ajout = [
