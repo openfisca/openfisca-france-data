@@ -3,7 +3,9 @@ from openfisca_france.model.base import (
     Individu,
     YEAR,
     Variable,
-    Reform
+    Reform,
+    TypesStatutMarital,
+    Enum
 )
 from openfisca_france import FranceTaxBenefitSystem
 from numpy import maximum as max_
@@ -152,6 +154,14 @@ class salaire_imposable_large(Variable):
 
         return revenu_assimile_salaire - chomage_imposable
 
+class statut_marital(Variable):
+    value_type = Enum
+    possible_values = TypesStatutMarital  # defined in model/base.py
+    default_value = TypesStatutMarital.celibataire
+    entity = Individu
+    label = 'Statut marital'
+    definition_period = YEAR
+
 class rfr_par_part(Variable):
     value_type = float
     entity = FoyerFiscal
@@ -171,13 +181,14 @@ class AnnualisationVariablesIR(Reform):
     def apply(self):
 
         variables_annualisees = [
-            salaire_imposable,
-            retraite_imposable,
             chomage_imposable,
+            retraite_imposable,
             revenus_capitaux_prelevement_forfaitaire_unique_ir,
             revenus_capitaux_prelevement_bareme,
             revenus_capitaux_prelevement_liberatoire,
-            rfr
+            rfr,
+            salaire_imposable,
+            statut_marital
         ]
 
         variables_ajout = [
