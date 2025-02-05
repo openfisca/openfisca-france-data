@@ -3,7 +3,9 @@ from openfisca_france.model.base import (
     Individu,
     YEAR,
     Variable,
-    Reform
+    Reform,
+    TypesStatutMarital,
+    Enum
 )
 from openfisca_france import FranceTaxBenefitSystem
 from numpy import maximum as max_
@@ -152,6 +154,14 @@ class salaire_imposable_large(Variable):
 
         return revenu_assimile_salaire - chomage_imposable
 
+class statut_marital(Variable):
+    value_type = Enum
+    possible_values = TypesStatutMarital  # defined in model/base.py
+    default_value = TypesStatutMarital.celibataire
+    entity = Individu
+    label = 'Statut marital'
+    definition_period = YEAR
+
 class rfr_par_part(Variable):
     value_type = float
     entity = FoyerFiscal
@@ -164,6 +174,88 @@ class rfr_par_part(Variable):
 
         return rfr / nbptr
 
+class maries_ou_pacses(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarants mariés ou pacsés'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        marie_ou_pacse = (statut_marital == TypesStatutMarital.marie) | (statut_marital == TypesStatutMarital.pacse)
+
+        return marie_ou_pacse
+
+
+class celibataire_ou_divorce(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarant célibataire ou divorcé'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        celibataire_ou_divorce = (statut_marital == TypesStatutMarital.celibataire) | (
+            statut_marital == TypesStatutMarital.divorce
+            )
+
+        return celibataire_ou_divorce
+
+
+class veuf(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarant veuf'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        veuf = (statut_marital == TypesStatutMarital.veuf)
+
+        return veuf
+
+
+class jeune_veuf(Variable):
+    value_type = bool
+    entity = FoyerFiscal
+    label = 'Déclarant jeune veuf'
+    definition_period = YEAR
+
+    def formula(foyer_fiscal, period):
+        statut_marital = foyer_fiscal.declarant_principal('statut_marital', period)
+        jeune_veuf = (statut_marital == TypesStatutMarital.jeune_veuf)
+
+        return jeune_veuf
+
+class pensions_invalidite(Variable):
+    value_type = float
+    entity = Individu
+    label = "Pensions d'invalidité"
+    # Cette case est apparue dans la déclaration 2014
+    # Auparavant, les pensions d'invalidité étaient incluses dans la case 1AS
+    cerfa_field = {
+        0: '1AZ',
+        1: '1BZ',
+        2: '1CZ',
+        3: '1DZ',
+        }
+    # start_date = date(2014, 1, 1)
+    definition_period = YEAR
+
+class pensions_alimentaires_percues(Variable):
+    cerfa_field = {
+        0: '1AO',
+        1: '1BO',
+        2: '1CO',
+        3: '1DO',
+        4: '1EO',
+        }
+    value_type = float
+    unit = 'currency'
+    entity = Individu
+    label = 'Pensions alimentaires perçues'
+    definition_period = YEAR
+
 class AnnualisationVariablesIR(Reform):
     name = "Annualisation des variables dans le calcul de l'impôt sur le revenu"
     tax_benefit_system_name = "openfisca_france"
@@ -171,19 +263,26 @@ class AnnualisationVariablesIR(Reform):
     def apply(self):
 
         variables_annualisees = [
-            salaire_imposable,
-            retraite_imposable,
+            celibataire_ou_divorce,
             chomage_imposable,
+            jeune_veuf,
+            maries_ou_pacses,
+            pensions_alimentaires_percues,
+            pensions_invalidite,
+            retraite_imposable,
             revenus_capitaux_prelevement_forfaitaire_unique_ir,
             revenus_capitaux_prelevement_bareme,
             revenus_capitaux_prelevement_liberatoire,
-            rfr
+            rfr,
+            salaire_imposable,
+            statut_marital,
+            veuf
         ]
 
         variables_ajout = [
             revenus_individuels,
-            salaire_imposable_large,
-            rfr_par_part
+            rfr_par_part,
+            salaire_imposable_large
             ]
 
         for variable in variables_annualisees:
