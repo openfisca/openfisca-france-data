@@ -263,7 +263,12 @@ class AnnualisationVariablesIR(Reform):
     def apply(self):
 
         variables_annualisees = [
+            celibataire_ou_divorce,
             chomage_imposable,
+            jeune_veuf,
+            maries_ou_pacses,
+            pensions_alimentaires_percues,
+            pensions_invalidite,
             retraite_imposable,
             revenus_capitaux_prelevement_forfaitaire_unique_ir,
             revenus_capitaux_prelevement_bareme,
@@ -271,18 +276,13 @@ class AnnualisationVariablesIR(Reform):
             rfr,
             salaire_imposable,
             statut_marital,
-            maries_ou_pacses,
-            celibataire_ou_divorce,
-            veuf,
-            jeune_veuf,
-            pensions_invalidite,
-            pensions_alimentaires_percues
+            veuf
         ]
 
         variables_ajout = [
             revenus_individuels,
-            salaire_imposable_large,
-            rfr_par_part
+            rfr_par_part,
+            salaire_imposable_large
             ]
 
         for variable in variables_annualisees:
