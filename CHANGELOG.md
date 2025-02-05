@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.5 [#270](https://github.com/openfisca/openfisca-france-data/pull/270)
+
+* Technical changes
+  - Complète la réforme `AnnualisationVariablesIR` pour l'utilisation d'openfisca avec POTE
+
 ### 3.7.4 [#268](https://github.com/openfisca/openfisca-france-data/pull/268)
 
 * Technical changes
