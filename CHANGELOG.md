@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.4 [#268](https://github.com/openfisca/openfisca-france-data/pull/268)
+
+* Technical changes
+  - Bump de la version d'openfisca-survey-manager en dépendances et adaptation du code à ce bump
+
 ### 3.7.3 [#269](https://github.com/openfisca/openfisca-france-data/pull/269)
 
 * Technical changes
