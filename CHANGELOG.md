@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.6 [#271](https://github.com/openfisca/openfisca-france-data/pull/271)
+
+* Technical changes
+  - Passage à Openfsca-France >= 170.0.0
+
 ### 3.7.5 [#270](https://github.com/openfisca/openfisca-france-data/pull/270)
 
 * Technical changes
@@ -17,7 +22,7 @@
 
 ### 3.7.2 [#265](https://github.com/openfisca/openfisca-france-data/pull/265)
 
-* Technical changes : 
+* Technical changes :
   - Update the version of openfisca_survey_manager in dependencies
 
 ### 3.7.1 [#266](https://github.com/openfisca/openfisca-france-data/pull/266)
@@ -30,7 +35,7 @@
 ### 3.7.0 [#263](https://github.com/openfisca/openfisca-france-data/pull/263)
 
 * Adapte le code pour pouvoir utiliser l'ERFS-FPR 2021
-* Chemins impactés : 
+* Chemins impactés :
   - `openfisca_france_data/erfs_fpr/input_data_builder/`
   - `openfisca_france_data/erfs/input_data_builder/`
 
