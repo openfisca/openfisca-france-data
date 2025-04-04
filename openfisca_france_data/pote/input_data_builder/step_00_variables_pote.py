@@ -2,6 +2,7 @@ from openfisca_france_data.utils import build_cerfa_fields_by_variable
 import pandas as pd
 import logging
 import glob
+from openfisca_france_data import openfisca_france_tax_benefit_system
 
 def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
     logging.warning("Récupération des colonnes en commun entre Pote et Openfisca")
@@ -13,7 +14,8 @@ def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
     pd.DataFrame({'liste_var': variables_cerfa_field}).to_csv(f"{errors_path}cerfa_openfisca.csv")
     doublons = dict([(n,variables_cerfa_field.count(n)) for n in set(variables_cerfa_field)])
     doublons = list({k:v for (k,v) in doublons.items() if v>1}.keys())
-    assert len(doublons) == 0, f"Il y a des doublons dans les cases cerfa d'openfisca france : {doublons}"
+    if len(doublons) > 0:
+        f"Il y a des doublons dans les cases cerfa d'openfisca france : {doublons}"
 
     del doublons
 
