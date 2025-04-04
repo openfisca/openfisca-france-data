@@ -122,7 +122,9 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
 
     # 3) récupération des variables de revenus individuels pour les individus identifiés dans l'étape précédente
         revenus_individu = pd.DataFrame()
+
         for openfisca_var, cerfa in variables_individu.items():
+            print(f"variable : {openfisca_var}")
             table_temp = pd.DataFrame()
             rang = 0
             value_vars = list()
@@ -163,10 +165,13 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         )
         revenus_individu.drop(["mat","case"], axis = 1, inplace = True )
 
+        revenus_individu['foyer_fiscal_position'] = revenus_individu.groupby('foyer_fiscal_id').cumcount()
         revenus_individu['famille_id'] = revenus_individu.foyer_fiscal_id
         revenus_individu['menage_id'] = revenus_individu.foyer_fiscal_id
         revenus_individu['famille_role_index'] = revenus_individu.foyer_fiscal_role_index
         revenus_individu['menage_role_index'] = revenus_individu.foyer_fiscal_role_index
+        revenus_individu['famille_position'] = revenus_individu.foyer_fiscal_position
+        revenus_individu['menage_position'] = revenus_individu.foyer_fiscal_position
 
         revenus_individu.to_parquet(f"{output_path}individu/individu_{i}.parquet")
 
@@ -177,7 +182,26 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         name =  f"pote_{year}",
         label = None,
         parquet_file_path = output_path
-        )
+    )
+    survey.informations = {
+            'variables_dict': {    
+                'foyer_fiscal':{
+                    'members_entity_id':'foyer_fiscal_id',
+                    'members_position':'foyer_fiscal_position',
+                    'members_role_index':'foyer_fiscal_role_index'
+                },
+                'famille':{
+                    'members_entity_id':'famille_id',
+                    'members_position':'famille_position',
+                    'members_role_index':'famille_role_index'
+                },
+                'menage':{
+                    'members_entity_id':'menage_id',
+                    'members_position':'menage_position',
+                    'members_role_index':'menage_role_index'
+                }
+            }
+        }
     survey.tables[f"individu_{year}"] = {
         "source_format":"parquet",
         "variables":[c for c in columns],
