@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-20.04"]
-        python-version: ["3.9.9", "3.10.6"]
+        os: ["ubuntu-24.04"]
+        python-version: ["3.9.12", "3.10.11"]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -39,7 +39,7 @@ jobs:
           key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-${{ matrix.os }}
 
   lint-files:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ build ]
     steps:
       - uses: actions/checkout@v3
@@ -54,14 +54,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-24.04
       - run: |
           make check-syntax-errors
           # pip install flake8
           # make check-style  # Pas lancé car 1 600 erreurs !!!
 
   coverage:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ build ]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-24.04
       - run: |
           pip install --upgrade coveralls
           coveralls --service=github
@@ -90,8 +90,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ "ubuntu-20.04" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.9.9", "3.10.6"]
+        os: [ "ubuntu-24.04" ]  # On peut ajouter "macos-latest" si besoin
+        python-version: ["3.9.12", "3.10.11"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -108,7 +108,7 @@ jobs:
       - run: make test
 
   check-version-and-changelog:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ lint-files, test-python ] # Last job to run
     steps:
       - uses: actions/checkout@v3
@@ -125,7 +125,7 @@ jobs:
   # We build a separate job to substitute the halt option.
   # The `deploy` job is dependent on the output of the `check-for-functional-changes` job.
   check-for-functional-changes:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/master' # Only triggered for the `master` branch
     needs: [ check-version-and-changelog ]
     outputs:
@@ -142,7 +142,7 @@ jobs:
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi
 
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs: [ check-for-functional-changes ]
     if: needs.check-for-functional-changes.outputs.status == 'success'
     env:
@@ -160,20 +160,20 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.pythonLocation }}
-          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
+          key: build-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-24.04
       - name: Cache release
         id: restore-release
         uses: actions/cache@v4
         with:
           path: dist
-          key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-20.04
+          key: release-${{ env.pythonLocation }}-${{ hashFiles('setup.py') }}-${{ github.sha }}-ubuntu-24.04
       - name: Upload a Python package to PyPi
         run: twine upload dist/* --username __token__ --password $PYPI_TOKEN_OPENFISCA_BOT
       - name: Publish a git tag
         run: "${GITHUB_WORKSPACE}/.github/publish-git-tag.sh"
 
   # build-conda:
-  #   runs-on: "ubuntu-20.04"
+  #   runs-on: "ubuntu-24.04"
   #   needs: [ check-version-and-changelog ]
   #   # Do not build on master, the artifact will be used
   #   if: github.ref != 'refs/heads/master'
@@ -181,7 +181,7 @@ jobs:
   #     - uses: conda-incubator/setup-miniconda@v2
   #       with:
   #         auto-update-conda: true
-  #         python-version: "3.9.9"
+  #         python-version: "3.9.12"
   #         # Add "conda-forge" for OpenFisca-Core and "openfisca" for openfisca-survey-manager
   #         channels: conda-forge, openfisca
   #         activate-environment: true
@@ -208,7 +208,7 @@ jobs:
   #     - uses: conda-incubator/setup-miniconda@v2
   #       with:
   #         auto-update-conda: true
-  #         python-version: "3.9.9"
+  #         python-version: "3.9.12"
   #         channels: conda-forge, openfisca
   #         activate-environment: true
   #     - uses: actions/checkout@v3
@@ -227,13 +227,13 @@ jobs:
   #         conda install -c ./conda-build-tmp/noarch/openfisca-france-data-${{ env.PACKAGE_VERSION }}-py_0.tar.bz2  openfisca-france-data
 
   # publish-to-conda:
-  #   runs-on: "ubuntu-20.04"
+  #   runs-on: "ubuntu-24.04"
   #   needs: [ deploy ]
   #   steps:
   #     - uses: conda-incubator/setup-miniconda@v2
   #       with:
   #         auto-update-conda: true
-  #         python-version: "3.9.9"
+  #         python-version: "3.9.12"
   #         # Add conda-forge for OpenFisca-Core
   #         channels: conda-forge
   #         activate-environment: true
