@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.7 [#272](https://github.com/openfisca/openfisca-france-data/pull/272)
+
+* Technical changes
+  - Modifie le loyer imputé pour avoir un montant annuel (solution temporaire compte tenu du manque de données sur les loyers après le millésime 2019 de l'ERFS)
+
 ### 3.7.6 [#271](https://github.com/openfisca/openfisca-france-data/pull/271)
 
 * Technical changes
