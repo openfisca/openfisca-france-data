@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "3.7.7",
+    version = "3.7.8",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -43,7 +43,7 @@ setup(
     python_requires = ">=3.9",
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
-        "OpenFisca-France >=170.0.0, <171.0.0",
+        "OpenFisca-France >=171.0.0, <172.0.0",
         "OpenFisca-survey-manager >=3.0.0, <4.0.0",
         ],
     extras_require = {
