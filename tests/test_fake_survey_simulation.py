@@ -98,7 +98,8 @@ def test_fake_survey_simulation(tax_benefit_system, fake_input_data, year: int =
             "impo",
             ],
         )
-    return data_frame_by_entity, simulation
+    assert data_frame_by_entity is not None 
+    assert simulation is not None
 
 
 def test_fake_calibration_float(tax_benefit_system, fake_input_data, year: int = 2006):

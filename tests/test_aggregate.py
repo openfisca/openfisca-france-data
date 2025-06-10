@@ -25,7 +25,7 @@ def test_erfs_survey_simulation(survey_scenario, fake_input_data, year: int = 20
     # On calcule les agrégats
     aggregates = Aggregates(survey_scenario = survey_scenario, target_source = 'taxipp')
     aggregates.compute_aggregates()
-    return aggregates.base_data_frame
+    assert aggregates.base_data_frame is not None
 
 
 def test_erfs_fpr_aggregates_reform(fake_input_data, year:int = 2013):
@@ -42,4 +42,5 @@ def test_erfs_fpr_aggregates_reform(fake_input_data, year:int = 2013):
 
     aggregates = Aggregates(survey_scenario = survey_scenario, target_source = 'taxipp')
     base_data_frame = aggregates.compute_aggregates()
-    return aggregates, base_data_frame
+    assert aggregates is not None 
+    assert base_data_frame is not None
