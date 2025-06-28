@@ -9,6 +9,7 @@ class ErfsFprSurveyScenario(AbstractErfsSurveyScenario):
     # Les variables OpenFisca qu'on va utiliser avec les données en entrée.
     used_as_input_variables = [
         "activite",
+        "age",
         #"autonomie_financiere",
         "categorie_salarie",
         "categorie_non_salarie",
