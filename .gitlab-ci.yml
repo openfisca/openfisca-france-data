@@ -149,8 +149,9 @@ check-version-and-changelog:
   before_script:
   - ''
   needs:
-  - input_data-2019
-  - input_data-2021
+  #- input_data-2019
+  #- input_data-2021
+  - input_data-2022
   script:
   - .gitlab-ci/is-version-number-acceptable.sh
 
