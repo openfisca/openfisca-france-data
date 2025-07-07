@@ -122,8 +122,8 @@ diagnostics:
   # - input_data-2021
   - input_data-2022
   script:
-  - echo "diagnotics-2021"
-  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
+  - echo "diagnotics-2022"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2022.ini
     ~/.config/openfisca-survey-manager/config.ini
   - mkdir -p ~/.config/openfisca-france-data
   - cp ./.gitlab-ci/openfisca_france_data_config.ini
