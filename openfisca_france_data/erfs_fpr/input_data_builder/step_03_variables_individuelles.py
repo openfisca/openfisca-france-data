@@ -50,6 +50,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
     individus['rpns_imposables'] = individus['rag'] + individus['ric'] + individus['rnc']
 
+    if year == 2022:
+        # la variable salaire_imposable contient l'indemnité inflation mais comme elle est calculée dans openfisca on la supprime.
+        # On a supprime pour les gens qui n'ont que ça comme salaire mais il faudrait la supprimer en regardant toutes les conditions
+        individus['salaire_imposable'] = np.where(individus['salaire_imposable'] == 100,0,individus['salaire_imposable'])
+
     create_variables_individuelles(individus, year)
     assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     assert 'traitement_indiciaire_brut' in individus.columns , 'traitement indiciaire brut not in individus'
