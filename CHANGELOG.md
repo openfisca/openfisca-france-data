@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.10 [#276](https://github.com/openfisca/openfisca-france-data/pull/276)
+
+*  New features
+  -  Adapte le build_input_data de l'erfs-fpr pour qu'il fonctionne avec le millésime 2022
+
 ### 3.7.9 [#274](https://github.com/openfisca/openfisca-france-data/pull/274)
 
 * Technical changes
