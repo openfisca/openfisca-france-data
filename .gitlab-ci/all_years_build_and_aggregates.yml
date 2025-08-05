@@ -4,30 +4,18 @@
 # Please visit .gitlab-ci/README.md
 ################################################
 
-# input_data-2019:
-#   image: $CI_REGISTRY_IMAGE:latest
-#   script:
-#   - echo "build_input_data-2019"
-#   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-#   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
-#     ~/.config/openfisca-survey-manager/config.ini
-#   - build-erfs-fpr -y 2019 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2019.h5
-#   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
-#   stage: build_input_data
-#   tags:
-#   - openfisca
-# input_data-2021:
-#   image: $CI_REGISTRY_IMAGE:latest
-#   script:
-#   - echo "build_input_data-2021"
-#   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-#   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
-#     ~/.config/openfisca-survey-manager/config.ini
-#   - build-erfs-fpr -y 2021 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2021.h5
-#   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
-#   stage: build_input_data
-#   tags:
-#   - openfisca
+input_data-2021:
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+  - echo "build_input_data-2021"
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - build-erfs-fpr -y 2021 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2021.h5
+  - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
+  stage: build_input_data
+  tags:
+  - openfisca
 input_data-2022:
   image: $CI_REGISTRY_IMAGE:latest
   script:
@@ -40,46 +28,26 @@ input_data-2022:
   stage: build_input_data
   tags:
   - openfisca
-# aggregates-2019:
-#   artifacts:
-#     paths:
-#     - ./*.csv
-#   environment:
-#     name: Aggregates 2019
-#     url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2019.csv
-#   image: $CI_REGISTRY_IMAGE:latest
-#   needs:
-#   - input_data-2019
-#   script:
-#   - echo "aggregates-2019"
-#   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
-#     ~/.config/openfisca-survey-manager/config.ini
-#   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
-#   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/tests
-#   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/tests
-#   stage: aggregates
-#   tags:
-#   - openfisca
-# aggregates-2021:
-#   artifacts:
-#     paths:
-#     - ./*.csv
-#   environment:
-#     name: Aggregates 2021
-#     url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2021.csv
-#   image: $CI_REGISTRY_IMAGE:latest
-#   needs:
-#   - input_data-2021
-#   script:
-#   - echo "aggregates-2021"
-#   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
-#     ~/.config/openfisca-survey-manager/config.ini
-#   - python tests/erfs_fpr/integration/test_aggregates.py --year 2021
-#   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/tests
-#   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/tests
-#   stage: aggregates
-#   tags:
-#   - openfisca
+aggregates-2021:
+  artifacts:
+    paths:
+    - ./*.csv
+  environment:
+    name: Aggregates 2021
+    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2021.csv
+  image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - input_data-2021
+  script:
+  - echo "aggregates-2021"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - python tests/erfs_fpr/integration/test_aggregates.py --year 2021
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/tests
+  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/tests
+  stage: aggregates
+  tags:
+  - openfisca
 aggregates-2022:
   artifacts:
     paths:
@@ -813,34 +781,34 @@ agg-2018:
   stage: aggregates_all
   tags:
   - openfisca
-# in_dt-2019:
-#   image: $CI_REGISTRY_IMAGE:latest
-#   needs:
-#   - run_on_all_years
-#   script:
-#   - echo "build_input_data-2019"
-#   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-#   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
-#     ~/.config/openfisca-survey-manager/config.ini
-#   - build-erfs-fpr -y 2019 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2019.h5
-#   - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
-#   stage: build_input_data_all
-#   tags:
-#   - openfisca
-# agg-2019:
-#   artifacts:
-#     paths:
-#     - ./*.csv
-#   image: $CI_REGISTRY_IMAGE:latest
-#   needs:
-#   - in_dt-2019
-#   script:
-#   - echo "aggregates-2019"
-#   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
-#     ~/.config/openfisca-survey-manager/config.ini
-#   - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
-#   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
-#   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
-#   stage: aggregates_all
-#   tags:
-#   - openfisca
+in_dt-2019:
+  image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - run_on_all_years
+  script:
+  - echo "build_input_data-2019"
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - build-erfs-fpr -y 2019 -f $ROOT_FOLDER/$OUT_FOLDER/data_output/erfs_flat_2019.h5
+  - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
+  stage: build_input_data_all
+  tags:
+  - openfisca
+agg-2019:
+  artifacts:
+    paths:
+    - ./*.csv
+  image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - in_dt-2019
+  script:
+  - echo "aggregates-2019"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2019.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - python tests/erfs_fpr/integration/test_aggregates.py --year 2019
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/data_output
+  stage: aggregates_all
+  tags:
+  - openfisca
