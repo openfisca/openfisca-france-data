@@ -27,6 +27,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'contrat_de_travail',
         'date_naissance',
         'effectif_entreprise',
+        'handicap',
         'heures_remunerees_volume',
         'idfam',
         'idfoy',
@@ -45,6 +46,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         'salaire_de_base',
         'statut_marital',
         "primes_fonction_publique",
+        "taux_incapacite",
         "traitement_indiciaire_brut",
         ]
 
