@@ -74,7 +74,7 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
-    create_variables_handicap(individus,year)
+    create_variables_handicap(individus, year)
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus, year)
 
