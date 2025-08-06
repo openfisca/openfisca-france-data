@@ -50,6 +50,11 @@ def build_variables_individuelles(temporary_store = None, year = None):
 
     individus['rpns_imposables'] = individus['rag'] + individus['ric'] + individus['rnc']
 
+    if year == 2022:
+        # la variable salaire_imposable contient l'indemnité inflation mais comme elle est calculée dans openfisca on la supprime.
+        # On a supprime pour les gens qui n'ont que ça comme salaire mais il faudrait la supprimer en regardant toutes les conditions
+        individus['salaire_imposable'] = np.where(individus['salaire_imposable'] == 100,0, individus['salaire_imposable'])
+
     create_variables_individuelles(individus, year)
     assert 'salaire_de_base' in individus.columns , 'salaire de base not in individus'
     assert 'traitement_indiciaire_brut' in individus.columns , 'traitement indiciaire brut not in individus'
@@ -69,6 +74,7 @@ def create_variables_individuelles(individus, year, survey_year = None, revenu_t
     create_ages(individus, year)
     create_date_naissance(individus, age_variable = None, annee_naissance_variable = 'naia', mois_naissance = 'naim',
          year = year)
+    create_variables_handicap(individus, year)
     # Base pour constituer les familles, foyers, etc.
     create_statut_matrimonial(individus, year)
 
@@ -1326,6 +1332,15 @@ def create_effectif_entreprise(individus, period = None, survey_year = None):
         log.debug('Effectif entreprise:\n{}'.format(
             individus.effectif_entreprise.value_counts(dropna = False)))
 
+def create_variables_handicap(individus, year):
+    # variable ADMHANDR de l'EEC "Reconnaissance administrative de handicap (y compris AAH, invalidité)":
+    # 1 : Oui  
+    # 2 : Demande en cours
+    # 3 : Non
+    # 9 : Non réponse 
+    if year >= 2022:
+        individus['handicap'] = np.where(individus.admhandr == 1, True, False)
+        individus['taux_incapacite'] = np.where(individus.admhandr == 1, 0.8, 0)
 
 def create_revenus_remplacement_bruts(individus):
     """

@@ -48,6 +48,8 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
         "traitement_indiciaire_brut",
         ]
 
+    if year >= 2022:
+        var_individus += ['handicap',"taux_incapacite"]
     if year >= 2018:
         var_menages = [
             'idmen',

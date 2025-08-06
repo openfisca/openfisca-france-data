@@ -28,6 +28,18 @@ input_data-2021:
   stage: build_input_data
   tags:
   - openfisca
+input_data-2022:
+  image: $CI_REGISTRY_IMAGE:latest
+  script:
+  - echo "build_input_data-2022"
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config-after-build-collection.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - build-erfs-fpr -y 2022 
+  - cp ~/.config/openfisca-survey-manager/config.ini $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2022.ini
+  stage: build_input_data
+  tags:
+  - openfisca
 aggregates-2019:
   artifacts:
     paths:
@@ -63,6 +75,26 @@ aggregates-2021:
   - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2021.ini
     ~/.config/openfisca-survey-manager/config.ini
   - python tests/erfs_fpr/integration/test_aggregates.py --year 2021
+  - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/tests
+  - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/tests
+  stage: aggregates
+  tags:
+  - openfisca
+aggregates-2022:
+  artifacts:
+    paths:
+    - ./*.csv
+  environment:
+    name: Aggregates 2022
+    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2022.csv
+  image: $CI_REGISTRY_IMAGE:latest
+  needs:
+  - input_data-2022
+  script:
+  - echo "aggregates-2022"
+  - cp $ROOT_FOLDER/$OUT_FOLDER/openfisca_survey_manager_config_input_data-after-build-erfs-fprs-2022.ini
+    ~/.config/openfisca-survey-manager/config.ini
+  - python tests/erfs_fpr/integration/test_aggregates.py --year 2022
   - mkdir -p $ROOT_FOLDER/$OUT_FOLDER/tests
   - cp ./*.csv $ROOT_FOLDER/$OUT_FOLDER/tests
   stage: aggregates
