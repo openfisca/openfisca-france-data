@@ -1339,7 +1339,7 @@ def create_variables_handicap(individus, year):
     # 3 : Non
     # 9 : Non réponse 
     if year >= 2022:
-        individus['handicap'] = np.where(individus.admhandr == 1,True,False)
+        individus['handicap'] = np.where(individus.admhandr == 1, True, False)
         individus['taux_incapacite'] = np.where(individus.admhandr == 1,0.8,0)
 
 def create_revenus_remplacement_bruts(individus):
