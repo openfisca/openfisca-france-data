@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.7.11 [#277](https://github.com/openfisca/openfisca-france-data/pull/277)
+
+* Technical changes
+  - Update openfisca-france packages in dependencies
+
 ### 3.7.10 [#276](https://github.com/openfisca/openfisca-france-data/pull/276)
 
 *  New features
