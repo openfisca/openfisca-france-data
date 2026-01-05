@@ -2,6 +2,7 @@
 Ce script transforme la base de données POTE qui est au format SAS en format parquet, plus facile à manier
 """
 
+import click
 import gc
 import json
 import os
@@ -9,7 +10,7 @@ import pyreadstat
 
 from openfisca_france_data.utils import build_cerfa_fields_by_variable
 
-def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = False, ncols = 70):
+def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = False, ncols = 70, additional_variables = []):
     """
     Docstring for pote_sas_to_parquet
     
@@ -39,7 +40,7 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
 
     # on ajoute les cases qui ne sont pas renseignées cerfa dans openfisca-france
     list_col += ["aged", "agec", "mat", "f", "h", "r", "j", "n", "g", "i", "nbfoy", "dnpa4c", "r", "zl", "zn", "zp", "zf", "zw", "zs", "zg", "zt", "zz", "iddep"]
-
+    list_col += additional_variables
     for var in list_col:
         assert col_labels.get(var, None) is not None, f"{var} not in col_labels"
     
@@ -57,3 +58,49 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
         del metadata
         gc.collect()
 
+
+@click.command()
+@click.option(
+    "-y",
+    "--year",
+    defaul=2023,
+    show_default=True,
+    type=int,
+)
+@click.option(
+    "-sas",
+    "--sas_pote_directory",
+    show_default=True,
+    type=str,
+)
+@click.option(
+    "-parquet",
+    "--parquet_directory",
+    type=str,
+)
+@click.option(
+    "-labels",
+    "--create_labels",
+    default=False,
+    show_default=True,
+    type=bool,
+)
+@click.option(
+    "-ncols",
+    "--ncols",
+    default=70,
+    show_default=True,
+    type=int,
+)
+@click.option(
+    "-vars",
+    "--additional_variables",
+    default=[],
+    show_default=True,
+    type=list,
+)
+def main(year, sas_pote_directory, parquet_directory, create_labels = False, ncols = 70, additional_variables = []):
+    pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels, ncols, additional_variables)
+
+if __name__ == "__main__":
+    main()
