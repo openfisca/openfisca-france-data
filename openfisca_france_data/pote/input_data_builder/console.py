@@ -52,13 +52,13 @@ def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=d
     if rebuild_from_sas:
         log.warnings("ATTENTION Vous avez lancé le build à partir de la table sas de POTE. Cela peut prendre plusieurs jours. Si vous avez déjà la table POTE au format parquet vous pouvez passer cette étape")
         sas_data_directory = survey.config.get('data','sas_pote')
-        chunks_data_directory = survey.config.get('data','chunks_pote')
+        parquet_directory = survey.config.get('data','parquet_pote')
 
-        for path in [sas_data_directory, chunks_data_directory]:
+        for path in [sas_data_directory, parquet_directory]:
             if not os.path.exists(path):
                 os.makedirs(path)
 
-        pote_sas_to_parquet(year, sas_data_directory, chunks_data_directory, raw_data_directory)
+        pote_sas_to_parquet(year, sas_data_directory, parquet_directory, raw_data_directory)
     
     raw_data_tables = glob.glob(os.path.join(raw_data_directory,"*.parquet"))
     pote_length =pyarrow.parquet.read_metadata(raw_data_tables[0]).num_rows

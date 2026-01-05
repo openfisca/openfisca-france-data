@@ -9,7 +9,7 @@ import pyreadstat
 
 from openfisca_france_data.utils import build_cerfa_fields_by_variable
 
-def pote_sas_to_parquet(year, sas_pote_path, parquet_path, create_labels = False, ncols = 70):
+def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = False, ncols = 70):
     """
     Docstring for pote_sas_to_parquet
     
@@ -19,11 +19,11 @@ def pote_sas_to_parquet(year, sas_pote_path, parquet_path, create_labels = False
     :param create_labels: bool, Si True recrée la liste des variables dans la base SAS
     :param ncols: Nombre max de colonnes à charger en même temps
     """
-    labels_path = os.path.join(parquet_path, "metadata")
+    labels_path = os.path.join(parquet_directory, "metadata")
+    sas_file = f"{os.path.join(sas_pote_directory,year)},pote_diff_{year}.sas7bdat"
     if create_labels:
         if not os.path.exists(labels_path):
             os.makedirs(labels_path)
-        sas_file = f"{os.path.join(sas_pote_path,year)},pote_diff_{year}.sas7bdat"
         metadata = pyreadstat.read.sas7bdat(filename_path = sas_file)
         col_labels = metadata[1].column_names_to_labels
         with open(os.path.join(labels_path, "labels.json"), "w", newline='',encoding='utf-8') as f:
@@ -49,8 +49,8 @@ def pote_sas_to_parquet(year, sas_pote_path, parquet_path, create_labels = False
 
     for i in range(1,len(list_col)//ncols + 1):
         print(f"Round {i} / {len(list_col)//ncols + 1}")
-        table, metadata = pyreadstat.read_sas7bdat(filename_path = sas_pote_path, usecols=list_col[i*ncols:(i+1)*ncols])
-        table.to_parquet(os.path.join(parquet_path,f"pote_2023_{i}.parquet"))
+        table, metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, usecols=list_col[i*ncols:(i+1)*ncols])
+        table.to_parquet(os.path.join(parquet_directory,f"pote_2023_{i}.parquet"))
         with open(os.path.join(labels_path, f"labels_pote_{i}.json"),"w",newline='',encoding='utf-8') as f:
             json.dump(metadata.column_names_to_labels, f, ensure_ascii=False,indent=4)
         del table
