@@ -92,7 +92,7 @@ def create_fake_data(year = 2023, data_length = 100, output_path = default_outpu
     df['j'] = 0
     df['n'] = 0
 
-    final_data = pd.concat([final_data,df], axis = 0)
+    final_data = pd.concat([final_data.reset_index(drop=True),df.reset_index(drop=True)], axis = 1)
 
     i = 0
     for c in range(len(final_data.columns)//70 + 1):
@@ -128,7 +128,7 @@ def create_fake_data(year = 2023, data_length = 100, output_path = default_outpu
 @click.option('-l', '--length', 'data_length', default = 100, help = "data length", show_default = True,
     type = int)
 @click.option('-p', '--path', 'output_path', default=default_output_path, help = "output data path", show_default = True)
-def main(year = 2022, data_length = 100, output_path=default_output_path):
+def main(year = 2023, data_length = 100, output_path=default_output_path):
     create_fake_data(year, data_length, output_path)
 
 if __name__ == '__main__':
