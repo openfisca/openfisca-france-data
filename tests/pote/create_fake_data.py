@@ -13,7 +13,7 @@ cwd = os.getcwd()
 
 default_output_path = os.path.join(os.path.join(cwd,"fake_data"),"raw")
 
-def create_fake_data(year = 2022, data_length = 100, output_path = default_output_path):
+def create_fake_data(year = 2023, data_length = 100, output_path = default_output_path):
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     # on recupere toutes les cases fiscales de l'annee de simulation
@@ -28,13 +28,15 @@ def create_fake_data(year = 2022, data_length = 100, output_path = default_outpu
         grouped_cases[f"f{i}"] = [c for c in cases_fiscales if c.startswith(f"f{i}")]
     grouped_cases["others"] = [c for c in cases_fiscales if not c[1] in [str(r) for r in range(10)]]
 
+    final_data = {}
     for cases in grouped_cases.values():
         # if len(cases) > 30:
         #     cases = cases[0:30]
         for case in cases:
-            array = pd.DataFrame({ case: np.random.uniform(10000,50000,data_length) * (np.random.random(data_length) < random.random())})
+            final_data[f"z{case[1:]}"] = np.random.uniform(10000,50000,data_length) * (np.random.random(data_length) < random.random())
             # on créé un array avec un nombre aléatoire de valeurs non nulles suivant une loi uniforme en 10000 et 50000
-            array.to_parquet(f"{output_path}/pote_z{case[1:]}.parquet")
+
+    final_data = pd.DataFrame(final_data)
 
     nb_celib_sans_enfants = round(data_length / 3)
     nb_celib_enfants = round(data_length / 6)
@@ -90,8 +92,13 @@ def create_fake_data(year = 2022, data_length = 100, output_path = default_outpu
     df['j'] = 0
     df['n'] = 0
 
-    for c in df.columns:
-        df[[c]].to_parquet(f"{output_path}/pote_{c}.parquet")
+    final_data = pd.concat([final_data,df], axis = 0)
+
+    i = 0
+    for c in range(len(final_data.columns)//70 + 1):
+        columns_to_keep = final_data.columns[c*70:(c+1)*70]
+        final_data[columns_to_keep].to_parquet(f"{output_path}/pote_{i}.parquet")
+        i+=1
 
     # Création d'une table de stats de nombre de valeurs non nulles
     parquet_file = glob.glob(os.path.join(output_path, "*.parquet"))
@@ -104,7 +111,6 @@ def create_fake_data(year = 2022, data_length = 100, output_path = default_outpu
     stats = dict()
 
     for col in column_names:
-        print(col)
         datas = dfv.read([col])
         stats[col] = {
             'nombre_na' : datas.column(col).null_count,
@@ -117,7 +123,7 @@ def create_fake_data(year = 2022, data_length = 100, output_path = default_outpu
         json.dump(stats, outfile)
 
 @click.command()
-@click.option('-y', '--year', 'year', default = 2022, help = "POTE year", show_default = True,
+@click.option('-y', '--year', 'year', default = 2023, help = "POTE year", show_default = True,
     type = int)
 @click.option('-l', '--length', 'data_length', default = 100, help = "data length", show_default = True,
     type = int)
