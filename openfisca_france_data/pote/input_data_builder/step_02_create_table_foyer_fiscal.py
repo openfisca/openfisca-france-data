@@ -1,3 +1,4 @@
+import glob
 import os
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -13,19 +14,27 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
     i = 0
     columns_demi_part = {"zl":None, "zn":None, "zp":None, "zf":None, "zw":None, "zs":None, "zg":None,"zt":None,"zr":None,"zz":None,"iddep":None} # "dadokz":None,
     variables_foyer_fiscal.update(columns_demi_part)
+    raw_pote_tables = glob.glob(os.path.join(raw_data_directory,"*.parquet"))
+    dict_col_tables = {}
+    for table in raw_pote_tables:
+        columns = pq.read_schema(table).names
+        for column in columns:
+            if column in dict_col_tables.keys():
+                print(f"ATTENTION : La colonne {column} apparait plusieurs fois dans POTE")
+            dict_col_tables[column] = table
     for openfisca_var, cerfa in variables_foyer_fiscal.items():
         if cerfa is not None:
             col = "z" + cerfa[1:]
         else:
             col = openfisca_var
-        file_path = f"{raw_data_directory}pote_{col}.parquet"
-        if col == "zr":
-            file_path = f"{raw_data_directory}pote_r.parquet"
-        if os.path.exists(file_path):
+        # if col == "zr":
+        #     file_path = f"{raw_data_directory}pote_r.parquet"
+        if col in dict_col_tables.keys():
+            file_path = dict_col_tables[col]
             columns_list.append(openfisca_var)
-            final_table =  pq.read_table(file_path)
+            final_table =  pq.read_table(file_path, columns = [col])
             final_table = final_table.rename_columns([openfisca_var])
-            final_parquet_file =  f"{output_path}foyer_fiscal/{openfisca_var}.parquet"
+            final_parquet_file =  os.path.join(output_path,f"foyer_fiscal/{openfisca_var}.parquet")
             pq.write_table(final_table, final_parquet_file)
             if i == 0:
                 foyer_fiscaux_ids = pa.array([x for x in range(final_table.num_rows)])
