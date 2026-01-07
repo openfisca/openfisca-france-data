@@ -2,6 +2,7 @@ from openfisca_france_data.utils import build_cerfa_fields_by_variable
 import pandas as pd
 import logging
 import glob
+import os
 from pyarrow.parquet import read_schema
 
 def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
@@ -18,7 +19,7 @@ def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
 
     del doublons
 
-    raw_data_tables = glob.glob(f"{raw_data_directory}*.parquet")
+    raw_data_tables = glob.glob(os.path.join(raw_data_directory,"*.parquet"))
     colonnes_pote = list()
     for table in raw_data_tables:
         colonnes_pote += read_schema(table).names
