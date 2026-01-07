@@ -63,7 +63,7 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
 @click.option(
     "-y",
     "--year",
-    defaul=2023,
+    default=2023,
     show_default=True,
     type=int,
 )
