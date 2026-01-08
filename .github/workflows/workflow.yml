@@ -5,6 +5,11 @@ on:
   pull_request:
     types: [opened, reopened]
 
+env:
+  # Versions disponibles visibles sur  https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+  DEFAULT_PYTHON_VERSION: &upper_pyver 3.13.11
+  MIN_PYTHON_VERSION: &min_pyver 3.10.11
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -12,7 +17,7 @@ jobs:
       fail-fast: true
       matrix:
         os: ["ubuntu-24.04"]
-        python-version: ["3.9.12", "3.10.11"]
+        python-version: [*min_pyver, *upper_pyver]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -48,7 +53,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.12
+          python-version: *upper_pyver
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4
@@ -73,7 +78,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.12
+          python-version: *upper_pyver
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4
@@ -91,7 +96,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ "ubuntu-24.04" ]  # On peut ajouter "macos-latest" si besoin
-        python-version: ["3.9.12", "3.10.11"]
+        python-version: [*min_pyver, *upper_pyver]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -117,7 +122,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.12
+          python-version: *upper_pyver
       - name: Check version number has been properly updated
         run: "${GITHUB_WORKSPACE}/.github/is-version-number-acceptable.sh"
 
@@ -137,7 +142,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.12
+          python-version: *upper_pyver
       - id: stop-early
         run: if "${GITHUB_WORKSPACE}/.github/has-functional-changes.sh" ; then echo "::set-output name=status::success" ; fi
 
@@ -154,7 +159,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9.12
+          python-version: *upper_pyver
       - name: Cache build
         id: restore-build
         uses: actions/cache@v4

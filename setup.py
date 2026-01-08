@@ -20,9 +20,10 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
     package_data = {
@@ -40,7 +41,7 @@ setup(
             'build-pote=openfisca_france_data.pote.input_data_builder.console:main',
             ],
         },
-    python_requires = ">=3.9",
+    python_requires = ">=3.10",
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
         "OpenFisca-France >=174.0.0, <175.0.0",
