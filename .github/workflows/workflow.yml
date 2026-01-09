@@ -112,9 +112,15 @@ jobs:
       - run: pip install .[test]
       - run: make test
 
-  check-version-and-changelog:
+  test-check:
     runs-on: ubuntu-24.04
     needs: [ lint-files, test-python ] # Last job to run
+    steps:
+      run: echo "Previous tests OK"
+
+  check-version-and-changelog:
+    runs-on: ubuntu-24.04
+    needs: [ test-check ] # Last job to run
     steps:
       - uses: actions/checkout@v3
         with:
