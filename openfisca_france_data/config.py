@@ -8,13 +8,13 @@ from xdg import BaseDirectory
 default_config_files_directory = Path(BaseDirectory.save_config_path('openfisca-france-data'))
 
 
-class Config(configparser.SafeConfigParser):
+class Config(configparser.ConfigParser):
     """Custom Config Parser."""
 
     config_ini = None
 
     def __init__(self, config_files_directory = default_config_files_directory):
-        configparser.SafeConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         assert config_files_directory is not None
 
         config_ini = PurePath.joinpath(config_files_directory, 'config.ini')
