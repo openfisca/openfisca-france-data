@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "3.7.11",
+    version = "3.8.0",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -20,9 +20,10 @@ setup(
         "License :: OSI Approved :: GNU Affero General Public License v3",
         "Operating System :: POSIX",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
     package_data = {
@@ -40,10 +41,10 @@ setup(
             'build-pote=openfisca_france_data.pote.input_data_builder.console:main',
             ],
         },
-    python_requires = ">=3.9",
+    python_requires = ">=3.10",
     install_requires = [
         "multipledispatch >=0.6.0, <1.0.0",
-        "OpenFisca-France >=174.0.0, <175.0.0",
+        "OpenFisca-France >=175.0.0, <176.0.0",
         "OpenFisca-survey-manager >=3.0.0, <4.0.0",
         ],
     extras_require = {
