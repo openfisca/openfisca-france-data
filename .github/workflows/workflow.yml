@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [ lint-files, test-python ] # Last job to run
     steps:
-      run: echo "Previous tests OK"
+      - run: echo "Previous tests OK"
 
   check-version-and-changelog:
     runs-on: ubuntu-24.04
