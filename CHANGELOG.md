@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.8.0 [#279](https://github.com/openfisca/openfisca-france-data/pull/279)
+
+* Technical changes
+  - Met à jour les versions de python et d'openfisca-france
+
 ### 3.7.11 [#277](https://github.com/openfisca/openfisca-france-data/pull/277)
 
 * Technical changes
