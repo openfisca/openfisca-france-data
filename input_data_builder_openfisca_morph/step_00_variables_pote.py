@@ -2,6 +2,8 @@ from openfisca_france_data.utils import build_cerfa_fields_by_variable
 import pandas as pd
 import logging
 import glob
+import os
+from pyarrow.parquet import read_schema
 
 def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
     logging.warning("Récupération des colonnes en commun entre Pote et Openfisca")
@@ -17,10 +19,13 @@ def create_pote_openfisca_variables_list(year, errors_path, raw_data_directory):
 
     del doublons
 
-    colonnes_pote = glob.glob(f"{raw_data_directory}*.parquet")
-    colonnes_pote = [col.split("\\")[-1].split("_")[1].split(".")[0] for col in colonnes_pote]
+    raw_data_tables = glob.glob(os.path.join(raw_data_directory,"*.parquet"))
+    colonnes_pote = list()
+    for table in raw_data_tables:
+        colonnes_pote += read_schema(table).names
+    
     colonnes_pote = ["f" + str.lower(c[1:]) for c in colonnes_pote if str.lower(c).startswith('z')]
-
+    
     var_to_keep = list(set(colonnes_pote) & set(variables_cerfa_field))
     logging.warning(f"Parmi les {len(colonnes_pote)} variables de pote, {len(var_to_keep)} ont été trouvées dans openfisca")
     var_not_in_openfisca = [c for c in colonnes_pote if c not in variables_cerfa_field]
