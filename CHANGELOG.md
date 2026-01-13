@@ -1,5 +1,12 @@
 # Changelog
 
+### 3.8.3 [#278](https://github.com/openfisca/openfisca-france-data/pull/278)
+
+* New features
+
+- Ajoute le code de création des tables de POTE pour lancer une simulation avec openfisca_morph. 
+   - La génération des tables est différentes que celle pour réaliser une simulation avec openfisca-survey-manager, c'est pourquoi j'ai créé un nouveau dossier.
+
 ### 3.8.2 [#281](https://github.com/openfisca/openfisca-france-data/pull/281)
 
 * Technical changes
@@ -9,6 +16,7 @@
 
 * Technical changes
   - Update openfisca-survey-manager version dans les dépendences pour monter la version de core
+
 
 ## 3.8.0 [#279](https://github.com/openfisca/openfisca-france-data/pull/279)
 
