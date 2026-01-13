@@ -25,7 +25,7 @@ log.addHandler(fileHandler)
 consoleHandler = logging.StreamHandler()
 consoleHandler.setLevel(logging.INFO)
 log.addHandler(consoleHandler)
-def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002, rebuild_from_sas = False):
+def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002, rebuild_from_sas = False):
     """
     Met les données POTE dans un format de données compatible avec une simulation d'openfisca france via un survey scenario (objet d'openfisca survey manager)
     - year : année de POTE utilisé
@@ -80,12 +80,12 @@ def build_pote_input_data(year=2022,chunk_size=1000000, config_files_directory=d
     log.info(f"Fin de la préparation de POTE {year} pour Openfisca France !")
 
 @click.command()
-@click.option('-y', '--year', 'year', default = 2022, help = "POTE year")
+@click.option('-y', '--year', 'year', default = 2023, help = "POTE year")
 @click.option('-s', '--chunk_size', 'chunk_size', default = 1000000, help = "chunk size")
 @click.option('-c', '--config_files_directory', 'config_files_directory', default = default_config_files_directory, help = "config files directory")
 @click.option('-t', '--taux_non_null', 'taux_non_null', default = 0.0002, help = "taux minimum de valeurs non nulle dans la colonne pour la garder dans la simulation")
 
-def main(year=2022,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002):
+def main(year=2023,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002):
     build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory, taux_non_null=taux_non_null)
 
 if __name__ == '__main__':

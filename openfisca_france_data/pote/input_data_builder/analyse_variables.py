@@ -29,7 +29,8 @@ def liens_variables(year):
                 "date_naissance": {'ETERNITY':'1970-01-01'},
                 "salaire_imposable": {f"{year}":0},
                 "retraite_imposable": {f"{year}":0},
-                "chomage_imposable": {f"{year}":0}
+                "chomage_imposable": {f"{year}":0},
+                "prime_partage_valeur_exoneree_exceptionnelle": {f"{year}":0},
             }
         }
     }

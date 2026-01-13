@@ -154,7 +154,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         revenus_individu = revenus_individu.drop('rang', axis = 1)
 
         revenus_individu["date_naissance"] = revenus_individu["date_naissance"].astype('int')
-        revenus_individu["date_naissance"] = np.where((revenus_individu["date_naissance"] > 1900) & (revenus_individu["date_naissance"] <2022),revenus_individu["date_naissance"],1975)
+        revenus_individu["date_naissance"] = np.where((revenus_individu["date_naissance"] > 1900) & (revenus_individu["date_naissance"] <int(year)),revenus_individu["date_naissance"],1975)
         revenus_individu["date_naissance"] = pd.to_datetime(
             pd.DataFrame({"year":revenus_individu["date_naissance"],
             'month':"01",
