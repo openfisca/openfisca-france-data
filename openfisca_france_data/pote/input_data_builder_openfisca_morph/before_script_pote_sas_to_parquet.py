@@ -10,7 +10,7 @@ import pyreadstat
 
 from openfisca_france_data.utils import build_cerfa_fields_by_variable
 
-def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = False, ncols = 70, additional_variables = []):
+def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = True, ncols = 70, additional_variables = []):
     """
     Docstring for pote_sas_to_parquet
     
@@ -21,11 +21,11 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
     :param ncols: Nombre max de colonnes à charger en même temps
     """
     labels_path = os.path.join(parquet_directory, "metadata")
-    sas_file = f"{os.path.join(sas_pote_directory,year)},pote_diff_{year}.sas7bdat"
+    sas_file = os.path.join(sas_pote_directory,f"pote_diff_{year}.sas7bdat")
     if create_labels:
         if not os.path.exists(labels_path):
             os.makedirs(labels_path)
-        metadata = pyreadstat.read.sas7bdat(filename_path = sas_file)
+        metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, metadataonly=True)
         col_labels = metadata[1].column_names_to_labels
         with open(os.path.join(labels_path, "labels.json"), "w", newline='',encoding='utf-8') as f:
             json.dump(col_labels, f, ensure_ascii=False, indent=4)
@@ -37,6 +37,12 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
     openfisca_cerfa_list = set()
     for k,v in cerfa.items():
         openfisca_cerfa_list = (openfisca_cerfa_list | set([vv[1:] for vv in v]))
+
+    list_col = []
+    for k,v in col_labels.items():
+        if k.lower().startswith("z"):
+            if k.lower()[1:] in openfisca_cerfa_list:
+                list_col.append(k)
 
     # on ajoute les cases qui ne sont pas renseignées cerfa dans openfisca-france
     list_col += ["aged", "agec", "mat", "f", "h", "r", "j", "n", "g", "i", "nbfoy", "dnpa4c", "r", "zl", "zn", "zp", "zf", "zw", "zs", "zg", "zt", "zz", "iddep"]
