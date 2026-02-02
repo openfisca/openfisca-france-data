@@ -50,7 +50,7 @@ def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=d
             os.makedirs(path)
 
     if rebuild_from_sas:
-        log.warnings("ATTENTION Vous avez lancé le build à partir de la table sas de POTE. Cela peut prendre plusieurs jours. Si vous avez déjà la table POTE au format parquet vous pouvez passer cette étape")
+        log.warnings("ATTENTION Vous avez lancé le build à partir de la table sas de POTE. Cela peut prendre plusieurs heures. Si vous avez déjà la table POTE au format parquet vous pouvez passer cette étape")
         sas_data_directory = survey.config.get('data','sas_pote')
         parquet_directory = survey.config.get('data','parquet_pote')
 
@@ -75,9 +75,10 @@ def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=d
 @click.option('-s', '--chunk_size', 'chunk_size', default = 1000000, help = "chunk size")
 @click.option('-c', '--config_files_directory', 'config_files_directory', default = default_config_files_directory, help = "config files directory")
 @click.option('-t', '--taux_non_null', 'taux_non_null', default = 0.0002, help = "taux minimum de valeurs non nulle dans la colonne pour la garder dans la simulation")
+@click.option('-r', '--rebuild_from_sas', 'rebuild_from_sas', default = False, help = "Si True reconstruit POTE à partir du fichier SAS")
 
-def main(year=2023,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002):
-    build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory, taux_non_null=taux_non_null)
+def main(year=2023,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002, rebuild_from_sas=False):
+    build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory, taux_non_null=taux_non_null, rebuild_from_sas=rebuild_from_sas)
 
 if __name__ == '__main__':
     main()
