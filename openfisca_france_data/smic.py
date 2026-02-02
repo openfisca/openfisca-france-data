@@ -148,8 +148,8 @@ def smic_annuel_imposable_from_net(year, smic_hor_brut):
         smic_net = smic_annuel_net_by_year[year]
         working_hours = params.marche_travail.salaire_minimum.smic.nb_heures_travail_mensuel
         smic_brut = smic_hor_brut * working_hours * 12
-        taux_csg = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable.taux
-        taux_crds = params.prelevements_sociaux.contributions_sociales.crds.taux
+        taux_csg = params.prelevements_sociaux.contributions_sociales.csg.activite.imposable
+        taux_crds = params.prelevements_sociaux.contributions_sociales.crds
         pss = params.prelevements_sociaux.pss.plafond_securite_sociale_annuel
         abatt_sous_4pss = params.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         use_plafond = params.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates.__len__() == 2

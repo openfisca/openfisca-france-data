@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.8.1 [#280](https://github.com/openfisca/openfisca-france-data/pull/280s)
+
+* Technical changes
+  - Update openfisca-survey-manager version dans les dépendences pour monter la version de core
+
 ## 3.8.0 [#279](https://github.com/openfisca/openfisca-france-data/pull/279)
 
 * Technical changes
