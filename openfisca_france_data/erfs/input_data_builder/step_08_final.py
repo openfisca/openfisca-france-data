@@ -3,7 +3,7 @@ import gc
 
 import logging
 import numpy as np
-from numpy import where, NaN, random
+from numpy import where, nan, random
 from pandas import read_csv
 import os
 
@@ -178,7 +178,7 @@ def final(temporary_store = None, year = None, check = True):
                                 loyersMenages.ddipl)
     loyersMenages.ddipl = loyersMenages.ddipl.astype("int32")
 
-    final['act5'] = NaN
+    final['act5'] = nan
     final.act5 = where(final.actrec == 1, 2, final.act5)  # indépendants
     final.act5 = where(final.actrec.isin([2, 3]), 1, final.act5)  # salariés
 
