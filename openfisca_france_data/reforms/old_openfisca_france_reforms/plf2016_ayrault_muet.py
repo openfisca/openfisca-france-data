@@ -45,8 +45,8 @@ class reduction_csg(Variable):
         seuil = 1.34
         coefficient_correctif = .9
         taux_csg = (
-            parameters(period).csg.activite.imposable.taux
-            + parameters(period).csg.activite.deductible.taux
+            parameters(period).csg.activite.imposable
+            + parameters(period).csg.activite.deductible
             )
         tx_max = coefficient_correctif * taux_csg
         ratio_smic_salaire = smic_proratise / (assiette_csg_abattue + 1e-16)

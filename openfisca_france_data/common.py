@@ -265,7 +265,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
-        taux_csg = parameters.prelevements_sociaux.contributions_sociales.crds
+        taux_csg = parameters.prelevements_sociaux.contributions_sociales.crds.activite
         taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
             seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
