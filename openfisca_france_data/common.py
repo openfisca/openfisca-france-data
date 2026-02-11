@@ -55,8 +55,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
     parameters = tax_benefit_system.parameters(period.start)
     salarie = parameters.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
-    parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
-    taux_csg = parameters_csg_deductible.taux
+    taux_csg = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
     try:
         seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
@@ -69,8 +68,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
 
     if revenu_type == 'net':  # On ajoute CSG imposable et crds
 
-        parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
-        taux_csg = parameters_csg_imposable.taux
+        taux_csg = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
             seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
@@ -81,8 +79,7 @@ def create_salaire_de_base(individus, period = None, revenu_type = 'imposable', 
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
 
-        parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
-        taux_csg = parameters_crds.taux
+        taux_csg = parameters.prelevements_sociaux.contributions_sociales.crds
         taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
             seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
@@ -242,8 +239,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
 
     salarie = parameters.cotsoc.cotisations_salarie
     plafond_securite_sociale_mensuel = parameters.prelevements_sociaux.pss.plafond_securite_sociale_mensuel
-    parameters_csg_deductible = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
-    taux_csg = parameters_csg_deductible.taux
+    taux_csg = parameters.prelevements_sociaux.contributions_sociales.csg.activite.deductible
     taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
     try:
         seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
@@ -258,8 +254,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         # Cas des revenus nets:
         # comme les salariés du privé, on ajoute CSG imposable et crds qui s'appliquent à tous les revenus
         # 1. csg imposable
-        parameters_csg_imposable = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
-        taux_csg = parameters_csg_imposable.taux
+        taux_csg = parameters.prelevements_sociaux.contributions_sociales.csg.activite.imposable
         taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
             seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
@@ -270,8 +265,7 @@ def create_traitement_indiciaire_brut(individus, period = None, revenu_type = 'i
         if seuil_abattement is not None:
             csg_imposable.add_bracket(seuil_abattement, taux_csg)
         # 2. crds
-        parameters_crds = parameters.prelevements_sociaux.contributions_sociales.crds.activite
-        taux_csg = parameters_crds.taux
+        taux_csg = parameters.prelevements_sociaux.contributions_sociales.crds
         taux_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
             seuil_abattement = parameters.prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
