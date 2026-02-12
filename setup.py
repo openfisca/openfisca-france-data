@@ -60,6 +60,7 @@ setup(
             "scipy >=1.2.1, <2.0.0",
             "toolz >=1.0.0, <2.0.0",
             "openpyxl",
+            "matplotlib"
             ]
         },
 
