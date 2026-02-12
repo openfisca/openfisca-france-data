@@ -51,18 +51,15 @@ setup(
         "test": [
             "click >=8.0.0, <9.0.0",
             "autopep8 >=2.0.2, <3",
-            "bumpver >=2022.1120",
-            "flake8 >=6.0.0, <7.0.0",
+            "bumpver >=2025.1131",
+            "flake8 >=7.0.0, <8.0.0",
             "ipdb >=0.13, <1.0",
-            "ipython >=7.5.0, <8.0.0",
-            "mypy >=0.670, <1.0.0",
+            "ipython >=9.0.0, <10.0.0",
+            "mypy >=1.0.0, <2.0.0",
             "pypandoc",
             "scipy >=1.2.1, <2.0.0",
-            "toolz >=0.9.0, <1.0.0",
-            ],
-        "comparator": [
-            "dtale",               
-            ],
+            "toolz >=1.0.0, <2.0.0",
+            ]
         },
 
     packages = find_namespace_packages(exclude = ("docs", "tests")),
