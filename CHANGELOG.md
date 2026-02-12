@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.8.2 [#281](https://github.com/openfisca/openfisca-france-data/pull/281)
+
+* Technical changes
+  - Fix simulation with new versions of openfisca-core
+
 ### 3.8.1 [#280](https://github.com/openfisca/openfisca-france-data/pull/280s)
 
 * Technical changes

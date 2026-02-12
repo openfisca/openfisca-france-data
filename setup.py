@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "3.8.1",
+    version = "3.8.2",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -53,8 +53,6 @@ setup(
             "autopep8 >=2.0.2, <3",
             "bumpver >=2025.1131",
             "flake8 >=7.0.0, <8.0.0",
-            "ipdb >=0.13, <1.0",
-            "ipython >=9.0.0, <10.0.0",
             "mypy >=1.0.0, <2.0.0",
             "pypandoc",
             "scipy >=1.2.1, <2.0.0",
