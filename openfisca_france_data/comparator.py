@@ -1,5 +1,4 @@
 import datetime
-import dtale
 try:
     import ipdb as pdb
 except ImportError:
@@ -357,7 +356,7 @@ class AbstractComparator(object):
                 }
         return input_dataframe_by_entity, target_dataframe_by_entity
 
-    def compare(self, browse, load, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False, compute_divergence = False):
+    def compare(self, verbose, debug, target_variables = None, period = None, rebuild = False, summary = False, compute_divergence = False):
         """Compare actual data with openfisca-france-data computation."""
         log.setLevel(level = logging.DEBUG if verbose else logging.WARNING)
 
@@ -377,18 +376,6 @@ class AbstractComparator(object):
         backup_directory.mkdir(parents = True, exist_ok = True)
         name = self.name
         backup_path = PurePath.joinpath(backup_directory, f"{name}_backup.h5")
-
-        if load:
-            assert Path.exists(backup_path), f"Backup file {backup_path} doesn't exist"
-            shown = pd.read_hdf(
-                backup_path,
-                'result',
-                )
-            dtale.show(
-                shown,
-                open_browser = True,
-                subprocess = False,
-                )
 
         try:
             start_time = datetime.datetime.now()
@@ -424,31 +411,6 @@ class AbstractComparator(object):
 
             log.debug(f"Eveyrthing has been computed in {datetime.datetime.now() - start_time}")
             del input_dataframe_by_entity, target_dataframe_by_entity
-
-
-            if browse:
-                start_browsing_time = datetime.datetime.now()
-                result = result.dropna(axis = 1, how = 'all')
-                matching_variables = ["noindiv"]
-                assert set(matching_variables) <= set(result.columns)
-                cols_to_use = result.columns.tolist() + matching_variables
-                shown = result
-
-                log.debug(f"Data for browsing has been prepared in {datetime.datetime.now() - start_browsing_time}")
-
-                dtale.show(
-                    shown,
-                    open_browser = True,
-                    subprocess = False,
-                    )
-
-                assert backup_directory.exists()
-                shown.to_hdf(
-                    backup_path,
-                    'result',
-                    mode = "w",
-                    format = "table",
-                    )
 
         except Exception as error:
             if debug:

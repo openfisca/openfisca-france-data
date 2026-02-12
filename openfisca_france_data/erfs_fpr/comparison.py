@@ -93,20 +93,18 @@ class ErfsFprtoInputComparator(AbstractComparator):
 
 
 @click.command()
-@click.option('-b', '--browse', is_flag = True, help = "Browse results", default = False, show_default = True)
-@click.option('-l', '--load', is_flag = True, default = False, help = "Load backup results", show_default = True)
 @click.option('-v', '--verbose', is_flag = True, default = False, help = "Increase output verbosity", show_default = True)
 @click.option('-d', '--debug', is_flag = True, default = False, help = "Use python debugger", show_default = True)
 @click.option('-p', '--period', default = REFERENCE_YEAR, help = "period(s) to treat", show_default = True)
 @click.option('-t', '--target-variables', default = None, help = "target variables to inspect (None means all)", show_default = True)
 @click.option('-u', '--rebuild', is_flag = True, default = False, help = "Rebuild test data", show_default = True)
 @click.option('-s', '--summary', is_flag = True, default = False, help = "Produce summary figuress", show_default = True)
-def compare(browse = False, load = False, verbose = True, debug = True, target_variables = None, period = None, rebuild = False, summary = False):
+def compare(verbose = True, debug = True, target_variables = None, period = None, rebuild = False, summary = False):
     """Compare openfisca-france-data simulation to erfs-fpr by generating comparison data and graphs.
 
     Data can be explored using D-Tale and graphs are saved as pdf files.
     """
     comparator = ErfsFprtoInputComparator(period=period)
     comparator.period = period
-    comparator.compare(browse=browse, load=load, verbose=verbose, debug=debug, target_variables=target_variables, period=period, rebuild=rebuild, summary=summary, compute_divergence = True)
+    comparator.compare(verbose=verbose, debug=debug, target_variables=target_variables, period=period, rebuild=rebuild, summary=summary, compute_divergence = True)
 
