@@ -1,5 +1,11 @@
 # Changelog
 
+### 3.8.4 [#282](https://github.com/openfisca/openfisca-france-data/pull/282)
+
+* New features
+
+- Ajoute les agrégats des cibles budgétaires du modèle de microsimulation INES pour l'année 2023. Les aggrégats ont été récupérés dans le dépôt public d'ines :  https://gitlab.com/insee_drees_cnaf/ines-public/-/blob/main/parametres/Cibles_Ines.xlsx?ref_type=heads
+
 ### 3.8.3 [#278](https://github.com/openfisca/openfisca-france-data/pull/278)
 
 * New features
