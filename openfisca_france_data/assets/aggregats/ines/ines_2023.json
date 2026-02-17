@@ -1,5 +1,5 @@
 {
-    "documentation":"Pour les prestations sociales, les cotisations et prélèvements sociaux, note de validation INES 2022",
+    "documentation":"Agrégats issus des cibles budgétaires d'INES pour 2023, disponible dans le dépôt public du projet",
     "data":[
         {
             "variable":"af",
@@ -146,8 +146,7 @@
         {
             "variable":"prelevement_forfaitaire_liberatoire",
             "actual_beneficiaries":0,
-            "actual_amount":0,
-            "notes":"prélèvement forfaitaire libératoire sur revenus 2019 (note 2019)"
+            "actual_amount":0
         },
         {
             "variable":"ifi",
