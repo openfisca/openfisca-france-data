@@ -10,7 +10,7 @@ import pyreadstat
 
 from openfisca_france_data.utils import build_cerfa_fields_by_variable
 
-def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = True, ncols = 70, additional_variables = []):
+def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labels = False, ncols = 60, additional_variables = []):
     """
     Docstring for pote_sas_to_parquet
     
@@ -25,7 +25,7 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
     if create_labels:
         if not os.path.exists(labels_path):
             os.makedirs(labels_path)
-        metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, metadataonly=True)
+        metadata = pyreadstat.read_sas7bdat(filename_path = sas_file,metadataonly=True)
         col_labels = metadata[1].column_names_to_labels
         with open(os.path.join(labels_path, "labels.json"), "w", newline='',encoding='utf-8') as f:
             json.dump(col_labels, f, ensure_ascii=False, indent=4)
@@ -45,18 +45,23 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
                 list_col.append(k)
 
     # on ajoute les cases qui ne sont pas renseignées cerfa dans openfisca-france
-    list_col += ["aged", "agec", "mat", "f", "h", "r", "j", "n", "g", "i", "nbfoy", "dnpa4c", "r", "zl", "zn", "zp", "zf", "zw", "zs", "zg", "zt", "zz", "iddep"]
+    list_col += ["aged", "agec"]
     list_col += additional_variables
     for var in list_col:
         assert col_labels.get(var, None) is not None, f"{var} not in col_labels"
-    
+    print(f"Exportation de {len(list_col)} variables")
+
     del cerfa
     del openfisca_cerfa_list
     del col_labels
 
-    for i in range(1,len(list_col)//ncols + 1):
-        print(f"Round {i} / {len(list_col)//ncols + 1}")
-        table, metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, usecols=list_col[i*ncols:(i+1)*ncols])
+    for i in range(len(list_col)//ncols + 1):
+        print(f"Round {i+1} / {len(list_col)//ncols + 1}")
+        if i == len(list_col)//ncols:
+            usecols = list_col[i*ncols:]
+        else:
+            usecols = list_col[i*ncols:(i+1)*ncols]
+        table, metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, usecols=usecols)
         table.to_parquet(os.path.join(parquet_directory,f"pote_2023_{i}.parquet"))
         with open(os.path.join(labels_path, f"labels_pote_{i}.json"),"w",newline='',encoding='utf-8') as f:
             json.dump(metadata.column_names_to_labels, f, ensure_ascii=False,indent=4)
@@ -64,6 +69,25 @@ def pote_sas_to_parquet(year, sas_pote_directory, parquet_directory, create_labe
         del metadata
         gc.collect()
 
+    print("Round 15")
+    usecols = ['mat', 'f', 'h', 'r', 'j', 'n', 'g', 'i', 'nbfoy', 'dnpa4c', 'r', 'zl', 'zn', 'zp', 'zf', 'zw', 'zs', 'zg', 'zt', 'zz', 'iddep'] 
+    table, metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, usecols=usecols)
+    table.to_parquet(os.path.join(parquet_directory,f"pote_2023_15.parquet"))
+    with open(os.path.join(labels_path, f"labels_pote_15.json"),"w",newline='',encoding='utf-8') as f:
+        json.dump(metadata.column_names_to_labels, f, ensure_ascii=False,indent=4)
+    del table
+    del metadata
+    gc.collect()
+
+    print("Round 16")
+    usecols = ['Zbda', 'Zbdb', 'Zbdc', 'Zbdd', 'Zbde', 'Zbdf', 'Zbdg', 'Zbdh', 'Zbdi', 'Zbdj', 'Zbdk', 'Zbdl', 'Zbdm', 'Zbdn', 'Zbdo', 'Zbdp', 'Zbdq', 'Zbdr', 'Zbds', 'Zbdt', 'Zbdu', 'Zbdv', 'Zbdw', 'Zbdx', 'Zbdy', 'Zbdz', 'Zbea']
+    table, metadata = pyreadstat.read_sas7bdat(filename_path = sas_file, usecols=usecols)
+    table.to_parquet(os.path.join(parquet_directory,f"pote_2023_16.parquet"))
+    with open(os.path.join(labels_path, f"labels_pote_16.json"),"w",newline='',encoding='utf-8') as f:
+        json.dump(metadata.column_names_to_labels, f, ensure_ascii=False,indent=4)
+    del table
+    del metadata
+    gc.collect()
 
 @click.command()
 @click.option(

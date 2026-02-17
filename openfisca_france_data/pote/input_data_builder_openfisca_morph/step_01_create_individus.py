@@ -170,7 +170,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         revenus_individu = revenus_individu.rename(columns = {'rang':'foyer_fiscal_position'})
 
         revenus_individu["date_naissance"] = revenus_individu["date_naissance"].astype('int')
-        revenus_individu["date_naissance"] = np.where((revenus_individu["date_naissance"] > 1900) & (revenus_individu["date_naissance"] < int(year)),revenus_individu["date_naissance"],1975)
+        revenus_individu["date_naissance"] = np.where((revenus_individu["date_naissance"] > 1900) & (revenus_individu["date_naissance"] <= int(year)),revenus_individu["date_naissance"],1975)
         revenus_individu["date_naissance"] = pd.to_datetime(
             pd.DataFrame({"year":revenus_individu["date_naissance"],
             'month':"01",
@@ -186,7 +186,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         revenus_individu['famille_position'] = revenus_individu.foyer_fiscal_position
         revenus_individu['menage_position'] = revenus_individu.foyer_fiscal_position
 
-        revenus_individu.to_parquet(f"{output_path}individu/individu_{i}.parquet")
+        revenus_individu.to_parquet(f"{output_path}individu/individu_{str(i).zfill(2)}.parquet")
 
         if i == nrange - 1:
             columns = revenus_individu.columns

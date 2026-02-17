@@ -50,7 +50,7 @@ def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=d
             os.makedirs(path)
 
     if rebuild_from_sas:
-        log.warnings("ATTENTION Vous avez lancé le build à partir de la table sas de POTE. Cela peut prendre plusieurs heures. Si vous avez déjà la table POTE au format parquet vous pouvez passer cette étape")
+        log.warning("ATTENTION Vous avez lancé le build à partir de la table sas de POTE. Cela peut prendre plusieurs jours. Si vous avez déjà la table POTE au format parquet vous pouvez passer cette étape")
         sas_data_directory = survey.config.get('data','sas_pote')
         parquet_directory = survey.config.get('data','parquet_pote')
 
@@ -65,7 +65,6 @@ def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=d
     nrange = pote_length // chunk_size + 1 * (pote_length%chunk_size > 0)
 
     variables_individu, variables_foyer_fiscal = create_pote_openfisca_variables_list(year, errors_path, raw_data_directory)
-
     build_individus(year, chunk_size, variables_individu, config_files_directory, raw_data_directory, output_path, errors_path, nrange, log)
     create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, log)
     log.info(f"Fin de la préparation de POTE {year} pour Openfisca France !")
@@ -74,10 +73,11 @@ def build_pote_input_data(year=2023,chunk_size=1000000, config_files_directory=d
 @click.option('-y', '--year', 'year', default = 2023, help = "POTE year")
 @click.option('-s', '--chunk_size', 'chunk_size', default = 1000000, help = "chunk size")
 @click.option('-c', '--config_files_directory', 'config_files_directory', default = default_config_files_directory, help = "config files directory")
-@click.option('-t', '--taux_non_null', 'taux_non_null', default = 0.0002, help = "taux minimum de valeurs non nulle dans la colonne pour la garder dans la simulation")
-@click.option('-r', '--rebuild_from_sas', 'rebuild_from_sas', default = False, help = "Si True reconstruit POTE à partir du fichier SAS")
+@click.option('-t', '--taux_non_null', 'taux_non_null', default = 0, help = "taux minimum de valeurs non nulle dans la colonne pour la garder dans la simulation")
+@click.option('-r', '--rebuild_from_sas', 'rebuild_from_sas', default = False, help = "Pour reconstruire depuis le fichier sas")
 
-def main(year=2023,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0.0002, rebuild_from_sas=False):
+
+def main(year=2023,chunk_size=1000000, config_files_directory=default_config_files_directory, taux_non_null = 0, rebuild_from_sas=False):
     build_pote_input_data(year=year,chunk_size=chunk_size, config_files_directory=config_files_directory, taux_non_null=taux_non_null, rebuild_from_sas=rebuild_from_sas)
 
 if __name__ == '__main__':

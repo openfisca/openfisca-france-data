@@ -1,6 +1,7 @@
 import glob
 import os
 import pyarrow as pa
+import pyarrow.compute as pc
 import pyarrow.parquet as pq
 import tracemalloc
 from openfisca_survey_manager.survey_collections import SurveyCollection
@@ -10,9 +11,9 @@ tracemalloc.start()
 def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, output_path, config_files_directory, log):
     log.info("----- Etape 2 : Préparation de la table foyer fiscal d'input ------")
     columns_list = ["foyer_fiscal_id"]
-
     i = 0
-    columns_demi_part = {"zl":None, "zn":None, "zp":None, "zf":None, "zw":None, "zs":None, "zg":None,"zt":None,"zr":None,"zz":None,"iddep":None} # "dadokz":None,
+    # columns_demi_part = {"zl":None, "zn":None, "zp":None, "zf":None, "zw":None, "zs":None, "zg":None,"zt":None,"zr":None,"zz":None,"iddep":None} # "dadokz":None,
+    columns_demi_part = {"caseL":"zl", "caseN":"zn", "caseP":"zp", "caseF":"zf", "caseW":"zw", "caseS":"zs", "caseG":"zg","caseT":"zt","nbR":"r"} #,"iddep":None
     variables_foyer_fiscal.update(columns_demi_part)
     raw_pote_tables = glob.glob(os.path.join(raw_data_directory,"*.parquet"))
     dict_col_tables = {}
@@ -24,16 +25,20 @@ def create_table_foyer_fiscal(raw_data_directory, variables_foyer_fiscal, year, 
             dict_col_tables[column] = table
     for openfisca_var, cerfa in variables_foyer_fiscal.items():
         if cerfa is not None:
-            col = "z" + cerfa[1:]
+            if len(cerfa)==4:
+                col = "Z" + cerfa[1:]
+            else:
+                col = cerfa
         else:
             col = openfisca_var
-        # if col == "zr":
-        #     file_path = f"{raw_data_directory}pote_r.parquet"
         if col in dict_col_tables.keys():
             file_path = dict_col_tables[col]
             columns_list.append(openfisca_var)
             final_table =  pq.read_table(file_path, columns = [col])
             final_table = final_table.rename_columns([openfisca_var])
+            if openfisca_var in ["caseL","caseN", "caseP", "caseF", "caseW", "caseS", "caseG", "caseT"]:
+                case = openfisca_var[4]
+                final_table = final_table.set_column(0,openfisca_var,pc.equal(final_table[openfisca_var], case))
             final_parquet_file =  os.path.join(output_path,f"foyer_fiscal/{openfisca_var}.parquet")
             pq.write_table(final_table, final_parquet_file)
             if i == 0:
