@@ -1,0 +1,157 @@
+{
+    "documentation":"Agrégats issus des cibles budgétaires d'INES pour 2023, disponible dans le dépôt public du projet",
+    "data":[
+        {
+            "variable":"af",
+                "actual_beneficiaries": 5010000,
+                "actual_amount": 12644000000
+        },
+        {
+            "variable":"paje_prepare",
+            "actual_beneficiaries": 367000,
+            "actual_amount": 72000000
+        },
+        {
+            "variable":"aeeh",
+            "actual_beneficiaries": 400000,
+            "actual_amount": 1337000000
+        },
+        {
+            "variable":"asf",
+            "actual_beneficiaries": 0,
+            "actual_amount": 0
+        },
+        {
+            "variable":"paje_base",
+            "actual_beneficiaries": 1745000,
+            "actual_amount": 2783000000
+        },
+        {
+            "variable":"paje_naissance",
+            "actual_beneficiaries": 450000,
+            "actual_amount": 467000000
+        },
+        {
+            "variable":"cf",
+            "actual_beneficiaries": 963000,
+            "actual_amount":2313000000
+        },
+        {
+            "variable":"ars",
+            "actual_beneficiaries": 2732000,
+            "actual_amount": 1970000000
+        },
+        {
+            "variable":"paje_cmg",
+            "actual_beneficiaries": 1100000,
+            "actual_amount":6878000000
+        },
+        {
+            "variable":"aides_logement",
+            "actual_beneficiaries": 6643000,
+            "actual_amount": 135720000000
+        },
+        {
+            "variable":"aah",
+            "actual_beneficiaries": 1467000,
+            "actual_amount":10762000000
+        },
+        {
+            "variable":"aspa",
+            "actual_beneficiaries":528000,
+            "actual_amount": 2916000000
+        },
+        {
+            "variable":"asi",
+            "actual_beneficiaries":57000,
+            "actual_amount":248000000
+        },
+        {
+            "variable":"garantie_jeunes",
+            "actual_beneficiaries": 0,
+            "actual_amount":0
+        },
+        {
+            "variable":"rsa",
+            "actual_beneficiaries": 2182000,
+            "actual_amount":9511000000
+        },
+        {
+            "variable":"ppa",
+            "actual_beneficiaries": 6219000,
+            "actual_amount": 9612000000
+        },
+        {
+            "variable":"cotisations_salariales",
+            "actual_beneficiaries":0,
+            "actual_amount": 92322000000
+        },
+        {
+            "variable":"cotisations_non_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":26442000000
+        },
+        {
+            "variable":"cotisations_employeur",
+            "actual_beneficiaries":0,
+            "actual_amount":256794000000
+        },
+        {
+            "variable":"allegement_general",
+            "actual_beneficiaries":0,
+            "actual_amount":37764000000
+        },
+        {
+            "variable":"csg_salaire",
+            "actual_beneficiaries":0,
+            "actual_amount":87627000000
+        },
+        {
+            "variable":"csg_non_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":12351000000
+        },
+        {
+            "variable":"csg_remplacement",
+            "actual_beneficiaries":0,
+            "actual_amount":24461000000
+        },
+        {
+            "variable":"crds_salaire",
+            "actual_beneficiaries":0,
+            "actual_amount":4756000000
+        },
+        {
+            "variable":"crds_non_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":678000000
+        },
+        {
+            "variable":"crds_remplacement",
+            "actual_beneficiaries":0,
+            "actual_amount":1973000000
+        },
+        {
+            "variable":"impot_revenu_restant_a_payer",
+            "actual_beneficiaries":0,
+            "actual_amount":90211000000,
+            "notes":"Notion pas très clair, d'après dgfip montant net = 81547000000 pour la France métropolitaine"
+        },
+        {
+            "variable":"prelevement_forfaitaire_unique_ir",
+            "actual_beneficiaries":0,
+            "actual_amount":7380000000,
+            "notes":"prélèvement forfaitaire unique libératoire sur revenus 2023 + revenus 2022 - CI sur PFO N-1"
+        },
+        {
+            "variable":"prelevement_forfaitaire_liberatoire",
+            "actual_beneficiaries":0,
+            "actual_amount":0
+        },
+        {
+            "variable":"ifi",
+            "actual_beneficiaries":0,
+            "actual_amount":1880000000
+        }
+    ]
+}
