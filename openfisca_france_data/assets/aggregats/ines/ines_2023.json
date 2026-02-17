@@ -94,7 +94,7 @@
         {
             "variable":"cotisations_employeur",
             "actual_beneficiaries":0,
-            "actual_amount":256794
+            "actual_amount":256794000000
         },
         {
             "variable":"allegement_general",
