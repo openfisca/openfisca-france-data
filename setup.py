@@ -6,7 +6,7 @@ with open('README.md') as file:
 
 setup(
     name = "OpenFisca-France-Data",
-    version = "3.8.4",
+    version = "3.8.5",
     description = "OpenFisca-France-Data module to work with French survey data",
     long_description = long_description,
     long_description_content_type="text/markdown",
@@ -28,9 +28,8 @@ setup(
         ],
     package_data = {
         'openfisca_france_data': ['assets/aggregats/taxipp/agregats_tests_taxipp_2_0.xlsx',
-                                  'assets/aggregats/ines/ines_2019.json',
                                   'reforms/old_openfisca_france_reforms/parameters/*.yaml',
-                                  'assets/aggregats/ines/ines_2020.json',
+                                  'assets/aggregats/ines/*.json',
                                   'assets/aggregats/france_entiere/*.json'],
         },
     entry_points = {

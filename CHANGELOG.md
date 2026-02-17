@@ -1,10 +1,14 @@
 # Changelog
 
+### 3.8.5 [#283](https://github.com/openfisca/openfisca-france-data/pull/283)
+
+* Technical changes
+  - Ajoute tous les fichiers .json des cibles ines dans le paquet openfisca_france_data
+
 ### 3.8.4 [#282](https://github.com/openfisca/openfisca-france-data/pull/282)
 
 * New features
-
-- Ajoute les agrégats des cibles budgétaires du modèle de microsimulation INES pour l'année 2023. Les aggrégats ont été récupérés dans le dépôt public d'ines :  https://gitlab.com/insee_drees_cnaf/ines-public/-/blob/main/parametres/Cibles_Ines.xlsx?ref_type=heads
+  - Ajoute les agrégats des cibles budgétaires du modèle de microsimulation INES pour l'année 2023. Les aggrégats ont été récupérés dans le dépôt public d'ines :  https://gitlab.com/insee_drees_cnaf/ines-public/-/blob/main/parametres/Cibles_Ines.xlsx?ref_type=heads
 
 ### 3.8.3 [#278](https://github.com/openfisca/openfisca-france-data/pull/278)
 
