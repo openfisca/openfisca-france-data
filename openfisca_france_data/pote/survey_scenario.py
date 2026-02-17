@@ -15,8 +15,8 @@ class PoteSurveyScenario(AbstractSurveyScenario):
     def __init__(
         self,
         config_files_directory,
-        annee_donnees: int = 2022,
-        period: int = 2022,
+        annee_donnees: int = 2023,
+        period: int = 2023,
         rebuild_input_data: bool = False, # pour l'instant il n'y a pas de builder propre
         init_from_data : bool = True,
         baseline_tax_benefit_system: TaxBenefitSystem = AnnualisationVariablesIR(openfisca_france_tax_benefit_system),

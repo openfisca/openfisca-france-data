@@ -1,7 +1,8 @@
 import pandas as pd
 from os.path import exists
+import glob
 import os
-from pyarrow.parquet import ParquetFile
+from pyarrow.parquet import (ParquetFile, read_schema)
 import pyarrow as pa
 import numpy as np
 from openfisca_survey_manager.surveys import Survey
@@ -15,6 +16,10 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
     log.info("----- Etape 1 : construction de la base individus -----")
 
     columns = ["aged","agec", "mat", "f","h","r","j","n","g","i","nbfoy", "dnpa4c"]
+    columns_revenus = list()
+    for cerfa in variables_individu.values():
+        columns_revenus += ["Z" + c[1:] for c in cerfa]
+
     #f = nombre d'enfants mineur et g compris dans f nombre avec carte invalidite
     #h = nombre enfants résidence alternée et i compris dans h nb invalides
     #r = nombre de personnes invalides à charge
@@ -22,21 +27,27 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
     #n = nombre enfant majeur marie / pacse
     #p = nb petits enfants rattachés alternance
     #dnpa4c : annnees de naissances de tous les pacs (y compris les majeurs par ex)
-
-
+    raw_data_tables = glob.glob(os.path.join(raw_data_directory,"*.parquet"))
     columns_iter = dict()
-    for col in columns:
-        pf = ParquetFile(f"{raw_data_directory}pote_{col}.parquet")
-        columns_iter[col] = pf.iter_batches(batch_size = chunk_size)
+    columns_revenus_iter = dict()
+    for table in raw_data_tables:
+        metadata = read_schema(table)
+        col_to_keep = set(metadata.names).intersection(columns)
+        col_revenus_to_keep = set(metadata.names).intersection(columns_revenus)
+        pf = ParquetFile(table)
+        if len(col_to_keep)>0:
+            columns_iter[table] = pf.iter_batches(batch_size = chunk_size, columns=col_to_keep)
+        if len(col_revenus_to_keep)>0:
+            columns_revenus_iter[table] = pf.iter_batches(batch_size = chunk_size, columns=col_revenus_to_keep)
 
     # récupération des colonnes de POTE qui sont dans les cerfa d'openfisca france
-    columns_revenus_iter = dict()
-    for openfisca_var, cerfa in variables_individu.items():
-        for c in cerfa:
-            col = "z" + c[1:]
-            if exists(f"{raw_data_directory}pote_{col}.parquet"):
-                pf = ParquetFile(f"{raw_data_directory}pote_{col}.parquet")
-                columns_revenus_iter[c] = pf.iter_batches(batch_size = chunk_size)
+    # columns_revenus_iter = dict()
+    # for openfisca_var, cerfa in variables_individu.items():
+    #     for c in cerfa:
+    #         col = "z" + c[1:]
+    #         if exists(f"{raw_data_directory}pote_{col}.parquet"):
+    #             pf = ParquetFile(f"{raw_data_directory}pote_{col}.parquet")
+    #             columns_revenus_iter[c] = pf.iter_batches(batch_size = chunk_size)
 
     mat_na = list() # liste des foyers avec une situation matrimoniale manquante
     date_naiss_decl_na = list() # liste des foyers avec la date de naissance du déclarant manquante
@@ -55,10 +66,10 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
     for i in range(nrange):
         log.info(f" - Début du round {i} sur {nrange - 1}")
         df = pd.DataFrame()
-        for col in columns:
-            first_rows = next(columns_iter[col])
-            df_col = pa.Table.from_batches([first_rows]).to_pandas()
-            df[col] = df_col
+        for table in columns_iter.values():
+            first_rows = next(table)
+            df_temp = pa.Table.from_batches([first_rows]).to_pandas()
+            df =pd.concat([df, df_temp], axis = 1)
 
      # 1) création des individus déclarants et conjoint si existant
         df["foyer_fiscal_id"] = [j + i * chunk_size for j in range(len(df))]
@@ -106,7 +117,7 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         ## tests
         test = pd.DataFrame(df_pac.groupby(["foyer_fiscal_id","case"])["date_naissance"].count())
         test.reset_index(inplace = True)
-        for c in["g","i","f", "h", "j", "n", "r"]:
+        for c in["g","i","f", "h", "j", "n"]:
             test2 = test.loc[test["case"] == c]
             test2 = pd.merge(test2,df.loc[df[str.lower(c)].isna() == False][["foyer_fiscal_id", str.lower(c)]], on = "foyer_fiscal_id")
             test2['test'] = test2[c] - test2["date_naissance"]
@@ -121,16 +132,21 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         df_indiv = pd.concat([df_indiv,df_pac])
 
     # 3) récupération des variables de revenus individuels pour les individus identifiés dans l'étape précédente
+        df_revenus = pd.DataFrame()
+        for table in columns_revenus_iter.values():
+            first_rows = next(table)
+            df_temp = pa.Table.from_batches([first_rows]).to_pandas()
+            df_revenus =pd.concat([df_revenus, df_temp], axis = 1)
+        
         revenus_individu = pd.DataFrame()
         for openfisca_var, cerfa in variables_individu.items():
             table_temp = pd.DataFrame()
             rang = 0
             value_vars = list()
             for c in cerfa:
-                if c in list(columns_revenus_iter.keys()):
-                    selected_rows = next(columns_revenus_iter[c])
-                    df_col = pa.Table.from_batches([selected_rows]).to_pandas()
-                    table_temp[str(rang)] = df_col.fillna(0)
+                c = "Z" + c[1:]
+                if c in df_revenus.columns:
+                    table_temp[str(rang)] = df_revenus[c].fillna(0)
                     value_vars += str(rang)
                     rang +=1
             table_temp["foyer_fiscal_id"] = [j + i * chunk_size for j in range(len(df))]
@@ -151,10 +167,10 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         incoherence_revenus = incoherence_revenus + list(test_revenus.loc[test_revenus.indiv<test_revenus.revenus].index)
 
         revenus_individu = pd.merge(df_indiv, revenus_individu,on = ["foyer_fiscal_id", "rang"], how = 'left').fillna(0)
-        revenus_individu = revenus_individu.drop('rang', axis = 1)
+        revenus_individu = revenus_individu.rename(columns = {'rang':'foyer_fiscal_position'})
 
         revenus_individu["date_naissance"] = revenus_individu["date_naissance"].astype('int')
-        revenus_individu["date_naissance"] = np.where((revenus_individu["date_naissance"] > 1900) & (revenus_individu["date_naissance"] <int(year)),revenus_individu["date_naissance"],1975)
+        revenus_individu["date_naissance"] = np.where((revenus_individu["date_naissance"] > 1900) & (revenus_individu["date_naissance"] <= int(year)),revenus_individu["date_naissance"],1975)
         revenus_individu["date_naissance"] = pd.to_datetime(
             pd.DataFrame({"year":revenus_individu["date_naissance"],
             'month':"01",
@@ -167,8 +183,10 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
         revenus_individu['menage_id'] = revenus_individu.foyer_fiscal_id
         revenus_individu['famille_role_index'] = revenus_individu.foyer_fiscal_role_index
         revenus_individu['menage_role_index'] = revenus_individu.foyer_fiscal_role_index
+        revenus_individu['famille_position'] = revenus_individu.foyer_fiscal_position
+        revenus_individu['menage_position'] = revenus_individu.foyer_fiscal_position
 
-        revenus_individu.to_parquet(f"{output_path}individu/individu_{i}.parquet")
+        revenus_individu.to_parquet(f"{output_path}individu/individu_{str(i).zfill(2)}.parquet")
 
         if i == nrange - 1:
             columns = revenus_individu.columns
@@ -176,7 +194,24 @@ def build_individus(year, chunk_size, variables_individu,config_files_directory,
     survey = Survey(
         name =  f"pote_{year}",
         label = None,
-        parquet_file_path = output_path
+        parquet_file_path = output_path,
+        variables_dict = {
+            "foyer_fiscal": {
+                "members_entity_id": "foyer_fiscal_id",
+                "members_role_index": "foyer_fiscal_role_index",
+                "members_position": 'foyer_fiscal_position'
+                },
+            "famille": {
+                "members_entity_id": "famille_id",
+                "members_role_index": "famille_role_index",
+                "members_position": 'famille_position'
+                },
+            "menage": {
+                "members_entity_id": "menage_id",
+                "members_role_index": "menage_role_index",
+                "members_position": 'menage_position'
+                },
+        }
         )
     survey.tables[f"individu_{year}"] = {
         "source_format":"parquet",

@@ -42,8 +42,7 @@ class salaire_de_base(Variable):
 
         salarie = P.cotsoc.cotisations_salarie
         plafond_securite_sociale_annuel = P.prelevements_sociaux.pss.plafond_securite_sociale_mensuel * 12
-        csg_deductible = parameters(period).prelevements_sociaux.contributions_sociales.csg.activite.deductible
-        taux_csg = csg_deductible.taux
+        taux_csg = parameters(period).prelevements_sociaux.contributions_sociales.csg.activite.deductible
         taux_abattement = parameters(period).prelevements_sociaux.contributions_sociales.csg.activite.abattement.rates[0]
         try:
             seuil_abattement = parameters(period).prelevements_sociaux.contributions_sociales.csg.activite.abattement.thresholds[1]
