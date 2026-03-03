@@ -112,12 +112,12 @@
             "actual_amount":148510000000
         },
         {
-            "variable":"famille_net_allegement",
+            "variable":"famille_net_allegement_general",
             "actual_beneficiaries":0,
             "actual_amount":31763000000
         },
         {
-            "variable":"mmid_employeur_net_allegement",
+            "variable":"mmid_employeur_net_allegement_general",
             "actual_beneficiaries":0,
             "actual_amount":74009000000
         },
