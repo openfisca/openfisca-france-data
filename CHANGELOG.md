@@ -1,5 +1,10 @@
 # Changelog
 
+### 3.8.6 [#285](https://github.com/openfisca/openfisca-france-data/pull/285)
+
+* Technical changes
+  - Fait le bump oublié dans la PR #284
+
 ### 3.8.5 [#283](https://github.com/openfisca/openfisca-france-data/pull/283)
 
 * Technical changes
