@@ -48,8 +48,8 @@
         },
         {
             "variable":"aides_logement",
-            "actual_beneficiaries": 6643000,
-            "actual_amount": 135720000000
+            "actual_beneficiaries": 6406000,
+            "actual_amount": 13149000000
         },
         {
             "variable":"aah",
@@ -67,9 +67,9 @@
             "actual_amount":248000000
         },
         {
-            "variable":"garantie_jeunes",
-            "actual_beneficiaries": 0,
-            "actual_amount":0
+            "variable":"contrat_engagement_jeune",
+            "actual_beneficiaries": 357000,
+            "actual_amount":740000000
         },
         {
             "variable":"rsa",
@@ -95,6 +95,31 @@
             "variable":"cotisations_employeur",
             "actual_beneficiaries":0,
             "actual_amount":256794000000
+        },
+        {
+            "variable":"cotisation_vieillesse_employeur",
+            "actual_beneficiaries":0,
+            "actual_amount":136170000000
+        },
+        {
+            "variable":"cotisation_vieillesse_salarie",
+            "actual_beneficiaries":0,
+            "actual_amount":92060000000
+        },
+        {
+            "variable":"accident_du_travail",
+            "actual_beneficiaries":0,
+            "actual_amount":148510000000
+        },
+        {
+            "variable":"famille_net_allegement_general",
+            "actual_beneficiaries":0,
+            "actual_amount":31763000000
+        },
+        {
+            "variable":"mmid_employeur_net_allegement_general",
+            "actual_beneficiaries":0,
+            "actual_amount":74009000000
         },
         {
             "variable":"allegement_general",

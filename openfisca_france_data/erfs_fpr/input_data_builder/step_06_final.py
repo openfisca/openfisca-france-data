@@ -59,7 +59,7 @@ def create_input_data_frame(temporary_store = None, year = None, export_flattene
             'wprm',
             'zone_apl',
             'logement_conventionne',
-            'prest_precarite_hand' # on récupère la variable de montant de aah / caah pour pouvoir faire une imputation du handicap
+            'prest_precarite_hand', # on récupère la variable de montant de aah / caah pour pouvoir faire une imputation du handicap
         ]
     else:
         var_menages = [
