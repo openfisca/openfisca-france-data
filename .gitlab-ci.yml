@@ -118,7 +118,7 @@ diagnostics:
     - figures_directory
   image: $CI_REGISTRY_IMAGE:latest
   needs:
-  # - input_data-2019
+  - input_data-2019
   # - input_data-2021
   # - input_data-2022
   - input_data-2023
@@ -151,7 +151,7 @@ check-version-and-changelog:
   before_script:
   - ''
   needs:
-  #- input_data-2019
+  - input_data-2019
   #- input_data-2021
   - input_data-2023
   script:
