@@ -1,5 +1,9 @@
 # Changelog
 
+### 3.8.7 [#286](https://github.com/openfisca/openfisca-france-data/pull/286)
+* New features
+  - Adapte le build_input_data_erfs_fpr pour le millésime 2023 des données
+
 ### 3.8.6 [#285](https://github.com/openfisca/openfisca-france-data/pull/285)
 
 * Technical changes

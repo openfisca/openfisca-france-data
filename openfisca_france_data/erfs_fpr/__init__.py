@@ -4,4 +4,4 @@ original_id_by_entity = {
     "menage": "idmen_original",
     }
 
-REFERENCE_YEAR = 2022
+REFERENCE_YEAR = 2023
