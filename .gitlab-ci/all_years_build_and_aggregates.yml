@@ -46,7 +46,6 @@ aggregates-2022:
     - ./*.csv
   environment:
     name: Aggregates 2022
-    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2022.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - input_data-2022
@@ -66,7 +65,6 @@ aggregates-2022:
     - ./*.csv
   environment:
     name: Aggregates 2023
-    url: https://git.leximpact.dev/benjello/openfisca-france-data/-/jobs/$CI_JOB_ID/artifacts/file/aggregates_erfs_fpr_2023.csv
   image: $CI_REGISTRY_IMAGE:latest
   needs:
   - input_data-2023
