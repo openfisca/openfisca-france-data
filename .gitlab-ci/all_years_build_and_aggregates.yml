@@ -59,7 +59,7 @@ aggregates-2022:
   stage: aggregates
   tags:
   - openfisca
-aggregates-2022:
+aggregates-2023:
   artifacts:
     paths:
     - ./*.csv
